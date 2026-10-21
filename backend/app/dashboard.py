@@ -1,0 +1,138 @@
+"""Interactive dashboard data: a compact slice of the cleaned table plus a spec saying what is worth plotting.
+
+The browser aggregates this slice itself, so clicking a month or a segment can re-filter every visual instantly.
+Only columns that matter are sent: the outcome(s), the date, and the few categories that explain the outcome best.
+"""
+from __future__ import annotations
+
+import json
+import re
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+
+from .tools import SUM_WORDS, to_binary
+
+MAX_ROWS = 50_000
+MAX_DIMS = 4
+MAX_MEASURES = 3
+AVG_WORDS = re.compile(r"pct|percent|rate|ratio|discount|avg|average|score|margin|price|per_|_per|age$", re.I)  # never add these up
+MONEY_WORDS =re.compile(r"revenue|sales|amount|price|cost|spend|profit|income|salary|value", re.I)
+
+
+def _eta_squared(y: pd.Series, g: pd.Series) -> float:
+    d = pd.DataFrame({"y": y, "g": g}).dropna()
+    if len(d) < 5 or d["g"].nunique() < 2:
+        return 0.0
+    tot = ((d["y"] - d["y"].mean()) ** 2).sum()
+    if tot <= 0:
+        return 0.0
+    grp = d.groupby("g")["y"].agg(["mean", "count"])
+    return float((grp["count"] * (grp["mean"] - d["y"].mean()) ** 2).sum() / tot)
+
+
+def _measure(df: pd.DataFrame, col: str, currency: str):
+    s = df[col]
+    b, pos = to_binary(s) if s.dropna().nunique() == 2 else (None, None)
+    if b is not None:
+        return b, {"col": col, "label": f"{col} rate", "agg": "avg", "fmt": "pct", "note": f"share of rows where it is '{pos}'"}
+    x = pd.to_numeric(s, errors="coerce")
+    if x.notna().sum() == 0:
+        return None, None
+    additive = bool(SUM_WORDS.search(col)) and not AVG_WORDS.search(col)
+    money = bool(MONEY_WORDS.search(col)) and bool(currency)
+    return x, {"col": col, "label": col if additive else f"Average {col}", "agg": "sum" if additive else "avg",
+               "fmt": "money" if money else "num", "note": ""}
+
+
+def build_dashboard(wd: Path, result: dict) -> dict:
+    df = pd.read_pickle(wd / "clean.pkl")
+    plan, prof = result.get("plan") or {}, result.get("profile") or {}
+    roles = {c["name"]: c["role"] for c in prof.get("columns", [])}
+    currency = (result.get("context") or {}).get("currency", "")
+    relevant = [c for c in (plan.get("relevant_columns") or list(df.columns)) if c in df.columns]
+    target = plan.get("target") if plan.get("target") in df.columns else None
+
+    # --- measures: the outcome first, then up to two other numeric columns that are not ids
+    cols, measures = {}, []
+    cands = ([target] if target else []) + [c for c in relevant if c != target and roles.get(c) == "numeric"]
+    for c in cands:
+        if len(measures) >= MAX_MEASURES:
+            break
+        vals, spec = _measure(df, c, currency)
+        if spec is not None:
+            cols[c] = vals
+            measures.append(spec)
+
+    # --- date column
+    date = plan.get("date_col") if plan.get("date_col") in df.columns else None
+    if date and not (pd.api.types.is_datetime64_any_dtype(df[date]) and df[date].notna().sum() > 1):
+        date = None
+
+    # --- dimensions: only categories that help explain the outcome, best first
+    dims = []
+    for c in relevant:
+        if c == target or roles.get(c) not in ("categorical", "binary"):
+            continue
+        n = int(df[c].nunique(dropna=True))
+        if n < 2 or n > 40:
+            continue
+        eta = _eta_squared(cols[measures[0]["col"]], df[c].astype(str)) if measures else 0.0
+        dims.append({"col": c, "unique": n, "score": eta})
+    dims.sort(key=lambda d: (-d["score"], d["unique"]))
+    keep = [d for d in dims if d["score"] >= 0.02][:MAX_DIMS]
+    for d in dims:  # always show at least two so there is something to slice by
+        if len(keep) >= min(2, len(dims)):
+            break
+        if d not in keep:
+            keep.append(d)
+    dims = keep
+
+    # --- rows
+    out = pd.DataFrame(index=df.index)
+    for d in dims:
+        out[d["col"]] = df[d["col"]].astype(str).where(df[d["col"]].notna())
+    for m in measures:
+        out[m["col"]] = cols[m["col"]].round(4)
+    if date:
+        out["__date"] = df[date].dt.strftime("%Y-%m-%d")
+    total = int(len(out))
+    if total > MAX_ROWS:
+        out = out.sample(MAX_ROWS, random_state=0).sort_index()
+    out = out.astype(object).where(out.notna(), None)
+    columns = list(out.columns)
+    rows = [[(v.item() if hasattr(v, "item") else v) for v in r] for r in out.itertuples(index=False, name=None)]
+
+    return {"title": (result.get("context") or {}).get("company") or "", "objective": plan.get("objective", ""),
+            "currency": currency, "date": "__date" if date else None, "date_label": date,
+            "measures": measures, "dims": [{"col": d["col"], "unique": d["unique"], "score": round(d["score"], 3)} for d in dims],
+            "columns": columns, "rows": rows, "total_rows": total, "sampled": total > MAX_ROWS}
+
+
+def list_sources(wd: Path) -> list[dict]:
+    """Every table the user can inspect: each uploaded table as it came in, the joined table (if several), and the cleaned table."""
+    out = []
+    tbls = sorted(wd.glob("tbl_*.pkl"))
+    for p in tbls:
+        name = p.stem[4:]
+        out.append({"id": f"tbl:{name}", "label": f"{name} (original)", "kind": "original", "rows": int(len(pd.read_pickle(p)))})
+    if (wd / "raw.pkl").exists():
+        n = int(len(pd.read_pickle(wd / "raw.pkl")))
+        out.append({"id": "raw", "label": "Joined table (before cleaning)" if tbls else "Original (before cleaning)", "kind": "joined" if tbls else "original", "rows": n})
+    if (wd / "clean.pkl").exists():
+        out.append({"id": "clean", "label": "Cleaned (used for analysis)", "kind": "cleaned", "rows": int(len(pd.read_pickle(wd / "clean.pkl")))})
+    # cleaned first, then originals
+    order = {"cleaned": 0, "joined": 1, "original": 2}
+    return sorted(out, key=lambda s: order[s["kind"]])
+
+
+def valid_source(source: str) -> bool:
+    return source in ("clean", "raw") or (source.startswith("tbl:") and re.fullmatch(r"[A-Za-z0-9_\-]+", source[4:]) is not None)
+
+
+def source_path(wd: Path, source: str) -> Path | None:
+    if not valid_source(source):
+        return None
+    p = wd / (f"{source}.pkl" if source in ("clean", "raw") else f"tbl_{source[4:]}.pkl")
+    return p if p.exists() else None
