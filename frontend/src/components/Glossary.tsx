@@ -58,7 +58,7 @@ export default function Glossary() {
               {Object.entries(e.answers).map(([id, a]) => (
                 <tr key={id}>
                   <td>{a.question || id}</td>
-                  <td><b>{a.value}</b></td>
+                  <td><b>{a.label || a.value}</b></td>
                   <td><button className="chip danger" aria-label={`Delete ${id}`} onClick={() => save(ws, without(e, "answers", id))}>Delete</button></td>
                 </tr>
               ))}
@@ -78,12 +78,7 @@ export default function Glossary() {
       {edit && (
         <div className="gedit card">
           <h3>Edit "{edit.workspace}"</h3>
-          {Object.entries(edit.entry.answers).map(([id, a]) => (
-            <label key={id} className="grow">
-              <span>{a.question || id}</span>
-              <input maxLength={120} value={a.value} onChange={(ev) => setEdit({ ...edit, entry: { ...edit.entry, answers: { ...edit.entry.answers, [id]: { ...a, value: ev.target.value } } } })} />
-            </label>
-          ))}
+          <p className="muted">Saved answers can be deleted from the list; they are picked from the question options, so they are not edited as free text.</p>
           {Object.entries(edit.entry.definitions).map(([t, x]) => (
             <label key={t} className="grow">
               <span>{t}</span>

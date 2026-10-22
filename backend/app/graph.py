@@ -22,7 +22,7 @@ from langgraph.graph import END, START, StateGraph
 from . import clarify, glossary
 from . import critic as critic_mod
 from . import insights, planner, powerbi, relations, reporter, strategy, tools
-from .cleaner import apply_definitions, coerce_types, scoped_clean
+from .cleaner import apply_directives, coerce_types, scoped_clean
 from .config import MAX_ITERATIONS
 from .events import emit, set_quiet
 from .llm import get_llm
@@ -173,7 +173,7 @@ def clarify_node(state: RunState) -> dict:
     else:
         llm, _ = get_llm()
         typed, _ = coerce_types(pd.read_pickle(wd / "raw.pkl"), state["profile"])
-        questions = clarify.build_questions(typed, state["profile"], state["goal"], ctx, bool(state.get("explore")), llm)
+        questions = clarify.build_questions(typed, state["profile"], state["goal"], ctx, bool(state.get("explore")), llm, ws)
         for q in questions:
             saved = (ws["answers"].get(q["id"]) or {}).get("value")
             q["prefill"], q["prefill_source"] = (saved, "glossary") if saved in clarify.option_values(q) else (q["default"], "default")
@@ -187,6 +187,9 @@ def clarify_node(state: RunState) -> dict:
     out: dict = {"questions": questions, "answers": final, "answer_sources": sources, "awaiting_input": waiting,
                  "definitions": {"terms": ws["definitions"], "notes": ws["notes"]}}
     text = glossary.definitions_text(ws)
+    notes = clarify.note_lines(questions, final)
+    if notes:
+        text = (text + "\n" if text else "") + "Answers to clarifying questions:\n" + "\n".join(notes)
     if text:
         out["context"] = {**ctx, "definitions_text": text}
     if waiting:
@@ -224,7 +227,7 @@ def plan_node(state: RunState) -> dict:
     extra: dict = {}
     ov = None
     if questions:  # plan on the data as the user defined it (rows excluded, net amount added)
-        typed, _, effects, new_cols = apply_definitions(typed, questions, answers)
+        typed, _, effects, new_cols = apply_directives(typed, questions, answers)
         if new_cols:
             prof = {**prof, "columns": prof["columns"] + [profile_df(typed[[c]])["columns"][0] for c in new_cols], "cols": prof["cols"] + len(new_cols)}
             extra["profile"] = prof
@@ -251,7 +254,7 @@ def clean_node(state: RunState) -> dict:
     typed, log1 = coerce_types(raw, state["profile"])
     log_def: list = []
     if state.get("questions"):
-        typed, log_def, _, _ = apply_definitions(typed, state["questions"], state.get("answers") or {})
+        typed, log_def, _, _ = apply_directives(typed, state["questions"], state.get("answers") or {})
     clean, log2 = scoped_clean(typed, state["profile"], state["plan"])
     clean.to_pickle(_wd(state) / "clean.pkl")
     clean.to_csv(_wd(state) / "cleaned.csv", index=False, encoding="utf-8-sig")

@@ -86,7 +86,7 @@ def _definitions_section(state: dict) -> list[str]:
             rows = "-" if d.get("rows") is None else f"{d['rows']:,}"
             L.append(f"| {_cell(d['question'])} | {_cell(d['answer_label'])} | {SOURCE_LABEL.get(d['source'], d['source'])} | {_cell(d['effect'])} | {rows} |")
     if terms or notes:
-        L += ["", "**Your own definitions** (free text, not verified against the data; passed to the language model as context only):", ""]
+        L += ["", "**Your own definitions** (free text: not applied to the data, not verified; passed to the language model as context only):", ""]
         L += [f"- **{_cell(t)}:** {_cell(x)}" for t, x in terms.items()]
         if notes:
             L.append(f"- *Notes:* {_cell(notes)}")
