@@ -93,3 +93,64 @@ def scoped_clean(df: pd.DataFrame, profile: dict, plan: dict) -> tuple[pd.DataFr
             if n_out:
                 log.append({"step": "Flag outliers", "detail": f"'{c}': {n_out} values ({n_out / len(x):.1%}) outside 1.5×IQR. Flagged, NOT removed - they may be real", "count": n_out})
     return df, log
+
+
+def apply_definitions(df: pd.DataFrame, questions: list[dict], answers: dict) -> tuple[pd.DataFrame, list[dict], dict, list[str]]:
+    """Apply the user's definitions to the data. Returns (data, log entries, effects per question id, new column names).
+    Row filters run first, then the net-amount column. Values are never edited in place: rows are removed or a new column is added,
+    and every change is logged with the number of rows it touched."""
+    df = df.copy()
+    log: list[dict] = []
+    effects: dict[str, dict] = {}
+    new_cols: list[str] = []
+
+    def lowered(col: str) -> pd.Series:
+        return df[col].astype(str).str.strip().str.lower()
+
+    for q in questions:  # 1) row filters
+        a, m = answers.get(q["id"]), q.get("meta") or {}
+        if q["kind"] == "status" and m.get("column") in df.columns:
+            mask = lowered(m["column"]) == str(m["value"]).strip().lower()
+            n = int(mask.sum())
+            if a == "exclude":
+                df = df[~mask].reset_index(drop=True)
+                effects[q["id"]] = {"rows": n, "effect": f"Removed {n:,} rows where {m['column']} is '{m['value']}'."}
+                if n:
+                    log.append({"step": "Definition applied", "detail": f"Excluded rows where '{m['column']}' is '{m['value']}' (your definition)", "count": n})
+            else:
+                effects[q["id"]] = {"rows": n, "effect": f"Kept the {n:,} rows where {m['column']} is '{m['value']}'."}
+        elif q["kind"] == "negatives" and m.get("column") in df.columns:
+            mask = pd.to_numeric(df[m["column"]], errors="coerce") < 0
+            n = int(mask.sum())
+            if a == "exclude":
+                df = df[~mask].reset_index(drop=True)
+                effects[q["id"]] = {"rows": n, "effect": f"Removed {n:,} rows with a negative {m['column']}."}
+                if n:
+                    log.append({"step": "Definition applied", "detail": f"Excluded rows where '{m['column']}' is negative (your definition)", "count": n})
+            else:
+                effects[q["id"]] = {"rows": n, "effect": f"Kept the {n:,} rows with a negative {m['column']}; they lower the totals."}
+
+    for q in questions:  # 2) refund / return / discount columns, then the columns the plan will use
+        a, m = answers.get(q["id"]), q.get("meta") or {}
+        if q["kind"] == "refund" and m.get("column") in df.columns:
+            col, amount, net = m["column"], m.get("amount"), m.get("net_col")
+            r = pd.to_numeric(df[col], errors="coerce").fillna(0).abs()
+            n = int((r != 0).sum())
+            if a == "net" and amount in df.columns and net:
+                df[net] = pd.to_numeric(df[amount], errors="coerce") - r
+                new_cols.append(net)
+                effects[q["id"]] = {"rows": n, "effect": f"Created '{net}' = {amount} minus {col}; {n:,} rows had a non-zero {col}. '{net}' is the main number."}
+                log.append({"step": "Definition applied", "detail": f"Created net amount '{net}' = '{amount}' - '{col}' (original columns unchanged)", "count": n})
+            elif a == "ignore":
+                effects[q["id"]] = {"rows": n, "effect": f"{col} was left out of the analysis ({n:,} non-zero rows ignored)."}
+                log.append({"step": "Definition applied", "detail": f"'{col}' left out of the analysis (your definition)", "count": n})
+            else:
+                effects[q["id"]] = {"rows": n, "effect": f"{col} is analysed on its own, not netted against the amount ({n:,} non-zero rows)."}
+                log.append({"step": "Definition applied", "detail": f"'{col}' kept as a separate measure, not subtracted from the amount", "count": n})
+        elif q["kind"] == "date_col" and answers.get(q["id"]) in df.columns:
+            col = answers[q["id"]]
+            effects[q["id"]] = {"rows": int(df[col].notna().sum()), "effect": f"Time analysis uses '{col}' ({int(df[col].notna().sum()):,} rows have a date)."}
+        elif q["kind"] == "outcome" and answers.get(q["id"]) in df.columns:
+            col = answers[q["id"]]
+            effects[q["id"]] = {"rows": int(pd.to_numeric(df[col], errors="coerce").notna().sum()), "effect": f"'{col}' is the main number the analysis is built around."}
+    return df, log, effects, new_cols

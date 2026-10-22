@@ -210,7 +210,8 @@ def outliers(df, ctx, col):
         ax.boxplot(x, orientation="horizontal", **kw)  # matplotlib >= 3.10
     except TypeError:
         ax.boxplot(x, vert=False, **kw)
-    ax.set(title=f"Outliers in {col}", xlabel=col, yticks=[])
+    ax.set(xlabel=col, yticks=[])
+    _title(ax, f"{col}: {n_out} of {len(x)} values sit outside the usual range")
     pct = n_out / len(x)
     text = f"**{col}**: {n_out} of {len(x)} values ({pct:.1%}) fall outside the usual range ({_fmt(lo)} to {_fmt(hi)})."
     action = f"Check whether the extreme values of {col} are errors or genuinely important cases before drawing conclusions." if pct > 0.05 else None
@@ -225,7 +226,8 @@ def category_share(df, ctx, col):
     top = vc.head(10)
     fig, ax = plt.subplots(figsize=(6.5, 3.6))
     ax.barh(top.index[::-1], top.values[::-1], color=PALETTE[1])
-    ax.set(title=f"Most common values of {col}", xlabel="Rows")
+    ax.set(xlabel="Rows")
+    _title(ax, f"{col}: which values appear most often (top {len(top)} of {len(vc)})")
     share = top.iloc[0] / vc.sum()
     text = f"**{col}** has {len(vc)} distinct values; the most common is '{top.index[0]}' ({share:.0%} of rows)."
     return finding("category_share", f"Composition of {col}", text,
@@ -331,7 +333,8 @@ def outcome_compare(df, ctx, target, col):
     names = {("tick_labels" if _has_tick_labels() else "labels"): [f"{target} = {pos}", "Other"]}  # kwarg renamed in matplotlib 3.9
     ax.boxplot([a, b], showfliers=False, patch_artist=True, boxprops=dict(facecolor=PALETTE[0], alpha=0.35),
                medianprops=dict(color=PALETTE[3]), **names)
-    ax.set(title=f"{col} by {target} outcome", ylabel=col)
+    ax.set(ylabel=col)
+    _title(ax, f"{col} when {target} = {pos} vs all other rows")
     direction = "higher" if r > 0 else "lower"
     text = (f"Rows with **{target} = {pos}** have a {direction} median **{col}** ({_fmt(a.median())} vs {_fmt(b.median())}). "
             f"The difference is {'statistically significant' if p < 0.05 else 'not statistically significant'} (Mann-Whitney p{_pf(p)}, rank-biserial effect={abs(r):.2f}, "
@@ -361,7 +364,8 @@ def robust_compare(df, ctx, target, group):
     med = d.groupby("g")["y"].agg(["median", "count"]).sort_values("median", ascending=False)
     fig, ax = plt.subplots(figsize=(6.5, 3.8))
     d.boxplot(column="y", by="g", ax=ax, showfliers=False, grid=False)
-    ax.set(title=f"Median {target} by {group} (outlier-resistant check)", xlabel=group, ylabel=target)
+    ax.set(xlabel=group, ylabel=target)
+    _title(ax, f"Median {target} across {group} (outlier-resistant check)")
     fig.suptitle("")
     text = (f"Robustness check for **{target}** by **{group}** using medians: highest median in **{med.index[0]}** ({_fmt(med['median'].iloc[0])}), "
             f"lowest in **{med.index[-1]}** ({_fmt(med['median'].iloc[-1])}). Kruskal-Wallis p{_pf(p)} - "
@@ -464,7 +468,7 @@ def correlation(df, ctx, cols=None):
             ax.text(j, i, f"{corr.values[i, j]:.2f}", ha="center", va="center", fontsize=8,
                     color="white" if abs(corr.values[i, j]) > 0.6 else "black")
     fig.colorbar(im, ax=ax, fraction=0.046)
-    ax.set_title("Correlation between numeric columns")
+    _title(ax, "Which numeric columns move together (closer to +1 or -1 = stronger link)")
     pairs = (corr.where(np.triu(np.ones(corr.shape), 1).astype(bool)).stack().sort_values(key=abs, ascending=False).head(3))
     listing = "; ".join(f"{a} & {b}: r={v:.2f}" for (a, b), v in pairs.items())
     strong = [(a, b, v) for (a, b), v in pairs.items() if abs(v) >= 0.5]

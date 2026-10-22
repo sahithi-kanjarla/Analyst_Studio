@@ -46,7 +46,7 @@ function periodLabel(key: string, grain: "month" | "day", multiYear: boolean) {
 function Card({ title, sub, wide, children }: { title: string; sub?: string; wide?: boolean; children: React.ReactNode }) {
   return (
     <section className={`bi-card ${wide ? "bi-wide" : ""}`}>
-      <h4>{title}{sub && <span>{sub}</span>}</h4>
+      <h4>{title}{sub && <small>{sub}</small>}</h4>
       {children}
     </section>
   );
@@ -149,7 +149,10 @@ export default function BIDashboard({ run }: { run: RunResult }) {
     ? group(rows.filter((r) => passes(r, undefined, true)), period, m).sort((a, b) => (a.key < b.key ? -1 : 1)).map((g) => ({ key: g.key, label: periodLabel(g.key, grain, years.length > 1), value: g.value }))
     : [];
 
-  const donutDim = m.agg === "sum" ? data.dims.find((d) => d.unique <= 6) : undefined;
+  // A donut only reads well for a few additive, non-negative parts; anything else gets ranked bars.
+  const donutDim = m.agg === "sum"
+    ? data.dims.find((d) => d.unique >= 2 && d.unique <= 6 && group(rows, (r) => r.d[d.col], m).every((g) => g.value >= 0))
+    : undefined;
   const dimItems = (col: string, max: number) => {
     const all = group(rows.filter((r) => passes(r, col)), (r) => r.d[col], m).sort((a, b) => b.value - a.value);
     return { items: all.slice(0, max).map((g) => ({ key: g.key, label: g.key, value: g.value })), more: Math.max(0, all.length - max) };
@@ -243,25 +246,25 @@ export default function BIDashboard({ run }: { run: RunResult }) {
       ) : (
         <div className="bi-grid">
           {trend.length > 1 && (
-            <Card title={`${m.label} by ${grain}`} wide>
+            <Card title={`${m.label} over time, by ${grain}`} sub={`${trend[0].label} to ${trend[trend.length - 1].label} · click a ${grain} to filter`} wide>
               <Columns items={trend} selected={f.time} onToggle={(k) => setF((p) => ({ ...p, time: toggle(p.time, k) }))} fmt={fmt} />
             </Card>
           )}
           {donutDim && (
-            <Card title={`${m.label} by ${donutDim.col}`} sub="share">
+            <Card title={`${donutDim.col} share of ${m.label}`} sub={`how ${m.label.toLowerCase()} splits across ${donutDim.unique} ${donutDim.col} values`}>
               <Donut items={donutItems} selected={f.dims[donutDim.col] ?? []} onToggle={(k) => toggleDim(donutDim.col, k)} fmt={fmt} />
             </Card>
           )}
           {barDims.map((d) => {
             const { items, more } = dimItems(d.col, 8);
             return (
-              <Card key={d.col} title={`${m.label} by ${d.col}`} sub={more ? `top ${items.length} of ${items.length + more}` : undefined}>
+              <Card key={d.col} title={`${m.label} by ${d.col}`} sub={more ? `top ${items.length} of ${items.length + more}, highest first` : "highest first"}>
                 <HBar items={items} selected={f.dims[d.col] ?? []} onToggle={(k) => toggleDim(d.col, k)} fmt={fmt} />
               </Card>
             );
           })}
           {tableDim && tableRows.length > 0 && (
-            <Card title={`Breakdown by ${tableDim.col}`} wide={barDims.length + (donutDim ? 1 : 0) < 2}>
+            <Card title={`${tableDim.col} breakdown`} sub={m.agg === "sum" ? `each ${tableDim.col}'s share of ${m.label.toLowerCase()}` : `each ${tableDim.col} vs the overall average`} wide={barDims.length + (donutDim ? 1 : 0) < 2}>
               <table className="bi-table">
                 <thead>
                   <tr><th>{tableDim.col}</th><th className="r">Records</th><th className="r">{m.label}</th><th>{m.agg === "sum" ? "Share" : "vs average"}</th></tr>

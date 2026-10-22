@@ -9,7 +9,7 @@ import uuid
 from pathlib import Path
 
 from .config import RUNS_DIR
-from .events import emit
+from .events import emit, set_quiet
 
 RUN_ID_RE = r"^[a-f0-9]{12}$"
 
@@ -69,18 +69,25 @@ def _execute(run_id: str) -> None:
     wd = run_dir(run_id)
     meta = json.loads((wd / "input.json").read_text())
     write_status(run_id, "running")
+    if (wd / "answers.json").exists():
+        set_quiet(run_id, True)  # resumed after a pause: profile/relate run again but must not repeat their timeline events
     try:
         context = meta.get("context") or {}
         final = GRAPH.invoke({"run_id": run_id, "goal": meta["goal"], "data_paths": [str(wd / "inputs" / f) for f in meta["files"]],
                               "workdir": str(wd), "iteration": 0, "findings": [], "context": context, "explore": bool(context.get("explore"))})
+        set_quiet(run_id, False)
+        if final.get("awaiting_input"):
+            write_status(run_id, "needs_input")
+            return
         keys = ("goal", "profile", "plan", "cleaning_log", "findings", "critique", "report_md", "powerbi", "llm_mode", "data_model",
-                "context", "strategies", "strategy_summary", "data_gaps", "key_metrics")
+                "context", "strategies", "strategy_summary", "data_gaps", "key_metrics", "applied_definitions", "definitions")
         result = {k: final.get(k) for k in keys}
         result["run_id"] = run_id
         (wd / "result.json").write_text(json.dumps(result, default=str))
         emit(run_id, "System", "Done.")
         write_status(run_id, "done")
     except Exception as e:
+        set_quiet(run_id, False)
         emit(run_id, "System", f"The run failed: {type(e).__name__}: {e}")
         (wd / "error.txt").write_text(traceback.format_exc())
         write_status(run_id, "error", error=f"{type(e).__name__}: {e}")
@@ -90,3 +97,19 @@ def start_run(run_id: str) -> threading.Thread:
     t = threading.Thread(target=_execute, args=(run_id,), daemon=True)
     t.start()
     return t
+
+
+_resume_lock = threading.Lock()
+
+
+def resume_with_answers(run_id: str, payload: dict) -> bool:
+    """Save the answers and restart a paused run. The status flips to "running" before the thread starts, under a lock,
+    so two submits can never start two runs. Returns False if the run is not waiting for input."""
+    with _resume_lock:
+        st = read_status(run_id)
+        if not st or st.get("status") != "needs_input":
+            return False
+        (run_dir(run_id) / "answers.json").write_text(json.dumps(payload), encoding="utf-8")
+        write_status(run_id, "running")
+        start_run(run_id)
+        return True

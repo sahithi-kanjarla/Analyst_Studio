@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api } from "./api";
 import UploadForm from "./components/UploadForm";
 import RunView from "./components/RunView";
+import Glossary from "./components/Glossary";
 
 function useHashRun(): [string | null, (id: string | null) => void] {
   const read = () => {
@@ -22,6 +23,12 @@ function useHashRun(): [string | null, (id: string | null) => void] {
 
 export default function App() {
   const [runId, go] = useHashRun();
+  const [page, setPage] = useState(window.location.hash === "#/glossary");
+  useEffect(() => {
+    const on = () => setPage(window.location.hash === "#/glossary");
+    window.addEventListener("hashchange", on);
+    return () => window.removeEventListener("hashchange", on);
+  }, []);
   const [llm, setLlm] = useState<string>("");
 
   useEffect(() => {
@@ -34,11 +41,14 @@ export default function App() {
         <a className="brand" href="#/" onClick={() => go(null)}>
           <span className="logo">◆</span> Analyst Studio
         </a>
-        <span className={`pill ${llm.startsWith("rules") || llm === "backend offline" ? "pill-muted" : "pill-ok"}`} title="Which model plans, critiques and writes">
-          {llm ? `Brain: ${llm}` : "…"}
-        </span>
+        <div className="topright">
+          <a className="navlink" href="#/glossary">Glossary</a>
+          <span className={`pill ${llm.startsWith("rules") || llm === "backend offline" ? "pill-muted" : "pill-ok"}`} title="Which model plans, critiques and writes">
+            {llm ? `Brain: ${llm}` : "…"}
+          </span>
+        </div>
       </header>
-      <main>{runId ? <RunView key={runId} runId={runId} /> : <UploadForm onStarted={(id) => go(id)} />}</main>
+      <main>{page ? <Glossary /> : runId ? <RunView key={runId} runId={runId} /> : <UploadForm onStarted={(id) => go(id)} />}</main>
     </div>
   );
 }

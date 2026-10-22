@@ -138,8 +138,9 @@ def lens(ctx: dict | None) -> dict:
 
 def context_text(ctx: dict | None) -> str:
     """Plain-text summary for LLM prompts. Only what the user typed, nothing from the data."""
+    defs = (ctx or {}).get("definitions_text")
     if not has_context(ctx):
-        return ""
+        return f"Business definitions (user-written, unverified):\n{defs}" if defs else ""
     lines = []
     if ctx.get("company"):
         lines.append(f"Company: {ctx['company']}")
@@ -153,6 +154,8 @@ def context_text(ctx: dict | None) -> str:
         lines.append(f"Audience for the results: {ctx['audience']}")
     if ctx.get("notes"):
         lines.append(f"Other notes: {ctx['notes']}")
+    if defs:
+        lines.append(f"Business definitions (user-written, unverified):\n{defs}")
     return "\n".join(lines)
 
 

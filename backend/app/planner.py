@@ -32,9 +32,28 @@ def roles_and_uniques(profile: dict) -> tuple[dict, dict]:
     return ({c["name"]: c["role"] for c in profile["columns"]}, {c["name"]: c["unique"] for c in profile["columns"]})
 
 
-def heuristic_plan(df: pd.DataFrame, profile: dict, goal: str, context: dict | None = None, explore: bool = False) -> dict:
+def _apply_exclusions(roles: dict, ov: dict) -> dict:
+    """Columns the user chose to ignore (or folded into a net amount) are not offered to the planner, unless they are the confirmed target/date."""
+    keep = {ov.get("target"), ov.get("date_col")}
+    return {c: r for c, r in roles.items() if c not in set(ov.get("exclude") or []) or c in keep}
+
+
+def _include_extras(roles: dict, date: str | None, ov: dict) -> list[dict]:
+    """Columns the user wants analysed separately (e.g. refunds) get their own distribution and trend."""
+    out = []
+    for c in ov.get("include") or []:
+        if roles.get(c) == "numeric":
+            out.append({"tool": "distribution", "params": {"col": c}, "why": f"You asked for {c} to be analysed separately."})
+            if date:
+                out.append({"tool": "trend", "params": {"target": c, "date": date}, "why": f"See how {c} changes over time (analysed separately, as you asked)."})
+    return out
+
+
+def heuristic_plan(df: pd.DataFrame, profile: dict, goal: str, context: dict | None = None, explore: bool = False, overrides: dict | None = None) -> dict:
     context = context or {}
+    ov = overrides or {}
     roles, uniques = roles_and_uniques(profile)
+    roles = _apply_exclusions(roles, ov)
     # In explore mode the "goal" is a placeholder sentence, so it must not influence column choice.
     goal_tokens = set() if explore else set(re.findall(r"[a-z0-9]+", goal.lower()))
     kpi_tokens = ctxmod.kpi_tokens(context)
@@ -55,8 +74,10 @@ def heuristic_plan(df: pd.DataFrame, profile: dict, goal: str, context: dict | N
         # No evidence of an outcome: never guess a binary column; fall back to a numeric one or purely descriptive analysis.
         nums_only = [c for c in scored if roles[c] == "numeric"]
         target = nums_only[0] if nums_only else None
+    if ov.get("target") in roles and roles[ov["target"]] in ("numeric", "binary"):
+        target = ov["target"]  # confirmed by the user
     second = next((c for c in scored if c != target and evidence(c) > 0), None) if (explore and target) else None
-    date = next((c for c, r in roles.items() if r == "date"), None)
+    date = ov["date_col"] if ov.get("date_col") in roles and roles[ov["date_col"]] == "date" else next((c for c, r in roles.items() if r == "date"), None)
 
     def rank_groups(t: str | None, limit: int) -> list[str]:
         gs = [c for c, r in roles.items() if r in ("categorical", "binary") and c != t and 2 <= uniques[c] <= 30 and c in df.columns]
@@ -127,9 +148,9 @@ def heuristic_plan(df: pd.DataFrame, profile: dict, goal: str, context: dict | N
             analyses.append({"tool": "composition", "params": {"group": groups[0], "by": groups[1]}, "why": f"See whether the mix of {groups[1]} changes across {groups[0]}."})
         if nums:
             analyses.insert(0, {"tool": "summary_table", "params": {"cols": nums[:12]}, "why": "No clear outcome column was found, so start with a factual overview."})
-    analyses = analyses[:(MAX_ANALYSES_EXPLORE if explore else MAX_ANALYSES)]
+    analyses = analyses[:(MAX_ANALYSES_EXPLORE if explore else MAX_ANALYSES)] + _include_extras(roles, date, ov)
 
-    relevant = list(dict.fromkeys(([target] if target else []) + ([second] if second else []) + groups + ([date] if date else []) + drivers))
+    relevant = list(dict.fromkeys(([target] if target else []) + ([second] if second else []) + groups + ([date] if date else []) + drivers + [c for c in ov.get("include") or [] if c in roles]))
     questions = [f"What explains differences or changes in {target}?" if target else "What does this dataset contain?"]
     if target and groups:
         questions.append(f"Which segments ({', '.join(groups[:3])}) perform best and worst on {target}?")
@@ -157,19 +178,26 @@ Return JSON with keys: objective (string), questions (list of 2-4 strings), targ
 relevant_columns (list), analyses (list of {{tool, params, why}}), skipped (list of {{column, reason}})."""
 
 
-def llm_plan(llm, profile: dict, goal: str, context: dict | None = None, explore: bool = False) -> dict | None:
+def llm_plan(llm, profile: dict, goal: str, context: dict | None = None, explore: bool = False, overrides: dict | None = None) -> dict | None:
     ctx_txt = ctxmod.context_text(context)
+    ov = overrides or {}
+    confirmed = "".join(f"- {k}: {v}\n" for k, v in (("target (main number)", ov.get("target")), ("date_col", ov.get("date_col"))) if v)
+    confirmed += "".join(f"- do not use column: {c}\n" for c in ov.get("exclude") or [])
     mode = "EXPLORATORY MODE: the user does not know what to look for.\n" if explore else ""
-    user = (f"{mode}GOAL: {goal}\n\n" + (f"BUSINESS CONTEXT (user-written, unverified):\n{ctx_txt}\n\n" if ctx_txt else "")
+    user = (f"{mode}GOAL: {goal}\n\n" + (f"CONFIRMED BY THE USER (use exactly):\n{confirmed}\n" if confirmed else "") + (f"BUSINESS CONTEXT (user-written, unverified):\n{ctx_txt}\n\n" if ctx_txt else "")
             + f"PROFILE ({profile['rows']} rows):\n{json.dumps(compact_profile(profile), default=str)}")
     return ask_json(llm, PLAN_SYSTEM, user)
 
 
-def finalize_plan(raw: dict | None, df: pd.DataFrame, profile: dict, goal: str, context: dict | None = None, explore: bool = False) -> tuple[dict, list[str]]:
-    """Validate an LLM plan against reality, then top up from the rules planner if it is too thin."""
+def finalize_plan(raw: dict | None, df: pd.DataFrame, profile: dict, goal: str, context: dict | None = None, explore: bool = False,
+                  overrides: dict | None = None) -> tuple[dict, list[str]]:
+    """Validate an LLM plan against reality, then top up from the rules planner if it is too thin.
+    `overrides` are the user's confirmed answers: they always win over what the model proposed."""
     notes: list[str] = []
+    ov = overrides or {}
     roles, uniques = roles_and_uniques(profile)
-    fallback = heuristic_plan(df, profile, goal, context, explore)
+    roles = _apply_exclusions(roles, ov)
+    fallback = heuristic_plan(df, profile, goal, context, explore, ov)
     if not raw:
         return fallback, notes
     analyses, seen = [], set()
@@ -191,8 +219,18 @@ def finalize_plan(raw: dict | None, df: pd.DataFrame, profile: dict, goal: str, 
                 analyses.append(spec)
     target = raw.get("target") if raw.get("target") in roles and roles[raw["target"]] in ("numeric", "binary") else fallback["target"]
     date = raw.get("date_col") if raw.get("date_col") in roles and roles[raw["date_col"]] == "date" else fallback["date_col"]
-    used = {c for a in analyses for v in a["params"].values() for c in (v if isinstance(v, list) else [v])}
-    relevant = list(dict.fromkeys([c for c in (raw.get("relevant_columns") or []) if c in roles] + [c for c in used if c in roles] + ([target] if target else []) + ([date] if date else [])))
+    if ov.get("target") and target != fallback["target"]:
+        notes.append(f"The main number you chose ({fallback['target']}) replaced the model's choice ({target}); analyses were rebuilt around it.")
+        target, analyses = fallback["target"], list(fallback["analyses"])
+    if ov.get("date_col") and date != fallback["date_col"]:
+        notes.append(f"Time analysis uses {fallback['date_col']}, the date column you chose.")
+        date = fallback["date_col"]
+        analyses = [{**a, "params": {**a["params"], "date": date}} if "date" in a["params"] else a for a in analyses]
+    seen_sigs = {spec_signature(a) for a in analyses}
+    analyses += [a for a in _include_extras(roles, date, ov) if spec_signature(a) not in seen_sigs]
+    used ={c for a in analyses for v in a["params"].values() for c in (v if isinstance(v, list) else [v])}
+    relevant = list(dict.fromkeys([c for c in (raw.get("relevant_columns") or []) if c in roles] + [c for c in used if c in roles] + ([target] if target else []) + ([date] if date else [])
+                                  + [c for c in ov.get("include") or [] if c in roles]))
     questions = [str(q) for q in (raw.get("questions") or [])][:4] or fallback["questions"]
     skipped = [s for s in (raw.get("skipped") or []) if isinstance(s, dict) and s.get("column") in roles][:10]
     objective = fallback["objective"] if explore else str(raw.get("objective") or goal)

@@ -2,6 +2,14 @@ import os
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+
+# Keys such as GROQ_API_KEY live in .env (project root or backend/). Real environment variables win over the file.
+try:
+    from dotenv import load_dotenv
+    for _env in (ROOT / ".env", ROOT.parent / ".env"):
+        load_dotenv(_env, override=False)
+except ImportError:  # python-dotenv is optional: without it only real environment variables are read
+    pass
 RUNS_DIR = Path(os.environ.get("RUNS_DIR", ROOT / "data" / "runs"))
 MAX_UPLOAD_MB = int(os.environ.get("MAX_UPLOAD_MB", "50"))  # total across all files of one run
 MAX_FILES = int(os.environ.get("MAX_FILES", "8"))
