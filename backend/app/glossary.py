@@ -135,20 +135,21 @@ def put_workspace(key: str, entry: dict) -> dict:
     answers = {}
     for qid, a in (entry.get("answers") or {}).items():
         a = a if isinstance(a, dict) else {"value": a}
-        answers[qid] = {"value": a["value"], "question": str(a.get("question") or "")[:300], "updated": a.get("updated") or now}
+        answers[qid] = {"value": a["value"], "label": str(a.get("label") or a["value"])[:120], "question": str(a.get("question") or "")[:300], "updated": a.get("updated") or now}
     new = {"answers": answers, "definitions": {t.strip(): x.strip() for t, x in (entry.get("definitions") or {}).items()}, "notes": (entry.get("notes") or "").strip()}
     _modify(lambda d: d.__setitem__(clean_key(key), new))
     return new
 
 
-def merge_answers(key: str, answers: dict[str, str], questions: dict[str, str], notes: str = "", definitions: dict[str, str] | None = None) -> dict:
+def merge_answers(key: str, answers: dict[str, str], questions: dict[str, str], notes: str = "", definitions: dict[str, str] | None = None,
+                  labels: dict[str, str] | None = None) -> dict:
     """Add the answers given for a run to the workspace (existing items are overwritten, others kept)."""
     now = time.time()
     ck = clean_key(key)
 
     def fn(d):
         ws = d.setdefault(ck, _empty())
-        ws.setdefault("answers", {}).update({q: {"value": v, "question": questions.get(q, "")[:300], "updated": now} for q, v in answers.items()})
+        ws.setdefault("answers", {}).update({q: {"value": v, "label": (labels or {}).get(q, v)[:120], "question": questions.get(q, "")[:300], "updated": now} for q, v in answers.items()})
         ws.setdefault("definitions", {}).update({t.strip(): x.strip() for t, x in (definitions or {}).items() if t.strip() and x.strip()})
         if notes.strip():
             ws["notes"] = notes.strip()

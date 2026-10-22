@@ -148,7 +148,8 @@ def post_answers(run_id: str, body: AnswersIn):
     confirmed = {qid: body.answers.get(qid) or q.get("prefill") or q["default"] for qid, q in qmap.items()}
     if not body.skip:
         try:
-            glossary.merge_answers(data.get("workspace", "default"), confirmed, {i: q["text"] for i, q in qmap.items()}, body.notes, body.definitions)
+            glossary.merge_answers(data.get("workspace", "default"), confirmed, {i: q["text"] for i, q in qmap.items()}, body.notes, body.definitions,
+                                   {i: clarify.option_for(q, confirmed[i])["label"] for i, q in qmap.items()})
         except TimeoutError as e:
             raise HTTPException(503, str(e))
     if not resume_with_answers(run_id, {"answers": {} if body.skip else confirmed, "skip": body.skip, "notes": body.notes}):

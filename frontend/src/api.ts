@@ -167,6 +167,7 @@ export interface AppliedDefinition {
 
 export interface GlossaryAnswer {
   value: string;
+  label?: string;
   question: string;
   updated?: number;
 }

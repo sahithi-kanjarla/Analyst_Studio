@@ -1,11 +1,16 @@
-"""Clarifying questions: spot the ambiguities in the data that would change the numbers, before anything is analysed.
+"""Clarifying questions that work on any tabular data.
 
-Rules only, no LLM needed (max MAX_QUESTIONS questions). When an LLM is configured it may add up to MAX_LLM extra questions;
-every column such a question mentions must exist, otherwise the question is dropped.
+   data --> signals.py (neutral facts: two date columns, a spike of one value, a column that is the sum of two others, ...)
+        --> question writer: an LLM turns the signals + goal + context + saved glossary into questions; with no LLM (or an unusable
+            answer) one generic template per signal type does the same job
+        --> validator: unknown columns, actions outside the closed list (directives.py), scope questions, duplicates are dropped
+        --> the user answers (or skips); cleaner.apply_directives executes the chosen actions.
 
-A question is NOT asked when the goal or the typed KPIs already settle it (the answer is then recorded as set by "goal").
-Each question is a dict: {id, kind, text, options:[{value,label}], default, why, columns, meta}. Ids are stable across runs
-(e.g. "date_col", "refund:<col>", "status:<col>:<value>") so saved glossary answers can pre-fill them."""
+Nothing here knows what a column MEANS: no word lists about any business domain. A question is only ever asked when the answer
+changes what a number means, and the default answer of every question leaves the data untouched, so "Skip, use defaults" changes nothing.
+
+A question is {id, kind, text, why, options:[{value, label, action}], default, columns, signal, strong} (+ "auto" when the goal already settles it).
+Ids are the signal id (type + columns hash), so a saved glossary answer matches the same ambiguity on the next run."""
 from __future__ import annotations
 
 import hashlib
@@ -15,245 +20,256 @@ import re
 import pandas as pd
 
 from . import context as ctxmod
+from . import directives as dv
 from .llm import ask_json
-from .planner import _name_tokens
 from .profiler import compact_profile
+from .scope import is_scope_question
+from .signals import compute_signals
 
 MAX_QUESTIONS = 6
-MAX_LLM = 3
-
-REFUND_RX = re.compile(r"refund|return|cancel|discount", re.I)
-NOT_AMOUNT_RX = re.compile(r"count|qty|quantity|num|number|flag|pct|percent|rate|ratio|%|^is_|^has_", re.I)  # a rate or a count cannot be subtracted from money
-AMOUNT_RX = re.compile(r"revenue|sales|amount|total|gmv|value|price|income|spend|turnover", re.I)
-OUTCOME_RX = re.compile(r"revenue|sales|profit|income|amount|spend|churn|conversion|score|rating|salary|margin|outcome|target|gmv|turnover|default|fraud|satisfaction", re.I)
-STATUS_RX = re.compile(r"status|state|stage|condition", re.I)
-BAD_STATUS = ("cancel", "fail", "void", "declin", "test", "dummy", "demo", "sandbox")
-TEST_TOKENS = {"test", "testing", "dummy", "demo", "sandbox"}
-AGG_SUFFIX = re.compile(r"_(total|sum|avg|mean|min|max|count|last|first|median)$", re.I)
+MAX_OPTIONS = 6
 DATE_FILLER = {"date", "time", "at", "on", "dt", "ts", "timestamp", "day"}
-
-
-def _q(qid: str, kind: str, text: str, options: list[tuple[str, str]], default: str, why: str, columns: list[str], **meta) -> dict:
-    return {"id": qid, "kind": kind, "text": text, "options": [{"value": v, "label": lab} for v, lab in options], "default": default,
-            "why": why, "columns": columns, "meta": meta}
 
 
 def option_values(q: dict) -> list[str]:
     return [o["value"] for o in q["options"]]
 
 
-def _num(df: pd.DataFrame, col: str) -> pd.Series:
-    return pd.to_numeric(df[col], errors="coerce")
+def option_for(q: dict, value) -> dict:
+    return next((o for o in q["options"] if o["value"] == value), None) or next(o for o in q["options"] if o["value"] == q["default"])
 
 
-def _refund_like(name: str) -> bool:
-    return bool(REFUND_RX.search(name)) and not NOT_AMOUNT_RX.search(name)
+def chosen(questions: list[dict], answers: dict):
+    """(question, option, action) for every question, using the answer or else the default."""
+    for q in questions:
+        o = option_for(q, answers.get(q["id"]))
+        yield q, o, o["action"]
 
+
+# ---------------------------------------------------------------- validation (shared by the LLM writer and the templates)
 
 def _words(text: str) -> set[str]:
     return set(re.findall(r"[a-z0-9]+", text.lower()))
 
 
 def _col_words(name: str) -> list[str]:
-    return [w for w in re.findall(r"[a-z0-9]+", re.sub(r"([a-z])([A-Z])", r"\1 \2", name).lower())]
+    return re.findall(r"[a-z0-9]+", re.sub(r"([a-z])([A-Z])", r"\1 \2", name).lower())
 
 
-def _named_in_goal(col: str, goal: str) -> bool:
-    ws, gw = _col_words(col), _words(goal)
-    if not ws:
-        return False
-    if " ".join(ws) in " ".join(re.findall(r"[a-z0-9]+", goal.lower())):
-        return True
+def named_in_goal(col: str, goal: str) -> bool:
+    """The user's own words in the goal point at this column (all of the column's distinctive words appear in it)."""
+    ws = _col_words(col)
     distinct = set(ws) - DATE_FILLER
-    return bool(distinct) and distinct <= gw
+    return bool(ws) and bool(distinct) and (" ".join(ws) in " ".join(re.findall(r"[a-z0-9]+", goal.lower())) or distinct <= _words(goal))
 
 
-def _date_question(df, profile, goal, explore) -> dict | None:
-    cols = [c["name"] for c in profile["columns"] if c["role"] == "date" and c["name"] in df.columns]
-    if len(cols) < 2:
-        return None
-    named = [c for c in cols if _named_in_goal(c, "" if explore else goal)]
-    stats = {c["name"]: c.get("stats") or {} for c in profile["columns"]}
-
-    def label(c):
-        s = stats.get(c, {})
-        return f"{c} ({s['min']} to {s['max']})" if s.get("min") else c
-    q = _q("date_col", "date_col", "Which date should be used for time analysis?", [(c, label(c)) for c in cols], named[0] if len(named) == 1 else cols[0],
-           f"The data has {len(cols)} date columns ({', '.join(cols)}); trends, seasonality and time charts can only use one.", cols)
-    if len(named) == 1:
-        q["auto"] = "goal"
-    return q
+def _value_for(action: dict, label: str) -> str:
+    key = json.dumps(action, sort_keys=True, default=str) + (label if action["type"] == "note_only" else "")
+    return hashlib.sha1(key.encode("utf-8")).hexdigest()[:8]
 
 
-def _refund_questions(df, profile) -> list[dict]:
+def validate_question(item, profile: dict, sig_by_id: dict, keep_values: bool = False) -> tuple[dict | None, str]:
+    """Check one proposed question. Returns (clean question, "") or (None, reason it was dropped)."""
+    if not isinstance(item, dict):
+        return None, "not an object"
     roles = {c["name"]: c["role"] for c in profile["columns"]}
-    num = [c for c, r in roles.items() if r == "numeric" and c in df.columns]
-    refunds = [c for c in num if _refund_like(c)]
-    amounts = [c for c in num if c not in refunds and AMOUNT_RX.search(c) and not NOT_AMOUNT_RX.search(c)]
-    main = next((c for rx in ("revenue", "sales", "amount", "total", "gmv", "value", "income", "spend", "turnover", "price") for c in amounts if rx in c.lower()), None)
-    net_col = None
-    if main:
-        net_col = f"{main}_net"
-        while net_col in df.columns:
-            net_col += "_2"
-    out = []
-    for r in refunds[:2]:
-        s = _num(df, r)
-        n = int((s.fillna(0) != 0).sum())
-        if n == 0:
-            continue
-        main_here = main if not out else None  # only one refund column can be netted into the amount
-        opts = ([("net", f"Subtract from {main_here} and use the net amount as the main number")] if main_here else []) + [("ignore", "Ignore it (leave it out of the analysis)"), ("separate", "Analyse it separately")]
-        out.append(_q(f"refund:{r}", "refund", f"How should {r} be handled?", opts, "net" if main_here else "ignore",
-                      f"'{r}' looks like a refund, return, cancellation or discount amount ({n:,} of {len(df):,} rows are non-zero), so it changes the totals depending on how it is treated.",
-                      [r] + ([main_here] if main_here else []), column=r, amount=main_here, net_col=net_col if main_here else None))
-    return out
+    text = re.sub(r"\s+", " ", str(item.get("text") or "")).strip()[:220]
+    if not text:
+        return None, "no question text"
+    if is_scope_question(text):
+        return None, f"scope question: {text[:60]}"
+    mentioned = item.get("columns")
+    if mentioned is not None and (not isinstance(mentioned, list) or any(not isinstance(c, str) or c not in roles for c in mentioned)):
+        return None, "mentions a column that does not exist"
+    raw_opts = item.get("options")
+    if not isinstance(raw_opts, list) or not 2 <= len(raw_opts) <= MAX_OPTIONS:
+        return None, "needs 2-6 options"
+    opts, seen_vals = [], set()
+    for o in raw_opts:
+        if not isinstance(o, dict) or not str(o.get("label") or "").strip():
+            return None, "an option has no label"
+        label = str(o["label"]).strip()[:120]
+        action, why = dv.validate_action(o.get("action"), roles)
+        if action is None:
+            return None, "invalid option: " + why
+        value = str(o.get("value")) if keep_values and o.get("value") else _value_for(action, label)
+        while value in seen_vals:
+            value += "_"
+        seen_vals.add(value)
+        opts.append({"value": value, "label": label, "action": action})
+    raw_default = item.get("default")
+    default = next((o["value"] for o in opts if raw_default in (o["value"], o["label"])), None)
+    if default is None or not dv.is_harmless(next(o["action"] for o in opts if o["value"] == default)):
+        default = next((o["value"] for o in opts if dv.is_harmless(o["action"])), None)   # skipping must never touch the data
+    if default is None:
+        return None, "no option that leaves the data unchanged to use as the default"
+    sig = sig_by_id.get(item.get("signal"))
+    cols = list(dict.fromkeys([c for o in opts for c in dv.action_columns(o["action"])] + (mentioned or []) + (sig["columns"] if sig else [])))
+    qid = sig["id"] if sig else "extra:" + hashlib.sha1(("|".join(sorted(cols)) + text.lower()).encode("utf-8")).hexdigest()[:8]
+    return {"id": qid, "kind": sig["type"] if sig else "extra", "text": text, "why": str(item.get("why") or "").strip()[:260] or "This changes how a number is calculated.",
+            "options": opts, "default": default, "columns": cols, "signal": sig["id"] if sig else None, "strong": True if not sig else sig["strong"]}, ""
 
 
-def _negative_questions(df, profile, skip: set[str]) -> list[dict]:
-    out = []
-    for c in profile["columns"]:
-        name = c["name"]
-        if c["role"] != "numeric" or name not in df.columns or name in skip or _refund_like(name) or REFUND_RX.search(name):
-            continue
-        if not AMOUNT_RX.search(name) or NOT_AMOUNT_RX.search(name):
-            continue
-        n = int((_num(df, name) < 0).sum())
-        if n:
-            out.append(_q(f"neg:{name}", "negatives", f"How should the {n:,} negative values in {name} be handled?",
-                          [("include", "Include them (they are real adjustments, refunds or reversals)"), ("exclude", "Exclude those rows")], "include",
-                          f"'{name}' is an amount but {n:,} rows are negative; they lower the totals.", [name], column=name))
-    return out[:2]
-
-
-def _status_questions(df, profile) -> list[dict]:
-    out = []
-    for c in profile["columns"]:
-        name = c["name"]
-        if c["role"] not in ("categorical", "binary", "text") or name not in df.columns or not STATUS_RX.search(name):
-            continue
-        s = df[name].dropna().astype(str).str.strip()
-        for val, n in s.value_counts().items():
-            low = val.lower()
-            if not any(b in low for b in BAD_STATUS):
-                continue
-            is_test = bool(_words(val) & TEST_TOKENS)
-            out.append(_q(f"status:{name}:{val}", "status", f"Include rows where {name} is {val}?", [("include", f"Include them ({n:,} rows)"), ("exclude", f"Exclude them ({n:,} rows)")],
-                          "exclude" if is_test else "include",
-                          f"{n:,} rows have {name} = '{val}'" + (", which looks like test data." if is_test else "; whether they count depends on your business definition."), [name], column=name, value=val))
-    return out[:3]
-
-
-def _outcome_question(df, profile, goal, ctx, explore, exclude: set[str]) -> dict | None:
-    goal_t = set() if explore else _words(goal)
-    kpi_t = ctxmod.kpi_tokens(ctx)
-    hint = ctxmod.lens(ctx)["target_rx"] if ctxmod.has_context(ctx) else None
-    miss = {c["name"]: c["missing_pct"] for c in profile["columns"]}
-    cands = [c["name"] for c in profile["columns"] if c["role"] == "numeric" and c["name"] in df.columns and c["name"] not in exclude and not _refund_like(c["name"]) and not REFUND_RX.search(c["name"])]
-
-    def score(c):
-        nt = _name_tokens(c)
-        return 3 * len(nt & goal_t) + 5 * len(nt & kpi_t)
-    # a binary outcome (churn, converted…) named by the goal or KPIs settles it even though only numeric columns are offered as options
-    named = [c["name"] for c in profile["columns"] if c["role"] == "binary" and c["name"] in df.columns and score(c["name"]) > 0]
-    if named and max(score(c) for c in cands + named) == max(score(c) for c in named) and len([c for c in cands if score(c) >= max(score(n) for n in named)]) == 0:
-        return None
-    cands = [c for c in cands if score(c) > 0 or OUTCOME_RX.search(c) or (hint and hint.search(c))]
-    if len(cands) < 2:
-        return None
-    hits = [c for c in cands if score(c) > 0]
-    if hits:
-        best = max(score(c) for c in hits)
-        top = [c for c in hits if score(c) == best]
-        if len(top) == 1:
-            return None  # the goal or KPIs already identify the number
-        if len({AGG_SUFFIX.sub("", c) for c in top}) == 1:
-            return None  # variants of one measure produced by joining tables (revenue_total / revenue_avg), not a real choice
-        shortest = min(top, key=lambda c: len(_name_tokens(c)))
-        if all(_name_tokens(shortest) < _name_tokens(c) for c in top if c != shortest):
-            return None  # e.g. 'revenue' vs 'orders_revenue_total': the plain one is meant
-        cands = top
-    default = max(cands, key=lambda c: (score(c), bool(OUTCOME_RX.search(c)), -miss[c]))
-    cands = cands[:6]
-    if default not in cands:
-        cands[-1] = default
-    return _q("main_outcome", "outcome", "Which is the main number you care about?", [(c, c) for c in cands], default,
-              f"{len(cands)} numeric columns could be the main outcome ({', '.join(cands)}); the analysis is built around one.", cands)
-
-
-def detect_questions(df: pd.DataFrame, profile: dict, goal: str = "", ctx: dict | None = None, explore: bool = False) -> list[dict]:
-    """Rule-based questions (never mutates df). Questions already settled by the goal carry "auto" and are not shown to the user."""
-    ctx = ctx or {}
-    date_q = _date_question(df, profile, goal, explore)
-    refunds = _refund_questions(df, profile)
-    skip = {c for q in refunds for c in q["columns"]}
-    negs = _negative_questions(df, profile, skip)
-    statuses = _status_questions(df, profile)
-    outcome = _outcome_question(df, profile, goal, ctx, explore, set())
-    asked, auto = [], []
-    for q in [date_q] + refunds + negs + statuses + [outcome]:
-        if q is None:
-            continue
-        (auto if q.get("auto") else asked).append(q)
-    return asked[:MAX_QUESTIONS] + auto
-
-
-# ---------------------------------------------------------------- LLM enrichment
-
-ENRICH_SYSTEM = """You are the Clarifying-question assistant of a data-analysis team. Before the analysis starts you may ask the user a few SHORT questions
-about things in the data that are ambiguous AND would change the numbers (what a column means, which rows count, which definition of a KPI).
-Use only the column names given. Do not repeat questions already asked. Do not ask about anything the goal already answers.
-Return JSON: {"questions": [{"text": string, "options": [2-5 short strings], "default": one of the options, "why": one sentence, "columns": [exact column names the question is about]}]}
-Propose at most 3 questions; propose none if nothing is ambiguous."""
-
-_QUOTED = re.compile(r"`([^`]{1,60})`|'([^'\s]{1,60})'|\"([^\"\s]{1,60})\"")
-
-
-def validate_llm_questions(raw, profile: dict, existing: list[dict], limit: int = MAX_LLM) -> list[dict]:
-    """Keep only well-formed questions whose every mentioned column exists. Anything else is dropped."""
-    names = {c["name"] for c in profile["columns"]}
-    seen = {re.sub(r"\W+", " ", q["text"].lower()).strip() for q in existing}
-    out: list[dict] = []
-    items = raw.get("questions") if isinstance(raw, dict) else None
+def validate_all(items, profile: dict, signals: list[dict], limit: int = MAX_QUESTIONS, keep_values: bool = False) -> tuple[list[dict], list[str]]:
+    """(valid questions, reasons for every drop). Duplicates (same id, same wording or same set of actions) are merged into the first."""
+    sig_by = {s["id"]: s for s in signals}
+    out, dropped, texts, shapes = [], [], set(), set()
     for item in items if isinstance(items, list) else []:
-        if len(out) >= limit:
-            break
-        if not isinstance(item, dict):
+        q, why = validate_question(item, profile, sig_by, keep_values)
+        if q is None:
+            dropped.append(why)
             continue
-        text = str(item.get("text") or "").strip()[:200]
-        opts = [str(o).strip()[:80] for o in item.get("options") or [] if isinstance(o, (str, int, float)) and str(o).strip()]
-        opts = list(dict.fromkeys(opts))[:5]
-        cols = item.get("columns")
-        if not text or len(opts) < 2 or not isinstance(cols, list) or not cols or any(not isinstance(c, str) or c not in names for c in cols):
+        key = re.sub(r"\W+", " ", q["text"].lower()).strip()
+        shape = json.dumps(sorted(json.dumps(o["action"], sort_keys=True, default=str) for o in q["options"]))
+        if q["id"] in {x["id"] for x in out} or key in texts or shape in shapes:
+            dropped.append("duplicate: " + q["text"][:60])
             continue
-        quoted = [next(g for g in m.groups() if g) for m in _QUOTED.finditer(text)]
-        if any(t not in names and t not in opts and re.search(r"[_\d]|^[A-Za-z]+$", t) and " " not in t and t.lower() not in {o.lower() for o in opts} for t in quoted):
-            continue  # the text points at a column that is not in the data
-        key = re.sub(r"\W+", " ", text.lower()).strip()
-        if key in seen:
-            continue
-        seen.add(key)
-        default = str(item.get("default") or "").strip()
-        out.append(_q("llm:" + hashlib.sha1(key.encode()).hexdigest()[:8], "llm", text, [(o, o) for o in opts], default if default in opts else opts[0],
-                      str(item.get("why") or "Suggested from your column names, goal and business context.").strip()[:240], list(dict.fromkeys(cols))))
-    return out
+        texts.add(key), shapes.add(shape)
+        out.append(q)
+    return out[:limit], dropped
 
 
-def llm_questions(llm, profile: dict, goal: str, ctx: dict | None, existing: list[dict], slots: int) -> list[dict]:
-    if llm is None or slots <= 0:
-        return []
+# ---------------------------------------------------------------- no-LLM templates: one per signal type
+
+def _o(key: str, label: str, **action) -> dict:
+    return {"value": key, "label": label, "action": action}
+
+
+def _fmt(v) -> str:
+    return f"{v:g}" if isinstance(v, (int, float)) and not isinstance(v, bool) else str(v)
+
+
+def _pct(x) -> str:
+    return f"{100 * x:.0f}%"
+
+
+def _template(sig: dict, goal: str, ctx: dict, explore: bool) -> dict | None:
+    t, c, ev = sig["type"], sig["columns"], sig["evidence"]
+    base = {"signal": sig["id"]}
+    if t == "multi_date":
+        opts = [_o(d, f"{d} ({ev['ranges'][d][0]} to {ev['ranges'][d][1]})", type="set_date_column", column=d) for d in c[:MAX_OPTIONS]]
+        named = [d for d in c if not explore and named_in_goal(d, goal)]
+        return {**base, "text": "Which date should be used for time analysis?", "options": opts, "default": named[0] if len(named) == 1 else c[0], "_auto": len(named) == 1,
+                "why": f"The data has {len(c)} date columns ({', '.join(c)}); trends and seasonality can only follow one."}
+    if t == "multi_measure":
+        goal_t, kpi_t = (set() if explore else _words(goal)), ctxmod.kpi_tokens(ctx)
+        hits = {m: 3 * len(set(_col_words(m)) & goal_t) + 5 * len(set(_col_words(m)) & kpi_t) for m in c}
+        best = max(hits.values())
+        top = [m for m, h in hits.items() if h == best]
+        pinned = top[0] if best > 0 and len(top) == 1 else None
+        opts = [_o("any", "No preference, let the analysis rank them", type="note_only")] + [_o(m, m, type="set_measures", columns=[m]) for m in c[:MAX_OPTIONS - 1]]
+        return {**base, "text": "Which is the main number you care about?", "options": opts, "default": pinned or "any", "_auto": pinned is not None,
+                "why": f"{len(c)} numeric columns could be the main number ({', '.join(c)}). Your goal does not single one out."}
+    if t == "negatives":
+        n = c[0]
+        return {**base, "text": f"How should the {ev['count']:,} negative values in {n} be handled?", "default": "keep",
+                "options": [_o("keep", "Keep them as they are", type="handle_negatives", column=n, mode="keep"),
+                            _o("exclude", "Exclude those rows", type="handle_negatives", column=n, mode="exclude")],
+                "why": f"{n} has {ev['count']:,} negative values ({_pct(ev['share'])} of rows, down to {ev['min']:g}); they pull totals and averages down."}
+    if t == "sentinel":
+        n, vals = c[0], [h["value"] for h in ev["values"]]
+        shown = ", ".join(_fmt(v) for v in vals[:4])
+        rows = sum(h["count"] for h in ev["values"])
+        return {**base, "text": f"{rows:,} rows in {n} hold {shown}. Is that a real value or a placeholder for 'no value'?", "default": "real",
+                "options": [_o("real", "A real value, keep it", type="note_only"), _o("missing", "A placeholder, treat it as missing", type="treat_value_as_missing", column=n, values=vals[:dv.MAX_LIST])],
+                "why": f"One value ({shown}) repeats far more often than the rest of {n}; placeholders like this distort averages and totals."}
+    if t == "near_sum":
+        a = c[0]
+        return {**base, "text": f"{a} matches {ev['relation'].split('~', 1)[1].strip()} almost exactly. How should that be treated?", "default": "independent",
+                "options": [_o("independent", "Treat them as independent columns", type="note_only"),
+                            _o("derived", f"{a} is calculated from the others (note it)", type="note_only"),
+                            _o("drop", f"Leave {a} out so the same information is not counted twice", type="drop_column", column=a)],
+                "why": f"In {_pct(ev['match_share'])} of rows {ev['relation']}, so analysing all three can double count."}
+    if t == "rare_labels":
+        n, rare = c[0], list(ev["rare"])
+        return {**base, "text": f"{n} has {ev['n_rare']} very rare labels (such as {', '.join(rare[:3])}). Are they valid?", "default": "valid",
+                "options": [_o("valid", "Yes, they are valid labels", type="note_only"),
+                            _o("exclude", "No, they are noise: exclude those rows", type="filter_rows", column=n, operator="not_in", value=rare[:dv.MAX_LIST])],
+                "why": f"Out of {ev['n_labels']} labels in {n}, {ev['n_rare']} appear only a handful of times each; they may be typos."}
+    if t == "high_missing":
+        n = c[0]
+        return {**base, "text": f"{n} is {ev['missing_pct']:g}% empty. Should it still be used?", "default": "keep",
+                "options": [_o("keep", "Use it, with caution", type="note_only"), _o("drop", "Leave it out of the analysis", type="drop_column", column=n)],
+                "why": f"With this much missing, any average or comparison of {n} describes only part of the rows."}
+    if t == "duplicate_columns":
+        a, b = c[0], c[1]
+        return {**base, "text": f"{a} and {b} look like the same information. Count them as one?", "default": "keep",
+                "options": [_o("keep", "Keep both as they are", type="note_only"), _o("drop", f"Leave {b} out", type="drop_column", column=b),
+                            _o("merge", "Merge them into one column", type="merge_columns", columns=[a, b], name=f"{a}_{b}_merged", how="first_non_null")],
+                "why": f"{ev['relation'].capitalize()}, so using both would repeat the same signal."}
+    return None
+
+
+def template_questions(signals: list[dict], profile: dict, goal: str, ctx: dict | None, explore: bool) -> list[dict]:
+    raw, autos = [], {}
+    for s in signals:
+        t = _template(s, goal, ctx or {}, explore)
+        if t:
+            autos[s["id"]] = t.pop("_auto", False)
+            raw.append(t)
+    qs, _ = validate_all(raw, profile, signals, limit=MAX_QUESTIONS + 4, keep_values=True)
+    for q in qs:
+        if autos.get(q["signal"]):
+            q["auto"] = "goal"
+    return qs
+
+
+# ---------------------------------------------------------------- the LLM question writer
+
+WRITER_SYSTEM = f"""You are the Clarifying-question writer of a data-analysis team. Before the analysis starts you may ask the user a few SHORT questions.
+You get a compact profile of the data, neutral SIGNALS found by code, the user's goal, optional business context, and what the saved glossary already answers.
+
+Ask ONLY when the answer changes what a number MEANS (a definition ambiguity): which of two dates is "the" date, whether a repeated value is real or a
+placeholder for "no value", whether negative values are real, whether a column is a calculation of other columns, whether two columns are the same thing.
+NEVER ask which chart, grouping, column to look at, time frame or view to show: the app analyses every reasonable option and ranks them.
+NEVER ask what the glossary already answers. Merge questions about the same thing. Write plain business language, no jargon. At most {MAX_QUESTIONS} questions; none if nothing is ambiguous.
+
+Every option carries an "action" chosen ONLY from this closed list (code executes it; any other action is discarded and the question dropped):
+- {{"type":"set_date_column","column":C}}                                  C must be a date column
+- {{"type":"set_measures","columns":[C,...]}}                                numeric columns the analysis is built around (first is the main one)
+- {{"type":"define_derived_metric","kind":"ratio_of_sums"|"difference","a":C1,"b":C2,"name":NAME,"use_as_main":true}}
+- {{"type":"filter_rows","column":C,"operator":"eq|ne|lt|le|gt|ge|in|not_in|is_null|not_null","value":V}}   KEEPS the rows where the condition holds
+- {{"type":"treat_value_as_missing","column":C,"values":[V,...]}}
+- {{"type":"handle_negatives","column":C,"mode":"keep"|"exclude"|"net_against_column","against":C2,"name":NAME}}
+- {{"type":"drop_column","column":C}}
+- {{"type":"merge_columns","columns":[C1,C2],"name":NAME,"how":"first_non_null"|"sum"}}
+- {{"type":"note_only"}}                                                    just records the answer as context
+The default option must leave the data unchanged (note_only, set_date_column, set_measures or handle_negatives keep).
+Use only column names from the profile. Echo the "id" of the signal a question is about in "signal" (omit it if none).
+Reply with JSON: {{"questions": [{{"text": str, "why": one sentence, "signal": signal id or null, "columns": [exact column names it is about],
+"options": [{{"label": str, "action": {{...}}}}], "default": the label of the default option}}]}}"""
+
+
+def llm_questions(llm, profile: dict, signals: list[dict], goal: str, ctx: dict | None, saved: dict | None) -> tuple[list[dict] | None, list[str]]:
+    """(valid questions, drop reasons). None means the model gave no usable answer, so the caller falls back to the templates."""
+    if llm is None:
+        return None, []
     ctx_txt = ctxmod.context_text(ctx)
+    saved = saved or {}
+    known = {"answers": {v.get("question", k): v.get("value") for k, v in (saved.get("answers") or {}).items() if isinstance(v, dict)}, "definitions": saved.get("definitions") or {}}
     user = (f"GOAL: {goal}\n\n" + (f"BUSINESS CONTEXT (user-written, unverified):\n{ctx_txt}\n\n" if ctx_txt else "")
-            + "COLUMNS:\n" + json.dumps([{"name": c["name"], "role": c["role"]} for c in compact_profile(profile)], default=str)
-            + "\n\nALREADY ASKED:\n" + json.dumps([q["text"] for q in existing]))
-    return validate_llm_questions(ask_json(llm, ENRICH_SYSTEM, user), profile, existing, min(MAX_LLM, slots))
+            + f"SAVED GLOSSARY (already answered, do not ask again):\n{json.dumps(known, default=str)}\n\n"
+            + f"PROFILE ({profile['rows']} rows):\n{json.dumps(compact_profile(profile), default=str)}\n\n"
+            + f"SIGNALS:\n{json.dumps([{k: s[k] for k in ('id', 'type', 'columns', 'evidence')} for s in signals], default=str)}")
+    out = ask_json(llm, WRITER_SYSTEM, user)
+    if not isinstance(out, dict) or not isinstance(out.get("questions"), list):
+        return None, []
+    qs, dropped = validate_all(out["questions"], profile, signals)
+    return (qs if qs or not out["questions"] else None), dropped
 
 
-def build_questions(df, profile, goal, ctx, explore, llm) -> list[dict]:
-    """Rule questions first, then up to MAX_LLM from the model while the total stays within MAX_QUESTIONS."""
-    qs = detect_questions(df, profile, goal, ctx, explore)
-    asked = [q for q in qs if not q.get("auto")]
-    return qs + llm_questions(llm, profile, goal, ctx, asked, MAX_QUESTIONS - len(asked))
+def build_questions(df: pd.DataFrame, profile: dict, goal: str, ctx: dict | None, explore: bool, llm, saved: dict | None = None) -> list[dict]:
+    """The questions for this data. The model writes them when there is one; otherwise (or if its answer is unusable) the templates do.
+    Weak signals alone never pause a run: they are only included when something stronger already needs an answer."""
+    signals = compute_signals(df, profile)
+    if not signals:
+        return []
+    qs, _ = llm_questions(llm, profile, signals, goal, ctx, saved)
+    if qs is None:
+        qs = template_questions(signals, profile, goal, ctx, explore)
+    if not any(q.get("strong") and not q.get("auto") for q in qs):
+        qs = [q for q in qs if q.get("strong")]
+    return [q for q in qs if not q.get("auto")][:MAX_QUESTIONS] + [q for q in qs if q.get("auto")]
 
 
 # ---------------------------------------------------------------- answers
@@ -277,27 +293,37 @@ def resolve(questions: list[dict], user_answers: dict | None, saved: dict, skip:
 
 
 def plan_overrides(questions: list[dict], answers: dict) -> dict:
-    """What the answers change in the plan: the outcome, the date column, columns to leave out or analyse separately."""
+    """What the chosen actions change in the plan: main number, date column, columns to leave out, columns to analyse alongside."""
     ov = {"target": None, "date_col": None, "exclude": [], "include": []}
-    net = None
-    for q in questions:
-        a = answers.get(q["id"])
-        if q["kind"] == "date_col":
-            ov["date_col"] = a
-        elif q["kind"] == "outcome":
-            ov["target"] = a
-        elif q["kind"] == "refund":
-            col, amount = q["meta"]["column"], q["meta"].get("amount")
-            if a == "net" and amount:
-                net = (amount, q["meta"].get("net_col"))
-                ov["exclude"] += [col, amount]
-            elif a == "ignore":
-                ov["exclude"].append(col)
-            elif a == "separate":
-                ov["include"].append(col)
-    if net and net[1] and (ov["target"] in (None, net[0])):
-        ov["target"] = net[1]
+    for _, _, a in chosen(questions, answers):
+        t = a["type"]
+        if t == "set_date_column":
+            ov["date_col"] = ov["date_col"] or a["column"]
+        elif t == "set_measures":
+            ov["target"] = ov["target"] or a["columns"][0]
+            ov["include"] += a["columns"][1:]
+        elif t == "define_derived_metric":
+            if a["use_as_main"]:
+                ov["target"] = ov["target"] or a["name"]
+            else:
+                ov["include"].append(a["name"])
+        elif t == "handle_negatives" and a["mode"] == "net_against_column":
+            ov["exclude"] += [a["column"], a["against"]]
+            if a["use_as_main"]:
+                ov["target"] = ov["target"] or a["name"]
+        elif t == "drop_column":
+            ov["exclude"].append(a["column"])
+        elif t == "merge_columns":
+            ov["exclude"] += a["columns"]
+            ov["include"].append(a["name"])
+    ov["exclude"] = [c for c in dict.fromkeys(ov["exclude"]) if c != ov["target"] and c != ov["date_col"]]
+    ov["include"] = list(dict.fromkeys(ov["include"]))
     return ov
+
+
+def note_lines(questions: list[dict], answers: dict) -> list[str]:
+    """Answers that only record context ("note_only") for the LLM prompts. They are unverified user statements."""
+    return [f"{q['text']} -> {o['label']}" for q, o, a in chosen(questions, answers) if a["type"] == "note_only" and o["value"] != q["default"]]
 
 
 def summarise(questions: list[dict], answers: dict, sources: dict, effects: dict) -> list[dict]:
@@ -305,8 +331,8 @@ def summarise(questions: list[dict], answers: dict, sources: dict, effects: dict
     rows = []
     for q in questions:
         qid = q["id"]
-        label = next((o["label"] for o in q["options"] if o["value"] == answers.get(qid)), answers.get(qid))
+        o = option_for(q, answers.get(qid))
         eff = effects.get(qid) or {}
-        rows.append({"id": qid, "question": q["text"], "answer": answers.get(qid), "answer_label": label, "source": sources.get(qid, "default"),
+        rows.append({"id": qid, "question": q["text"], "answer": o["value"], "answer_label": o["label"], "source": sources.get(qid, "default"),
                      "effect": eff.get("effect", "Recorded as context; the data was not changed."), "rows": eff.get("rows")})
     return rows
