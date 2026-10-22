@@ -66,6 +66,33 @@ def _badge(f: dict) -> str:
     return f" · confidence: **{c['label']}**" + (" · your KPI" if f["insight"].get("kpi_related") else "")
 
 
+SOURCE_LABEL = {"user": "You", "default": "Default (rules)", "glossary": "Saved glossary", "goal": "Your goal"}
+
+
+def _cell(v) -> str:
+    return str(v).replace("|", "/").replace("\n", " ").strip()
+
+
+def _definitions_section(state: dict) -> list[str]:
+    """Every answer, who set it, and what it did to the data. Free-text definitions are listed as unverified."""
+    applied, free = state.get("applied_definitions") or [], state.get("definitions") or {}
+    terms, notes = free.get("terms") or {}, free.get("notes") or ""
+    if not applied and not terms and not notes:
+        return []
+    L = ["", "## Definitions used", ""]
+    if applied:
+        L += ["| Question | Answer | Set by | Effect on the data | Rows affected |", "|---|---|---|---|---|"]
+        for d in applied:
+            rows = "-" if d.get("rows") is None else f"{d['rows']:,}"
+            L.append(f"| {_cell(d['question'])} | {_cell(d['answer_label'])} | {SOURCE_LABEL.get(d['source'], d['source'])} | {_cell(d['effect'])} | {rows} |")
+    if terms or notes:
+        L += ["", "**Your own definitions** (free text, not verified against the data; passed to the language model as context only):", ""]
+        L += [f"- **{_cell(t)}:** {_cell(x)}" for t, x in terms.items()]
+        if notes:
+            L.append(f"- *Notes:* {_cell(notes)}")
+    return L
+
+
 def build_report(state: dict, summary: str, recs: list[str]) -> str:
     plan, prof, ctx = state["plan"], state["profile"], state.get("context") or {}
     title = "# Analysis report" + (f": {ctx['company']}" if ctx.get("company") else "")
@@ -107,6 +134,7 @@ def build_report(state: dict, summary: str, recs: list[str]) -> str:
     L += ["", "## Data and cleaning", "",
           f"{prof['rows']:,} rows × {prof['cols']} columns. Columns used: {', '.join(f'`{c}`' for c in plan['relevant_columns']) or 'n/a'}.", ""]
     L += [f"- **{s['step']}**: {s['detail']}" for s in state["cleaning_log"]] or ["- No cleaning changes were needed."]
+    L += _definitions_section(state)
 
     L += ["", "## Insights", "", "Each insight shows what the data says, why it matters, how much to trust it, and what to check next. Ordered by importance.", ""]
     for f in _rank(state["findings"]):

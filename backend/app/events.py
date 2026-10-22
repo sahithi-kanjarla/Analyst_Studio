@@ -8,11 +8,19 @@ from .config import RUNS_DIR
 
 _lock = threading.Lock()
 _events: dict[str, list[dict]] = {}
+_quiet: set[str] = set()   # runs being resumed: the stages that already ran before the pause must not repeat their events
+
+
+def set_quiet(run_id: str, on: bool) -> None:
+    with _lock:
+        (_quiet.add if on else _quiet.discard)(run_id)
 
 
 def emit(run_id: str, agent: str, message: str, **data) -> dict:
     ev = {"t": round(time.time(), 3), "agent": agent, "message": message, "data": data}
     with _lock:
+        if run_id in _quiet:
+            return ev
         _events.setdefault(run_id, []).append(ev)
     path = RUNS_DIR / run_id / "events.jsonl"
     try:

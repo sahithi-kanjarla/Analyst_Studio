@@ -129,6 +129,54 @@ export interface DataModel {
   origin: Record<string, string>;
 }
 
+export interface QuestionOption {
+  value: string;
+  label: string;
+}
+
+export interface Question {
+  id: string;
+  kind: string;
+  text: string;
+  options: QuestionOption[];
+  default: string;
+  prefill?: string;
+  prefill_source?: "glossary" | "default";
+  why: string;
+  columns: string[];
+}
+
+export interface QuestionSet {
+  status: string;
+  workspace: string;
+  questions: Question[];
+  notes: string;
+  definitions: Record<string, string>;
+  can_skip: boolean;
+}
+
+export interface AppliedDefinition {
+  id: string;
+  question: string;
+  answer: string;
+  answer_label: string;
+  source: "user" | "default" | "glossary" | "goal";
+  effect: string;
+  rows: number | null;
+}
+
+export interface GlossaryAnswer {
+  value: string;
+  question: string;
+  updated?: number;
+}
+
+export interface GlossaryEntry {
+  answers: Record<string, GlossaryAnswer>;
+  definitions: Record<string, string>;
+  notes: string;
+}
+
 export interface RunResult {
   context?: BusinessContext;
   strategies?: Strategy[];
@@ -137,7 +185,7 @@ export interface RunResult {
   key_metrics?: KeyMetric[];
   data_model?: DataModel | null;
   run_id: string;
-  status: "queued" | "running" | "done" | "error";
+  status: "queued" | "running" | "needs_input" | "done" | "error";
   goal: string;
   error?: string;
   llm_mode?: string;
@@ -155,6 +203,7 @@ export interface RunResult {
     skipped: { column: string; reason: string }[];
     source: string;
   };
+  applied_definitions?: AppliedDefinition[];
   powerbi?: { files: string[]; measures: string[]; visuals: { visual: string; axis: string; values: string; tip: string }[] };
 }
 
@@ -257,4 +306,11 @@ export const api = {
   cleanedCsvUrl: (id: string) => `/api/runs/${id}/files/cleaned.csv`,
   powerbiUrl: (id: string) => `/api/runs/${id}/powerbi`,
   eventsUrl: (id: string) => `/api/runs/${id}/events`,
+  getQuestions: (id: string) => fetch(`/api/runs/${id}/questions`).then((r) => json<QuestionSet>(r)),
+  submitAnswers: (id: string, body: { answers: Record<string, string>; notes: string; definitions: Record<string, string>; skip: boolean }) =>
+    fetch(`/api/runs/${id}/answers`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }).then((r) => json<{ status: string }>(r)),
+  listGlossary: () => fetch("/api/glossary").then((r) => json<{ workspaces: Record<string, GlossaryEntry> }>(r)),
+  putGlossary: (workspace: string, entry: GlossaryEntry) =>
+    fetch(`/api/glossary?workspace=${encodeURIComponent(workspace)}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(entry) }).then((r) => json<GlossaryEntry>(r)),
+  deleteGlossary: (workspace: string) => fetch(`/api/glossary?workspace=${encodeURIComponent(workspace)}`, { method: "DELETE" }).then((r) => json<{ deleted: string }>(r)),
 };

@@ -37,7 +37,7 @@ const dim = (on: boolean, anySel: boolean) => (anySel && !on ? 0.3 : 1);
 export function HBar({ items, selected, onToggle, fmt }: ChartProps) {
   const [ref, w] = useWidth();
   const row = 30;
-  const labelW = Math.min(130, Math.max(70, w * 0.32));
+  const labelW = Math.min(170, Math.max(80, w * 0.36));
   const valueW = 56;
   const barMax = Math.max(10, w - labelW - valueW - 8);
   const max = Math.max(...items.map((i) => i.value), 0.0001);
@@ -101,6 +101,7 @@ export function Columns({ items, selected, onToggle, fmt, height = 230 }: ChartP
                 <title>{`${it.label}: ${fmt(it.value)}`}</title>
                 <rect x={padL + i * slot} y={padT} width={slot} height={innerH} fill="transparent" />
                 <rect x={x} y={top} width={bw} height={h} rx={3} fill={it.value < 0 ? NEG : PALETTE[0]} className="bar" />
+                {it.value === max && max > 0 && <text x={x + bw / 2} y={top - 4} textAnchor="middle" className="c-value">{fmt(it.value)}</text>}
                 {i % every === 0 && <text x={x + bw / 2} y={height - 8} textAnchor="middle" className="c-axis">{it.label}</text>}
               </g>
             );

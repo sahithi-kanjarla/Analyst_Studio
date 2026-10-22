@@ -2,17 +2,19 @@ import asyncio
 import json
 import re
 
+from pydantic import BaseModel, Field
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
 from .config import ALLOWED_EXT, FRONTEND_DIST, MAX_FILES, MAX_UPLOAD_MB, RUNS_DIR
+from . import clarify, glossary
 from .context import normalise_context
 from .dashboard import build_dashboard, list_sources, source_path, valid_source
 from .events import get_events
 from .llm import get_llm
-from .runner import DEFAULT_EXPLORE_GOAL, RUN_ID_RE, create_run, read_status, run_dir, start_run
+from .runner import DEFAULT_EXPLORE_GOAL, RUN_ID_RE, create_run, read_status, resume_with_answers, run_dir, start_run
 
 app = FastAPI(title="Analyst Studio", version="1.0.0")
 app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"], allow_methods=["*"], allow_headers=["*"])
@@ -99,6 +101,93 @@ def _jsonable(v):
     if hasattr(v, "item"):
         v = v.item()
     return v if isinstance(v, (int, float, bool, str)) else str(v)
+
+
+def _load_questions(run_id: str) -> dict:
+    p = run_dir(run_id) / "questions.json"
+    if not p.exists():
+        raise HTTPException(404, "This run has no questions.")
+    return json.loads(p.read_text(encoding="utf-8"))
+
+
+@app.get("/api/runs/{run_id}/questions")
+def get_questions(run_id: str):
+    """The clarifying questions for a run, with defaults and any saved glossary answers pre-filled. Only the questions that need an answer are listed."""
+    _check_id(run_id)
+    data = _load_questions(run_id)
+    ws = glossary.get_workspace(data.get("workspace", "default"))
+    qs = [q for q in data["questions"] if not q.get("auto")]
+    return {"status": (read_status(run_id) or {}).get("status"), "workspace": data.get("workspace"), "questions": qs,
+            "notes": ws["notes"], "definitions": ws["definitions"], "can_skip": True}
+
+
+class AnswersIn(BaseModel):
+    answers: dict[str, str] = Field(default_factory=dict)
+    notes: str = ""
+    definitions: dict[str, str] = Field(default_factory=dict)
+    skip: bool = False
+
+
+@app.post("/api/runs/{run_id}/answers")
+def post_answers(run_id: str, body: AnswersIn):
+    """Answer the questions (or skip to use the defaults) and resume the run. Answers are also saved to the company's glossary."""
+    _check_id(run_id)
+    data = _load_questions(run_id)
+    qmap = {q["id"]: q for q in data["questions"] if not q.get("auto")}
+    for qid, val in body.answers.items():
+        if qid not in qmap:
+            raise HTTPException(400, f"Unknown question '{qid[:60]}'.")
+        if val not in clarify.option_values(qmap[qid]):
+            raise HTTPException(400, f"'{val[:60]}' is not an option for '{qid[:60]}'.")
+    err = glossary.validate_entry({"answers": body.answers, "definitions": body.definitions, "notes": body.notes})
+    if err:
+        raise HTTPException(422, err)
+    if (read_status(run_id) or {}).get("status") != "needs_input":
+        raise HTTPException(409, "This run is not waiting for answers.")
+    # "Continue" confirms the whole form: questions left untouched keep the pre-filled value the user saw, and that is what gets saved
+    confirmed = {qid: body.answers.get(qid) or q.get("prefill") or q["default"] for qid, q in qmap.items()}
+    if not body.skip:
+        try:
+            glossary.merge_answers(data.get("workspace", "default"), confirmed, {i: q["text"] for i, q in qmap.items()}, body.notes, body.definitions)
+        except TimeoutError as e:
+            raise HTTPException(503, str(e))
+    if not resume_with_answers(run_id, {"answers": {} if body.skip else confirmed, "skip": body.skip, "notes": body.notes}):
+        raise HTTPException(409, "This run is not waiting for answers.")
+    return {"run_id": run_id, "status": "running"}
+
+
+class GlossaryIn(BaseModel):
+    answers: dict[str, dict | str] = Field(default_factory=dict)
+    definitions: dict[str, str] = Field(default_factory=dict)
+    notes: str = ""
+
+
+@app.get("/api/glossary")
+def get_glossary(workspace: str | None = None):
+    """Saved definitions. No `workspace` lists every company. NOTE: this API has no authentication."""
+    return {"workspace": glossary.clean_key(workspace), **glossary.get_workspace(workspace)} if workspace is not None else {"workspaces": glossary.all_workspaces()}
+
+
+@app.put("/api/glossary")
+def put_glossary(body: GlossaryIn, workspace: str = "default"):
+    entry = body.model_dump()
+    err = glossary.validate_entry({**entry, "answers": {k: (v.get("value") if isinstance(v, dict) else v) for k, v in entry["answers"].items()}})
+    if err:
+        raise HTTPException(422, err)
+    try:
+        return {"workspace": glossary.clean_key(workspace), **glossary.put_workspace(workspace, entry)}
+    except TimeoutError as e:
+        raise HTTPException(503, str(e))
+
+
+@app.delete("/api/glossary")
+def delete_glossary(workspace: str):
+    try:
+        if not glossary.delete_workspace(workspace):
+            raise HTTPException(404, "No saved definitions for that workspace.")
+    except TimeoutError as e:
+        raise HTTPException(503, str(e))
+    return {"deleted": glossary.clean_key(workspace)}
 
 
 @app.get("/api/runs/{run_id}/data")
@@ -190,7 +279,7 @@ async def stream_events(run_id: str):
                 yield f"data: {json.dumps(e, default=str)}\n\n"
                 idx += 1
             st = (read_status(run_id) or {}).get("status")
-            if st in ("done", "error") and not get_events(run_id, idx):
+            if st in ("done", "error", "needs_input") and not get_events(run_id, idx):
                 yield "event: end\ndata: {}\n\n"
                 return
             await asyncio.sleep(0.4)

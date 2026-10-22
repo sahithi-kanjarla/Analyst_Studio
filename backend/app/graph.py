@@ -1,13 +1,17 @@
 """The multi-agent workflow, expressed as a LangGraph state machine.
 
-   START -> profile -> relate -> plan -> clean -> analyze -> critic --(needs a follow-up?)--> analyze (loop)
-                                                                  \\--(approved)--> insights -> strategy -> report -> powerbi -> END
+   START -> profile -> relate -> clarify -> plan -> clean -> analyze -> critic --(needs a follow-up?)--> analyze (loop)
+                                    |                                       \\--(approved)--> insights -> strategy -> report -> powerbi -> END
+                                    \\--(questions, no answers yet)--> END with status "needs_input"; the run restarts once answers arrive
 
+`clarify` asks short questions about ambiguities (which date, how refunds count, which rows to include, the main number) and the answers
+change the plan and the cleaning. It pauses a run by ending the graph rather than blocking a thread.
 `relate` (the Joiner) only does work when several tables were uploaded: it finds how they connect and
 builds one analysis table. For a single table it is a no-op.
 """
 from __future__ import annotations
 
+import json
 import re
 from pathlib import Path
 from typing import TypedDict
@@ -15,11 +19,12 @@ from typing import TypedDict
 import pandas as pd
 from langgraph.graph import END, START, StateGraph
 
+from . import clarify, glossary
 from . import critic as critic_mod
 from . import insights, planner, powerbi, relations, reporter, strategy, tools
-from .cleaner import coerce_types, scoped_clean
+from .cleaner import apply_definitions, coerce_types, scoped_clean
 from .config import MAX_ITERATIONS
-from .events import emit
+from .events import emit, set_quiet
 from .llm import get_llm
 from .profiler import load_tables, profile_df
 
@@ -48,6 +53,12 @@ class RunState(TypedDict, total=False):
     strategy_summary: str
     data_gaps: list
     key_metrics: list
+    questions: list
+    answers: dict
+    answer_sources: dict
+    definitions: dict
+    applied_definitions: list
+    awaiting_input: bool
 
 
 def _wd(state) -> Path:
@@ -146,6 +157,53 @@ def relate_node(state: RunState) -> dict:
     return {"profile": prof, "data_model": data_model, "pre_clean_log": pre_log}
 
 
+SOURCE_WORDS = {"user": "your answers", "default": "defaults", "glossary": "the saved glossary", "goal": "your goal"}
+
+
+def clarify_node(state: RunState) -> dict:
+    """Ask about ambiguities before planning. Pauses the run (ends the graph) when there are questions nobody has answered yet."""
+    rid, wd = state["run_id"], _wd(state)
+    set_quiet(rid, False)  # a resumed run replays profile/relate silently; from here on events are recorded again
+    ctx = state.get("context") or {}
+    ws = glossary.get_workspace(glossary.workspace_key(ctx))
+    qfile, afile = wd / "questions.json", wd / "answers.json"
+    given = json.loads(afile.read_text(encoding="utf-8")) if afile.exists() else None
+    if qfile.exists():
+        questions = json.loads(qfile.read_text(encoding="utf-8"))["questions"]  # the same questions as before the pause (the LLM part is not deterministic)
+    else:
+        llm, _ = get_llm()
+        typed, _ = coerce_types(pd.read_pickle(wd / "raw.pkl"), state["profile"])
+        questions = clarify.build_questions(typed, state["profile"], state["goal"], ctx, bool(state.get("explore")), llm)
+        for q in questions:
+            saved = (ws["answers"].get(q["id"]) or {}).get("value")
+            q["prefill"], q["prefill_source"] = (saved, "glossary") if saved in clarify.option_values(q) else (q["default"], "default")
+        if questions:
+            qfile.write_text(json.dumps({"workspace": glossary.workspace_key(ctx), "questions": questions}), encoding="utf-8")
+    asked = [q for q in questions if not q.get("auto")]
+    final, sources = clarify.resolve(questions, (given or {}).get("answers"), ws["answers"], skip=bool((given or {}).get("skip")))
+    covered = all(sources[q["id"]] == "glossary" for q in asked)
+    waiting = bool(asked) and given is None and not covered
+
+    out: dict = {"questions": questions, "answers": final, "answer_sources": sources, "awaiting_input": waiting,
+                 "definitions": {"terms": ws["definitions"], "notes": ws["notes"]}}
+    text = glossary.definitions_text(ws)
+    if text:
+        out["context"] = {**ctx, "definitions_text": text}
+    if waiting:
+        emit(rid, "Clarifier", f"{len(asked)} short question{'s' if len(asked) != 1 else ''} about the data need your answer before the analysis starts (or skip them to use defaults).",
+             questions=[q["id"] for q in asked])
+    elif asked:
+        by: dict[str, int] = {}
+        for q in asked:
+            by[sources[q["id"]]] = by.get(sources[q["id"]], 0) + 1
+        emit(rid, "Clarifier", "Using definitions from " + ", ".join(f"{SOURCE_WORDS.get(k, k)} ({n})" for k, n in by.items()) + ".")
+    return out
+
+
+def route_after_clarify(state: RunState) -> str:
+    return END if state.get("awaiting_input") else "plan"
+
+
 def plan_node(state: RunState) -> dict:
     rid = state["run_id"]
     llm, label = get_llm()
@@ -162,15 +220,28 @@ def plan_node(state: RunState) -> dict:
         emit(rid, "Planner", "Using your business context" + (f" ({c['company']})" if c.get("company") else "") + f" with the {lens(c)['label']} lens" + (f"; KPIs: {', '.join(c['kpis'][:4])}" if c.get("kpis") else "") + ".")
     typed, _ = coerce_types(raw, prof)
     ctx, explore = state.get("context") or {}, bool(state.get("explore"))
-    raw_plan = planner.llm_plan(llm, prof, state["goal"], ctx, explore) if llm else None
+    questions, answers = state.get("questions") or [], state.get("answers") or {}
+    extra: dict = {}
+    ov = None
+    if questions:  # plan on the data as the user defined it (rows excluded, net amount added)
+        typed, _, effects, new_cols = apply_definitions(typed, questions, answers)
+        if new_cols:
+            prof = {**prof, "columns": prof["columns"] + [profile_df(typed[[c]])["columns"][0] for c in new_cols], "cols": prof["cols"] + len(new_cols)}
+            extra["profile"] = prof
+        ov = clarify.plan_overrides(questions, answers)
+        extra["applied_definitions"] = clarify.summarise(questions, answers, state.get("answer_sources") or {}, effects)
+        shown = [f"{k}: {v}" for k, v in (("main number", ov["target"]), ("date column", ov["date_col"])) if v]
+        if shown:
+            emit(rid, "Planner", "Applying your definitions (" + "; ".join(shown) + ").")
+    raw_plan = planner.llm_plan(llm, prof, state["goal"], ctx, explore, ov) if llm else None
     if llm and raw_plan is None:
         emit(rid, "Planner", "The LLM answer was unusable, so rule-based planning was used instead.")
-    plan, notes = planner.finalize_plan(raw_plan, typed, prof, state["goal"], ctx, explore)
+    plan, notes = planner.finalize_plan(raw_plan, typed, prof, state["goal"], ctx, explore, ov)
     for n in notes:
         emit(rid, "Planner", n)
     emit(rid, "Planner", f"Target: {plan['target'] or 'none (descriptive analysis)'}. Using {len(plan['relevant_columns'])} of {prof['cols']} columns, {len(plan['analyses'])} analyses planned.",
          plan=plan)
-    return {"plan": plan, "llm_mode": label if llm else "rules-only"}
+    return {"plan": plan, "llm_mode": label if llm else "rules-only", **extra}
 
 
 def clean_node(state: RunState) -> dict:
@@ -178,10 +249,13 @@ def clean_node(state: RunState) -> dict:
     emit(rid, "Cleaner", "Fixing types and cleaning only what the plan needs…")
     raw = pd.read_pickle(_wd(state) / "raw.pkl")
     typed, log1 = coerce_types(raw, state["profile"])
+    log_def: list = []
+    if state.get("questions"):
+        typed, log_def, _, _ = apply_definitions(typed, state["questions"], state.get("answers") or {})
     clean, log2 = scoped_clean(typed, state["profile"], state["plan"])
     clean.to_pickle(_wd(state) / "clean.pkl")
     clean.to_csv(_wd(state) / "cleaned.csv", index=False, encoding="utf-8-sig")
-    log = state.get("pre_clean_log", []) + log1 + log2
+    log = state.get("pre_clean_log", []) + log1 + log_def + log2
     for s in log:
         emit(rid, "Cleaner", f"{s['step']}: {s['detail']}")
     if not log:
@@ -285,12 +359,13 @@ def powerbi_node(state: RunState) -> dict:
 
 def build_graph():
     g = StateGraph(RunState)
-    for name, fn in (("profile", profile_node), ("relate", relate_node), ("plan", plan_node), ("clean", clean_node), ("analyze", analyze_node),
+    for name, fn in (("profile", profile_node), ("relate", relate_node), ("clarify", clarify_node), ("plan", plan_node), ("clean", clean_node), ("analyze", analyze_node),
                      ("critic", critic_node), ("insights", insights_node), ("strategy", strategy_node), ("report", report_node), ("powerbi", powerbi_node)):
         g.add_node(name, fn)
     g.add_edge(START, "profile")
     g.add_edge("profile", "relate")
-    g.add_edge("relate", "plan")
+    g.add_edge("relate", "clarify")
+    g.add_conditional_edges("clarify", route_after_clarify, {"plan": "plan", END: END})
     g.add_edge("plan", "clean")
     g.add_edge("clean", "analyze")
     g.add_edge("analyze", "critic")

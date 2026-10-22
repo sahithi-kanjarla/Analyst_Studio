@@ -12,7 +12,7 @@ plans, critiques and writes prose, and it can be a free local model, a free-tier
     ▲                                       │
     └───── live agent events (SSE) ◀────────┤
                                             ▼
-   Profiler → Joiner → Planner → Cleaner → Analyst → Critic ──┐ (needs a follow-up check?)
+   Profiler → Joiner → Clarifier → Planner → Cleaner → Analyst → Critic ──┐ (needs a follow-up check?)
                                       ▲              │ yes
                                       └──────────────┘
                                          │ no
@@ -24,6 +24,7 @@ plans, critiques and writes prose, and it can be a free local model, a free-tier
 |---|---|---|
 | **Profiler** | Detects the role of every column (id, numeric, binary, category, date, text), including numbers/dates stored as text | no |
 | **Joiner** | With 2+ files (or Excel sheets): finds the key links, picks the analysis grain from your goal, joins safely, and measures every join | optional (can veto links) |
+| **Clarifier** | Spots ambiguities (two date columns, refund columns, test/cancelled rows, several candidate outcomes), asks a few short questions, and applies the answers | optional (adds up to 3 questions) |
 | **Planner** | Turns the goal into questions, picks the target and only the relevant columns, and chooses analyses | optional (rules fallback) |
 | **Cleaner** | Fixes types, standardises missing values, removes duplicates, imputes, flags outliers, **only for needed columns**, logging every change | no |
 | **Analyst** | Runs the planned analyses from a tested toolbox (tests, effect sizes, charts) | no |
@@ -44,6 +45,34 @@ Everything is optional and treated as *unverified background*, never as fact abo
 
 Not sure what to look for? Tick **I'm not sure what to look for**: the goal becomes optional and the agents explore the data broadly (extra analyses, a second target, heatmaps and per-segment trends).
 If an LLM is enabled, the context text is sent to it, so leave out anything confidential.
+
+## Business glossary and clarifying questions
+
+Before planning, the Clarifier looks for things in the data that would change the numbers and asks about them (**6 questions at most**, rules only, no LLM needed):
+
+| Detected | Question | Default |
+|---|---|---|
+| 2+ date columns | Which date should be used for time analysis? | first date column |
+| A refund / return / cancel / discount amount column | How should *col* be handled? subtract from the main amount (creates a new `<amount>_net` column, which becomes the outcome) / ignore / analyse separately | subtract |
+| Negative values inside an amount column | How should the negative values be handled? include / exclude | include |
+| A status column with cancelled / failed / test… values | Include rows where *status* is *value*? | **exclude only `test` rows**; cancelled and failed are included |
+| Several plausible outcome numbers | Which is the main number you care about? | best match |
+
+Questions are skipped when your goal or typed KPIs already settle them (e.g. the goal names `ship date`, or one column matches your KPI). With an LLM configured it may propose up to 3 more questions from the column names, goal and business context; any question that mentions a column that does not exist is dropped.
+
+**Flow.** If there are unanswered questions the run stops with status `needs_input` (the graph ends, no thread blocks) and the UI shows a form with radio options, free-text definitions and notes, **Continue** and **Skip, use defaults**. Posting the answers restarts the run, which skips the questions it already has answers for. Runs with no ambiguity are never blocked, and neither are runs where the saved glossary already answers every question.
+
+**What the answers do.** The chosen date becomes the plan's `date_col`; the chosen outcome becomes its `target`; excluded status rows and negatives are removed and the net-amount column is added by the cleaner before any totals. Nothing is changed silently: original values are never edited, each step is in the cleaning log with the rows affected, and the report gets a **Definitions used** section (answer, set by *You / Default / Saved glossary / Your goal*, effect, rows affected). Your free-text definitions go to the LLM planner, insights, strategy and summary prompts as *unverified* context and are listed in the report as such.
+
+**Glossary.** Answers are saved in `backend/data/glossary.json` (override with `GLOSSARY_PATH`) keyed by company name (lower-cased; `default` when no company is given). The next run with the same company pre-fills them. Limits: 500 characters of notes, 300 per definition, 20 definitions per company. Writes are atomic and lock-protected. The **Glossary** page lists, edits and deletes entries.
+
+| Endpoint | |
+|---|---|
+| `GET /api/runs/{id}/questions` | The questions to answer, with pre-filled values |
+| `POST /api/runs/{id}/answers` | `{answers, notes, definitions, skip}`; `409` unless the run is `needs_input` |
+| `GET /api/glossary[?workspace=]`, `PUT /api/glossary?workspace=`, `DELETE /api/glossary?workspace=` | Saved definitions |
+
+> **The glossary API has no authentication.** Anyone who can reach the server can read, change or delete saved definitions, like the rest of this local-only app.
 
 ## Insights and strategies
 
@@ -131,15 +160,15 @@ registration and a Power BI Pro licence, so it is not part of the free path).
 ## Tests
 
 ```bash
-cd backend && pytest -q        # 64 tests: pipeline, API, edge cases, multi-table joins, business context, insights, strategies, LLM failure modes (fake model, no network)
+cd backend && pytest -q        # 87 tests: pipeline, API, edge cases, multi-table joins, business context, clarifying questions and glossary, insights, strategies, LLM failure modes (fake model, no network)
 ```
 
 ## Layout
 
 ```
-backend/app/   profiler.py  relations.py  planner.py  cleaner.py  tools.py  critic.py  reporter.py  powerbi.py
+backend/app/   profiler.py  relations.py  clarify.py  glossary.py  planner.py  cleaner.py  tools.py  critic.py  reporter.py  powerbi.py
                graph.py (LangGraph)  llm.py (providers)  runner.py  main.py (FastAPI)
-frontend/src/  App.tsx  components/{UploadForm,RunView,Timeline,Results}.tsx
+frontend/src/  App.tsx  components/{UploadForm,RunView,QuestionForm,Glossary,Timeline,Results}.tsx
 sample_data/   sales.csv  churn.csv  shop/{customers,orders,products}.csv
 ```
 
