@@ -18,7 +18,7 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
-from . import derived
+from . import derived, wording
 from .measures import is_money, measure_kind
 from .config import CHART_DPI
 
@@ -33,9 +33,10 @@ plt.rcParams.update({
 })
 
 
-def additive(name: str) -> bool:
-    """Totals make sense for this column (so a trend or group table sums it); ratios, rates and prices are averaged instead."""
-    return measure_kind(name) == "additive"
+def additive(name: str, ctx: dict | None = None) -> bool:
+    """Totals make sense for this column (so a trend or group table sums it); ratios, rates and prices are averaged instead.
+    The run's brief kinds (ctx['kinds']) win over the word lists."""
+    return measure_kind(name, overrides=(ctx or {}).get("kinds")) == "additive"
 
 # ---------------------------------------------------------------- catalog (shown to the planner LLM)
 CATALOG = {
@@ -88,7 +89,7 @@ def _fmt(x) -> str:
 def _cur(col, ctx) -> str:
     """Currency symbol (from the optional business context) for money-like columns, else ''."""
     sym = (ctx or {}).get("currency") or ""
-    return sym if sym and is_money(col) else ""
+    return sym if sym and is_money(col) and _derived(ctx, col) is None else ""     # a derived ratio is a % or a plain number, never an amount
 
 
 def _bars(ax):
@@ -184,6 +185,7 @@ TOP_SHARE = 7       # share charts (parts of a whole)
 TOP_LINES = 5       # per-group trend lines
 TOP_CELLS = 6       # heatmap rows and columns
 TABLE_ROWS = 10     # table rows shown before "Show all"
+MONTH_CYCLE_MIN_DAYS = 700   # under two years of dates a month-of-year pattern cannot be told apart from a trend
 TABLE_CAP = 500     # most rows a table finding carries
 LONG_LABEL = 12     # labels longer than this switch ranking bars to horizontal
 OTHER_COLOR = "#C9CED8"
@@ -398,6 +400,7 @@ def group_compare(df, ctx, target, group):
         sst = float(((d["y"] - grand) ** 2).sum())
         effect, effect_name = (float(ssb / sst) if sst > 0 else 0.0), "eta_squared"
         if spec is not None:
+            p, effect = derived.ratio_permutation_test(df.loc[d.index], spec, d["g"])      # the test judges the quantity the chart shows: sum A / sum B per group
             agg["mean"] = derived.group_ratio(df.loc[d.index], spec, d["g"])
             agg = agg.dropna(subset=["mean"])
             if len(agg) < 2:
@@ -408,7 +411,7 @@ def group_compare(df, ctx, target, group):
     means = [float(m) for m in agg["mean"]]
     label = f"'{pos}' rate" if kind == "binary" else "overall value" if spec is not None else "average"
     sig_word = "statistically significant" if p < 0.05 else "not statistically significant"
-    test = f"chi-square p{_pf(p)}, Cramér's V={effect:.2f}, {effect_label(effect * effect)} effect" if kind == "binary" else f"ANOVA p{_pf(p)}, eta²={effect:.3f}, {effect_label(effect)} effect"
+    test = f"chi-square p{_pf(p)}, Cramér's V={effect:.2f}, {effect_label(effect * effect)} effect" if kind == "binary" else f"permutation test on the ratio of sums p{_pf(p)}, eta²={effect:.3f}, {effect_label(effect)} effect" if spec is not None else f"ANOVA p{_pf(p)}, eta²={effect:.3f}, {effect_label(effect)} effect"
     if kind == "binary":
         text = (f"The {label} for **{target}** is highest in **{group} = {top}** ({means[0]:.1%}) and lowest in **{bot}** ({means[-1]:.1%}). The difference is {sig_word} ({test}).")
     else:
@@ -574,7 +577,7 @@ def trend(df, ctx, target, date):
     span = (d.index.max() - d.index.min()).days
     rule = "D" if span <= 45 else "W" if span <= 180 else "MS"
     spec = _derived(ctx, target) if kind == "numeric" else None
-    agg = "ratio of sums" if spec is not None else "sum" if (kind == "numeric" and additive(target)) else "mean"
+    agg = "ratio of sums" if spec is not None else "sum" if (kind == "numeric" and additive(target, ctx)) else "mean"
     if spec is not None:        # per period: total of the first column over total of the second, never a mean of row ratios
         parts = pd.DataFrame({"t": pd.to_datetime(df[date], errors="coerce"), "x": pd.to_numeric(df[spec["a"]], errors="coerce"),
                               "y": pd.to_numeric(df[spec["b"]], errors="coerce")}).dropna().set_index("t").sort_index().resample(rule).sum()
@@ -650,7 +653,13 @@ def heatmap(df, ctx, target, group_a, group_b):
     d = pd.DataFrame({"a": df[group_a].astype(str), "b": df[group_b].astype(str), "y": y}).dropna()
     if len(d) < 30:
         return None
-    piv = d.pivot_table(index="a", columns="b", values="y", aggfunc="mean")
+    spec = _derived(ctx, target) if kind == "numeric" else None
+    if spec is not None:        # a cell is its own ratio of sums, never a mean of row ratios
+        parts = pd.DataFrame({"a": d["a"], "b": d["b"], "x": pd.to_numeric(df.loc[d.index, spec["a"]], errors="coerce"), "w": pd.to_numeric(df.loc[d.index, spec["b"]], errors="coerce")}).dropna()
+        sums = parts.pivot_table(index="a", columns="b", values=["x", "w"], aggfunc="sum")
+        piv = sums["x"] / sums["w"].where(sums["w"] != 0)
+    else:
+        piv = d.pivot_table(index="a", columns="b", values="y", aggfunc="mean")
     cnt = d.pivot_table(index="a", columns="b", values="y", aggfunc="count").reindex(index=piv.index, columns=piv.columns).fillna(0)
     valid = piv.where(cnt >= 10)
     cells = valid.stack()
@@ -711,7 +720,7 @@ def segment_trend(df, ctx, target, date, group):
         return None
     span = (d["t"].max() - d["t"].min()).days
     rule = "D" if span <= 45 else "W" if span <= 180 else "MS"
-    use_sum = kind == "numeric" and additive(target)
+    use_sum = kind == "numeric" and additive(target, ctx)
     if spec is not None:
         parts = pd.DataFrame({"x": pd.to_numeric(df.loc[d.index, spec["a"]], errors="coerce"), "y": pd.to_numeric(df.loc[d.index, spec["b"]], errors="coerce")})
     series = {}
@@ -732,7 +741,10 @@ def segment_trend(df, ctx, target, date, group):
     res = {}
     for g, s in series.items():
         lr = stats.linregress(np.arange(len(s)), s.values)
-        res[g] = {"p": float(lr.pvalue), "relative_change": float(lr.slope * (len(s) - 1) / (abs(s.mean()) or 1.0)), "periods": int(len(s))}
+        start, end, mean = float(lr.intercept), float(lr.intercept + lr.slope * (len(s) - 1)), float(abs(s.mean()))
+        res[g] = {"p": float(lr.pvalue), "relative_change": float(lr.slope * (len(s) - 1) / (mean or 1.0)), "periods": int(len(s)),
+                  "start": start, "end": end, "change_abs": end - start,
+                  "pct_ok": bool(start * end > 0 and abs(start) >= wording.NEAR_ZERO * mean)}     # near zero or a sign flip: a percentage would mislead, so the absolute change is shown
     k = len(res)
     for g in res:
         res[g]["p_adjusted"] = min(1.0, res[g]["p"] * k)
@@ -746,23 +758,27 @@ def segment_trend(df, ctx, target, date, group):
     fig, ax = plt.subplots(figsize=(7.2, 3.8))
     for i, g in enumerate(sorted(shown, key=lambda g: -res[g]["relative_change"])):
         s = series[g]
-        ax.plot(s.index, s.values, marker="o", ms=2.5, lw=2.0 if g in (fast, slow) else 1.2, color=PALETTE[i % len(PALETTE)], label=f"{_shorten(g, 22)} ({res[g]['relative_change']:+.0%})")
+        short = f"{res[g]['relative_change']:+.0%}" if wording.pct_ok(res[g]) else f"{res[g]['change_abs']:+,.3g}"
+        ax.plot(s.index, s.values, marker="o", ms=2.5, lw=2.0 if g in (fast, slow) else 1.2, color=PALETTE[i % len(PALETTE)], label=f"{_shorten(g, 22)} ({short})")
     ax.legend(frameon=False, fontsize=8, title=f"{group} (change over period)", title_fontsize=8, loc="center left", bbox_to_anchor=(1.0, 0.5))
     _dates(ax)
     ax.set_ylabel(f"{'Ratio of sums' if spec is not None else 'Sum' if use_sum else 'Mean'} {target} per {unit}")
     note = trim_note(len(shown), k, "groups")
     if note:
         ax.set_xlabel(note, fontsize=9)
-    _title(ax, (f"{fast} is moving up fastest ({res[fast]['relative_change']:+.0%}); {slow} is moving the other way ({res[slow]['relative_change']:+.0%})"
-                if survives else f"{target} trends do not differ reliably across {group}"))
+    st_view = {"groups": res, "fastest": str(fast), "slowest": str(slow), "survives_correction": survives}
+    headline = wording.trend_headline(st_view, group, target, _fmt)
+    _title(ax, headline)
     ranked = sorted(res, key=lambda g: -res[g]["relative_change"])
     listed = ranked if k <= 8 else [g for g in ranked if g in (fast, slow)] + [g for g in sig_groups if g not in (fast, slow)][:4]
-    desc = "; ".join(f"**{g}** {res[g]['relative_change']:+.0%} ({'significant' if res[g]['p_adjusted'] < 0.05 else 'not significant'})" for g in listed)
-    text = (f"Change in **{target}** over the period by **{group}** ({unit}ly, linear trend): {desc}" + (f"; {k - len(listed)} more groups not listed" if len(listed) < k else "") + ". "
+    desc = "; ".join(f"**{g}** {wording.change_phrase(res[g], _fmt)} ({'significant' if res[g]['p_adjusted'] < 0.05 else 'not significant'})" for g in listed)
+    shape = wording.trend_shape(st_view)
+    lead_in = {"mixed": "The groups move in different directions. ", "up": "All groups move up. ", "down": "All groups move down. "}[shape]
+    text = (lead_in + f"Change in **{target}** over the period by **{group}** ({unit}ly, linear trend): {desc}" + (f"; {k - len(listed)} more groups not listed" if len(listed) < k else "") + ". "
             f"P-values are corrected for {k} groups. The first and last {unit}s may be partial." + (f" The chart draws the {len(shown)} biggest groups plus the fastest and slowest (statistics use all {k})." if note else ""))
-    action = (f"**{fast}** and **{slow}** are moving in different directions for {target}; find out what is driving each before reallocating effort." if survives and fast != slow else None)
+    action = (f"**{fast}** and **{slow}** are moving in different directions for {target}; find out what is driving each before reallocating effort." if survives and shape == "mixed" else None)
     return finding("segment_trend", f"{target} over time by {group}", text,
-                   {"kind": "segment_trend", "groups": {g: {kk: _f(vv) for kk, vv in v.items()} for g, v in res.items()}, "fastest": str(fast), "slowest": str(slow),
+                   {"kind": "segment_trend", "groups": {g: {kk: (vv if isinstance(vv, bool) else _f(vv)) for kk, vv in v.items()} for g, v in res.items()}, "shape": shape, "fastest": str(fast), "slowest": str(slow),
                     "p": _f(min(v["p"] for v in res.values())), "p_adjusted": _f(min(v["p_adjusted"] for v in res.values())), "survives_correction": survives,
                     "n": int(len(d)), "freq": rule, "periods": int(min(v["periods"] for v in res.values())), "shown": [str(g) for g in shown], "shown_n": len(shown), "total_groups": k},
                    _save(fig, ctx, _slug("segtrend", target, date, group)), significant=survives, action=action)
@@ -887,6 +903,17 @@ def _cycle_obs(d: pd.DataFrame, name: str, total: bool) -> pd.DataFrame | None:
     return mt[["key", "y"]] if mt["yr"].nunique() >= 2 else None
 
 
+def _ratio_obs(d: pd.DataFrame, name: str) -> pd.DataFrame | None:
+    """One observation per period for a derived ratio: that day's (or calendar month's) total A over total B."""
+    per = d["t"].dt.normalize() if name == "weekday" else d["t"].dt.to_period("M")
+    s = d.groupby(per)[["x", "w"]].sum()
+    s = s[s["w"] != 0]
+    if s.empty:
+        return None
+    key = s.index.dayofweek if name == "weekday" else s.index.month
+    return pd.DataFrame({"key": np.asarray(key), "y": (s["x"] / s["w"]).values})
+
+
 def seasonality(df, ctx, target, date):
     """Does the target follow a weekday or month-of-year pattern? Tests each available cycle and corrects for testing two.
     Additive measures (amounts, counts, profit) are tested on period totals (month totals averaged across years, day totals by weekday), because a per-row average
@@ -895,34 +922,44 @@ def seasonality(df, ctx, target, date):
     d = pd.DataFrame({"t": pd.to_datetime(df[date], errors="coerce"), "y": y}).dropna()
     if len(d) < 60:
         return None
-    total = kind == "numeric" and _derived(ctx, target) is None and additive(target) and bool((d["y"] >= 0).all())
+    spec = _derived(ctx, target) if kind == "numeric" else None
+    if spec is not None:
+        d["x"], d["w"] = pd.to_numeric(df.loc[d.index, spec["a"]], errors="coerce"), pd.to_numeric(df.loc[d.index, spec["b"]], errors="coerce")
+        d = d.dropna()
+    total = kind == "numeric" and _derived(ctx, target) is None and additive(target, ctx) and bool((d["y"] >= 0).all())
     span = (d["t"].max() - d["t"].min()).days
     cycles = {}
     if span >= 56 and d["t"].dt.dayofweek.nunique() >= 5:
         cycles["weekday"] = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-    if span >= 700 and d["t"].dt.month.nunique() >= 10:   # under two years, a month pattern cannot be told apart from a trend
+    if span >= MONTH_CYCLE_MIN_DAYS and d["t"].dt.month.nunique() >= 10:
         cycles["month"] = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
     if not cycles:
         return None
     results = {}
     for name, labels in cycles.items():
-        obs = _cycle_obs(d, name, total)
+        obs = _ratio_obs(d, name) if spec is not None else _cycle_obs(d, name, total)
         if obs is None:
             continue
         grp = obs.groupby("key")["y"]
-        need = 2 if (total and name == "month") else 5
+        need = 2 if ((total or spec is not None) and name == "month") else 5
         groups = [g.values for _, g in grp if len(g) >= need]
         if len(groups) < 3 or (name == "month" and len(groups) < 10):
             continue
         # period totals: a handful of values per calendar month, near-normal because they are sums, so ANOVA (a rank test has almost no power at 2-3 per group)
-        p = float((stats.f_oneway(*groups)[1] if total else stats.kruskal(*groups)[1])) * len(cycles)
+        p = float((stats.f_oneway(*groups)[1] if (total or spec is not None) else stats.kruskal(*groups)[1])) * len(cycles)
         if not np.isfinite(p):
             continue
         means = grp.mean()
         grand = obs["y"].mean()
+        shown_grand = grand
+        if spec is not None:        # shown values: total A over total B within each weekday / month, not an average of daily or row ratios
+            key = d["t"].dt.dayofweek if name == "weekday" else d["t"].dt.month
+            s = d.assign(key=key).groupby("key")[["x", "w"]].sum()
+            means = (s["x"] / s["w"].where(s["w"] != 0)).dropna()
+            shown_grand = float(d["x"].sum() / d["w"].sum()) if d["w"].sum() else grand
         ssb = sum(len(g) * (g.mean() - grand) ** 2 for _, g in grp)
         sst = ((obs["y"] - grand) ** 2).sum()
-        results[name] = {"p": min(1.0, p), "means": means, "labels": labels, "eta": float(ssb / sst) if sst > 0 else 0.0, "min_n": int(grp.size().min()), "grand": float(grand), "n": int(len(obs))}
+        results[name] = {"p": min(1.0, p), "means": means, "labels": labels, "eta": float(ssb / sst) if sst > 0 else 0.0, "min_n": int(grp.size().min()), "grand": float(shown_grand), "n": int(len(obs))}
     if not results:
         return None
     name = min(results, key=lambda k: results[k]["p"])
@@ -947,12 +984,14 @@ def seasonality(df, ctx, target, date):
     unit = "day of the week" if name == "weekday" else "month of the year"
     text = (f"**{target}** {'varies reliably' if sig else 'does not vary reliably'} by {unit} ({'ANOVA on period totals' if total else 'Kruskal-Wallis'} p{_pf(r['p'])}, effect size eta²={r['eta']:.3f}). "
             f"Highest: **{hi}** ({fmt(m.max())}); lowest: **{lo}** ({fmt(m.min())}); overall {fmt(r['grand'])}. "
-            + (f"Values are the average {'monthly' if name == 'month' else 'daily'} total{' across years' if name == 'month' else ''}, not a per-row average." if total else "Values are averages per row."))
+            + (f"Values are the average {'monthly' if name == 'month' else 'daily'} total{' across years' if name == 'month' else ''}, not a per-row average." if total
+               else f"Values are total {spec['a']} over total {spec['b']} for each {'day of the week' if name == 'weekday' else 'month'}; the test compares {'daily' if name == 'weekday' else 'monthly'} ratios." if spec is not None
+               else "Values are averages per row."))
     action = (f"{target} follows a {name} pattern; plan staffing, stock or promotions around {hi} (high) and {lo} (low)." if sig and r["eta"] >= 0.01 else None)
     vals = {r["labels"][int(i) - (1 if name == "month" else 0)]: _f(v) for i, v in m.items()}
     return finding("seasonality", f"{target} by {unit}", text,
                    {"p": _f(r["p"]), "effect": _f(r["eta"]), "effect_name": "eta_squared", "n": r["n"], "cycle": name, "best": hi, "worst": lo,
-                    "values": vals, "min_group_n": r["min_n"], "kind": kind, "basis": "period totals" if total else "row averages"},
+                    "values": vals, "min_group_n": r["min_n"], "kind": kind, "basis": "period totals" if total else "ratio of sums" if spec is not None else "row averages"},
                    _save(fig, ctx, _slug("seas", target, date)), significant=sig, action=action)
 
 
@@ -990,7 +1029,7 @@ def group_table(df, ctx, target, group):
     if d["g"].nunique() < 2 or len(d) < 10:
         return None
     spec = _derived(ctx, target) if kind == "numeric" else None
-    use_sum = kind == "numeric" and spec is None and additive(target) and (d["y"] >= 0).all()
+    use_sum = kind == "numeric" and spec is None and additive(target, ctx) and (d["y"] >= 0).all()
     g = d.groupby("g")["y"].agg(["count", "mean", "median", "sum"])
     if spec is not None:
         g["mean"] = derived.group_ratio(df.loc[d.index], spec, d["g"])

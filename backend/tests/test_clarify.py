@@ -677,13 +677,13 @@ def test_ambiguous_run_pauses_then_answers_change_the_data_and_the_report():
     assert wait(rid) == "needs_input"
     assert not (RUNS_DIR / rid / "result.json").exists()
     q = qmap(rid)
-    assert {"multi_date", "negatives", "sentinel"} <= set(q)
+    assert {"multi_date", "negatives", "placeholder"} <= set(q) and "sentinel" not in q       # the 9999 is asked about once, as a placeholder on the source table
 
     assert cl.post(f"/api/runs/{rid}/answers", json={"answers": {"nope": "x"}}).status_code == 400
     assert cl.post(f"/api/runs/{rid}/answers", json={"answers": {q["negatives"]["id"]: "bogus"}}).status_code == 400
     assert cl.post(f"/api/runs/{rid}/answers", json={"notes": "x" * 600}).status_code == 422
 
-    body = {"answers": {q["multi_date"]["id"]: "discharged", q["negatives"]["id"]: "exclude", q["sentinel"]["id"]: "missing"},
+    body = {"answers": {q["multi_date"]["id"]: "discharged", q["negatives"]["id"]: "exclude", q["placeholder"]["id"]: "missing"},
             "notes": "Costs are in thousands.", "definitions": {"readmission": "back within 30 days"}}
     assert cl.post(f"/api/runs/{rid}/answers", json=body).status_code == 200
     assert cl.post(f"/api/runs/{rid}/answers", json=body).status_code == 409           # a double submit cannot start a second run
@@ -728,7 +728,7 @@ def test_glossary_prefills_partially_answered_questions():
     assert q["multi_date"]["prefill"] == "discharged" and q["multi_date"]["prefill_source"] == "glossary" and q["negatives"]["prefill_source"] == "default"
 
 
-def test_skip_uses_defaults_and_changes_nothing():
+def test_skip_uses_defaults_and_only_the_placeholder_default_changes_data():
     df = hospital_stays()
     rid = start(df, company="Gamma")
     assert wait(rid) == "needs_input"
@@ -737,8 +737,10 @@ def test_skip_uses_defaults_and_changes_nothing():
     assert wait(rid) == "done"
     res = result(rid)
     clean = pd.read_pickle(RUNS_DIR / rid / "clean.pkl")
-    assert len(clean) == len(df) and (clean["stay_days"] == 9999).sum() == (df["stay_days"] == 9999).sum() and (clean["cost"] < 0).sum() == (df["cost"] < 0).sum()
-    assert not [s for s in res["cleaning_log"] if s["step"] == "Definition applied" and s["count"]]
+    assert len(clean) == len(df) and (clean["cost"] < 0).sum() == (df["cost"] < 0).sum()      # no row removed, negatives kept
+    assert (clean["stay_days"] == 9999).sum() == 0                                           # the placeholder's default is "as missing"
+    applied = [s for s in res["cleaning_log"] if s["step"] == "Definition applied" and s["count"]]
+    assert len(applied) == 1 and "stay_days" in applied[0]["detail"]
     assert all(d["source"] in ("default", "goal") for d in res["applied_definitions"])
     assert glossary.get_workspace("gamma")["answers"] == {}                             # skipping saves nothing
 
@@ -779,7 +781,7 @@ def test_run_with_fake_llm_asks_only_valid_questions_and_applies_the_answer():
     rid = start(df, company="Epsilon")
     assert wait(rid, ("needs_input",)) == "needs_input"
     qs = cl.get(f"/api/runs/{rid}/questions").json()["questions"]
-    assert {q["kind"] for q in qs} == {"multi_date", "negatives", "sentinel"} and all(q["id"] == q["signal"] for q in qs)
+    assert {q["kind"] for q in qs} == {"multi_date", "negatives", "placeholder"} and all(q["id"] == q["signal"] for q in qs)
     dumped = json.dumps(qs)
     assert "ghost_col" not in dumped and "chart" not in dumped and "run_python" not in dumped
     neg = next(q for q in qs if q["kind"] == "negatives")

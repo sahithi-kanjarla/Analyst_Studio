@@ -4,13 +4,17 @@ from __future__ import annotations
 
 import re
 
-from . import polarity as polmod
+from . import polarity as polmod, wording
+from .tools import _fmt
 
 CHANGE_RX = re.compile(r"\b(grow\w*|increas\w*|declin\w*|decreas\w*|trend\w*|rising|rise|rises|falling|fall|falls|shrink\w*|over time|improv\w*|expand\w*|slump\w*)\b", re.I)
 
 
-def asks_about_change(goal: str, explore: bool = False) -> bool:
-    return bool(not explore and goal and CHANGE_RX.search(goal))
+def asks_about_change(goal: str, explore: bool = False, intent: str | None = None) -> bool:
+    """The brief's intent decides when there is one; the keyword match is the fallback."""
+    if explore or not goal:
+        return False
+    return intent == "change" if intent else bool(CHANGE_RX.search(goal))
 
 
 def _p(p) -> str:
@@ -20,7 +24,7 @@ def _p(p) -> str:
 def answer(state: dict) -> dict | None:
     """{"sentence", "groups_sentence", "finding_ids"} or None when the goal does not ask about change."""
     plan = state.get("plan") or {}
-    if not asks_about_change(state.get("goal", ""), bool(plan.get("explore"))):
+    if not asks_about_change(state.get("goal", ""), bool(plan.get("explore")), (state.get("brief") or {}).get("intent")):
         return None
     target = plan.get("target")
     findings = state.get("findings") or []
@@ -46,9 +50,7 @@ def answer(state: dict) -> dict | None:
         g = seg["stats"]
         gp = seg["params"]["group"]
         if g.get("survives_correction"):
-            gs = g["groups"]
-            groups = (f"By {gp}, {g['fastest']} is moving up fastest ({gs[g['fastest']]['relative_change']:+.0%}) while {g['slowest']} moves the other way "
-                      f"({gs[g['slowest']]['relative_change']:+.0%}), significant after correcting for {g.get('total_groups', len(gs))} groups.")
+            groups = f"By {gp}, {wording.trend_headline(g, gp, target, _fmt)}, significant after correcting for {g.get('total_groups', len(g['groups']))} groups."
         else:
             groups = f"By {gp}, no group shows a reliable trend after correcting for {g.get('total_groups', len(g['groups']))} groups."
     return {"sentence": sentence, "groups_sentence": groups, "finding_ids": [f["id"] for f in (tr, seg) if f]}

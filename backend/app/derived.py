@@ -131,6 +131,30 @@ def ratio_of_sums(df: pd.DataFrame, spec: dict, mask=None) -> float | None:
     return float(x[ok].sum()) / den if den else None
 
 
+def ratio_permutation_test(df: pd.DataFrame, spec: dict, groups: pd.Series, n_perm: int = 1000, seed: int = 0) -> tuple[float, float]:
+    """(p, effect) for 'the ratio of sums differs between groups'. The statistic is the denominator-weighted between-group variance of the group ratios of sums;
+    the p-value shuffles the group labels, and the effect is that variance as a share of the weighted variance of the row ratios (an eta-squared on the same scale).
+    A one-way ANOVA on row ratios tests the mean of row ratios, a different quantity, so it is not used for a ratio of sums."""
+    d = pd.DataFrame({"g": groups, "x": _num(df, spec["a"]), "w": _num(df, spec["b"])}).dropna()
+    d = d[d["w"] > 0]
+    codes = pd.factorize(d["g"])[0]
+    k = int(codes.max()) + 1 if len(d) else 0
+    if k < 2:
+        return 1.0, 0.0
+    xv, wv = d["x"].to_numpy(float), d["w"].to_numpy(float)
+    total_ratio = xv.sum() / wv.sum()
+
+    def stat(c):
+        sx, sw = np.bincount(c, xv, k), np.bincount(c, wv, k)
+        ok = sw > 0
+        return float((sw[ok] * (sx[ok] / sw[ok] - total_ratio) ** 2).sum())
+    obs = stat(codes)
+    rng = np.random.default_rng(seed)
+    hits = sum(stat(rng.permutation(codes)) >= obs - 1e-12 for _ in range(n_perm))
+    sst = float((wv * (xv / wv - total_ratio) ** 2).sum())
+    return (hits + 1) / (n_perm + 1), (min(1.0, obs / sst) if sst > 0 else 0.0)
+
+
 def group_ratio(df: pd.DataFrame, spec: dict, groups: pd.Series) -> pd.Series:
     """Per-group ratio of sums (never a mean of row ratios)."""
     x, y = _num(df, spec["a"]), _num(df, spec["b"])

@@ -29,6 +29,8 @@ const DECISION_LABEL: Record<string, string> = {
   "rules-only": "rules only (no AI)",
 };
 
+const ORIGIN_LABEL: Record<string, string> = { ai: "Chosen by AI", code: "Added by code", rules: "Chosen by rules" };
+
 function summariseChosen(v: unknown): string {
   if (v && typeof v === "object" && !Array.isArray(v)) return Object.entries(v as Record<string, unknown>).map(([k, x]) => `${k}: ${String(x)}`).join(", ");
   return String(v ?? "");
@@ -130,16 +132,18 @@ export default function Results({ run }: { run: RunResult }) {
       {tab === "plan" && run.plan && (
         <div className="plan">
           <p>
-            <strong>Planned by:</strong> {run.plan.source === "llm" ? `LLM (${run.llm_mode})` : "rule-based planner"} · <strong>Target:</strong> {run.plan.target ?? "none"} ·{" "}
+            <strong>Planned by:</strong> {run.plan.source === "llm" || run.plan.source === "repaired" ? `LLM (${run.llm_mode})` : "rule-based planner"} · <strong>Target:</strong> {run.plan.target ?? "none"} ·{" "}
             <strong>Date column:</strong> {run.plan.date_col ?? "none"}
           </p>
           <h4>Questions the agent set out to answer</h4>
           <ul>{run.plan.questions.map((q) => <li key={q}>{q}</li>)}</ul>
           <h4>Analyses chosen (and why)</h4>
+          <p className="muted">{ORIGIN_LABEL.ai}: picked by the model. {ORIGIN_LABEL.code}: required, so the code added it when the model left it out.</p>
           <ol>
             {run.plan.analyses.map((a, i) => (
               <li key={i}>
                 <code>{a.tool}</code> {Object.values(a.params).flat().map(String).join(", ")}
+                {a.origin && <span className="muted"> · <strong>{ORIGIN_LABEL[a.origin]}</strong></span>}
                 <div className="muted">{a.why}</div>
               </li>
             ))}

@@ -287,11 +287,14 @@ def llm_questions(llm, profile: dict, signals: list[dict], goal: str, ctx: dict 
     return (qs if qs or not out["questions"] else None), dropped
 
 
-def build_questions_and_ignored(df: pd.DataFrame, profile: dict, goal: str, ctx: dict | None, explore: bool, llm, saved: dict | None = None) -> tuple[list[dict], list[dict]]:
+def build_questions_and_ignored(df: pd.DataFrame, profile: dict, goal: str, ctx: dict | None, explore: bool, llm, saved: dict | None = None,
+                                skip_columns: set | None = None) -> tuple[list[dict], list[dict]]:
     """(questions, saved glossary answers that were ignored). The model writes the questions when there is one; otherwise (or if its answer is unusable) the templates do.
     Weak signals alone never pause a run: they are only included when something stronger already needs an answer.
-    A saved answer is ignored when its ambiguity is in this data but the question was dropped as no longer valid, or the saved option no longer exists."""
-    signals = [sg for sg in compute_signals(df, profile) if sg["type"] not in UNASKED]
+    A saved answer is ignored when its ambiguity is in this data but the question was dropped as no longer valid, or the saved option no longer exists.
+    `skip_columns` are columns whose placeholder values were already asked about on the source tables, so no second "is this a placeholder" question is raised for them."""
+    skip = skip_columns or set()
+    signals = [sg for sg in compute_signals(df, profile) if sg["type"] not in UNASKED and not (sg["type"] == "sentinel" and set(sg["columns"]) <= skip)]
     if not signals:
         return [], []
     qs, _ = llm_questions(llm, profile, signals, goal, ctx, saved)

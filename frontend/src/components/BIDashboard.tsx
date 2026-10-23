@@ -72,7 +72,10 @@ export default function BIDashboard({ run }: { run: RunResult }) {
     return data.rows.map((r) => {
       const d: Row["d"] = {}, m: Row["m"] = {};
       data.dims.forEach((x) => (d[x.col] = (r[data.columns.indexOf(x.col)] as string | null) ?? null));
-      data.measures.forEach((x) => (m[x.col] = (r[data.columns.indexOf(x.col)] as number | null) ?? null));
+      data.measures.forEach((x) => {
+        m[x.col] = (r[data.columns.indexOf(x.col)] as number | null) ?? null;
+        if (x.den) m[x.den] = (r[data.columns.indexOf(x.den)] as number | null) ?? null;
+      });
       const day = di >= 0 ? (r[di] as string | null) : null;
       return { d, m, day, ym: day ? day.slice(0, 7) : null, y: day ? day.slice(0, 4) : null, q: day ? `Q${Math.floor((Number(day.slice(5, 7)) - 1) / 3) + 1}` : null };
     });
@@ -97,23 +100,26 @@ export default function BIDashboard({ run }: { run: RunResult }) {
     return true;
   };
 
+  // a ratio measure weights each row by its denominator, so a group shows total A over total B rather than the mean of row ratios
+  const weight = (r: Row, mm: DashMeasure) => (mm.agg === "ratio" && mm.den ? r.m[mm.den] ?? null : 1);
   function group(rs: Row[], key: (r: Row) => string | null, mm: DashMeasure) {
-    const g = new Map<string, { s: number; c: number }>();
+    const g = new Map<string, { s: number; c: number; n: number }>();
     for (const r of rs) {
-      const k = key(r), v = val(r, mm);
-      if (k === null || v === null) continue;
-      const e = g.get(k) ?? { s: 0, c: 0 };
-      e.s += v;
-      e.c += 1;
+      const k = key(r), v = val(r, mm), w = weight(r, mm);
+      if (k === null || v === null || w === null) continue;
+      const e = g.get(k) ?? { s: 0, c: 0, n: 0 };
+      e.s += v * w;
+      e.c += w;
+      e.n += 1;
       g.set(k, e);
     }
-    return [...g.entries()].map(([key, e]) => ({ key, value: mm.agg === "sum" ? e.s : e.s / e.c, n: e.c, s: e.s }));
+    return [...g.entries()].map(([key, e]) => ({ key, value: mm.agg === "sum" ? e.s : e.c ? e.s / e.c : 0, n: e.n, s: e.s, c: e.c }));
   }
   const total = (rs: Row[], mm: DashMeasure) => {
     let s = 0, c = 0;
     for (const r of rs) {
-      const v = val(r, mm);
-      if (v !== null) { s += v; c += 1; }
+      const v = val(r, mm), w = weight(r, mm);
+      if (v !== null && w !== null) { s += v * w; c += w; }
     }
     return mm.agg === "sum" ? s : c ? s / c : 0;
   };
@@ -164,8 +170,8 @@ export default function BIDashboard({ run }: { run: RunResult }) {
     const rest = all.filter((g) => !shown.includes(g));
     const items: Item[] = shown.map((g) => ({ key: g.key, label: g.key, value: g.value, n: g.n }));
     if (rest.length) {
-      const n = rest.reduce((s, g) => s + g.n, 0), sum = rest.reduce((s, g) => s + g.s, 0);
-      items.push({ key: "__other", label: `Other (${rest.length} groups)`, value: m.agg === "sum" ? sum : sum / n, n, other: true });
+      const n = rest.reduce((s, g) => s + g.n, 0), sum = rest.reduce((s, g) => s + g.s, 0), wsum = rest.reduce((s, g) => s + g.c, 0);
+      items.push({ key: "__other", label: `Other (${rest.length} groups)`, value: m.agg === "sum" ? sum : wsum ? sum / wsum : 0, n, other: true });
     }
     return { items, more: rest.length, shown: shown.length, total: all.length };
   };

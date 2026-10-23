@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import json
 
-from . import context as ctxmod
+from . import context as ctxmod, wording
+from .clarify import named_in_goal
 from .insights import allowed_numbers, numbers_ok
 from .llm import ask_json
 from .propose import derive_mode
@@ -25,13 +26,11 @@ def _backed(state: dict) -> list[dict]:
 def rule_summary(state: dict) -> tuple[str, list[str]]:
     findings = state["findings"]
     prof, plan, ctx = state["profile"], state["plan"], state.get("context") or {}
-    sig = [f for f in findings if f.get("significant") and f["tool"] != "robust_compare"]
-    surv = [f for f in sig if f["stats"].get("survives_correction", True)]
     who = f" for **{ctx['company']}**" if ctx.get("company") else ""
     head = (f"**Mode:** exploratory. No specific goal was given, so the agents looked for the most important patterns{who}."
             if plan.get("explore") else f"**Goal:** {state['goal']}")
-    summary = (f"{head}\n\nThe dataset has {prof['rows']:,} rows and {prof['cols']} columns. The agents focused on **{plan.get('target') or 'general profiling'}** and ran {len(findings)} analyses. "
-               f"{len(sig)} showed statistically significant patterns; {len(surv)} {'remains' if len(surv) == 1 else 'remain'} significant after correcting for multiple comparisons.")
+    summary = (f"{head}\n\nThe dataset has {prof['rows']:,} rows and {prof['cols']} columns. The agents focused on **{plan.get('target') or 'general profiling'}**. "
+               f"{wording.counts_sentence(wording.counts(findings))}")
     top = [f for f in _rank(findings) if f["tool"] not in ("robust_compare",)][:3]
     if top:
         summary += "\n\n**Headline results**\n" + "\n".join(f"- **{f['insight']['headline']}.** {f['text']}" for f in top)
@@ -44,6 +43,7 @@ def rule_summary(state: dict) -> tuple[str, list[str]]:
 
 def llm_summary(llm, state: dict) -> tuple[str, list[str]] | None:
     ctx_txt = ctxmod.context_text(state.get("context"))
+    c = wording.counts(state["findings"])
     payload = [{"headline": f["insight"]["headline"], "facts": f["text"].replace("**", ""), "confidence": f["insight"]["confidence"]["label"],
                 "survives_correction": f["stats"].get("survives_correction")} for f in _rank(state["findings"])[:12]]
     out = ask_json(
@@ -52,10 +52,10 @@ def llm_summary(llm, state: dict) -> tuple[str, list[str]] | None:
         "Be plain and concise, distinguish association from causation, and respect the caveats. If company context is given, use its vocabulary. "
         "Return JSON: {\"summary\": \"3-5 sentence executive summary answering the goal\", \"recommendations\": [3-5 concrete, prioritized actions tied to specific findings]}",
         (f"COMPANY CONTEXT (user-written, unverified):\n{ctx_txt}\n" if ctx_txt else "") +
-        f"GOAL: {state['goal']}\nCAVEATS: {json.dumps([i['text'] for i in state['critique']['issues']][:8])}\nFINDINGS: {json.dumps(payload, default=str)}",
+        f"GOAL: {state['goal']}\nCOUNTS (quote these exactly, never recount): {json.dumps(c)}\nCAVEATS: {json.dumps([i['text'] for i in state['critique']['issues']][:8])}\nFINDINGS: {json.dumps(payload, default=str)}",
     )
     if out and isinstance(out.get("summary"), str) and isinstance(out.get("recommendations"), list) and out["recommendations"]:
-        allowed = allowed_numbers(json.dumps(payload, default=str), ctx_txt, str(state["profile"]["rows"]))
+        allowed = allowed_numbers(json.dumps(payload, default=str), ctx_txt, str(state["profile"]["rows"]), json.dumps(c))
         text = out["summary"] + " " + " ".join(str(r) for r in out["recommendations"])
         if numbers_ok(text, allowed):
             return out["summary"], [str(r) for r in out["recommendations"]][:6]
@@ -199,6 +199,9 @@ def write_report(state: dict, llm) -> tuple[str, str]:
     mode = "llm" if res else "rules"
     summary, recs = res if res else rule_summary(state)
     ans = state.get("goal_answer")
+    qa = wording.question_answers(state, named_in_goal)
+    if qa:       # every planned question gets one line, whether or not an LLM wrote the rest
+        summary = "**What we set out to answer, in one line each**\n" + "\n".join(f"- **{q}** {a}" for q, a in qa) + "\n\n" + summary
     if ans:      # the goal is answered first, in the app's own words and numbers, whether or not an LLM wrote the rest
         summary = f"**Answer to your goal.** {ans['sentence']}" + (f" {ans['groups_sentence']}" if ans.get("groups_sentence") else "") + "\n\n" + summary
     return build_report(state, summary, recs, derive_mode({**(state.get("stage_sources") or {}), "report": mode})), mode

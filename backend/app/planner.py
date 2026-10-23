@@ -16,10 +16,11 @@ import pandas as pd
 from . import context as ctxmod
 from . import directives as dv
 from . import goal as goalmod
-from .llm import ask_json
+from .clarify import named_in_goal
 from .profiler import compact_profile
 from .measures import has_sum_word
-from .tools import CATALOG, assoc_strength, spec_signature, validate_spec, target_values  # noqa: F401
+from .propose import AI_SOURCES, propose
+from .tools import CATALOG, MONTH_CYCLE_MIN_DAYS, additive, assoc_strength, spec_signature, validate_spec, target_values  # noqa: F401
 
 PRIOR_TARGET = re.compile(r"revenue|sales|profit|income|price|amount|churn|conversion|score|rating|salary|spend|cost|margin|target|label|outcome|default|fraud|survived|satisfaction", re.I)
 MAX_ANALYSES = 14
@@ -106,6 +107,86 @@ def candidate_measures(df: pd.DataFrame, roles: dict, uniques: dict, ov: dict) -
     return derived + rest
 
 
+def _pairs(ov: dict) -> list[tuple[str, str]]:
+    return [tuple(p) for p in ov.get("hierarchy") or []]
+
+
+def parent_first(groups: list[str], pairs: list[tuple[str, str]], eligible) -> list[str]:
+    """For each verified (parent, child) pair whose child is a chosen group, the parent is analysed too and comes straight before it."""
+    out = list(groups)
+    for p, c in pairs:
+        if c in out and eligible(p):
+            if p in out:
+                out.remove(p)
+            out.insert(out.index(c), p)
+    return out
+
+
+def _related(a: str, b: str, pairs: list[tuple[str, str]]) -> bool:
+    return (a, b) in pairs or (b, a) in pairs
+
+
+def plan_cap(explore: bool) -> int:
+    return MAX_ANALYSES_EXPLORE if explore else MAX_ANALYSES
+
+
+def _span_days(s: pd.Series) -> int:
+    t = pd.to_datetime(s, errors="coerce").dropna()
+    return int((t.max() - t.min()).days) if len(t) else 0
+
+
+def _code(spec: dict, reason: str) -> dict:
+    return {**spec, "why": reason, "origin": "code"}
+
+
+def ensure_required(df: pd.DataFrame, roles: dict, uniques: dict, goal: str, explore: bool, ov: dict, target: str | None, date: str | None, analyses: list[dict]) -> list[dict]:
+    """The items every plan must have, whoever drew it up. Code adds what is missing (origin "code", with the reason) and never removes anything:
+    a month-of-year seasonality for each additive measure when the goal asks about change and the dates span two years; the parent level of a verified
+    hierarchy right before its child; the measures the user named as KPIs."""
+    out = list(analyses)
+
+    def has(spec: dict) -> dict | None:
+        return next((a for a in out if spec_signature(a) == spec_signature(spec)), None)
+
+    def add(spec: dict, reason: str, before: dict | None = None) -> None:
+        ok, _ = validate_spec(spec, roles, uniques)
+        if ok is None or has(ok):
+            return
+        out.insert(out.index(before), _code(ok, reason)) if before is not None else out.append(_code(ok, reason))
+
+    for p, c in _pairs(ov):
+        for a in [a for a in out if a["params"].get("group") == c and a["params"].get("target")]:
+            mate = {"tool": "group_compare", "params": {"target": a["params"]["target"], "group": p}}
+            found = has(mate)
+            if found is None:
+                add(mate, f"{p} is the broader level above {c}, so it is analysed before {c}.", a)
+            elif out.index(found) > out.index(a):
+                out.remove(found)
+                out.insert(out.index(a), found)
+    groups = [a["params"]["group"] for a in out if a["tool"] == "group_compare"]
+    for kpi, col in (ov.get("kpi_map") or {}).items():
+        if not col or col == target or roles.get(col) != "numeric":
+            continue
+        if any(col in (a["params"].get(k) for k in ("target", "col", "x", "y")) for a in out):
+            continue
+        why = f"You named {kpi} as a KPI, and it is the column {col}, so it is always analysed."
+        if date:
+            add({"tool": "trend", "params": {"target": col, "date": date}}, why)
+        if groups:
+            add({"tool": "group_compare", "params": {"target": col, "group": groups[0]}}, why)
+        if not date and not groups:
+            add({"tool": "distribution", "params": {"col": col}}, why)
+    if date and date in df.columns and goalmod.asks_about_change(goal, explore, ov.get("intent")) and _span_days(df[date]) >= MONTH_CYCLE_MIN_DAYS:
+        ratios = {d["name"] for d in ov.get("derived") or []}
+        kpis = [c for c in (ov.get("kpi_map") or {}).values() if c]
+        others = [c for c in candidate_measures(df, roles, uniques, ov) if c != target and c not in kpis][:MAX_EXTRA_MEASURES]
+        for m in dict.fromkeys(([target] if target else []) + kpis + others):
+            if roles.get(m) == "numeric" and m not in ratios and additive(m, {"kinds": ov.get("kinds")}):
+                add({"tool": "seasonality", "params": {"target": m, "date": date}},
+                    f"The goal asks about change over time and the dates span two years or more, so the month-of-year pattern of {m} (a total) is always checked.")
+    return out
+
+
 def heuristic_plan(df: pd.DataFrame, profile: dict, goal: str, context: dict | None = None, explore: bool = False, overrides: dict | None = None) -> dict:
     context = context or {}
     ov = overrides or {}
@@ -113,7 +194,9 @@ def heuristic_plan(df: pd.DataFrame, profile: dict, goal: str, context: dict | N
     roles = _apply_exclusions(roles, ov)
     # In explore mode the "goal" is a placeholder sentence, so it must not influence column choice.
     goal_tokens = set() if explore else set(re.findall(r"[a-z0-9]+", goal.lower()))
-    kpi_tokens = ctxmod.kpi_tokens(context)
+    kpi_tokens = ctxmod.kpi_tokens(context, ov.get("kpi_map"))
+    kpi_cols = {c for c in (ov.get("kpi_map") or {}).values() if c}
+    kinds = ov.get("kinds")
     desc_tokens = ctxmod.description_tokens(context)
     hint = ctxmod.lens(context)["target_rx"] if ctxmod.has_context(context) else None
     miss = {c["name"]: c["missing_pct"] for c in profile["columns"]}
@@ -122,7 +205,7 @@ def heuristic_plan(df: pd.DataFrame, profile: dict, goal: str, context: dict | N
 
     def evidence(c: str) -> int:  # does the goal, a named KPI, the industry or the column name point at this being the outcome?
         nt = _name_tokens(c)
-        return (3 * len(nt & goal_tokens) + 5 * len(nt & kpi_tokens) + len(nt & desc_tokens)
+        return (3 * len(nt & goal_tokens) + 5 * len(nt & kpi_tokens) + (5 if c in kpi_cols else 0) + len(nt & desc_tokens)
                 + (4 if PRIOR_TARGET.search(c) else 0) + (3 if hint and hint.search(c) else 0))
 
     scored = sorted(cands, key=lambda c: -(evidence(c) - miss[c] / 100))
@@ -141,9 +224,14 @@ def heuristic_plan(df: pd.DataFrame, profile: dict, goal: str, context: dict | N
         if not t:
             return gs[:3]
         boost = goal_tokens | kpi_tokens
-        return sorted(gs, key=lambda g: -(assoc_strength(df, t, g) + (0.1 if _name_tokens(g) & boost else 0)))[:limit]
+        return sorted(gs, key=lambda g: (not (not explore and named_in_goal(g, goal)), -(assoc_strength(df, t, g) + (0.1 if _name_tokens(g) & boost else 0))))[:limit]   # the segment the goal names comes first
 
+    hier = _pairs(ov)
     groups = rank_groups(target, 4)
+    if target and hier:      # a verified hierarchy: the broad level is analysed before the fine one
+        groups = parent_first(groups, hier, lambda p: roles.get(p) == "categorical" and 2 <= uniques[p] <= 30 and p in df.columns)
+    pair_ab = next(((a, b) for i, a in enumerate(groups) for b in groups[i + 1:] if not _related(a, b, hier)), None)   # a parent and its child always line up, so they make a poor pair
+    pair_ac = next(((groups[0], b) for b in groups[2:] if not _related(groups[0], b, hier)), None) if groups else None
 
     nums = [c for c, r in roles.items() if r == "numeric" and c != target]
     drivers = nums[:5]
@@ -160,13 +248,13 @@ def heuristic_plan(df: pd.DataFrame, profile: dict, goal: str, context: dict | N
             analyses.append({"tool": "trend", "params": {"target": target, "date": date}, "why": f"See how {target} changes over time."})
         for g in groups:
             analyses.append({"tool": "group_compare", "params": {"target": target, "group": g}, "why": f"Find out whether {target} differs across {g} (chosen because it is among the columns most associated with {target})."})
-        if len(groups) >= 2:
-            analyses.append({"tool": "heatmap", "params": {"target": target, "group_a": groups[0], "group_b": groups[1]},
-                             "why": f"See whether combinations of {groups[0]} and {groups[1]} behave differently from either alone."})
+        if pair_ab:
+            analyses.append({"tool": "heatmap", "params": {"target": target, "group_a": pair_ab[0], "group_b": pair_ab[1]},
+                             "why": f"See whether combinations of {pair_ab[0]} and {pair_ab[1]} behave differently from either alone."})
         if date and groups:
             analyses.append({"tool": "segment_trend", "params": {"target": target, "date": date, "group": groups[0]},
                              "why": f"Check whether {target} is moving differently over time for different {groups[0]} values."})
-        if roles[target] == "numeric" and has_sum_word(target):
+        if roles[target] == "numeric" and has_sum_word(target, overrides=kinds):
             for g in groups[:2]:
                 analyses.append({"tool": "pareto", "params": {"target": target, "group": g}, "why": f"See which {g} values contribute most of the total {target}."})
         if roles[target] == "binary":
@@ -184,9 +272,10 @@ def heuristic_plan(df: pd.DataFrame, profile: dict, goal: str, context: dict | N
         if groups:
             analyses.append({"tool": "group_table", "params": {"target": target, "group": groups[0]}, "why": f"Give the exact per-group figures for {target} by {groups[0]}."})
         if len(groups) >= 3:
-            analyses.append({"tool": "composition", "params": {"group": groups[0], "by": groups[2]}, "why": f"See whether the mix of {groups[2]} changes across {groups[0]}."})
-        elif len(groups) == 2 and explore:
-            analyses.append({"tool": "composition", "params": {"group": groups[0], "by": groups[1]}, "why": f"See whether the mix of {groups[1]} changes across {groups[0]}."})
+            if pair_ac:
+                analyses.append({"tool": "composition", "params": {"group": pair_ac[0], "by": pair_ac[1]}, "why": f"See whether the mix of {pair_ac[1]} changes across {pair_ac[0]}."})
+        elif len(groups) == 2 and explore and pair_ab:
+            analyses.append({"tool": "composition", "params": {"group": pair_ab[0], "by": pair_ab[1]}, "why": f"See whether the mix of {pair_ab[1]} changes across {pair_ab[0]}."})
         if explore or not groups:
             analyses.insert(0, {"tool": "summary_table", "params": {"cols": [c for c in ([target] + drivers) if roles.get(c) == "numeric"]}, "why": "Give a quick factual overview of the numeric columns."})
         if second:  # exploratory: a second candidate outcome gets a lighter pass
@@ -201,17 +290,19 @@ def heuristic_plan(df: pd.DataFrame, profile: dict, goal: str, context: dict | N
             analyses.append({"tool": "distribution", "params": {"col": c}, "why": f"Describe {c}."})
         if len(nums) >= 2:
             analyses.append({"tool": "scatter", "params": {"x": nums[0], "y": nums[1]}, "why": f"See whether {nums[0]} and {nums[1]} are related."})
-        if len(groups) >= 2:
-            analyses.append({"tool": "composition", "params": {"group": groups[0], "by": groups[1]}, "why": f"See whether the mix of {groups[1]} changes across {groups[0]}."})
+        if pair_ab:
+            analyses.append({"tool": "composition", "params": {"group": pair_ab[0], "by": pair_ab[1]}, "why": f"See whether the mix of {pair_ab[1]} changes across {pair_ab[0]}."})
         if nums:
             analyses.insert(0, {"tool": "summary_table", "params": {"cols": nums[:12]}, "why": "No clear outcome column was found, so start with a factual overview."})
-    if target and goalmod.asks_about_change(goal, explore):     # the goal asks about change: the overall trend and the per-group trends are never cut
+    if target and goalmod.asks_about_change(goal, explore, ov.get("intent")):     # the goal asks about change: the overall trend and the per-group trends are never cut
         first = [a for a in analyses if a["tool"] in ("trend", "segment_trend") and a["params"].get("target") == target]
         analyses = first + [a for a in analyses if a not in first]
     analyses = analyses[:(MAX_ANALYSES_EXPLORE if explore else MAX_ANALYSES)] + _include_extras(roles, date, ov, target)
     extras = measure_extras(df, roles, uniques, candidate_measures(df, roles, uniques, ov), {target, second}, date, groups) if target else []
     have = {spec_signature(a) for a in analyses}
     analyses += [a for a in extras if spec_signature(a) not in have]
+    analyses = [{**a, "origin": "rules"} for a in analyses]
+    analyses = ensure_required(df, roles, uniques, goal, explore, ov, target, date, analyses)
 
     relevant = list(dict.fromkeys(([target] if target else []) + ([second] if second else []) + groups + ([date] if date else []) + drivers + [c for c in ov.get("include") or [] if c in roles]
                                   + [c for a in extras for v in a["params"].values() for c in (v if isinstance(v, list) else [v]) if c in roles]))
@@ -221,37 +312,88 @@ def heuristic_plan(df: pd.DataFrame, profile: dict, goal: str, context: dict | N
         questions.append(f"Which segments ({', '.join(groups[:3])}) perform best and worst on {target}?")
     if date and target:
         questions.append(f"Is {target} trending up or down over time?")
-    if context.get("kpis") and target and (_name_tokens(target) & kpi_tokens):
+    if context.get("kpis") and target and (_name_tokens(target) & kpi_tokens or target in kpi_cols):
         questions.append(f"How is {target}, one of the KPIs you named, behaving and what is it linked to?")
     objective = goal if not explore else "Explore the data and surface the most important patterns for the business (no specific goal was given)."
     return {"objective": objective, "questions": questions, "target": target, "date_col": date, "relevant_columns": relevant,
             "analyses": analyses, "skipped": rule_skipped(profile, relevant, ov), "source": "rules", "explore": bool(explore), "derived": list(ov.get("derived") or [])}
 
 
-PLAN_SYSTEM = f"""You are the Planner of a data-analysis team. A user gives a GOAL, optional BUSINESS CONTEXT and a dataset profile.
-Decide what is needed to serve the goal and NOTHING more: pick the outcome column (target), the relevant columns, and the analyses to run.
+def plan_system(cap: int) -> str:
+    return f"""You are the Planner of a data-analysis team. A user gives a GOAL, optional BUSINESS CONTEXT and a dataset profile.
+Decide what is needed to serve the goal and NOTHING more: pick the outcome column (target), the relevant columns, and the analyses to run, in the order they should run.
 Use the business context (industry, what they sell, the KPIs they named) to choose the outcome that matters to THEM.
-Available analysis tools (use exact names and parameter names):
+Available analysis tools (use exact names and parameter names; no other tool exists):
 {json.dumps(CATALOG, indent=1)}
 
 Rules:
-- Use only column names that appear in the profile. Match column role to tool requirements.
-- Choose at most 10 analyses, each with a short "why" tied to the goal or the business context.
+- Use only column names that appear in the profile. Match column role to tool requirements. Never use an identifier column.
+- Choose at most {cap} analyses, each with a short "why" tied to the goal or the business context. More than {cap} is rejected.
+- The code adds these itself when you leave them out, so do not spend your {cap} on them: a month-of-year seasonality for each additive measure when the goal asks about change over time and the dates span two years, the broader level of a verified hierarchy, and the measures the user named as KPIs.
 - If the goal says exploratory mode: choose the 1-2 most business-relevant outcome columns and a broad, varied set of analyses.
 - Skip identifier and free-text columns. List notable skipped columns with a reason.
+- Answer with names and words only, never numbers.
 Return JSON with keys: objective (string), questions (list of 2-4 strings), target (column or null), date_col (column or null),
 relevant_columns (list), analyses (list of {{tool, params, why}}), skipped (list of {{column, reason}})."""
 
 
-def llm_plan(llm, profile: dict, goal: str, context: dict | None = None, explore: bool = False, overrides: dict | None = None) -> dict | None:
+def plan_view(profile: dict, goal: str, context: dict | None = None, explore: bool = False, overrides: dict | None = None) -> str:
     ctx_txt = ctxmod.context_text(context)
     ov = overrides or {}
     confirmed = "".join(f"- {k}: {v}\n" for k, v in (("target (main number)", ov.get("target")), ("date_col", ov.get("date_col"))) if v)
     confirmed += "".join(f"- do not use column: {c}\n" for c in ov.get("exclude") or [])
     mode = "EXPLORATORY MODE: the user does not know what to look for.\n" if explore else ""
-    user = (f"{mode}GOAL: {goal}\n\n" + (f"CONFIRMED BY THE USER (use exactly):\n{confirmed}\n" if confirmed else "") + (f"BUSINESS CONTEXT (user-written, unverified):\n{ctx_txt}\n\n" if ctx_txt else "")
+    return (f"{mode}GOAL: {goal}\n\n" + (f"CONFIRMED BY THE USER (use exactly):\n{confirmed}\n" if confirmed else "") + (f"BUSINESS CONTEXT (user-written, unverified):\n{ctx_txt}\n\n" if ctx_txt else "")
             + f"PROFILE ({profile['rows']} rows):\n{json.dumps(compact_profile(profile), default=str)}")
-    return ask_json(llm, PLAN_SYSTEM, user)
+
+
+def plan_validator(roles: dict, uniques: dict, ids: set, cap: int):
+    """The checks on a proposed plan: only tools of the catalog, columns that exist with fitting types, no identifier columns, within the cap. Any problem is an error
+    (the model gets one repair); the clean plan has the analyses in the model's order without duplicates."""
+    def validate(obj):
+        if not isinstance(obj, dict) or not isinstance(obj.get("analyses"), list):
+            return None, ["the reply must be a JSON object with an 'analyses' list"]
+        specs, errors, good, seen = obj["analyses"], [], [], set()
+        if len(specs) > cap:
+            errors.append(f"{len(specs)} analyses were proposed but at most {cap} are allowed")
+        for i, spec in enumerate(specs, 1):
+            spec = spec if isinstance(spec, dict) else {}
+            used = [c for v in (spec.get("params") or {}).values() for c in (v if isinstance(v, list) else [v])]
+            ok, why = validate_spec(spec, roles, uniques)
+            if bad := [c for c in used if isinstance(c, str) and c in ids]:
+                errors.append(f"analysis {i} ({spec.get('tool')}): '{bad[0]}' is an identifier column and cannot be analysed")
+            elif ok is None:
+                errors.append(f"analysis {i}: {why}")
+            elif spec_signature(ok) not in seen:
+                seen.add(spec_signature(ok))
+                good.append({**ok, "origin": "ai"})
+        if len(good) < 2 and not errors:
+            errors.append("a plan needs at least 2 different analyses")
+        for key, role in (("target", ("numeric", "binary")), ("date_col", ("date",))):
+            v = obj.get(key)
+            if v is not None and roles.get(v) not in role:
+                errors.append(f"{key} '{v}' is not a column with the role {' or '.join(role)}")
+        return ({**obj, "analyses": good}, []) if not errors else (None, errors)
+    return validate
+
+
+def propose_plan(llm, df: pd.DataFrame, profile: dict, goal: str, context: dict | None = None, explore: bool = False, overrides: dict | None = None,
+                 state: dict | None = None) -> tuple[dict, list[str]]:
+    """The model proposes the whole plan through propose() (one repair, then the rules plan); the code then adds what is required. Every analysis says who chose it."""
+    ov = overrides or {}
+    roles, uniques = roles_and_uniques(profile)
+    ids = {c for c, r in roles.items() if r == "id"}
+    cap = plan_cap(explore)
+    res = propose(llm, "analysis plan", plan_system(cap), plan_view(profile, goal, context, explore, ov), plan_validator(_apply_exclusions(roles, ov), uniques, ids, cap), lambda: None)
+    ai = res["source"] in AI_SOURCES
+    plan, notes = finalize_plan(res["value"] if ai else None, df, profile, goal, context, explore, ov)
+    plan["source"] = "llm" if res["source"] == "llm" else "repaired" if ai else "rules"
+    by = sum(a.get("origin") == "ai" for a in plan["analyses"])
+    if state is not None:
+        state.setdefault("decisions", []).append({
+            "decision": "analysis plan", "source": res["source"], "chosen": {"analyses chosen by the AI": by, "analyses added by code": len(plan["analyses"]) - by if ai else 0},
+            "why": res["why"] if ai else "The rule-based plan was used." if res["source"] != "fallback" else "The model's plan was not usable after one repair, so the rule-based plan was used.", "errors": res["errors"]})
+    return plan, notes
 
 
 def finalize_plan(raw: dict | None, df: pd.DataFrame, profile: dict, goal: str, context: dict | None = None, explore: bool = False,
@@ -274,31 +416,33 @@ def finalize_plan(raw: dict | None, df: pd.DataFrame, profile: dict, goal: str, 
         sig = spec_signature(ok)
         if sig not in seen:
             seen.add(sig)
-            analyses.append(ok)
+            analyses.append({**ok, "origin": "ai"})
     if len(analyses) < 2:
         notes.append("LLM plan was too thin; filled in with rule-based steps.")
         for spec in fallback["analyses"]:
             sig = spec_signature(spec)
             if sig not in seen:
                 seen.add(sig)
-                analyses.append(spec)
+                analyses.append(_code(spec, f"{spec['why']} (added by code: the AI's plan had fewer than 2 usable analyses)"))
     target = raw.get("target") if raw.get("target") in roles and roles[raw["target"]] in ("numeric", "binary") else fallback["target"]
     date = raw.get("date_col") if raw.get("date_col") in roles and roles[raw["date_col"]] == "date" else fallback["date_col"]
     if ov.get("target") and target != fallback["target"]:
         notes.append(f"The main number you chose ({fallback['target']}) replaced the model's choice ({target}); analyses were rebuilt around it.")
-        target, analyses = fallback["target"], list(fallback["analyses"])
+        target, analyses = fallback["target"], [_code(a, a["why"]) for a in fallback["analyses"]]
     if ov.get("date_col") and date != fallback["date_col"]:
         notes.append(f"Time analysis uses {fallback['date_col']}, the date column you chose.")
         date = fallback["date_col"]
         analyses = [{**a, "params": {**a["params"], "date": date}} if "date" in a["params"] else a for a in analyses]
-    if target and goalmod.asks_about_change(goal, explore):
-        have = {spec_signature(a) for a in analyses}
+    if target and goalmod.asks_about_change(goal, explore, ov.get("intent")):
+        have ={spec_signature(a) for a in analyses}
         need = [a for a in fallback["analyses"] if a["tool"] in ("trend", "segment_trend") and a["params"].get("target") == target and spec_signature(a) not in have]
-        analyses = need + analyses
+        analyses = [_code(a, f"The goal asks about change over time, so the {'overall' if a['tool'] == 'trend' else 'per-group'} trend of {target} is always included.") for a in need] + analyses
     seen_sigs = {spec_signature(a) for a in analyses}
     groups = [a["params"]["group"] for a in fallback["analyses"] if a["tool"] == "group_compare" and a["params"].get("target") == fallback["target"]]
     more = _include_extras(roles, date, ov, target) + (measure_extras(df, roles, uniques, candidate_measures(df, roles, uniques, ov), {target}, date, groups) if target else [])
-    analyses += [a for a in more if spec_signature(a) not in seen_sigs]
+    analyses += [_code(a, a["why"]) for a in more if spec_signature(a) not in seen_sigs]
+    analyses = ensure_required(df, roles, uniques, goal, explore, ov, target, date, analyses)
+    analyses = [a if a.get("origin") == "ai" else {**a, "origin": "code"} for a in analyses]
     used ={c for a in analyses for v in a["params"].values() for c in (v if isinstance(v, list) else [v])}
     relevant = list(dict.fromkeys([c for c in (raw.get("relevant_columns") or []) if c in roles] + [c for c in used if c in roles] + ([target] if target else []) + ([date] if date else [])
                                   + [c for c in ov.get("include") or [] if c in roles]))

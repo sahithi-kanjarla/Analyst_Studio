@@ -227,7 +227,7 @@ export interface RunResult {
     target: string | null;
     date_col: string | null;
     relevant_columns: string[];
-    analyses: { tool: string; params: Record<string, unknown>; why: string }[];
+    analyses: { tool: string; params: Record<string, unknown>; why: string; origin?: "ai" | "code" | "rules" }[];
     skipped: { column: string; reason: string }[];
     source: string;
   };
@@ -266,7 +266,8 @@ export interface DataCompare {
 export interface DashMeasure {
   col: string;
   label: string;
-  agg: "sum" | "avg";
+  agg: "sum" | "avg" | "ratio";
+  den?: string;
   fmt: "num" | "money" | "pct";
   note: string;
 }
