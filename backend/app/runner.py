@@ -25,7 +25,16 @@ def write_status(run_id: str, status: str, **extra) -> None:
     cur.update(status=status, updated=time.time(), **extra)
     tmp = p.with_name(f"status.{threading.get_ident()}.tmp")      # a reader polling the status never sees a half-written file
     tmp.write_text(json.dumps(cur))
-    os.replace(tmp, p)
+    for attempt in range(10):     # on Windows os.replace raises PermissionError while a poller (or antivirus) has the target open
+        try:
+            os.replace(tmp, p)
+            return
+        except PermissionError:
+            time.sleep(0.02 * (attempt + 1))
+    try:
+        p.write_text(json.dumps(cur))     # last resort: still blocked, write in place rather than killing the run
+    finally:
+        tmp.unlink(missing_ok=True)
 
 
 def read_status(run_id: str) -> dict | None:
@@ -84,13 +93,13 @@ def _execute(run_id: str) -> None:
     try:
         context = meta.get("context") or {}
         final = GRAPH.invoke({"run_id": run_id, "goal": meta["goal"], "data_paths": [str(wd / "inputs" / f) for f in meta["files"]],
-                              "workdir": str(wd), "iteration": 0, "findings": [], "context": context, "explore": bool(context.get("explore"))})
+                              "workdir": str(wd), "iteration": 0, "remove_derived": meta.get("remove_derived") or [], "findings": [], "context": context, "explore": bool(context.get("explore"))})
         set_quiet(run_id, False)
         if final.get("awaiting_input"):
             write_status(run_id, "needs_input")
             return
         keys = ("goal", "profile", "plan", "cleaning_log", "findings", "critique", "report_md", "powerbi", "llm_mode", "data_model",
-                "context", "strategies", "strategy_summary", "data_gaps", "key_metrics", "applied_definitions", "ignored_definitions", "definitions")
+                "context", "strategies", "strategy_summary", "data_gaps", "key_metrics", "applied_definitions", "ignored_definitions", "definitions", "derived_metrics", "goal_answer", "decisions", "run_mode", "stage_sources")
         result = {k: final.get(k) for k in keys}
         result["run_id"] = run_id
         (wd / "result.json").write_text(json.dumps(result, default=str))
@@ -123,3 +132,21 @@ def resume_with_answers(run_id: str, payload: dict) -> bool:
         write_status(run_id, "running")
         start_run(run_id)
         return True
+
+
+def rerun_without_derived(run_id: str, names: list[str]) -> str:
+    """Start a new run on the same files, goal, context and answers, leaving out the derived metrics the user removed. The old run is untouched."""
+    import shutil
+    src = run_dir(run_id)
+    meta = json.loads((src / "input.json").read_text())
+    new_id = uuid.uuid4().hex[:12]
+    dst = run_dir(new_id)
+    shutil.copytree(src / "inputs", dst / "inputs")
+    for f in ("questions.json", "answers.json"):
+        if (src / f).exists():
+            shutil.copy(src / f, dst / f)
+    removed = list(dict.fromkeys(list(meta.get("remove_derived") or []) + names))
+    (dst / "input.json").write_text(json.dumps({**meta, "remove_derived": removed}))
+    write_status(new_id, "queued", goal=meta["goal"], filename=", ".join(meta["files"]), created=time.time())
+    start_run(new_id)
+    return new_id

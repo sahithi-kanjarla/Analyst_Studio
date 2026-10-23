@@ -60,7 +60,7 @@ data -> signals.py (neutral facts) -> question writer -> validator -> you answer
 
 **Every question is anchored to a signal.** A question must carry the id of a signal that `signals.py` found in this data, and its options may only do what that kind of signal calls for (a placeholder can be treated as missing, not 'drop another column'). The LLM can only *reword* questions for signals that exist; anything it invents with no backing signal is dropped, even if its options would change the data. On data with nothing ambiguous the app asks 0 questions, with or without an LLM.
 
-**Several measures, segments, periods, total vs average are never questions.** All candidate measures are analysed (distribution, trend, average per record and totals by segment, and one overview table), together with a derived ratio of sums when one measure is a part of another (for example profit as a share of amount, averaged rather than summed). Every segment column and every period the data supports is analysed and shown.
+**Several measures, segments, periods, total vs average are never questions.** All candidate measures are analysed (distribution, trend, average per record and totals by segment, and one overview table). Every segment column and every period the data supports is analysed and shown. Ratios between measures are never invented by rules; see *Derived metrics* below.
 
 **Question writer.** With an LLM configured, it gets the compact profile, the signals, the goal, your business context and the saved glossary, and writes the questions. The prompt says: ask only when the answer changes what a number means; never ask which chart, grouping, column, time frame or view to show (the app analyses everything reasonable and ranks it); merge duplicates. With no LLM, or if its answer is unusable, one template per signal type produces the questions. A model that explicitly answers "nothing to ask" is respected.
 
@@ -96,6 +96,40 @@ data -> signals.py (neutral facts) -> question writer -> validator -> you answer
 ![Question form](docs/screenshots/question-form.png)
 ![Definitions used in the report](docs/screenshots/report-definitions.png)
 ![Glossary page](docs/screenshots/glossary-page.png)
+
+## Derived metrics (ratios) are proposed, then checked against the data
+
+Rules alone never create a ratio. With an LLM, the planner may propose ratios A / B, and each proposal must come with a one-line business meaning and then pass checks that look at **values only** (`derived.py`, no column names, no domain words):
+
+| Check | Rejects |
+|---|---|
+| The ratio is not almost entirely a function of its denominator | \|spearman(A/B, B)\| > 0.8 (for example units divided by an amount, which just reproduces the inverse of the amount) |
+| The two columns are on comparable scales | typical sizes more than about 50x apart |
+| An id or count-like column is not divided by a continuous magnitude | small whole-number counts or ids over decimals |
+| The denominator is positive in nearly every row | unstable divisors |
+
+"Part of" ratios (A mostly within 0..B, a component over its total) rank first, at most two are kept, and a ratio is always a **ratio of sums** (total of A over total of B, per group and per period), never the mean of row ratios. Every created metric, with its meaning, and every rejected proposal, with the reason, is listed under **Definitions used** in the report and on the dashboard, where **Remove and re-run** repeats the analysis without it (`POST /api/runs/{id}/remove-derived`).
+
+## The goal gets a direct answer
+
+If the goal asks whether something is growing, falling or changing over time, the planner puts the overall trend and the per-group trends first, and the report opens with **Answer to your goal**: one sentence with the direction, the size of the change and its significance (for example "There is no reliable growth trend in amount: it changed about -5% over the period, which is not statistically significant (p=0.58, 24 months)"), plus one on the groups, corrected for the number of groups tested. The dashboard shows that sentence with the two trend charts above everything else.
+
+## Charts show a readable slice; statistics always use all the data
+
+Only the picture is trimmed. Every test, effect size, best/worst group and total is computed on every row and every group, and every trimmed chart says so on the chart itself ("showing top 8 of 17 groups; statistics use all 17"), in the finding text and in its stats.
+
+| Chart | What is drawn |
+|---|---|
+| Ranking bars (group comparison) | up to 8 groups: all. More: top 8 by the plotted value, always including the best and worst group named in the headline, plus one **Other (k groups)** bar (the pooled mean or rate of the remaining rows; a ratio of sums for derived metrics). Horizontal bars when there are more than 6 or the labels are long, with the value and n beside each bar |
+| Share charts (category share, Pareto, composition) | top 7 plus Other |
+| Per-group trends | the 5 biggest groups, always including the fastest and slowest; every group with enough data is tested and the p-values are corrected for all of them |
+| Heatmaps | the 6 x 6 biggest rows and columns, always including those of the best and weakest cell, which are found over all cells |
+| Histograms | axis clipped at the 99th percentile with the number of values beyond it stated; a log axis for extreme skew |
+| Tables | 10 rows, **Show all N** |
+| Dashboard | the goal answer first, then the four highest-scoring findings; the rest under **More charts** |
+
+![Dashboard on 17 regions](docs/screenshots/dash-17-top.png)
+![Goal answer and key findings](docs/screenshots/dash-17-gallery.png)
 
 ## Insights and strategies
 

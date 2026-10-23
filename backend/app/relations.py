@@ -15,7 +15,7 @@ import numpy as np
 import pandas as pd
 
 from .llm import ask_json
-from .planner import PRIOR_TARGET, _name_tokens
+from .profiler import profile_df
 from .tools import SUM_WORDS, to_binary
 
 SAMPLE = 300_000
@@ -140,23 +140,20 @@ def describe_edge(e: dict) -> str:
 
 
 # ------------------------------------------------------------------ choosing the grain
-def choose_base(tables: dict[str, pd.DataFrame], profiles: dict[str, dict], edges: list[dict], goal: str) -> tuple[str, str]:
-    goal_tokens = set(re.findall(r"[a-z0-9]+", goal.lower()))
-    scores = {}
-    for t, prof in profiles.items():
-        s = 0
-        for c in prof["columns"]:
-            if c["role"] in ("numeric", "binary"):
-                s = max(s, 3 * len(_name_tokens(c["name"]) & goal_tokens) + (4 if PRIOR_TARGET.search(c["name"]) else 0))
-        scores[t] = s + 2 * len(_name_tokens(t) & goal_tokens)
-    top = max(scores.values())
-    leaders = [t for t, s in scores.items() if s == top]
-    if top > 0 and len(leaders) == 1:
-        return leaders[0], "the goal points at its columns"
-    pool = leaders if top > 0 else list(tables)
-    fk_out = lambda t: sum(1 for e in edges if e["child_table"] == t)  # noqa: E731
-    pick = max(pool, key=lambda t: (fk_out(t), len(tables[t])))
-    return pick, "it references the most other tables (the likely fact table)" if fk_out(pick) else "it is the largest table"
+def choose_base(tables: dict[str, pd.DataFrame], edges: list[dict]) -> tuple[str, str]:
+    """The finest-grain table: the one furthest down the foreign-key chain. Every parent joins onto it many-to-one, so no row or column is lost.
+    The goal never selects a coarser table (that would force the fact table to be aggregated)."""
+    parents: dict[str, set[str]] = {}
+    for e in edges:
+        parents.setdefault(e["child_table"], set()).add(e["parent_table"])
+
+    def depth(t: str, seen: frozenset = frozenset()) -> int:
+        return max((1 + depth(p, seen | {t}) for p in parents.get(t, ()) if p not in seen), default=0)
+
+    pick = max(tables, key=lambda t: (depth(t), len(tables[t]), t))
+    if depth(pick):
+        return pick, f"it is the finest-grain table (it references {len(parents[pick])} other table(s); parents are joined onto it, nothing is aggregated away)"
+    return pick, "it is the largest table"
 
 
 # ------------------------------------------------------------------ building the analysis table
@@ -217,11 +214,11 @@ def build_model(tables: dict[str, pd.DataFrame], profiles: dict[str, dict], edge
             warnings.append({"severity": "warn", "text": f"Only {match:.0%} of rows found a match in {pt}; the rest have missing values for its columns."})
         return True
 
-    def aggregate_child(i, e) -> bool:
+    def aggregate_child(i, e, child_df=None, child_profile=None) -> bool:
         nonlocal joined
         ct, fk, pt, pk = e["child_table"], e["child_col"], e["parent_table"], e["parent_col"]
-        child = tables[ct]
-        prof = {c["name"]: c for c in profiles[ct]["columns"]}
+        child = tables[ct] if child_df is None else child_df
+        prof = {c["name"]: c for c in (profiles[ct] if child_profile is None else child_profile)["columns"]}
         key = norm_key(child[fk])
         c2 = child[key.notna()].copy()
         c2["__k"] = key[key.notna()]
@@ -253,6 +250,9 @@ def build_model(tables: dict[str, pd.DataFrame], profiles: dict[str, dict], edge
             if b is not None:
                 c2["__b"] = b
                 out[f"{ct}_{c}_{re.sub(r'[^A-Za-z0-9]+', '_', str(pos)).lower()}_rate"] = c2.groupby("__k")["__b"].mean()
+        if (pt, pk) not in colmap:  # parent was only summarised, so its rows are not in the analysis table
+            status[i] = {"status": "skipped", "reason": f"{pt} is summarised, not row-level, in this model", "method": "aggregate"}
+            return False
         fk_name = colmap[(pt, pk)]
         left_k = norm_key(joined[fk_name])
         matched = float(left_k.isin(out.index).mean())
@@ -289,9 +289,40 @@ def build_model(tables: dict[str, pd.DataFrame], profiles: dict[str, dict], edge
                 progressed |= join_parent(i, e)
         if not progressed:
             break
+    def aggregate_chained(i, e) -> bool:
+        """Summarise a child that has children of its own: grandchildren -> child first, then child -> base."""
+        nonlocal joined
+        ct, pt = e["child_table"], e["parent_table"]
+        sub_idx = [j for j, x in enumerate(edges) if j != i and active(j) and x["parent_table"] == ct
+                   and x["child_table"] not in in_model and x["child_table"] != ct]
+        if not sub_idx:
+            return aggregate_child(i, e)
+        snap = (joined, dict(origin), dict(colmap), set(in_model), len(steps), len(warnings), {j: dict(v) for j, v in status.items()})
+        try:
+            sub = build_model(tables, profiles, [edges[j] for j in sub_idx], base=ct)
+            for k, j in enumerate(sub_idx):
+                status[j] = sub["status"][k]
+            sub_steps = [{**st, "detail": f"(via {ct}) {st['detail']}"} for st in sub["steps"]]
+            sub_warns = [w for w in sub["warnings"] if not w["text"].startswith(("Table '", "Did not use"))]
+            enriched = sub["df"]
+            if aggregate_child(i, e, enriched, profile_df(enriched)):
+                at = next(n for n in range(len(steps) - 1, -1, -1) if steps[n]["table"] == ct)
+                steps[at:at] = sub_steps  # chained steps read before the final roll-up
+                warnings.extend(sub_warns)
+                in_model.update(t for t in tables if any(st["table"] == t for st in sub["steps"]))
+                return True
+            raise ValueError(status[i]["reason"] or "nothing to aggregate")
+        except Exception as ex:  # a join problem must never kill the run
+            joined, o, c, im, ns, nw, st = snap
+            origin.clear(); origin.update(o); colmap.clear(); colmap.update(c); in_model.clear(); in_model.update(im)
+            del steps[ns:], warnings[nw:]
+            status.update(st)
+            warnings.append({"severity": "warn", "text": f"Could not chain {ct} through to {pt} ({ex}); using {ct} on its own."})
+            return aggregate_child(i, e)
+
     for i, e in enumerate(edges):  # one-to-many links: aggregate the child to the parent's grain
         if active(i) and e["parent_table"] in in_model and e["child_table"] not in in_model:
-            aggregate_child(i, e)
+            aggregate_chained(i, e)
     for i, e in enumerate(edges):
         if active(i):
             status[i] = {"status": "skipped", "reason": "not reachable from the base table without multiplying rows", "method": ""}
@@ -318,9 +349,8 @@ def llm_review(llm, profiles: dict[str, dict], edges: list[dict], goal: str) -> 
     }
     out = ask_json(llm,
                    "You are a data modeller reviewing automatically detected table relationships for an analysis goal. "
-                   "Choose the BASE table, i.e. the table whose rows are the unit of analysis for the goal (one row per customer, per order, ...). "
                    "Veto any link that looks coincidental (e.g. unrelated ids that merely overlap). "
-                   "Return JSON: {\"base_table\": \"<table name>\", \"reject_links\": [link indexes], \"reason\": \"one sentence\"}",
+                   "Return JSON: {\"reject_links\": [link indexes], \"reason\": \"one sentence\"}",
                    f"GOAL: {goal}\n{json.dumps(payload, default=str)}")
     if not out:
         return None

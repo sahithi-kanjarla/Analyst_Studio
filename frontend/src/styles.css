@@ -277,3 +277,14 @@ textarea:disabled { opacity: .55; }
 .gdefs { padding-left: 18px; } .chip.danger:hover { border-color: var(--err); color: var(--err); }
 .gedit { display: flex; flex-direction: column; gap: 10px; } .grow { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
 @media (max-width: 640px) { .qdef { grid-template-columns: 1fr; } }
+
+/* findings gallery under the interactive dashboard */
+.gallery { margin-top: 20px; display: flex; flex-direction: column; gap: 18px; }
+.goal-answer { font-size: 15px; line-height: 1.5; }
+.more-charts > summary { cursor: pointer; font-weight: 600; padding: 8px 0; }
+.derived-box code { background: var(--line); padding: 1px 5px; border-radius: 4px; }
+
+.gallery .tile { color: #1f2937; }
+.gallery .tile h4 { color: #111827; }
+.gallery .tile .muted, .gallery .tile .small { color: #4b5563; }
+.gallery .callout { color: inherit; }

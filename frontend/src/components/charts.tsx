@@ -7,6 +7,8 @@ export interface Item {
   key: string;
   label: string;
   value: number;
+  n?: number;
+  other?: boolean; // the pooled 'Other' bar: not selectable
 }
 
 interface ChartProps {
@@ -37,8 +39,8 @@ const dim = (on: boolean, anySel: boolean) => (anySel && !on ? 0.3 : 1);
 export function HBar({ items, selected, onToggle, fmt }: ChartProps) {
   const [ref, w] = useWidth();
   const row = 30;
-  const labelW = Math.min(170, Math.max(80, w * 0.36));
-  const valueW = 56;
+  const labelW = Math.min(170, Math.max(104, w * 0.4));
+  const valueW = 100;
   const barMax = Math.max(10, w - labelW - valueW - 8);
   const max = Math.max(...items.map((i) => i.value), 0.0001);
   const anySel = selected.length > 0;
@@ -50,12 +52,12 @@ export function HBar({ items, selected, onToggle, fmt }: ChartProps) {
             const on = selected.includes(it.key);
             const bw = Math.max(2, (Math.max(it.value, 0) / max) * barMax);
             return (
-              <g key={it.key} className="bar-g" transform={`translate(0 ${i * row + 2})`} opacity={dim(on, anySel)} onClick={() => onToggle(it.key)}>
-                <title>{`${it.label}: ${fmt(it.value)}`}</title>
+              <g key={it.key} className="bar-g" transform={`translate(0 ${i * row + 2})`} opacity={dim(on, anySel)} onClick={() => !it.other && onToggle(it.key)}>
+                <title>{`${it.label}: ${fmt(it.value)}${it.n !== undefined ? ` (n=${it.n.toLocaleString()})` : ""}`}</title>
                 <rect x={0} y={0} width={w} height={row - 4} fill="transparent" />
-                <text x={labelW - 8} y={(row - 4) / 2 + 4} textAnchor="end" className="c-label">{clip(it.label, Math.floor(labelW / 6.6))}</text>
-                <rect x={labelW} y={3} width={bw} height={row - 10} rx={4} fill={PALETTE[i % PALETTE.length]} className="bar" />
-                <text x={labelW + bw + 6} y={(row - 4) / 2 + 4} className="c-value">{fmt(it.value)}</text>
+                <text x={labelW - 8} y={(row - 4) / 2 + 4} textAnchor="end" className="c-label">{clip(it.label, Math.floor(labelW / 6.0))}</text>
+                <rect x={labelW} y={3} width={bw} height={row - 10} rx={4} fill={it.other ? "#c9ced8" : PALETTE[i % PALETTE.length]} className="bar" />
+                <text x={labelW + bw + 6} y={(row - 4) / 2 + 4} className="c-value">{fmt(it.value)}{it.n !== undefined && <tspan className="c-axis" dx={6}>n={it.n.toLocaleString()}</tspan>}</text>
               </g>
             );
           })}

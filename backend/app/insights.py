@@ -22,17 +22,18 @@ import numpy as np
 import pandas as pd
 
 from . import context as ctxmod
+from . import polarity as polmod
 from .llm import ask_json
 from .tools import SUM_WORDS, _fmt, to_binary
 
-NEG_TARGET = re.compile(r"churn|default|fraud|cancel|return|refund|complaint|defect|attrition|turnover|loss|late|delay|cost|expense|error|incident|downtime|absen|dropout|readmission|mortality|scrap", re.I)
 NUM_RE = re.compile(r"\d[\d,]*\.?\d*")
 
 
 # ------------------------------------------------------------------ small helpers
-def polarity(target: str) -> str:
-    """'bad' when a HIGH value of the outcome is undesirable (churn, defects, delays...), else 'good'."""
-    return "bad" if NEG_TARGET.search(str(target)) else "good"
+def polarity(target: str, pol: dict | None = None) -> str:
+    """'bad' when a HIGH value of the measure is undesirable (lower is better), 'good' when higher is better, 'neutral' when neither (ids, quantities).
+    `pol` is the run's resolved {measure: higher|lower|neutral} map; without it the name heuristic decides."""
+    return {polmod.LOWER: "bad", polmod.HIGHER: "good"}.get(polmod.direction(target, pol), "neutral")
 
 
 def _pct(x) -> str:
@@ -170,7 +171,7 @@ def confidence(f: dict) -> dict:
 
 
 # ------------------------------------------------------------------ per-tool narrative
-def _narrative(f: dict, ctx: dict) -> dict:
+def _narrative(f: dict, ctx: dict, pol: dict | None = None) -> dict:
     lens = ctxmod.lens(ctx)
     cust, lever = lens["customer"], lens["levers"][0]
     tool, st, p, sig = f["tool"], f["stats"], f.get("params", {}), f.get("significant")
@@ -182,18 +183,24 @@ def _narrative(f: dict, ctx: dict) -> dict:
         target, group = p["target"], p["group"]
         top, bot, vals = st.get("best"), st.get("worst"), st.get("values", {})
         hv, lv = vals.get(top), vals.get(bot)
-        bad = polarity(target) == "bad"
-        small = effect_label(st) in ("small", "negligible")
+        pv = polarity(target, pol)
+        bad, neutral = pv == "bad", pv == "neutral"
+        lab = effect_label(st)              # the size wording comes from the test's effect size, never from the gap between the group means
+        small = lab in ("small", "negligible")
+        eff = f" ({lab} effect)" if sig and lab else ""
+        note = f"; lower is better, so {bot} performs best" if bad and sig else ""
         if st.get("kind") == "binary":
-            h = (f"{group} = {top} has the highest {target} rate ({_pct(hv)}) versus {_pct(lv)} for {bot}" if sig
+            h = (f"{group} = {top} has the highest {target} rate ({_pct(hv)}) versus {_pct(lv)} for {bot}{eff}{note}" if sig
                  else f"The {target} rate does not differ reliably across {group}")
         else:
             ratio = hv / lv if (hv and lv and lv > 0 and hv > 0) else None
-            h = (f"{group} = {top} averages {ratio:.1f}× the {target} of {bot}" if sig and ratio and ratio >= 1.15 and not small
-                 else f"{group} = {top} is slightly ahead on {target} (a small effect)" if sig else f"{target} does not differ reliably across {group}")
+            h = (f"{group} = {top} averages {ratio:.1f}× the {target} of {bot}{eff}{note}" if sig and ratio and ratio >= 1.15
+                 else f"{group} = {top} has the highest {target}, ahead of {bot}{eff}{note}" if sig else f"{target} does not differ reliably across {group}")
         if sig and not small:
             why = (f"{target} is not spread evenly: the problem is concentrated in {top}, so a one-size-fits-all programme would spend effort where it is not needed. Starting with {top} {cust} gives the best chance of moving the overall number."
                    if bad else
+                   f"{target} is highest in {top} and lowest in {bot}. Whether that is good or bad depends on what {target} means for the business, so read it as a pattern to explain rather than a performance ranking."
+                   if neutral else
                    f"{top} is where {target} is strongest and {bot} where it is weakest. That points to putting more {lever} behind what already works, and finding out what is holding {bot} back.")
         elif sig:
             why = f"The gap between {top} and {bot} is real but small, so on its own it is unlikely to justify a change."
@@ -210,7 +217,7 @@ def _narrative(f: dict, ctx: dict) -> dict:
         dirn = st.get("direction", "higher")
         h = (f"{col} is {dirn} where {target} = {pos} (median {_fmt(st['median_outcome'])} vs {_fmt(st['median_other'])})" if sig
              else f"{col} does not differ reliably between rows with and without {target} = {pos}")
-        bad = polarity(target) == "bad"
+        bad = polarity(target, pol) == "bad"
         why = (f"{col} behaves differently for {cust} with {target} = {pos}, which makes it a candidate early-warning signal: watching it could flag at-risk {cust} before the outcome happens."
                if sig and bad else
                f"{col} moves with {target} = {pos}, so it may help identify which {cust} are most likely to reach that outcome." if sig else
@@ -222,9 +229,12 @@ def _narrative(f: dict, ctx: dict) -> dict:
         target = p["target"]
         up = (st.get("slope") or 0) > 0
         rel = st.get("relative_change") or 0
-        good = up != (polarity(target) == "bad")
+        pv = polarity(target, pol)
+        good = up != (pv == "bad")
+        verdict = "a favourable" if good else "a worrying"
         h = (f"{target} is trending {'up' if up else 'down'} ({rel:+.0%} over the period)" if sig else f"No reliable trend in {target} over time")
-        why = (f"This is a {'favourable' if good else 'worrying'} movement that is unlikely to be random: it deserves an owner and an explanation rather than a wait-and-see." if sig
+        why = ((f"This is {verdict} movement that is unlikely to be random: it deserves an owner and an explanation rather than a wait-and-see." if pv != "neutral"
+                else f"This movement is unlikely to be random. Whether it is good or bad depends on what {target} means for the business, but it deserves an owner and an explanation.") if sig
                else f"{target} has been broadly flat or too noisy to call a direction, so changes in it should not be read as trends yet.")
         hyp = ["Seasonality or a one-off event (campaign, price change, outage)", "A change in the mix of segments or products over time",
                "Partial first or last periods can exaggerate or hide the direction"]
@@ -291,7 +301,9 @@ def _narrative(f: dict, ctx: dict) -> dict:
         small = effect_label(st) in ("small", "negligible")
         h = (f"{target} has a clear {cyc} pattern: highest {st['best']}, lowest {st['worst']}" if sig and not small
              else f"{target} varies slightly by {unit} ({st['best']} highest), a small effect" if sig else f"No reliable {cyc} pattern in {target}")
-        why = (f"The timing of demand is predictable, so staffing, stock and promotions can be planned around {st['best']} (strong) and {st['worst']} (weak)." if sig and not small
+        pv = polarity(target, pol)
+        hi_w, lo_w = ("high", "low") if pv == "neutral" else ("strong", "weak") if pv == "good" else ("weak", "strong")
+        why = (f"The timing is predictable, so staffing, stock and promotions can be planned around {st['best']} ({hi_w}) and {st['worst']} ({lo_w})." if sig and not small
                else "The pattern is real but small, so it should not drive scheduling decisions on its own." if sig else f"{target} does not depend on the {unit}, so there is no timing pattern to plan around.")
         hyp = ["Customer routines (work week, paydays, holidays)", "Operating hours, shifts or campaigns that run on a fixed calendar"] if sig else []
         nxt = ["Check whether the pattern is the same in every month or year", "Compare with promotions and holidays in the same periods"] if sig else []
@@ -336,7 +348,7 @@ def build_insights(state: dict) -> None:
     ctx = state.get("context") or {}
     kt = ctxmod.kpi_tokens(ctx)
     for f in state["findings"]:
-        n = _narrative(f, ctx)
+        n = _narrative(f, ctx, state.get("polarity"))
         conf = confidence(f)
         target = f.get("params", {}).get("target") or f.get("params", {}).get("col") or ""
         name_tokens = ctxmod.tokens(re.sub(r"([a-z])([A-Z])", r"\1 \2", target).replace("_", " "))
