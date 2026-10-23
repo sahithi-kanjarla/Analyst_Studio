@@ -16,7 +16,8 @@ import pandas as pd
 
 from .llm import ask_json
 from .profiler import profile_df
-from .tools import SUM_WORDS, to_binary
+from .measures import has_sum_word
+from .tools import to_binary
 
 SAMPLE = 300_000
 GENERIC = ("id", "key", "code", "no", "number")
@@ -233,7 +234,7 @@ def build_model(tables: dict[str, pd.DataFrame], profiles: dict[str, dict], edge
                 and not _norm(c).endswith(GENERIC) and pd.api.types.is_numeric_dtype(c2[c])]
         nums = sorted(nums, key=lambda c: -(1 - prof[c]["missing_pct"] / 100))[:6]
         for c in nums:
-            if SUM_WORDS.search(c):
+            if has_sum_word(c):
                 out[f"{ct}_{c}_total"], out[f"{ct}_{c}_avg"] = g[c].sum(), g[c].mean()
                 added_zero.append(f"{ct}_{c}_total")
             else:

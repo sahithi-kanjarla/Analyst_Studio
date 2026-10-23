@@ -18,7 +18,8 @@ from . import directives as dv
 from . import goal as goalmod
 from .llm import ask_json
 from .profiler import compact_profile
-from .tools import CATALOG, SUM_WORDS, assoc_strength, spec_signature, validate_spec, target_values  # noqa: F401
+from .measures import has_sum_word
+from .tools import CATALOG, assoc_strength, spec_signature, validate_spec, target_values  # noqa: F401
 
 PRIOR_TARGET = re.compile(r"revenue|sales|profit|income|price|amount|churn|conversion|score|rating|salary|spend|cost|margin|target|label|outcome|default|fraud|survived|satisfaction", re.I)
 MAX_ANALYSES = 14
@@ -165,7 +166,7 @@ def heuristic_plan(df: pd.DataFrame, profile: dict, goal: str, context: dict | N
         if date and groups:
             analyses.append({"tool": "segment_trend", "params": {"target": target, "date": date, "group": groups[0]},
                              "why": f"Check whether {target} is moving differently over time for different {groups[0]} values."})
-        if roles[target] == "numeric" and SUM_WORDS.search(target):
+        if roles[target] == "numeric" and has_sum_word(target):
             for g in groups[:2]:
                 analyses.append({"tool": "pareto", "params": {"target": target, "group": g}, "why": f"See which {g} values contribute most of the total {target}."})
         if roles[target] == "binary":

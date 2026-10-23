@@ -19,6 +19,7 @@ import pandas as pd
 from scipy import stats
 
 from . import derived
+from .measures import is_money, measure_kind
 from .config import CHART_DPI
 
 PALETTE = ["#4F6BED", "#22A699", "#F2994A", "#E5484D", "#8E6BEE", "#3FA9F5", "#A3A847", "#C45AB3"]
@@ -30,13 +31,11 @@ plt.rcParams.update({
     "font.family": "sans-serif",
     "font.sans-serif": ["Inter", "DejaVu Sans", "Noto Sans", "Noto Sans Devanagari", "Nirmala UI", "Segoe UI", "Arial Unicode MS", "Noto Sans CJK SC", "Arial"],
 })
-SUM_WORDS = re.compile(r"revenue|sales|amount|total|count|qty|quantity|spend|cost|profit|units|orders", re.I)
-AVG_WORDS = re.compile(r"pct|percent|rate|ratio|discount|avg|average|score|margin|price|per_|_per|age$", re.I)  # never add these up
 
 
 def additive(name: str) -> bool:
     """Totals make sense for this column (so a trend or group table sums it); ratios, rates and prices are averaged instead."""
-    return bool(SUM_WORDS.search(name)) and not AVG_WORDS.search(name)
+    return measure_kind(name) == "additive"
 
 # ---------------------------------------------------------------- catalog (shown to the planner LLM)
 CATALOG = {
@@ -66,9 +65,6 @@ CATALOG = {
     "group_table": {"params": {"target": "numeric or binary column", "group": "categorical column"}, "doc": "Table of rows, average/rate, median, total and share per group."},
 }
 
-MONEY_COL = re.compile(r"revenue|sales|amount|price|cost|spend|profit|income|salary|fee|payment|value|gmv|mrr|arr|budget|balance", re.I)
-
-
 # ---------------------------------------------------------------- helpers
 def _f(x):
     try:
@@ -92,7 +88,7 @@ def _fmt(x) -> str:
 def _cur(col, ctx) -> str:
     """Currency symbol (from the optional business context) for money-like columns, else ''."""
     sym = (ctx or {}).get("currency") or ""
-    return sym if sym and MONEY_COL.search(str(col)) else ""
+    return sym if sym and is_money(col) else ""
 
 
 def _bars(ax):

@@ -1,0 +1,37 @@
+"""One place that decides what kind of measure a column is: additive (sum it), a rate/average (mean it), or other; and whether it is money."""
+from __future__ import annotations
+
+import re
+
+SUM_WORDS = re.compile(r"revenue|sales|amount|total|count|qty|quantity|spend|cost|profit|units|orders", re.I)
+AVG_WORDS = re.compile(r"pct|percent|rate|ratio|discount|avg|average|score|margin|price|per_|_per|age$", re.I)  # never add these up
+MONEY_COL = re.compile(r"revenue|sales|amount|price|cost|spend|profit|income|salary|fee|payment|value|gmv|mrr|arr|budget|balance", re.I)
+MONEY_COL_NARROW = re.compile(r"revenue|sales|amount|price|cost|spend|profit|income|salary|value", re.I)  # dashboard / insights KPI formatting
+
+KINDS = ("additive", "rate", "other")
+
+
+def measure_kind(column_name: str, profile: dict | None = None, overrides: dict | None = None) -> str:
+    """'additive' (totals make sense), 'rate' (average it, never add up) or 'other'.
+    An entry in overrides {column: kind} wins over the word lists. profile is accepted for callers that have it; unused so far."""
+    if overrides:
+        k = overrides.get(column_name)
+        if k in KINDS:
+            return k
+    if SUM_WORDS.search(column_name):
+        return "rate" if AVG_WORDS.search(column_name) else "additive"
+    return "rate" if AVG_WORDS.search(column_name) else "other"
+
+
+def has_sum_word(column_name: str, profile: dict | None = None, overrides: dict | None = None) -> bool:
+    """Looser legacy test: the name looks summable even if it also looks like a rate (e.g. 'total_pct'). An override of 'additive' says yes, any other override no."""
+    if overrides:
+        k = overrides.get(column_name)
+        if k in KINDS:
+            return k == "additive"
+    return bool(SUM_WORDS.search(column_name))
+
+
+def is_money(column_name: str, narrow: bool = False) -> bool:
+    """Money-like column name. narrow=True is the shorter word list the dashboard and insight KPIs have always used."""
+    return bool((MONEY_COL_NARROW if narrow else MONEY_COL).search(str(column_name)))
