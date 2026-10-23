@@ -76,15 +76,19 @@ def _cell(v) -> str:
 def _definitions_section(state: dict) -> list[str]:
     """Every answer, who set it, and what it did to the data. Free-text definitions are listed as unverified."""
     applied, free = state.get("applied_definitions") or [], state.get("definitions") or {}
+    ignored = state.get("ignored_definitions") or []
     terms, notes = free.get("terms") or {}, free.get("notes") or ""
-    if not applied and not terms and not notes:
+    if not applied and not terms and not notes and not ignored:
         return []
     L = ["", "## Definitions used", ""]
     if applied:
         L += ["| Question | Answer | Set by | Effect on the data | Rows affected |", "|---|---|---|---|---|"]
         for d in applied:
             rows = "-" if d.get("rows") is None else f"{d['rows']:,}"
-            L.append(f"| {_cell(d['question'])} | {_cell(d['answer_label'])} | {SOURCE_LABEL.get(d['source'], d['source'])} | {_cell(d['effect'])} | {rows} |")
+            L.append(f"| {_cell(d['question'])} | {_cell(d['answer_label'])} | {SOURCE_LABEL.get(d['source'], d['source'])}{' (' + _cell(d['set_by']) + ')' if d.get('set_by') else ''} | {_cell(d['effect'])} | {rows} |")
+    if ignored:
+        L += ["", "**Saved answers not applied** (the glossary has an answer, but it no longer fits this data, so the default was used):", ""]
+        L += [f"- {_cell(i['question'])} -> {_cell(i['answer'])} ({_cell(i['reason'])})" for i in ignored]
     if terms or notes:
         L += ["", "**Your own definitions** (free text: not applied to the data, not verified; passed to the language model as context only):", ""]
         L += [f"- **{_cell(t)}:** {_cell(x)}" for t, x in terms.items()]

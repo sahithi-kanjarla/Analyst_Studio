@@ -161,6 +161,7 @@ export interface AppliedDefinition {
   answer: string;
   answer_label: string;
   source: "user" | "default" | "glossary" | "goal";
+  set_by?: string;
   effect: string;
   rows: number | null;
 }

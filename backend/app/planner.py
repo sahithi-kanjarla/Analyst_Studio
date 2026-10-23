@@ -14,6 +14,7 @@ import re
 import pandas as pd
 
 from . import context as ctxmod
+from . import directives as dv
 from .llm import ask_json
 from .profiler import compact_profile
 from .tools import CATALOG, SUM_WORDS, assoc_strength, spec_signature, validate_spec, target_values  # noqa: F401
@@ -21,6 +22,8 @@ from .tools import CATALOG, SUM_WORDS, assoc_strength, spec_signature, validate_
 PRIOR_TARGET = re.compile(r"revenue|sales|profit|income|price|amount|churn|conversion|score|rating|salary|spend|cost|margin|target|label|outcome|default|fraud|survived|satisfaction", re.I)
 MAX_ANALYSES = 14
 MAX_ANALYSES_EXPLORE = 18
+MAX_EXTRA_MEASURES = 3      # measures besides the target that get their own charts: the derived ratio first, then the others (all of them are in the summary table)
+MIN_MEASURE_UNIQUE = 10     # fewer distinct numbers than this is a code or a scale, not a measure
 
 
 def _name_tokens(name: str) -> set[str]:
@@ -38,15 +41,61 @@ def _apply_exclusions(roles: dict, ov: dict) -> dict:
     return {c: r for c, r in roles.items() if c not in set(ov.get("exclude") or []) or c in keep}
 
 
-def _include_extras(roles: dict, date: str | None, ov: dict) -> list[dict]:
+def _include_extras(roles: dict, date: str | None, ov: dict, target: str | None = None) -> list[dict]:
     """Columns the user wants analysed separately (e.g. refunds) get their own distribution and trend."""
     out = []
     for c in ov.get("include") or []:
-        if roles.get(c) == "numeric":
+        if roles.get(c) == "numeric" and c != target:
             out.append({"tool": "distribution", "params": {"col": c}, "why": f"You asked for {c} to be analysed separately."})
             if date:
                 out.append({"tool": "trend", "params": {"target": c, "date": date}, "why": f"See how {c} changes over time (analysed separately, as you asked)."})
     return out
+
+
+def pick_ratio(df: pd.DataFrame, measures: list[str]) -> dict | None:
+    """A ratio of sums worth analysing next to the raw measures: a / b where b is positive in nearly every row, the total of a is smaller than
+    the total of b (a is a part of b) and the two move together. Picked from values alone."""
+    cols = [m for m in measures if m in df.columns][:6]
+    if len(cols) < 2:
+        return None
+    data = pd.DataFrame({m: pd.to_numeric(df[m], errors="coerce") for m in cols})
+    if len(data) > 5000:
+        data = data.sample(5000, random_state=0)
+    best = None
+    for a in cols:
+        for b in cols:
+            sub = data[[a, b]].dropna() if a != b else data.iloc[0:0]
+            if len(sub) < 30 or sub[b].sum() <= 0 or (sub[b] > 0).mean() < 0.95 or abs(sub[a].sum()) >= sub[b].sum():
+                continue
+            r = abs(float(sub[a].corr(sub[b], method="spearman") or 0))
+            if r >= 0.3 and (best is None or r > best[0]):
+                best = (r, a, b)
+    if best is None:
+        return None
+    _, a, b = best
+    return {"kind": "ratio_of_sums", "a": a, "b": b, "name": dv.clean_name(f"{a}_to_{b}_ratio", set(df.columns))}
+
+
+def measure_extras(df: pd.DataFrame, roles: dict, uniques: dict, measures: list[str], skip: set, date: str | None, groups: list[str]) -> list[dict]:
+    """Every candidate measure other than the target is analysed too: its shape, its trend, its average per record by segment, and its totals by segment.
+    This replaces asking the user to pick one."""
+    out = []
+    rest = [c for c in measures if c not in skip]
+    if rest:     # one overview of every candidate measure; the first few also get their own charts
+        out.append({"tool": "summary_table", "params": {"cols": measures[:12]}, "why": "Every candidate measure is analysed too, so nothing was left for you to pick: here is each one at a glance."})
+    for m in rest[:MAX_EXTRA_MEASURES]:
+        if date:
+            out.append({"tool": "trend", "params": {"target": m, "date": date}, "why": f"{m} is also a candidate measure. See how it changes over time (totals or averages, whichever suits it)."})
+        for g in groups[:1]:
+            out.append({"tool": "group_compare", "params": {"target": m, "group": g}, "why": f"Compare the average {m} per record across {g}."})
+            out.append({"tool": "group_table", "params": {"target": m, "group": g}, "why": f"Give the exact totals and averages of {m} by {g}."})
+    return out
+
+
+def candidate_measures(df: pd.DataFrame, roles: dict, uniques: dict, ov: dict) -> list[str]:
+    derived = [d["name"] for d in ov.get("derived") or [] if d["name"] in roles]
+    rest = [c for c, r in roles.items() if r == "numeric" and uniques[c] >= MIN_MEASURE_UNIQUE and c in df.columns and c not in derived]
+    return derived + rest
 
 
 def heuristic_plan(df: pd.DataFrame, profile: dict, goal: str, context: dict | None = None, explore: bool = False, overrides: dict | None = None) -> dict:
@@ -148,9 +197,13 @@ def heuristic_plan(df: pd.DataFrame, profile: dict, goal: str, context: dict | N
             analyses.append({"tool": "composition", "params": {"group": groups[0], "by": groups[1]}, "why": f"See whether the mix of {groups[1]} changes across {groups[0]}."})
         if nums:
             analyses.insert(0, {"tool": "summary_table", "params": {"cols": nums[:12]}, "why": "No clear outcome column was found, so start with a factual overview."})
-    analyses = analyses[:(MAX_ANALYSES_EXPLORE if explore else MAX_ANALYSES)] + _include_extras(roles, date, ov)
+    analyses = analyses[:(MAX_ANALYSES_EXPLORE if explore else MAX_ANALYSES)] + _include_extras(roles, date, ov, target)
+    extras = measure_extras(df, roles, uniques, candidate_measures(df, roles, uniques, ov), {target, second}, date, groups) if target else []
+    have = {spec_signature(a) for a in analyses}
+    analyses += [a for a in extras if spec_signature(a) not in have]
 
-    relevant = list(dict.fromkeys(([target] if target else []) + ([second] if second else []) + groups + ([date] if date else []) + drivers + [c for c in ov.get("include") or [] if c in roles]))
+    relevant = list(dict.fromkeys(([target] if target else []) + ([second] if second else []) + groups + ([date] if date else []) + drivers + [c for c in ov.get("include") or [] if c in roles]
+                                  + [c for a in extras for v in a["params"].values() for c in (v if isinstance(v, list) else [v]) if c in roles]))
     questions = [f"What explains differences or changes in {target}?" if target else "What does this dataset contain?"]
     if target and groups:
         questions.append(f"Which segments ({', '.join(groups[:3])}) perform best and worst on {target}?")
@@ -160,7 +213,7 @@ def heuristic_plan(df: pd.DataFrame, profile: dict, goal: str, context: dict | N
         questions.append(f"How is {target}, one of the KPIs you named, behaving and what is it linked to?")
     objective = goal if not explore else "Explore the data and surface the most important patterns for the business (no specific goal was given)."
     return {"objective": objective, "questions": questions, "target": target, "date_col": date, "relevant_columns": relevant,
-            "analyses": analyses, "skipped": [], "source": "rules", "explore": bool(explore)}
+            "analyses": analyses, "skipped": [], "source": "rules", "explore": bool(explore), "derived": list(ov.get("derived") or [])}
 
 
 PLAN_SYSTEM = f"""You are the Planner of a data-analysis team. A user gives a GOAL, optional BUSINESS CONTEXT and a dataset profile.
@@ -227,7 +280,9 @@ def finalize_plan(raw: dict | None, df: pd.DataFrame, profile: dict, goal: str, 
         date = fallback["date_col"]
         analyses = [{**a, "params": {**a["params"], "date": date}} if "date" in a["params"] else a for a in analyses]
     seen_sigs = {spec_signature(a) for a in analyses}
-    analyses += [a for a in _include_extras(roles, date, ov) if spec_signature(a) not in seen_sigs]
+    groups = [a["params"]["group"] for a in fallback["analyses"] if a["tool"] == "group_compare" and a["params"].get("target") == fallback["target"]]
+    more = _include_extras(roles, date, ov, target) + (measure_extras(df, roles, uniques, candidate_measures(df, roles, uniques, ov), {target}, date, groups) if target else [])
+    analyses += [a for a in more if spec_signature(a) not in seen_sigs]
     used ={c for a in analyses for v in a["params"].values() for c in (v if isinstance(v, list) else [v])}
     relevant = list(dict.fromkeys([c for c in (raw.get("relevant_columns") or []) if c in roles] + [c for c in used if c in roles] + ([target] if target else []) + ([date] if date else [])
                                   + [c for c in ov.get("include") or [] if c in roles]))
@@ -235,4 +290,4 @@ def finalize_plan(raw: dict | None, df: pd.DataFrame, profile: dict, goal: str, 
     skipped = [s for s in (raw.get("skipped") or []) if isinstance(s, dict) and s.get("column") in roles][:10]
     objective = fallback["objective"] if explore else str(raw.get("objective") or goal)
     return {"objective": objective, "questions": questions, "target": target, "date_col": date,
-            "relevant_columns": relevant, "analyses": analyses, "skipped": skipped, "source": "llm", "explore": bool(explore)}, notes
+            "relevant_columns": relevant, "analyses": analyses, "skipped": skipped, "source": "llm", "explore": bool(explore), "derived": list(ov.get("derived") or [])}, notes

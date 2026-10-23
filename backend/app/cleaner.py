@@ -95,6 +95,24 @@ def scoped_clean(df: pd.DataFrame, profile: dict, plan: dict) -> tuple[pd.DataFr
     return df, log
 
 
+def add_derived(df: pd.DataFrame, derived: list[dict] | None) -> tuple[pd.DataFrame, list[dict], list[str]]:
+    """Columns the planner derived on its own (a ratio of two measures). Same arithmetic as the define_derived_metric action; originals are untouched and the overall ratio of sums is logged."""
+    log: list[dict] = []
+    added: list[str] = []
+    for d in derived or []:
+        if d["a"] not in df.columns or d["b"] not in df.columns or d["name"] in df.columns:
+            continue
+        df = df.copy() if not added else df
+        x, y = pd.to_numeric(df[d["a"]], errors="coerce"), pd.to_numeric(df[d["b"]], errors="coerce")
+        df[d["name"]] = x / y.where(y != 0)
+        tot = y.sum()
+        n = int(df[d["name"]].notna().sum())
+        log.append({"step": "Derived ratio", "detail": f"Created '{d['name']}' = {d['a']} / {d['b']} for {n:,} rows" + (f"; overall ratio of sums {x.sum() / tot:.4g}" if tot else "")
+                    + " (both measures are also analysed on their own)", "count": n})
+        added.append(d["name"])
+    return df, log, added
+
+
 def _matches(series: pd.Series, op: str, value) -> pd.Series:
     """Boolean mask of the rows where `series <op> value` holds. Numbers compare as numbers, dates as dates, everything else as trimmed lower-case text."""
     if op == "is_null":
@@ -159,6 +177,9 @@ def apply_directives(df: pd.DataFrame, questions: list[dict], answers: dict) -> 
         elif t == "set_measures":
             if not gone(q, a["columns"]):
                 n = int(pd.to_numeric(df[a["columns"][0]], errors="coerce").notna().sum())
+                if not a.get("pin_main", True):
+                    note(q, f"{len(a['columns'])} measures ({', '.join(a['columns'][:6])}) are each analysed as their own measure.", n)
+                    continue
                 also = f", analysed alongside {', '.join(a['columns'][1:])}" if len(a["columns"]) > 1 else ""
                 note(q, f"'{a['columns'][0]}' is the main number{also} ({n:,} rows have a value).", n)
         elif t == "treat_value_as_missing":

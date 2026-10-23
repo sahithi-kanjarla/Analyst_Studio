@@ -21,7 +21,7 @@ from app.config import RUNS_DIR  # noqa: E402
 from app.main import app  # noqa: E402
 from app.profiler import profile_df  # noqa: E402
 
-from domains import DOMAINS, clean_table, hospital_stays  # noqa: E402
+from domains import DOMAINS, clean_table, hospital_stays, hr_attrition  # noqa: E402
 
 cl = TestClient(app)
 
@@ -44,6 +44,11 @@ def prep(df):
 def build(df, goal="Explore this data", llm=None, ctx=None, explore=True):
     typed, prof = prep(df)
     return clarify.build_questions(typed, prof, goal, ctx or {}, explore, llm, None), typed, prof
+
+
+def asked(qs):
+    """The questions a person would see: those the app applies by itself (auto) are not asked."""
+    return [q for q in qs if not q.get("auto")]
 
 
 def kinds(qs):
@@ -137,14 +142,14 @@ def test_signed_readings_do_not_trigger_a_negatives_question():
 
 def test_weak_signals_only_ride_along_when_something_stronger_is_asked():
     qs, _, _ = build(DOMAINS["exams"]())
-    assert {"near_sum", "rare_labels", "multi_measure"} <= set(kinds(qs))        # exams has a strong placeholder, so the weak questions are included
+    assert {"near_sum", "rare_labels"} <= set(kinds(qs)) and "multi_measure" not in kinds(qs)        # exams has a strong placeholder, so the weak questions are included
     df = DOMAINS["exams"]().assign(attendance=lambda d: d["attendance"].where(d["attendance"] != 999, 70.0))
     qs, _, _ = build(df)
-    assert qs == []                                                              # only weak signals left: the run is never paused for them
+    assert asked(qs) == []                                                       # only weak signals left: the run is never paused for them
 
 
 def test_unambiguous_data_has_no_questions():
-    assert build(clean_table())[0] == []
+    assert asked(build(clean_table())[0]) == []
 
 
 def test_signals_come_from_values_alone_not_from_names():
@@ -181,7 +186,7 @@ def test_fake_llm_questions_are_validated_on_every_domain(name):
     good = ideal(sigs)
     qs, dropped = clarify.llm_questions(Writer(lambda s: junk(df.columns[0]) + good + good[:1]), prof, sigs, "Explore", {}, None)
     assert [q["id"] for q in qs] == [g["signal"] for g in good]                   # valid ones kept, in order, ids from the signals
-    assert len(dropped) == 5 + 1 and sum("scope" in d for d in dropped) == 2 and sum(d.startswith("duplicate") for d in dropped) == 1
+    assert len(dropped) == 5 + 1 and sum(d.startswith("no answer changes") for d in dropped) == 2 and sum(d.startswith("duplicate") for d in dropped) == 1
     assert all(dv.is_harmless(clarify.option_for(q, q["default"])["action"]) for q in qs)
     assert all(not q["id"].startswith("extra") for q in qs)
 
@@ -190,10 +195,11 @@ def test_prompt_carries_profile_signals_goal_context_and_glossary():
     w = Writer(lambda s: [])
     typed, prof = prep(DOMAINS["hospital"]())
     sigs = signals.compute_signals(typed, prof)
-    glossary.merge_answers("acme", {"x": "y"}, {"x": "Old question"}, definitions={"readmission": "within 30 days"})
+    glossary.merge_answers("acme", {sigs[0]["id"]: "y", "stale:00000000": "z"}, {sigs[0]["id"]: "Old question", "stale:00000000": "Stale question"}, definitions={"readmission": "within 30 days"})
     clarify.llm_questions(w, prof, sigs, "Why are stays long?", {"company": "Acme", "industry": "Healthcare"}, glossary.get_workspace("acme"))
     for needle in ("Why are stays long?", "Acme", "PROFILE", "SIGNALS", "multi_date", "Old question", "within 30 days", "stay_days"):
         assert needle in w.prompt
+    assert "Stale question" not in w.prompt                                           # a saved answer about an ambiguity this data does not have must not steer the writer
 
 
 def test_llm_that_answers_with_garbage_falls_back_to_templates():
@@ -205,19 +211,27 @@ def test_llm_that_answers_with_garbage_falls_back_to_templates():
 
 def test_llm_saying_there_is_nothing_to_ask_is_respected():
     qs, _, _ = build(DOMAINS["hospital"](), llm=Writer(raw=json.dumps({"questions": []})))
-    assert qs == []
+    assert asked(qs) == []
 
 
-def test_llm_questions_without_a_signal_get_hash_ids_duplicates_merge_and_the_cap_is_six():
+def test_llm_questions_without_a_signal_are_dropped_duplicates_merge_and_the_cap_is_six():
     typed, prof = prep(DOMAINS["hospital"]())
-    same = [{"text": f"Does reading {i} of cost count?", "why": "x", "columns": ["cost"],
-             "options": [{"label": "yes", "action": {"type": "note_only"}}, {"label": f"no {i}", "action": {"type": "drop_column", "column": "cost"}}], "default": "yes"} for i in range(9)]
-    qs, _ = clarify.validate_all(same, prof, [], limit=clarify.MAX_QUESTIONS)
-    assert len(qs) == 1                                                            # all nine ask the same thing about the same column: merged
-    distinct = [{"text": f"Is {c} measured the same way throughout?", "why": "x", "columns": [c],
-                 "options": [{"label": "yes", "action": {"type": "note_only"}}, {"label": "no", "action": {"type": "drop_column", "column": c}}]} for c in typed.columns]
-    qs, _ = clarify.validate_all(distinct, prof, [], limit=clarify.MAX_QUESTIONS)
-    assert len(qs) == 6 and all(q["id"].startswith("extra:") for q in qs)
+    sigs = [{"id": f"x:{c}", "type": "near_sum", "columns": [c], "evidence": {}, "strong": True} for c in typed.columns]
+
+    def q(text, col, sid):
+        return {"text": text, "why": "x", "columns": [col], "signal": sid,
+                "options": [{"label": "yes", "action": {"type": "note_only"}}, {"label": f"no {text}", "action": {"type": "drop_column", "column": col}}], "default": "yes"}
+    no_signal = [q(f"Does reading {i} of cost count?", "cost", None) for i in range(3)] + [q("Is cost real?", "cost", "x:nothing")]
+    qs, dropped = clarify.validate_all(no_signal, prof, sigs)
+    assert qs == [] and len(dropped) == 4 and all(d.startswith("no signal in the data") for d in dropped)
+    same = [q(f"Does reading {i} of cost count?", "cost", "x:cost") for i in range(9)]
+    qs, _ = clarify.validate_all(same, prof, sigs, limit=clarify.MAX_QUESTIONS)
+    assert len(qs) == 1 and qs[0]["id"] == "x:cost"                                 # all nine ask the same thing about the same signal: merged
+    distinct = [q(f"Is {c} measured the same way throughout?", c, f"x:{c}") for c in typed.columns]
+    qs, _ = clarify.validate_all(distinct, prof, sigs, limit=clarify.MAX_QUESTIONS)
+    assert len(qs) == 6 and all(x["id"].startswith("x:") for x in qs)
+    off_target = q("Is cost real?", "cost", "x:ward")                               # a real signal, but the option acts on a column it is not about
+    assert clarify.validate_question(off_target, prof, {x["id"]: x for x in sigs})[0] is None
 
 
 # --------------------------------------------------------------------------------------- the validator
@@ -246,8 +260,12 @@ def test_valid_actions_are_cleaned_to_whitelisted_parameters():
     assert a["name"] not in ROLES and a["use_as_main"] is True                      # a new column never overwrites a real one
 
 
+SIGS = {"s": {"id": "s:1", "type": "unrestricted", "columns": list(ROLES), "evidence": {}, "strong": True},
+        "m": {"id": "multi_measure:1", "type": "multi_measure", "columns": ["m1", "m2"], "evidence": {}, "strong": False}}
+
+
 def question(options, default=None, text="Is m1 measured the same way throughout?", **kw):
-    return {"text": text, "why": "x", "columns": ["m1"], "options": options, "default": default, **kw}
+    return {"text": text, "why": "x", "columns": ["m1"], "options": options, "default": default, "signal": "s", **kw}
 
 
 def opt(label, **action):
@@ -255,22 +273,209 @@ def opt(label, **action):
 
 
 def test_default_that_would_change_data_is_rewritten_or_the_question_dropped():
-    q, _ = clarify.validate_question(question([opt("drop", type="drop_column", column="m1"), opt("keep", type="note_only")], default="drop"), PROFILE, {})
+    q, _ = clarify.validate_question(question([opt("drop", type="drop_column", column="m1"), opt("keep", type="note_only")], default="drop"), PROFILE, SIGS)
     assert clarify.option_for(q, q["default"])["label"] == "keep"
-    q, why = clarify.validate_question(question([opt("a", type="drop_column", column="m1"), opt("b", type="drop_column", column="m2")], default="a"), PROFILE, {})
+    q, why = clarify.validate_question(question([opt("a", type="drop_column", column="m1"), opt("b", type="drop_column", column="m2")], default="a"), PROFILE, SIGS)
     assert q is None and "default" in why
 
 
-@pytest.mark.parametrize("text", ["Which chart do you prefer?", "What time frame matters?", "Which segment should we focus on?", "Do you want a dashboard view?", "Which column should we analyse?"])
-def test_scope_questions_are_dropped(text):
-    q, why = clarify.validate_question(question([opt("a", type="note_only"), opt("b", type="note_only")], text=text), PROFILE, {})
-    assert q is None and "scope" in why
+NOTE = {"type": "note_only"}
 
 
-def test_definition_questions_are_not_mistaken_for_scope_questions():
-    for text in ("Which date should be used for time analysis?", "Does 999 in m1 mean no value?", "Which is the main number you care about?"):
-        q, _ = clarify.validate_question(question([opt("a", type="note_only"), opt("b", type="note_only")], text=text), PROFILE, {})
-        assert q is not None, text
+@pytest.mark.parametrize("options", [
+    [opt("bar", type="note_only"), opt("line", type="note_only")],                                                         # nothing is changed whatever is picked
+    [opt("a", type="set_measures", columns=["m1"]), opt("b", type="set_measures", columns=["m2"])],                       # alternative columns that can all be analysed
+    [opt("any", type="note_only"), opt("a", type="set_measures", columns=["m1"]), opt("b", type="set_measures", columns=["m2"])],
+])
+def test_questions_whose_answers_change_nothing_are_dropped_whatever_they_say(options):
+    for text in ("Which chart do you prefer?", "Is m1 measured the same way throughout?"):          # the wording is irrelevant: the options decide
+        q, why = clarify.validate_question(question(options, text=text), PROFILE, SIGS)
+        assert q is None and why.startswith("no answer changes")
+
+
+def test_questions_where_an_answer_changes_the_data_or_the_date_are_kept():
+    q, _ = clarify.validate_question(question([opt("a", type="note_only"), opt("b", type="filter_rows", column="cat", operator="ne", value="x")], text="Which segment should we focus on?"), PROFILE, SIGS)
+    assert q is not None
+    q, _ = clarify.validate_question(question([opt("d1", type="set_date_column", column="d1"), opt("d2", type="set_date_column", column="d2")], text="Which date is the date?"), PROFILE, SIGS)
+    assert q is not None
+
+
+def test_a_question_with_a_made_up_or_measure_signal_is_dropped_even_if_an_answer_changes_the_data():
+    drop = [opt("keep", type="note_only"), opt("drop", type="drop_column", column="m1")]
+    for sid, start in ((None, "no signal"), ("ghost", "no signal"), ("m", "a multi_measure signal")):
+        q, why = clarify.validate_question(question(drop, signal=sid), PROFILE, SIGS)
+        assert q is None and why.startswith(start), why
+    assert clarify.validate_question(question(drop), PROFILE, SIGS)[0]["id"] == "s:1"
+
+
+def test_near_duplicates_are_merged_but_different_columns_are_not():
+    sigs = [{"id": "s:m1", "type": "near_sum", "columns": ["m1"], "evidence": {}, "strong": True}, {"id": "s:m2", "type": "near_sum", "columns": ["m2"], "evidence": {}, "strong": True}]
+
+    def q(text, col):
+        return {"text": text, "why": "x", "columns": [col], "signal": f"s:{col}", "options": [opt("keep", type="note_only"), opt("drop", type="drop_column", column=col)], "default": "keep"}
+    qs, dropped = clarify.validate_all([q("Is m1 measured the same way throughout?", "m1"), q("Is m1 measured the same way all through?", "m1"), q("Is m2 measured the same way throughout?", "m2")], PROFILE, sigs)
+    assert [x["columns"] for x in qs] == [["m1"], ["m2"]] and len(dropped) == 1 and dropped[0].startswith("duplicate")
+
+
+# ---- the four wrong questions seen on a real orders + order-details run (a fake LLM writes exactly these)
+
+def wrong_questions():
+    def q(text, *options):
+        return {"text": text, "why": "x", "columns": [], "options": [{"label": lbl, "action": act} for lbl, act in options], "default": options[0][0]}
+    return [
+        q("Which is the main number you care about?", ("No preference", NOTE), ("order_total", {"type": "set_measures", "columns": ["order_total"]}),
+          ("line_total", {"type": "set_measures", "columns": ["line_total"]})),
+        q("What defines a customer segment?", ("By region", NOTE), ("By channel", NOTE), ("By tier", NOTE)),
+        q("Which time interval should be used to evaluate growth?", ("Month over month", NOTE), ("Year over year", NOTE)),
+        q("Should revenue be measured using total amount or average amount per order?", ("Total amount", NOTE), ("Average per order", NOTE)),
+    ]
+
+
+def orders_with_details(n=300, seed=11):
+    """What the Joiner hands over for orders + order details: two measures, several segment columns, one date, nothing ambiguous."""
+    rng = np.random.default_rng(seed)
+    return pd.DataFrame({"order_id": np.arange(n), "order_date": pd.date_range("2025-01-01", periods=n).strftime("%Y-%m-%d"),
+                         "region": rng.choice(["N", "S", "E", "W"], n), "channel": rng.choice(["web", "shop", "phone"], n), "tier": rng.choice(["a", "b", "c"], n),
+                         "order_total": rng.gamma(3, 40, n).round(2), "line_total": rng.gamma(2, 25, n).round(2)})
+
+
+def test_the_four_wrong_questions_are_dropped_with_a_reason():
+    df = orders_with_details()
+    typed, prof = prep(df)
+    qs, dropped = clarify.validate_all(wrong_questions(), prof, signals.compute_signals(typed, prof))
+    assert qs == [] and len(dropped) == 4 and all(d.startswith("no answer changes") for d in dropped)
+
+
+def test_a_model_that_only_writes_the_wrong_questions_leaves_a_clean_orders_run_without_questions():
+    typed, prof = prep(orders_with_details())
+    sigs = signals.compute_signals(typed, prof)
+    assert {s["type"] for s in sigs} == {"multi_measure"}                                                       # the only thing the data suggests is a weak signal
+    qs, dropped = clarify.llm_questions(Writer(lambda s: wrong_questions()), prof, sigs, "Which region drives sales?", {}, None)
+    assert qs is None and len(dropped) == 4                                                                     # unusable, so the templates take over...
+    assert asked(clarify.build_questions(typed, prof, "Which region drives sales?", {}, False, Writer(lambda s: wrong_questions()))) == []   # ...and a weak signal alone never asks
+
+
+def test_several_measures_never_make_a_question_with_or_without_a_strong_signal_next_to_them():
+    df = orders_with_details()
+    assert {s["type"] for s in signals.compute_signals(*prep(df))} == {"multi_measure"}
+    assert build(df)[0] == []
+    df["cost"] = np.where(np.arange(len(df)) % 9 == 0, -5.0, df["line_total"])                                  # strong signals appear: only those are asked
+    qs, _, _ = build(df)
+    assert "negatives" in kinds(qs) and "multi_measure" not in kinds(qs)
+    assert not any(a["type"] == "set_measures" for q in qs for a in (o["action"] for o in q["options"]))
+
+
+def test_saved_answers_whose_question_is_no_longer_valid_are_ignored_and_reported():
+    typed, prof = prep(hospital_stays())
+    sid = next(s["id"] for s in signals.compute_signals(typed, prof) if s["type"] == "sentinel")
+    saved = {"answers": {sid: {"value": "missing", "label": "A placeholder", "question": "Old wording?", "updated": 1.7e9}}, "definitions": {}, "notes": ""}
+    qs, ignored = clarify.build_questions_and_ignored(typed, prof, "g", {}, True, Writer(raw=json.dumps({"questions": []})), saved)   # the model now has nothing to ask
+    assert asked(qs) == [] and [i["id"] for i in ignored] == [sid] and "no longer asked" in ignored[0]["reason"]
+    qs, ignored = clarify.build_questions_and_ignored(typed, prof, "g", {}, True, None, saved)                                         # the templates still offer that option
+    assert ignored == []
+    saved["answers"][sid]["value"] = "an option that was reworded"
+    qs, ignored = clarify.build_questions_and_ignored(typed, prof, "g", {}, True, None, saved)
+    assert [i["id"] for i in ignored] == [sid] and ignored[0]["reason"].startswith("the saved option")
+    final, sources = clarify.resolve(qs, None, saved["answers"])
+    assert sources[sid] == "default"                                                                            # and it did not steer the answer
+
+
+def test_summary_says_where_a_saved_answer_came_from():
+    q = [mkq("g", ("keep", {"type": "note_only"}), ("drop", {"type": "drop_column", "column": "c"}), default="keep")]
+    rows = clarify.summarise(q, {"g": "drop"}, {"g": "glossary"}, {}, {"g": {"value": "drop", "updated": 1.7e9}}, "acme")
+    assert rows[0]["source"] == "glossary" and rows[0]["set_by"].startswith("workspace 'acme', saved 20")
+    assert clarify.summarise(q, {"g": "keep"}, {"g": "user"}, {})[0]["set_by"] == ""
+
+
+# ---- the same pattern in other domains and wordings: what the options can do to the data decides, never the words
+
+def retail_sales(n=400, seed=21, placeholder=False):
+    """Amount and Profit as measures, three categorical columns, a date range. Nothing ambiguous unless `placeholder`."""
+    rng = np.random.default_rng(seed)
+    amount = rng.gamma(3, 50, n).round(2)
+    if placeholder:
+        amount[rng.random(n) < 0.1] = 9999
+    return pd.DataFrame({"order_id": np.arange(n), "order_date": pd.date_range("2024-01-01", periods=n).strftime("%Y-%m-%d"),
+                         "region": rng.choice(["N", "S", "E", "W"], n), "channel": rng.choice(["web", "shop", "phone"], n), "tier": rng.choice(["a", "b", "c"], n),
+                         "amount": amount, "profit": (amount * rng.uniform(0.05, 0.3, n)).round(2)})
+
+
+def pick_one_column(text, cols):
+    return {"text": text, "why": "x", "columns": [], "options": [{"label": c, "action": NOTE} for c in cols], "default": cols[0]}
+
+
+def pick_a_window(text, col, labels_and_cutoffs, as_filters):
+    """'Last month / Last quarter / Last year / All time' as a model might encode it: notes, or a range filter on the date (or on a number) per option."""
+    opts = [{"label": lbl, "action": {"type": "filter_rows", "column": col, "operator": "ge", "value": cut} if as_filters else NOTE} for lbl, cut in labels_and_cutoffs]
+    return {"text": text, "why": "x", "columns": [col] if as_filters else [], "options": opts + [{"label": "All time", "action": NOTE}], "default": "All time"}
+
+
+def pick_measure(text, cols):
+    return {"text": text, "why": "x", "columns": [], "options": [{"label": c.title(), "action": {"type": "set_measures", "columns": [c]}} for c in cols], "default": cols[0].title()}
+
+
+WINDOWS = [("Last month", "2024-12-01"), ("Last quarter", "2024-10-01"), ("Last year", "2024-02-01")]
+HORIZON = "What time horizon should be used to assess growth of the segment's revenue?"
+CASES = {
+    # name: (data, [questions that must be dropped], column of the placeholder question that must be KEPT, the placeholder)
+    "retail": (retail_sales(placeholder=True), [
+        pick_measure("Which is the main number you care about?", ["amount", "profit"]),
+        pick_one_column("Which column defines the customer segment for the analysis?", ["region", "channel", "tier"]),
+        pick_a_window(HORIZON, "order_date", WINDOWS, False),
+        pick_a_window(HORIZON, "order_date", WINDOWS, True)], "amount", 9999),
+    "hr": (hr_attrition(), [
+        pick_one_column("Which column defines the employee group for this analysis?", ["team", "left_company"]),
+        pick_a_window("What period should be used to judge attrition trends?", "hired_on", [("Last quarter", "2022-01-01"), ("Last year", "2021-06-01")], False),
+        pick_a_window("What period should be used to judge attrition trends?", "hired_on", [("Last quarter", "2022-01-01"), ("Last year", "2021-06-01")], True)], "perf_rating", -1),
+    "hospital": (hospital_stays(), [
+        pick_one_column("Which column defines the patient cohort?", ["ward", "readmitted"]),
+        pick_a_window("Over what window should readmission be measured?", "stay_days", [("7 days", 7), ("30 days", 30), ("90 days", 90)], False),
+        pick_a_window("Over what window should readmission be measured?", "stay_days", [("7 days", 7), ("30 days", 30), ("90 days", 90)], True)], "stay_days", 9999),
+}
+
+
+def kept_definition(col, value, sig=None):
+    return {"text": f"How should the placeholder value {value} in {col} be treated?", "why": "A repeated code distorts averages.", "columns": [col], "signal": sig,
+            "options": [{"label": "A real value", "action": NOTE}, {"label": "Missing", "action": {"type": "treat_value_as_missing", "column": col, "values": [value]}}], "default": "A real value"}
+
+
+@pytest.mark.parametrize("name", list(CASES))
+def test_pick_a_column_or_a_window_questions_are_dropped_in_every_domain_and_a_real_definition_is_kept(name):
+    df, wrong, col, value = CASES[name]
+    typed, prof = prep(df)
+    sigs = signals.compute_signals(typed, prof)
+    sid = next(sg["id"] for sg in sigs if sg["type"] == "sentinel" and sg["columns"] == [col])
+    qs, dropped = clarify.validate_all(wrong + [kept_definition(col, value, sid)], prof, sigs)
+    assert [q["text"] for q in qs] == [f"How should the placeholder value {value} in {col} be treated?"]
+    assert len(dropped) == len(wrong)
+    assert all(d.startswith(("no answer changes", "alternative windows")) for d in dropped)
+
+
+@pytest.mark.parametrize("name", list(CASES))
+def test_a_model_that_writes_only_those_questions_cannot_make_the_run_ask_them(name):
+    df, wrong, col, value = CASES[name]
+    typed, prof = prep(df)
+    qs = clarify.build_questions(typed, prof, "Explore", {}, True, Writer(lambda s: wrong), None)
+    assert not {w["text"] for w in wrong} & {q["text"] for q in qs}
+    assert all(q["kind"] != "extra" for q in qs)                                                           # replaced by the generic templates, never by the model's wording
+
+
+def test_retail_run_with_those_three_questions_asks_nothing_and_analyses_every_column_and_period():
+    df = retail_sales()
+    llm_mod._cache["llm"] = (Writer(lambda s: CASES["retail"][1]), "fake:model")
+    rid = start(df, goal="Which segment drives revenue and how is it growing?", company="Retail Co")
+    assert wait(rid, ("done",)) == "done"                                                                  # 0 questions asked: it was never blocked
+    assert cl.get(f"/api/runs/{rid}/questions").status_code == 404
+    res = result(rid)
+    analyses = res["plan"]["analyses"]
+    assert {a["params"]["group"] for a in analyses if a["tool"] == "group_compare"} == {"region", "channel", "tier"}      # every categorical column
+    assert any(a["tool"] == "trend" for a in analyses)
+    assert not [s for s in res["cleaning_log"] if s["step"] == "Definition applied" and "Filter" in s["detail"]]          # no period was cut away
+    assert len(pd.read_pickle(RUNS_DIR / rid / "clean.pkl")) == len(df)
+    measured = {v for a in analyses for k, v in a["params"].items() if k in ("target", "col")}
+    assert {"amount", "profit"} <= measured                                                                # both measures analysed, not one picked
+    assert not [x for x in res.get("applied_definitions") or [] if x["id"].startswith("multi_measure:")]    # it was never a question, so there is no definition to show
+    assert res["plan"]["derived"] and res["plan"]["derived"][0]["name"] in measured                          # and a ratio of sums is analysed next to the raw measures
 
 
 # --------------------------------------------------------------------------------------- the executor: every directive changes the data and is logged
@@ -436,13 +641,16 @@ def test_glossary_roundtrip_limits_and_lock_cleanup():
 # --------------------------------------------------------------------------------------- full runs through the API
 
 def wait(rid, want=("done", "error", "needs_input"), timeout=240):
-    t0 = time.time()
+    """Poll the run's status until it is one of `want`. A run that ends in another final state fails at once, with its error, instead of timing out."""
+    t0, st = time.time(), None
     while time.time() - t0 < timeout:
-        st = runner.read_status(rid)["status"]
+        st = (runner.read_status(rid) or {}).get("status")
         if st in want:
             return st
-        time.sleep(0.3)
-    raise AssertionError("timeout")
+        if st in ("done", "error") or (st == "needs_input" and "needs_input" not in want):
+            raise AssertionError(f"run {rid} ended as {st!r} while waiting for {want}: {(runner.read_status(rid) or {}).get('error')}")
+        time.sleep(0.1)
+    raise AssertionError(f"run {rid} still {st!r} after {timeout}s (waiting for {want})")
 
 
 def start(df, goal="Explore this data", company="Acme", name="data.csv"):
@@ -501,6 +709,8 @@ def test_ambiguous_run_pauses_then_answers_change_the_data_and_the_report():
     by2 = {d["id"]: d for d in result(rid2)["applied_definitions"]}
     assert by2[q["multi_date"]["id"]]["answer"] == "discharged" and by2[q["multi_date"]["id"]]["source"] == "glossary"
     assert result(rid2)["plan"]["date_col"] == "discharged"
+    assert by2[q["multi_date"]["id"]]["set_by"].startswith("workspace 'acme', saved ")
+    assert "Saved glossary (workspace 'acme', saved " in result(rid2)["report_md"]                       # the report says whose saved answer steered the analysis
     assert len(pd.read_pickle(RUNS_DIR / rid2 / "clean.pkl")) == len(df) - n_neg
     saved = cl.get("/api/glossary", params={"workspace": "acme"}).json()
     assert saved["definitions"]["readmission"].startswith("back") and saved["notes"].startswith("Costs")
@@ -567,15 +777,31 @@ def test_run_with_fake_llm_asks_only_valid_questions_and_applies_the_answer():
     fake = Writer(lambda s: junk("cost") + ideal(s))
     llm_mod._cache["llm"] = (fake, "fake:model")
     rid = start(df, company="Epsilon")
-    assert wait(rid) == "needs_input"
+    assert wait(rid, ("needs_input",)) == "needs_input"
     qs = cl.get(f"/api/runs/{rid}/questions").json()["questions"]
     assert {q["kind"] for q in qs} == {"multi_date", "negatives", "sentinel"} and all(q["id"] == q["signal"] for q in qs)
     dumped = json.dumps(qs)
     assert "ghost_col" not in dumped and "chart" not in dumped and "run_python" not in dumped
     neg = next(q for q in qs if q["kind"] == "negatives")
-    cl.post(f"/api/runs/{rid}/answers", json={"answers": {neg["id"]: val(neg, "No")}})
-    assert wait(rid) == "done"
+    assert cl.post(f"/api/runs/{rid}/answers", json={"answers": {neg["id"]: val(neg, "No")}}).status_code == 200
+    assert wait(rid, ("done",)) == "done"
     assert len(pd.read_pickle(RUNS_DIR / rid / "clean.pkl")) == len(df) - int((df["cost"] < 0).sum())
+
+
+def test_orders_and_details_files_with_a_model_writing_the_four_wrong_questions_run_without_asking():
+    rng = np.random.default_rng(5)
+    orders = orders_with_details(200).drop(columns=["order_total", "line_total"])
+    lines = pd.DataFrame({"order_id": rng.integers(0, 200, 600), "item_group": rng.choice(["p", "q", "r", "s"], 600), "units": rng.integers(1, 9, 600),
+                          "line_total": rng.gamma(2, 25, 600).round(2)})
+    llm_mod._cache["llm"] = (Writer(lambda s: wrong_questions()), "fake:model")
+    r = cl.post("/api/runs", data={"goal": "Which region drives sales?", "company": "Orders Co"},
+                files=[("files", ("orders.csv", orders.to_csv(index=False).encode())), ("files", ("order_details.csv", lines.to_csv(index=False).encode()))])
+    assert r.status_code == 200
+    rid = r.json()["run_id"]
+    assert wait(rid, ("done",)) == "done"                                                                  # nothing worth asking, so nothing blocks the run
+    assert cl.get(f"/api/runs/{rid}/questions").status_code == 404
+    events = (RUNS_DIR / rid / "events.jsonl").read_text(encoding="utf-8")
+    assert not any(w["text"] in events for w in wrong_questions())
 
 
 def test_rules_still_work_with_no_llm():
