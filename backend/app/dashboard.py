@@ -12,12 +12,12 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from .tools import AVG_WORDS, SUM_WORDS, to_binary
+from .measures import is_money, measure_kind
+from .tools import to_binary
 
 MAX_ROWS = 50_000
 MAX_DIMS = 4
 MAX_MEASURES = 3
-MONEY_WORDS =re.compile(r"revenue|sales|amount|price|cost|spend|profit|income|salary|value", re.I)
 
 
 def _eta_squared(y: pd.Series, g: pd.Series) -> float:
@@ -39,8 +39,8 @@ def _measure(df: pd.DataFrame, col: str, currency: str):
     x = pd.to_numeric(s, errors="coerce")
     if x.notna().sum() == 0:
         return None, None
-    additive = bool(SUM_WORDS.search(col)) and not AVG_WORDS.search(col)
-    money = bool(MONEY_WORDS.search(col)) and bool(currency)
+    additive = measure_kind(col) == "additive"
+    money = is_money(col, narrow=True) and bool(currency)
     return x, {"col": col, "label": col if additive else f"Average {col}", "agg": "sum" if additive else "avg",
                "fmt": "money" if money else "num", "note": ""}
 

@@ -10,7 +10,8 @@ from pathlib import Path
 
 import pandas as pd
 
-from .tools import SUM_WORDS, to_binary
+from .measures import has_sum_word
+from .tools import to_binary
 
 TABLE = "Data"
 THEME = {"name": "Analyst Studio", "dataColors": ["#4F6BED", "#22A699", "#F2994A", "#E5484D", "#8E6BEE", "#3FA9F5", "#A3A847", "#C45AB3"],
@@ -34,7 +35,7 @@ def build_measures(df: pd.DataFrame, plan: dict, roles: dict) -> list[dict]:
                       "note": f"Share of rows where {t} = {pos}. Format as percentage."})
             base = f"[{t} Rate]"
         else:
-            use_sum = bool(SUM_WORDS.search(t))
+            use_sum = has_sum_word(t)
             m.append({"name": f"Total {t}", "dax": f"Total {t} = SUM({_col(t)})", "note": ""})
             m.append({"name": f"Average {t}", "dax": f"Average {t} = AVERAGE({_col(t)})", "note": ""})
             m.append({"name": f"Median {t}", "dax": f"Median {t} = MEDIAN({_col(t)})", "note": "Better than average when the column is skewed."})
@@ -47,7 +48,7 @@ def build_measures(df: pd.DataFrame, plan: dict, roles: dict) -> list[dict]:
             m.append({"name": f"{t} Prior Month", "dax": f"{t} Prior Month = CALCULATE({base}, DATEADD({_col(date)}, -1, MONTH))",
                       "note": "Needs a continuous date column; mark a Date table if you add one."})
             m.append({"name": f"{t} MoM %", "dax": f"{t} MoM % = DIVIDE({base} - [{t} Prior Month], [{t} Prior Month])", "note": "Format as percentage."})
-            if roles.get(t) != "binary" and SUM_WORDS.search(t):
+            if roles.get(t) != "binary" and has_sum_word(t):
                 m.append({"name": f"{t} YTD", "dax": f"{t} YTD = TOTALYTD({base}, {_col(date)})", "note": ""})
     return m
 

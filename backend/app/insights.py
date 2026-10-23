@@ -24,7 +24,8 @@ import pandas as pd
 from . import context as ctxmod
 from . import polarity as polmod
 from .llm import ask_json
-from .tools import SUM_WORDS, _fmt, to_binary
+from .measures import has_sum_word, is_money
+from .tools import _fmt, to_binary
 
 NUM_RE = re.compile(r"\d[\d,]*\.?\d*")
 
@@ -416,8 +417,8 @@ def key_metrics(state: dict, df: pd.DataFrame) -> list[dict]:
         else:
             x = pd.to_numeric(s, errors="coerce").dropna()
             if len(x):
-                c = cur if re.search(r"revenue|sales|amount|price|cost|spend|profit|income|salary|value", t, re.I) else ""
-                if SUM_WORDS.search(t):
+                c = cur if is_money(t, narrow=True) else ""
+                if has_sum_word(t):
                     m.append({"label": f"Total {t}", "value": f"{c}{_fmt(x.sum())}", "note": ""})
                 m.append({"label": f"Average {t}", "value": f"{c}{_fmt(x.mean())}", "note": f"median {c}{_fmt(x.median())}"})
     d = plan.get("date_col")
