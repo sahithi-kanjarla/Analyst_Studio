@@ -4,6 +4,8 @@ Each signal is {id, type, columns, evidence, strong}. `strong` means a wrong gue
 to ask); weak signals are only worth asking about when the run pauses anyway. The ids are a hash of type + columns so a saved
 glossary answer matches the same ambiguity on the next run.
 
+multi_measure is never asked about: the planner analyses every such column (totals, averages per record, ratios of sums).
+
 Types: multi_date, multi_measure, negatives, sentinel, near_sum, rare_labels, high_missing, duplicate_columns."""
 from __future__ import annotations
 
@@ -42,6 +44,11 @@ def _round(x, nd=4):
 
 def _measures(df: pd.DataFrame, cols: dict[str, dict]) -> list[str]:
     return [n for n, c in cols.items() if c["role"] == "numeric" and n in df.columns and c["unique"] >= 10]
+
+
+def measure_columns(df: pd.DataFrame, profile: dict) -> list[str]:
+    """The numeric columns that can be measures (many distinct values). Used by the planner, which analyses all of them."""
+    return _measures(df, _roles(profile))
 
 
 def multi_date(df, cols) -> list[dict]:

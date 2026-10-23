@@ -12,12 +12,11 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from .tools import SUM_WORDS, to_binary
+from .tools import AVG_WORDS, SUM_WORDS, to_binary
 
 MAX_ROWS = 50_000
 MAX_DIMS = 4
 MAX_MEASURES = 3
-AVG_WORDS = re.compile(r"pct|percent|rate|ratio|discount|avg|average|score|margin|price|per_|_per|age$", re.I)  # never add these up
 MONEY_WORDS =re.compile(r"revenue|sales|amount|price|cost|spend|profit|income|salary|value", re.I)
 
 

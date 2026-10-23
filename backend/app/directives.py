@@ -4,7 +4,7 @@ An action is a dict {"type": <name>, ...parameters}. `validate_action` checks it
 containing only the whitelisted parameters (or None and a reason). `cleaner.apply_directives` is the executor.
 
     set_date_column         {column}                                 the date used for time analysis
-    set_measures            {columns[]}                              the number(s) the analysis is built around (first = main)
+    set_measures            {columns[], pin_main}                    the number(s) the analysis is built around (first = main unless pin_main is false)
     define_derived_metric   {name, kind: ratio_of_sums|difference, a, b, use_as_main}
     filter_rows             {column, operator, value}                KEEP the rows where the condition holds
     treat_value_as_missing  {column, values[]}                       placeholder values become missing in the analysis copy
@@ -29,6 +29,15 @@ MAX_LIST = 20
 def is_harmless(action: dict) -> bool:
     t = action.get("type")
     return t in ("note_only", "set_date_column", "set_measures") or (t == "handle_negatives" and action.get("mode") == "keep")
+
+
+def changes_meaning(action: dict) -> bool:
+    """Can choosing this action change a number or what it means? Notes and "analyse these columns" do not: the app analyses every
+    reasonable column anyway. Picking the date is different, because a time axis can follow only one of them."""
+    t = action.get("type")
+    if t == "set_date_column":
+        return True
+    return t not in ("note_only", "set_measures") and not is_harmless(action)
 
 
 def _scalar(v):
@@ -75,7 +84,8 @@ def validate_action(action, roles: dict[str, str], taken_names: set[str] | None 
         return ({"type": t, "column": c}, "") if c else (None, "set_date_column needs an existing date column")
     if t == "set_measures":
         cs = col_list("columns", "numeric", "binary")
-        return ({"type": t, "columns": cs}, "") if cs else (None, "set_measures needs existing numeric columns")
+        # pin_main False: every column is its own measure and the planner still picks the main one itself
+        return ({"type": t, "columns": cs, "pin_main": action.get("pin_main") is not False}, "") if cs else (None, "set_measures needs existing numeric columns")
     if t == "drop_column":
         c = col("column")
         return ({"type": t, "column": c}, "") if c else (None, "drop_column needs an existing column")

@@ -52,11 +52,15 @@ Before planning, the Clarifier looks for things in the data that would change wh
 
 ```
 data -> signals.py (neutral facts) -> question writer -> validator -> you answer or skip -> cleaner executes the chosen actions
-                                       LLM, or one generic
+                                       LLM rewords, or one generic
                                        template per signal
 ```
 
-**Signals** (`signals.py`, values and distributions only): two or more date columns; several candidate measures; negative values in a column that is mostly positive; a placeholder-looking value (-1, 9999, 'unknown'…) or a spike of one value; a column that is almost exactly another plus or minus a third; very rare labels; high missingness; two columns that look like duplicates. Each has a stable id (hash of type + columns), so a saved answer matches the same ambiguity on the next run.
+**Signals** (`signals.py`, values and distributions only): two or more date columns; several candidate measures (never a question: the planner analyses every one of them, see below); negative values in a column that is mostly positive; a placeholder-looking value (-1, 9999, 'unknown'…) or a spike of one value; a column that is almost exactly another plus or minus a third; very rare labels; high missingness; two columns that look like duplicates. Each has a stable id (hash of type + columns), so a saved answer matches the same ambiguity on the next run.
+
+**Every question is anchored to a signal.** A question must carry the id of a signal that `signals.py` found in this data, and its options may only do what that kind of signal calls for (a placeholder can be treated as missing, not 'drop another column'). The LLM can only *reword* questions for signals that exist; anything it invents with no backing signal is dropped, even if its options would change the data. On data with nothing ambiguous the app asks 0 questions, with or without an LLM.
+
+**Several measures, segments, periods, total vs average are never questions.** All candidate measures are analysed (distribution, trend, average per record and totals by segment, and one overview table), together with a derived ratio of sums when one measure is a part of another (for example profit as a share of amount, averaged rather than summed). Every segment column and every period the data supports is analysed and shown.
 
 **Question writer.** With an LLM configured, it gets the compact profile, the signals, the goal, your business context and the saved glossary, and writes the questions. The prompt says: ask only when the answer changes what a number means; never ask which chart, grouping, column, time frame or view to show (the app analyses everything reasonable and ranks it); merge duplicates. With no LLM, or if its answer is unusable, one template per signal type produces the questions. A model that explicitly answers "nothing to ask" is respected.
 
@@ -73,11 +77,11 @@ data -> signals.py (neutral facts) -> question writer -> validator -> you answer
 | `drop_column`, `merge_columns` | leave a column out; combine columns (first non-null, or sum) |
 | `note_only` | recorded as context for the LLM; the data is untouched |
 
-**Validator.** Questions are dropped when they mention columns that do not exist, use an action outside the list or with invalid parameters, ask about scope (charts, segments, time frames…), or duplicate another question. The default answer of every question must leave the data unchanged (otherwise it is rewritten, or the question dropped), so **Skip, use defaults never changes a number**. Weak signals (rare labels, missingness…) only ride along when something stronger already needs an answer, and a question already settled by your goal (e.g. it names a date column) is not asked.
+**Validator.** Questions are dropped when they have no backing signal, mention columns that do not exist, use an action outside the list or with invalid parameters, or duplicate another question. The check is **structural, not word-based**: a question is kept only if at least one answer changes the data (filter, drop, merge, placeholder, derived column, negatives) or picks the date. Questions whose answers are all notes, or just alternative columns, views, groupings, aggregations or time frames the app analyses anyway, are dropped whatever they say. The default answer of every question must leave the data unchanged (otherwise it is rewritten, or the question dropped), so **Skip, use defaults never changes a number**. Weak signals (rare labels, missingness…) only ride along when something stronger already needs an answer, and a question already settled by your goal (e.g. it names a date column) is not asked.
 
 **Flow.** If a question needs an answer the run stops with status `needs_input` (the graph ends; no thread blocks) and the UI shows a form (radio options, your own definitions, notes, **Continue**, **Skip, use defaults**). Posting the answers restarts the run without repeating timeline events. Runs with nothing ambiguous are never blocked, nor are runs where the saved glossary already answers everything.
 
-**What the answers do.** Actions run in the cleaner before any total is computed. Nothing is changed silently: original values are never edited (new columns are added, rows are filtered in the analysis copy), every effect is in the cleaning log with the rows or values affected, and an action that would remove every row is skipped and logged. The report gets a **Definitions used** section: answer, set by (*You / Default / Saved glossary / Your goal*), effect, rows affected. Free text that maps to no action (your definitions, notes, `note_only` answers) is passed to the LLM as *unverified* context and listed in the report as "not applied to the data".
+**What the answers do.** Actions run in the cleaner before any total is computed. Nothing is changed silently: original values are never edited (new columns are added, rows are filtered in the analysis copy), every effect is in the cleaning log with the rows or values affected, and an action that would remove every row is skipped and logged. The report gets a **Definitions used** section: answer, set by (*You / Default / Saved glossary / Your goal*; for the glossary, which workspace saved it and when, because the app has no user accounts), effect, rows affected. A saved answer is ignored (and listed as not applied) when its question is no longer asked for the data or the saved option no longer exists, and it is never shown to the question writer in that case. Free text that maps to no action (your definitions, notes, `note_only` answers) is passed to the LLM as *unverified* context and listed in the report as "not applied to the data".
 
 **Glossary.** Answers are saved in `backend/data/glossary.json` (override with `GLOSSARY_PATH`) keyed by company name (lower-cased; `default` when no company is given), together with the option's label so the Glossary page reads naturally. The next run with the same company pre-fills them. Limits: 500 characters of notes, 300 per definition, 20 definitions per company. Writes are atomic and lock-protected.
 
@@ -179,13 +183,13 @@ registration and a Power BI Pro licence, so it is not part of the free path).
 ## Tests
 
 ```bash
-cd backend && pytest -q        # 155 tests: pipeline, API, edge cases, multi-table joins, business context, clarifying questions and glossary, insights, strategies, LLM failure modes (fake model, no network)
+cd backend && pytest -q        # 185 tests: pipeline, API, edge cases, multi-table joins, business context, clarifying questions and glossary, insights, strategies, LLM failure modes (fake model, no network)
 ```
 
 ## Layout
 
 ```
-backend/app/   profiler.py  relations.py  signals.py  clarify.py  directives.py  scope.py  glossary.py  planner.py  cleaner.py  tools.py  critic.py  reporter.py  powerbi.py
+backend/app/   profiler.py  relations.py  signals.py  clarify.py  directives.py  glossary.py  planner.py  cleaner.py  tools.py  critic.py  reporter.py  powerbi.py
                graph.py (LangGraph)  llm.py (providers)  runner.py  main.py (FastAPI)
 frontend/src/  App.tsx  components/{UploadForm,RunView,QuestionForm,Glossary,Timeline,Results}.tsx
 sample_data/   sales.csv  churn.csv  shop/{customers,orders,products}.csv

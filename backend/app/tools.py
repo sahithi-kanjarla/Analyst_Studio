@@ -18,6 +18,8 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
+from .config import CHART_DPI
+
 PALETTE = ["#4F6BED", "#22A699", "#F2994A", "#E5484D", "#8E6BEE", "#3FA9F5", "#A3A847", "#C45AB3"]
 plt.rcParams.update({
     "axes.spines.top": False, "axes.spines.right": False, "axes.grid": True, "axes.grid.axis": "y", "grid.alpha": 0.25,
@@ -28,6 +30,12 @@ plt.rcParams.update({
     "font.sans-serif": ["Inter", "DejaVu Sans", "Noto Sans", "Noto Sans Devanagari", "Nirmala UI", "Segoe UI", "Arial Unicode MS", "Noto Sans CJK SC", "Arial"],
 })
 SUM_WORDS = re.compile(r"revenue|sales|amount|total|count|qty|quantity|spend|cost|profit|units|orders", re.I)
+AVG_WORDS = re.compile(r"pct|percent|rate|ratio|discount|avg|average|score|margin|price|per_|_per|age$", re.I)  # never add these up
+
+
+def additive(name: str) -> bool:
+    """Totals make sense for this column (so a trend or group table sums it); ratios, rates and prices are averaged instead."""
+    return bool(SUM_WORDS.search(name)) and not AVG_WORDS.search(name)
 
 # ---------------------------------------------------------------- catalog (shown to the planner LLM)
 CATALOG = {
@@ -119,7 +127,7 @@ def _slug(*parts) -> str:
 def _save(fig, ctx, name: str) -> str:
     charts = Path(ctx["charts_dir"])
     charts.mkdir(parents=True, exist_ok=True)
-    fig.savefig(charts / f"{name}.png", dpi=140, bbox_inches="tight", facecolor="white")
+    fig.savefig(charts / f"{name}.png", dpi=CHART_DPI, bbox_inches="tight", facecolor="white")
     plt.close(fig)
     return f"charts/{name}.png"
 
@@ -418,7 +426,7 @@ def trend(df, ctx, target, date):
         return None
     span = (d.index.max() - d.index.min()).days
     rule = "D" if span <= 45 else "W" if span <= 180 else "MS"
-    agg = "sum" if (kind == "numeric" and SUM_WORDS.search(target)) else "mean"
+    agg = "sum" if (kind == "numeric" and additive(target)) else "mean"
     series = d["y"].resample(rule).agg(agg)
     if agg == "mean":
         series = series.dropna()
@@ -541,7 +549,7 @@ def segment_trend(df, ctx, target, date, group):
         return None
     span = (d["t"].max() - d["t"].min()).days
     rule = "D" if span <= 45 else "W" if span <= 180 else "MS"
-    use_sum = kind == "numeric" and bool(SUM_WORDS.search(target))
+    use_sum = kind == "numeric" and additive(target)
     series = {}
     for g, sub in d.groupby("g"):
         s = sub.set_index("t").sort_index()["y"].resample(rule).agg("sum" if use_sum else "mean")
@@ -753,7 +761,7 @@ def group_table(df, ctx, target, group):
     d = d[~d["g"].isin(["nan", "None", ""])]
     if d["g"].nunique() < 2 or len(d) < 10:
         return None
-    use_sum = kind == "numeric" and bool(SUM_WORDS.search(target)) and (d["y"] >= 0).all()
+    use_sum = kind == "numeric" and additive(target) and (d["y"] >= 0).all()
     g = d.groupby("g")["y"].agg(["count", "mean", "median", "sum"]).sort_values("sum" if use_sum else "mean", ascending=False).head(15)
     cur = _cur(target, ctx)
     cols = ["Group", "Rows", "Rate" if kind == "binary" else "Average"] + ([] if kind == "binary" else ["Median"]) + (["Total", "Share of total"] if use_sum else [])

@@ -21,8 +21,8 @@ from langgraph.graph import END, START, StateGraph
 
 from . import clarify, glossary
 from . import critic as critic_mod
-from . import insights, planner, powerbi, relations, reporter, strategy, tools
-from .cleaner import apply_directives, coerce_types, scoped_clean
+from . import insights, planner, powerbi, relations, reporter, signals, strategy, tools
+from .cleaner import add_derived, apply_directives, coerce_types, scoped_clean
 from .config import MAX_ITERATIONS
 from .events import emit, set_quiet
 from .llm import get_llm
@@ -58,7 +58,9 @@ class RunState(TypedDict, total=False):
     answer_sources: dict
     definitions: dict
     applied_definitions: list
+    ignored_definitions: list
     awaiting_input: bool
+    workspace: str
 
 
 def _wd(state) -> Path:
@@ -168,23 +170,25 @@ def clarify_node(state: RunState) -> dict:
     ws = glossary.get_workspace(glossary.workspace_key(ctx))
     qfile, afile = wd / "questions.json", wd / "answers.json"
     given = json.loads(afile.read_text(encoding="utf-8")) if afile.exists() else None
+    ignored: list = []
     if qfile.exists():
-        questions = json.loads(qfile.read_text(encoding="utf-8"))["questions"]  # the same questions as before the pause (the LLM part is not deterministic)
+        stored = json.loads(qfile.read_text(encoding="utf-8"))
+        questions, ignored = stored["questions"], stored.get("ignored") or []  # the same questions as before the pause (the LLM part is not deterministic)
     else:
         llm, _ = get_llm()
         typed, _ = coerce_types(pd.read_pickle(wd / "raw.pkl"), state["profile"])
-        questions = clarify.build_questions(typed, state["profile"], state["goal"], ctx, bool(state.get("explore")), llm, ws)
+        questions, ignored = clarify.build_questions_and_ignored(typed, state["profile"], state["goal"], ctx, bool(state.get("explore")), llm, ws)
         for q in questions:
             saved = (ws["answers"].get(q["id"]) or {}).get("value")
             q["prefill"], q["prefill_source"] = (saved, "glossary") if saved in clarify.option_values(q) else (q["default"], "default")
-        if questions:
-            qfile.write_text(json.dumps({"workspace": glossary.workspace_key(ctx), "questions": questions}), encoding="utf-8")
+        if any(not q.get("auto") for q in questions):       # only a run that may pause needs its questions frozen
+            qfile.write_text(json.dumps({"workspace": glossary.workspace_key(ctx), "questions": questions, "ignored": ignored}), encoding="utf-8")
     asked = [q for q in questions if not q.get("auto")]
     final, sources = clarify.resolve(questions, (given or {}).get("answers"), ws["answers"], skip=bool((given or {}).get("skip")))
     covered = all(sources[q["id"]] == "glossary" for q in asked)
     waiting = bool(asked) and given is None and not covered
 
-    out: dict = {"questions": questions, "answers": final, "answer_sources": sources, "awaiting_input": waiting,
+    out: dict = {"questions": questions, "answers": final, "ignored_definitions": ignored, "workspace": glossary.workspace_key(ctx), "answer_sources": sources, "awaiting_input": waiting,
                  "definitions": {"terms": ws["definitions"], "notes": ws["notes"]}}
     text = glossary.definitions_text(ws)
     notes = clarify.note_lines(questions, final)
@@ -225,17 +229,26 @@ def plan_node(state: RunState) -> dict:
     ctx, explore = state.get("context") or {}, bool(state.get("explore"))
     questions, answers = state.get("questions") or [], state.get("answers") or {}
     extra: dict = {}
-    ov = None
+    ov: dict = {}
+    new_cols: list[str] = []
     if questions:  # plan on the data as the user defined it (rows excluded, net amount added)
         typed, _, effects, new_cols = apply_directives(typed, questions, answers)
-        if new_cols:
-            prof = {**prof, "columns": prof["columns"] + [profile_df(typed[[c]])["columns"][0] for c in new_cols], "cols": prof["cols"] + len(new_cols)}
-            extra["profile"] = prof
         ov = clarify.plan_overrides(questions, answers)
-        extra["applied_definitions"] = clarify.summarise(questions, answers, state.get("answer_sources") or {}, effects)
+        extra["applied_definitions"] = clarify.summarise(questions, answers, state.get("answer_sources") or {}, effects,
+                                                         glossary.get_workspace(state.get("workspace") or "default")["answers"], state.get("workspace") or "default")
         shown = [f"{k}: {v}" for k, v in (("main number", ov["target"]), ("date column", ov["date_col"])) if v]
         if shown:
             emit(rid, "Planner", "Applying your definitions (" + "; ".join(shown) + ").")
+    # several candidate measures are never a question: all are analysed, plus a ratio of sums when one measure is a part of another
+    ratio = planner.pick_ratio(typed, signals.measure_columns(typed, prof))
+    if ratio:
+        typed, _, added = add_derived(typed, [ratio])
+        new_cols += added
+        ov = {**ov, "derived": [ratio]}
+        emit(rid, "Planner", f"Besides each measure on its own, also analysing {ratio['a']} as a share of {ratio['b']} ({ratio['name']}).")
+    if new_cols:
+        prof = {**prof, "columns": prof["columns"] + [profile_df(typed[[c]])["columns"][0] for c in new_cols], "cols": prof["cols"] + len(new_cols)}
+        extra["profile"] = prof
     raw_plan = planner.llm_plan(llm, prof, state["goal"], ctx, explore, ov) if llm else None
     if llm and raw_plan is None:
         emit(rid, "Planner", "The LLM answer was unusable, so rule-based planning was used instead.")
@@ -255,6 +268,8 @@ def clean_node(state: RunState) -> dict:
     log_def: list = []
     if state.get("questions"):
         typed, log_def, _, _ = apply_directives(typed, state["questions"], state.get("answers") or {})
+    typed, log_derived, _ = add_derived(typed, state["plan"].get("derived"))
+    log_def += log_derived
     clean, log2 = scoped_clean(typed, state["profile"], state["plan"])
     clean.to_pickle(_wd(state) / "clean.pkl")
     clean.to_csv(_wd(state) / "cleaned.csv", index=False, encoding="utf-8-sig")

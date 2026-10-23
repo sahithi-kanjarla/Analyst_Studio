@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 import threading
 import time
 import traceback
@@ -22,12 +23,21 @@ def write_status(run_id: str, status: str, **extra) -> None:
     p = run_dir(run_id) / "status.json"
     cur = json.loads(p.read_text()) if p.exists() else {}
     cur.update(status=status, updated=time.time(), **extra)
-    p.write_text(json.dumps(cur))
+    tmp = p.with_name(f"status.{threading.get_ident()}.tmp")      # a reader polling the status never sees a half-written file
+    tmp.write_text(json.dumps(cur))
+    os.replace(tmp, p)
 
 
 def read_status(run_id: str) -> dict | None:
     p = run_dir(run_id) / "status.json"
-    return json.loads(p.read_text()) if p.exists() else None
+    for attempt in range(5):      # on Windows a replace can briefly block a read
+        try:
+            return json.loads(p.read_text())
+        except FileNotFoundError:
+            return None
+        except (OSError, ValueError):
+            time.sleep(0.02 * (attempt + 1))
+    return None
 
 
 def _safe_filename(name: str, used: set[str]) -> str:
@@ -80,7 +90,7 @@ def _execute(run_id: str) -> None:
             write_status(run_id, "needs_input")
             return
         keys = ("goal", "profile", "plan", "cleaning_log", "findings", "critique", "report_md", "powerbi", "llm_mode", "data_model",
-                "context", "strategies", "strategy_summary", "data_gaps", "key_metrics", "applied_definitions", "definitions")
+                "context", "strategies", "strategy_summary", "data_gaps", "key_metrics", "applied_definitions", "ignored_definitions", "definitions")
         result = {k: final.get(k) for k in keys}
         result["run_id"] = run_id
         (wd / "result.json").write_text(json.dumps(result, default=str))
