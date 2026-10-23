@@ -14,7 +14,7 @@ from .context import normalise_context
 from .dashboard import build_dashboard, list_sources, source_path, valid_source
 from .events import get_events
 from .llm import get_llm
-from .runner import DEFAULT_EXPLORE_GOAL, RUN_ID_RE, create_run, read_status, resume_with_answers, run_dir, start_run
+from .runner import DEFAULT_EXPLORE_GOAL, RUN_ID_RE, create_run, read_status, rerun_without_derived, resume_with_answers, run_dir, start_run
 
 app = FastAPI(title="Analyst Studio", version="1.0.0")
 app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"], allow_methods=["*"], allow_headers=["*"])
@@ -155,6 +155,24 @@ def post_answers(run_id: str, body: AnswersIn):
     if not resume_with_answers(run_id, {"answers": {} if body.skip else confirmed, "skip": body.skip, "notes": body.notes}):
         raise HTTPException(409, "This run is not waiting for answers.")
     return {"run_id": run_id, "status": "running"}
+
+
+class RemoveDerivedIn(BaseModel):
+    names: list[str] = Field(min_length=1, max_length=10)
+
+
+@app.post("/api/runs/{run_id}/remove-derived")
+def remove_derived(run_id: str, body: RemoveDerivedIn):
+    """Re-run the analysis without the derived metrics the user removed. Returns the id of the new run."""
+    _check_id(run_id)
+    res = run_dir(run_id) / "result.json"
+    if (read_status(run_id) or {}).get("status") != "done" or not res.exists():
+        raise HTTPException(409, "Only a finished run can be re-run.")
+    made = {d["name"] for d in ((json.loads(res.read_text()).get("derived_metrics") or {}).get("created") or [])}
+    unknown = [n for n in body.names if n not in made]
+    if unknown:
+        raise HTTPException(400, f"'{unknown[0][:60]}' is not a derived metric of this run.")
+    return {"run_id": rerun_without_derived(run_id, body.names), "status": "queued"}
 
 
 class GlossaryIn(BaseModel):

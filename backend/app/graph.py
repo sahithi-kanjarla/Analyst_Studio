@@ -19,13 +19,16 @@ from typing import TypedDict
 import pandas as pd
 from langgraph.graph import END, START, StateGraph
 
-from . import clarify, glossary
+from . import clarify, derived, glossary
+from . import goal as goalmod
+from . import context as ctxmod
 from . import critic as critic_mod
-from . import insights, planner, powerbi, relations, reporter, signals, strategy, tools
+from . import insights, planner, polarity as polmod, powerbi, relations, reporter, signals, strategy, tools
 from .cleaner import add_derived, apply_directives, coerce_types, scoped_clean
 from .config import MAX_ITERATIONS
 from .events import emit, set_quiet
 from .llm import get_llm
+from .propose import derive_mode
 from .profiler import load_tables, profile_df
 
 
@@ -60,7 +63,14 @@ class RunState(TypedDict, total=False):
     applied_definitions: list
     ignored_definitions: list
     awaiting_input: bool
+    remove_derived: list
+    derived_metrics: dict
+    goal_answer: dict
+    polarity: dict
     workspace: str
+    decisions: list
+    stage_sources: dict
+    run_mode: str
 
 
 def _wd(state) -> Path:
@@ -128,10 +138,9 @@ def relate_node(state: RunState) -> dict:
             edges[i]["status"], edges[i]["reason"] = "rejected", "rejected by the reviewing model: " + review["reason"]
             emit(rid, "Joiner", f"Reviewer vetoed a link: {relations.describe_edge(edges[i])}")
 
-    if review and review["base_table"]:
-        base, why = review["base_table"], "chosen by the reviewing model: " + review["reason"]
-    else:
-        base, why = relations.choose_base(typed, profiles, [e for e in edges if e.get("status") != "rejected"], state["goal"])
+    base, why = relations.choose_base(typed, [e for e in edges if e.get("status") != "rejected"])
+    if review and review["base_table"] and review["base_table"] != base:
+        emit(rid, "Joiner", f"Ignored the reviewer's coarser base '{review['base_table']}': the base is always the finest-grain table '{base}' so no columns are aggregated away.")
     emit(rid, "Joiner", f"Analysis grain: one row per '{base}' row ({why}).")
 
     if not edges:
@@ -239,13 +248,22 @@ def plan_node(state: RunState) -> dict:
         shown = [f"{k}: {v}" for k, v in (("main number", ov["target"]), ("date column", ov["date_col"])) if v]
         if shown:
             emit(rid, "Planner", "Applying your definitions (" + "; ".join(shown) + ").")
-    # several candidate measures are never a question: all are analysed, plus a ratio of sums when one measure is a part of another
-    ratio = planner.pick_ratio(typed, signals.measure_columns(typed, prof))
-    if ratio:
-        typed, _, added = add_derived(typed, [ratio])
+    # several candidate measures are never a question: all are analysed. A ratio is only added when the LLM proposes one with a business meaning and the data passes the checks.
+    removed = set(state.get("remove_derived") or [])
+    proposed, rejected = derived.propose(llm, typed, signals.measure_columns(typed, prof), state["goal"], ctxmod.context_text(ctx))
+    kept = [d for d in proposed if d["name"] not in removed]
+    dropped = [d for d in proposed if d["name"] in removed]
+    for r in rejected:
+        emit(rid, "Planner", f"Did not create {r['a']} / {r['b']}: {r['reason']}.")
+    for d in dropped:
+        emit(rid, "Planner", f"Left out {d['name']} ({d['a']} / {d['b']}) because you removed it.")
+    if kept:
+        typed, _, added = add_derived(typed, kept)
         new_cols += added
-        ov = {**ov, "derived": [ratio]}
-        emit(rid, "Planner", f"Besides each measure on its own, also analysing {ratio['a']} as a share of {ratio['b']} ({ratio['name']}).")
+        ov = {**ov, "derived": kept}
+        for d in kept:
+            emit(rid, "Planner", f"Also analysing {d['name']} = {d['a']} / {d['b']} as a ratio of sums: {d['meaning']}")
+    extra["derived_metrics"] = {"created": kept, "rejected": rejected, "removed": [{"name": d["name"], "a": d["a"], "b": d["b"], "meaning": d["meaning"]} for d in dropped]}
     if new_cols:
         prof = {**prof, "columns": prof["columns"] + [profile_df(typed[[c]])["columns"][0] for c in new_cols], "cols": prof["cols"] + len(new_cols)}
         extra["profile"] = prof
@@ -257,7 +275,7 @@ def plan_node(state: RunState) -> dict:
         emit(rid, "Planner", n)
     emit(rid, "Planner", f"Target: {plan['target'] or 'none (descriptive analysis)'}. Using {len(plan['relevant_columns'])} of {prof['cols']} columns, {len(plan['analyses'])} analyses planned.",
          plan=plan)
-    return {"plan": plan, "llm_mode": label if llm else "rules-only", **extra}
+    return {"plan": plan, "llm_mode": label if llm else "rules-only", "stage_sources": {**(state.get("stage_sources") or {}), "planner": plan["source"]}, **extra}
 
 
 def clean_node(state: RunState) -> dict:
@@ -326,6 +344,11 @@ def insights_node(state: RunState) -> dict:
     rid = state["run_id"]
     llm, _ = get_llm()
     emit(rid, "Insights", "Turning findings into insights: what it means, how much to trust it, what to check next…")
+    pol, src = polmod.resolve(llm, polmod.measures_used(state), state["goal"], state.get("context"), state)   # one call per run (a second only to repair a bad answer)
+    state["polarity"] = pol
+    lower = [m for m, d in pol.items() if d == polmod.LOWER]
+    if pol:
+        emit(rid, "Insights", f"Metric direction ({'LLM' if src == 'llm' else 'name rules'}): " + (f"lower is better for {', '.join(lower)}; " if lower else "") + f"higher is better for {sum(d == polmod.HIGHER for d in pol.values())}, neutral for {sum(d == polmod.NEUTRAL for d in pol.values())}.")
     insights.build_insights(state)
     improved = insights.enrich_with_llm(llm, state) if llm else 0
     df = pd.read_pickle(_wd(state) / "clean.pkl")
@@ -340,7 +363,8 @@ def insights_node(state: RunState) -> dict:
     for g in gaps:
         if g["severity"] == "warn":
             emit(rid, "Insights", f"⚠ {g['title']}")
-    return {"findings": state["findings"], "key_metrics": km, "data_gaps": gaps}
+    sources = {**(state.get("stage_sources") or {}), "polarity": src, "insights": "llm" if improved else "rules"}
+    return {"findings": state["findings"], "key_metrics": km, "data_gaps": gaps, "polarity": pol, "decisions": state.get("decisions") or [], "stage_sources": sources}
 
 
 def strategy_node(state: RunState) -> dict:
@@ -353,17 +377,19 @@ def strategy_node(state: RunState) -> dict:
         emit(rid, "Strategist", f"{len(backed)} data-backed strateg{'y' if len(backed) == 1 else 'ies'}; top priority: {backed[0]['title']}" + (f" ({improved} reworded with your business context)." if improved else "."))
     else:
         emit(rid, "Strategist", "The evidence is too thin for a data-backed strategy; recommending data foundations instead.")
-    return {"strategies": strategies, "strategy_summary": summary}
+    return {"strategies": strategies, "strategy_summary": summary, "stage_sources": {**(state.get("stage_sources") or {}), "strategy": "llm" if improved else "rules"}}
 
 
 def report_node(state: RunState) -> dict:
     rid = state["run_id"]
     llm, _ = get_llm()
     emit(rid, "Reporter", "Writing the report…")
-    md, mode = reporter.write_report(state, llm)
+    answer = goalmod.answer(state)
+    md, mode = reporter.write_report({**state, "goal_answer": answer}, llm)
     (_wd(state) / "report.md").write_text(md, encoding="utf-8")
     emit(rid, "Reporter", f"Report written ({'summary by LLM, numbers from the analysis tools' if mode == 'llm' else 'rule-based summary'}).")
-    return {"report_md": md}
+    sources = {**(state.get("stage_sources") or {}), "report": mode}
+    return {"report_md": md, "goal_answer": answer, "stage_sources": sources, "run_mode": derive_mode(sources)}
 
 
 def powerbi_node(state: RunState) -> dict:

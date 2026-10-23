@@ -475,7 +475,7 @@ def test_retail_run_with_those_three_questions_asks_nothing_and_analyses_every_c
     measured = {v for a in analyses for k, v in a["params"].items() if k in ("target", "col")}
     assert {"amount", "profit"} <= measured                                                                # both measures analysed, not one picked
     assert not [x for x in res.get("applied_definitions") or [] if x["id"].startswith("multi_measure:")]    # it was never a question, so there is no definition to show
-    assert res["plan"]["derived"] and res["plan"]["derived"][0]["name"] in measured                          # and a ratio of sums is analysed next to the raw measures
+    assert res["plan"]["derived"] == []                                                                     # no LLM, so no invented ratio
 
 
 # --------------------------------------------------------------------------------------- the executor: every directive changes the data and is logged

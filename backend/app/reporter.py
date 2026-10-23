@@ -7,6 +7,7 @@ import json
 from . import context as ctxmod
 from .insights import allowed_numbers, numbers_ok
 from .llm import ask_json
+from .propose import derive_mode
 
 
 def _score(f: dict) -> float:
@@ -78,9 +79,17 @@ def _definitions_section(state: dict) -> list[str]:
     applied, free = state.get("applied_definitions") or [], state.get("definitions") or {}
     ignored = state.get("ignored_definitions") or []
     terms, notes = free.get("terms") or {}, free.get("notes") or ""
-    if not applied and not terms and not notes and not ignored:
+    dm = state.get("derived_metrics") or {}
+    created, rejected, removed = dm.get("created") or [], dm.get("rejected") or [], dm.get("removed") or []
+    if not applied and not terms and not notes and not ignored and not created and not rejected and not removed:
         return []
     L = ["", "## Definitions used", ""]
+    if created or rejected or removed:
+        L += ["**Derived metrics** (new columns the analysis created; each is a ratio of sums, never an average of row ratios; remove one with the Remove button in the app and the analysis re-runs without it):", ""]
+        L += [f"- `{d['name']}` = {d['a']} / {d['b']}: {_cell(d['meaning'])}" for d in created]
+        L += [f"- Not created: {r['a']} / {r['b']}: {_cell(r['reason'])}" for r in rejected]
+        L += [f"- Removed by you: `{d['name']}` = {d['a']} / {d['b']}" for d in removed]
+        L.append("")
     if applied:
         L += ["| Question | Answer | Set by | Effect on the data | Rows affected |", "|---|---|---|---|---|"]
         for d in applied:
@@ -97,10 +106,10 @@ def _definitions_section(state: dict) -> list[str]:
     return L
 
 
-def build_report(state: dict, summary: str, recs: list[str]) -> str:
+def build_report(state: dict, summary: str, recs: list[str], run_mode: str = "") -> str:
     plan, prof, ctx = state["plan"], state["profile"], state.get("context") or {}
     title = "# Analysis report" + (f": {ctx['company']}" if ctx.get("company") else "")
-    L = [title, "", "## Executive summary", "", summary, "", "**Top recommendations**", ""] + [f"- {r}" for r in recs]
+    L = [title, "", f"**Mode:** {run_mode or derive_mode(state.get('stage_sources'))}", "", "## Executive summary", "", summary, "", "**Top recommendations**", ""] + [f"- {r}" for r in recs]
 
     km = state.get("key_metrics") or []
     if km:
@@ -150,7 +159,9 @@ def build_report(state: dict, summary: str, recs: list[str]) -> str:
             L += [f"![{f['title']}]({f['chart']})", ""]
         if f.get("table"):
             t = f["table"]
-            L += ["| " + " | ".join(t["columns"]) + " |", "|" + "---|" * len(t["columns"])] + ["| " + " | ".join(str(c) for c in r) + " |" for r in t["rows"][:15]] + [""]
+            total = t.get("total") or len(t["rows"])
+            L += ["| " + " | ".join(t["columns"]) + " |", "|" + "---|" * len(t["columns"])] + ["| " + " | ".join(str(c) for c in r) + " |" for r in t["rows"][:10]]
+            L += [f"*Showing 10 of {total} rows; the Data and Dashboard tabs show all of them.*" if total > 10 else "", ""]
         L += [f"**What we see.** {ins['observation']}", ""]
         if ins.get("why_it_matters"):
             L += [f"**Why it matters.** {ins['why_it_matters']}", ""]
@@ -187,4 +198,7 @@ def write_report(state: dict, llm) -> tuple[str, str]:
     res = llm_summary(llm, state) if llm is not None else None
     mode = "llm" if res else "rules"
     summary, recs = res if res else rule_summary(state)
-    return build_report(state, summary, recs), mode
+    ans = state.get("goal_answer")
+    if ans:      # the goal is answered first, in the app's own words and numbers, whether or not an LLM wrote the rest
+        summary = f"**Answer to your goal.** {ans['sentence']}" + (f" {ans['groups_sentence']}" if ans.get("groups_sentence") else "") + "\n\n" + summary
+    return build_report(state, summary, recs, derive_mode({**(state.get("stage_sources") or {}), "report": mode})), mode

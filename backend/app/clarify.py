@@ -12,7 +12,7 @@ changes what a number means, and the default answer of every question leaves the
 A question is {id, kind, text, why, options:[{value, label, action}], default, columns, signal, strong} (+ "auto" when the goal already settles it).
 Every question is anchored to a signal and its id IS the signal id (type + columns hash), so a saved glossary answer matches the same ambiguity on the next run.
 The writer may only reword questions for signals that exist; a question with no backing signal is dropped. Several candidate measures are NOT a question:
-the planner analyses all of them (totals, averages per record, ratios of sums), and so it does for segment columns, growth periods and total-versus-average."""
+the planner analyses all of them (totals, averages per record), and so it does for segment columns, growth periods and total-versus-average."""
 from __future__ import annotations
 
 import hashlib

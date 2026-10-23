@@ -139,12 +139,33 @@ def test_duplicate_parent_keys_never_multiply_rows():
     assert len(m["df"]) == len(t["orders"])
 
 
-def test_base_table_follows_the_goal():
+def test_base_table_is_always_the_finest_grain_whatever_the_goal():
     c, o, p = make_shop()
     t = typed({"customers": c, "orders": o, "products": p})
-    prof, edges = profiles_of(t), relations.detect_relationships(t)
-    assert relations.choose_base(t, prof, edges, "Why do customers churn?")[0] == "customers"
-    assert relations.choose_base(t, prof, edges, "Which segment drives revenue?")[0] == "orders"
+    edges = relations.detect_relationships(t)
+    for goal in ("Why do customers churn?", "Which segment drives revenue?"):
+        assert relations.choose_base(t, edges)[0] == "orders"
+
+
+def test_three_table_chain_defaults_to_fact_table_and_keeps_its_columns():
+    rng = np.random.default_rng(7)
+    regions = pd.DataFrame({"region_id": [f"R{i}" for i in range(8)], "region_name": [f"Region {i}" for i in range(8)]})
+    customers = pd.DataFrame({"customer_id": [f"C{i:03d}" for i in range(120)], "region_id": rng.choice(regions["region_id"], 120),
+                              "segment": rng.choice(["Enterprise", "SMB", "Consumer"], 120)})
+    n = 900
+    orders = pd.DataFrame({"order_id": range(1, n + 1), "customer_id": rng.choice(customers["customer_id"], n),
+                           "category": rng.choice(["Hardware", "Software", "Services"], n), "amount": rng.lognormal(4, .5, n).round(2),
+                           "order_date": pd.Timestamp("2025-01-01") + pd.to_timedelta(rng.integers(0, 300, n), unit="D")})
+    t = typed({"regions": regions, "customers": customers, "orders": orders})
+    edges = relations.detect_relationships(t)
+    base, _ = relations.choose_base(t, edges)
+    assert base == "orders"
+    m = relations.build_model(t, profiles_of(t), edges, base)
+    df = m["df"]
+    assert len(df) == n
+    assert {"order_date", "category", "amount", "segment", "region_name"} <= set(df.columns)
+    assert not any(v.endswith("(aggregated)") for v in m["origin"].values())
+    assert not m["unused_tables"]
 
 
 # --------------------------------------------------------------------------- end to end
@@ -174,14 +195,13 @@ def test_pipeline_revenue_by_segment_across_three_files():
     assert "relationships.csv" in names and "tables/orders.csv" in names and "tables/customers.csv" in names
 
 
-def test_pipeline_churn_uses_aggregated_behaviour_from_orders():
+def test_pipeline_churn_goal_still_uses_finest_grain_base():
     c, o, p = make_shop()
     rid, res = run_files({"customers.csv": csv_bytes(c), "orders.csv": csv_bytes(o)}, "Why do customers churn?")
-    assert res["data_model"]["base_table"] == "customers"
-    assert res["plan"]["target"] == "churn"
-    oc = next(f for f in res["findings"] if f["tool"] == "outcome_compare" and f["params"]["col"] == "orders_count")
-    assert oc["significant"] and oc["stats"]["median_outcome"] < oc["stats"]["median_other"]   # churners ordered less
-    assert res["data_model"]["origin"]["orders_count"] == "orders (aggregated)"
+    dm = res["data_model"]
+    assert dm["base_table"] == "orders"                       # the goal does not coarsen the grain
+    assert not any(v.endswith("(aggregated)") for v in dm["origin"].values())
+    assert {"churn", "segment", "order_date"} <= set(res["profile"]["columns"].keys() if isinstance(res["profile"]["columns"], dict) else [x["name"] for x in res["profile"]["columns"]])
 
 
 def test_unrelated_files_are_flagged_not_forced():
@@ -253,7 +273,7 @@ class FakeReviewer:
 
 @pytest.mark.parametrize("answer, expect_base, expect_rejected", [
     ({"base_table": "ghost_table", "reject_links": [99, "x"], "reason": "hallucinated"}, "orders", 0),   # invalid -> ignored
-    ({"base_table": "customers", "reject_links": [], "reason": "one row per customer"}, "customers", 0),
+    ({"base_table": "customers", "reject_links": [], "reason": "one row per customer"}, "orders", 0),   # coarser base -> ignored
 ])
 def test_llm_review_is_validated(answer, expect_base, expect_rejected):
     c, o, p = make_shop()

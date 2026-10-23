@@ -4,7 +4,7 @@ Each signal is {id, type, columns, evidence, strong}. `strong` means a wrong gue
 to ask); weak signals are only worth asking about when the run pauses anyway. The ids are a hash of type + columns so a saved
 glossary answer matches the same ambiguity on the next run.
 
-multi_measure is never asked about: the planner analyses every such column (totals, averages per record, ratios of sums).
+multi_measure is never asked about: the planner analyses every such column (totals, averages per record).
 
 Types: multi_date, multi_measure, negatives, sentinel, near_sum, rare_labels, high_missing, duplicate_columns."""
 from __future__ import annotations

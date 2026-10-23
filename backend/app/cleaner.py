@@ -108,7 +108,7 @@ def add_derived(df: pd.DataFrame, derived: list[dict] | None) -> tuple[pd.DataFr
         tot = y.sum()
         n = int(df[d["name"]].notna().sum())
         log.append({"step": "Derived ratio", "detail": f"Created '{d['name']}' = {d['a']} / {d['b']} for {n:,} rows" + (f"; overall ratio of sums {x.sum() / tot:.4g}" if tot else "")
-                    + " (both measures are also analysed on their own)", "count": n})
+                    + (f". Meaning: {d['meaning']}" if d.get("meaning") else "") + " (both measures are also analysed on their own; groups are always summed first, then divided)", "count": n})
         added.append(d["name"])
     return df, log, added
 

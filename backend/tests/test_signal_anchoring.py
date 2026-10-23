@@ -7,8 +7,9 @@ import pandas as pd
 import pytest
 
 from test_clarify import Writer, hr_attrition, hospital_stays, ideal, prep, retail_sales
-from app import clarify, planner, signals, tools
+from app import clarify, derived, planner, signals, tools
 from app.cleaner import add_derived
+from test_derived_and_display import Proposer
 
 
 def clean_hr(n=400, seed=31):
@@ -131,8 +132,10 @@ def test_a_model_that_rewords_the_real_questions_and_adds_invented_ones_keeps_on
 def test_the_planner_analyses_every_measure_and_a_ratio_of_sums_instead_of_asking():
     df, measures, groups, date = CLEAN["retail"]
     typed, prof = prep(df)
-    ratio = planner.pick_ratio(typed, signals.measure_columns(typed, prof))
-    assert ratio and (ratio["a"], ratio["b"]) == ("profit", "amount") and ratio["name"] == "profit_to_amount_ratio"
+    assert derived.propose(None, typed, signals.measure_columns(typed, prof), "goal") == ([], [])             # rules alone never invent a ratio
+    accepted, _ = derived.propose(Proposer([{"a": "profit", "b": "amount", "meaning": "Share of the amount kept as profit."}]), typed, signals.measure_columns(typed, prof), "goal")
+    assert accepted and (accepted[0]["a"], accepted[0]["b"]) == ("profit", "amount") and accepted[0]["name"] == "profit_to_amount_ratio"
+    ratio = accepted[0]
     typed, log, added = add_derived(typed, [ratio])
     assert added == [ratio["name"]] and log[0]["step"] == "Derived ratio" and "overall ratio of sums" in log[0]["detail"]
     assert "profit" in typed.columns and "amount" in typed.columns                                           # originals untouched
@@ -158,4 +161,4 @@ def test_ratios_and_prices_are_averaged_never_added_up():
 def test_unrelated_measures_get_no_ratio():
     rng = np.random.default_rng(3)
     df = pd.DataFrame({"a": rng.gamma(3, 50, 300), "b": rng.gamma(3, 50, 300)})
-    assert planner.pick_ratio(df, ["a", "b"]) is None
+    assert derived.propose(None, df, ["a", "b"], "goal") == ([], [])

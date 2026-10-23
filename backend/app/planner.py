@@ -15,6 +15,7 @@ import pandas as pd
 
 from . import context as ctxmod
 from . import directives as dv
+from . import goal as goalmod
 from .llm import ask_json
 from .profiler import compact_profile
 from .tools import CATALOG, SUM_WORDS, assoc_strength, spec_signature, validate_spec, target_values  # noqa: F401
@@ -41,6 +42,28 @@ def _apply_exclusions(roles: dict, ov: dict) -> dict:
     return {c: r for c, r in roles.items() if c not in set(ov.get("exclude") or []) or c in keep}
 
 
+SKIP_REASON = {"id": "identifier: it labels rows and carries no business meaning", "text": "free text: not analysed as a measure or a segment", "empty": "no values to analyse"}
+
+
+def rule_skipped(profile: dict, relevant: list[str], ov: dict) -> list[dict]:
+    """Columns the rules planner leaves out and why, most notable first (identifiers, free text, empty or user-excluded columns), at most 10."""
+    used, excluded = set(relevant), set(ov.get("exclude") or [])
+    out = []
+    for c in profile["columns"]:
+        n, r = c["name"], c["role"]
+        if n in used:
+            continue
+        if n in excluded:
+            out.append((0, {"column": n, "reason": "left out because of your answer to a clarifying question"}))
+        elif r in SKIP_REASON:
+            out.append((1, {"column": n, "reason": SKIP_REASON[r]}))
+        elif c.get("unique", 2) <= 1:
+            out.append((1, {"column": n, "reason": "the same value on every row"}))
+        else:
+            out.append((2, {"column": n, "reason": "not needed to answer this goal"}))
+    return [x for _, x in sorted(out, key=lambda t: t[0])][:10]
+
+
 def _include_extras(roles: dict, date: str | None, ov: dict, target: str | None = None) -> list[dict]:
     """Columns the user wants analysed separately (e.g. refunds) get their own distribution and trend."""
     out = []
@@ -52,28 +75,12 @@ def _include_extras(roles: dict, date: str | None, ov: dict, target: str | None 
     return out
 
 
-def pick_ratio(df: pd.DataFrame, measures: list[str]) -> dict | None:
-    """A ratio of sums worth analysing next to the raw measures: a / b where b is positive in nearly every row, the total of a is smaller than
-    the total of b (a is a part of b) and the two move together. Picked from values alone."""
-    cols = [m for m in measures if m in df.columns][:6]
-    if len(cols) < 2:
-        return None
-    data = pd.DataFrame({m: pd.to_numeric(df[m], errors="coerce") for m in cols})
-    if len(data) > 5000:
-        data = data.sample(5000, random_state=0)
-    best = None
-    for a in cols:
-        for b in cols:
-            sub = data[[a, b]].dropna() if a != b else data.iloc[0:0]
-            if len(sub) < 30 or sub[b].sum() <= 0 or (sub[b] > 0).mean() < 0.95 or abs(sub[a].sum()) >= sub[b].sum():
-                continue
-            r = abs(float(sub[a].corr(sub[b], method="spearman") or 0))
-            if r >= 0.3 and (best is None or r > best[0]):
-                best = (r, a, b)
-    if best is None:
-        return None
-    _, a, b = best
-    return {"kind": "ratio_of_sums", "a": a, "b": b, "name": dv.clean_name(f"{a}_to_{b}_ratio", set(df.columns))}
+def plausible_dimensions(df: pd.DataFrame, roles: dict, uniques: dict, target: str | None, keep: list[str]) -> list[str]:
+    """Low-cardinality categorical columns (category, region, segment...) are plausible drivers of any KPI the goal names, so the scope step keeps them
+    even when they are not among the few the planner chose to chart: dropping one hides a split the user may well ask about next."""
+    if not target:
+        return []
+    return [c for c, r in roles.items() if r == "categorical" and 2 <= uniques.get(c, 0) <= 30 and c in df.columns and c not in keep]
 
 
 def measure_extras(df: pd.DataFrame, roles: dict, uniques: dict, measures: list[str], skip: set, date: str | None, groups: list[str]) -> list[dict]:
@@ -197,6 +204,9 @@ def heuristic_plan(df: pd.DataFrame, profile: dict, goal: str, context: dict | N
             analyses.append({"tool": "composition", "params": {"group": groups[0], "by": groups[1]}, "why": f"See whether the mix of {groups[1]} changes across {groups[0]}."})
         if nums:
             analyses.insert(0, {"tool": "summary_table", "params": {"cols": nums[:12]}, "why": "No clear outcome column was found, so start with a factual overview."})
+    if target and goalmod.asks_about_change(goal, explore):     # the goal asks about change: the overall trend and the per-group trends are never cut
+        first = [a for a in analyses if a["tool"] in ("trend", "segment_trend") and a["params"].get("target") == target]
+        analyses = first + [a for a in analyses if a not in first]
     analyses = analyses[:(MAX_ANALYSES_EXPLORE if explore else MAX_ANALYSES)] + _include_extras(roles, date, ov, target)
     extras = measure_extras(df, roles, uniques, candidate_measures(df, roles, uniques, ov), {target, second}, date, groups) if target else []
     have = {spec_signature(a) for a in analyses}
@@ -204,6 +214,7 @@ def heuristic_plan(df: pd.DataFrame, profile: dict, goal: str, context: dict | N
 
     relevant = list(dict.fromkeys(([target] if target else []) + ([second] if second else []) + groups + ([date] if date else []) + drivers + [c for c in ov.get("include") or [] if c in roles]
                                   + [c for a in extras for v in a["params"].values() for c in (v if isinstance(v, list) else [v]) if c in roles]))
+    relevant += plausible_dimensions(df, roles, uniques, target, relevant)
     questions = [f"What explains differences or changes in {target}?" if target else "What does this dataset contain?"]
     if target and groups:
         questions.append(f"Which segments ({', '.join(groups[:3])}) perform best and worst on {target}?")
@@ -213,7 +224,7 @@ def heuristic_plan(df: pd.DataFrame, profile: dict, goal: str, context: dict | N
         questions.append(f"How is {target}, one of the KPIs you named, behaving and what is it linked to?")
     objective = goal if not explore else "Explore the data and surface the most important patterns for the business (no specific goal was given)."
     return {"objective": objective, "questions": questions, "target": target, "date_col": date, "relevant_columns": relevant,
-            "analyses": analyses, "skipped": [], "source": "rules", "explore": bool(explore), "derived": list(ov.get("derived") or [])}
+            "analyses": analyses, "skipped": rule_skipped(profile, relevant, ov), "source": "rules", "explore": bool(explore), "derived": list(ov.get("derived") or [])}
 
 
 PLAN_SYSTEM = f"""You are the Planner of a data-analysis team. A user gives a GOAL, optional BUSINESS CONTEXT and a dataset profile.
@@ -279,6 +290,10 @@ def finalize_plan(raw: dict | None, df: pd.DataFrame, profile: dict, goal: str, 
         notes.append(f"Time analysis uses {fallback['date_col']}, the date column you chose.")
         date = fallback["date_col"]
         analyses = [{**a, "params": {**a["params"], "date": date}} if "date" in a["params"] else a for a in analyses]
+    if target and goalmod.asks_about_change(goal, explore):
+        have = {spec_signature(a) for a in analyses}
+        need = [a for a in fallback["analyses"] if a["tool"] in ("trend", "segment_trend") and a["params"].get("target") == target and spec_signature(a) not in have]
+        analyses = need + analyses
     seen_sigs = {spec_signature(a) for a in analyses}
     groups = [a["params"]["group"] for a in fallback["analyses"] if a["tool"] == "group_compare" and a["params"].get("target") == fallback["target"]]
     more = _include_extras(roles, date, ov, target) + (measure_extras(df, roles, uniques, candidate_measures(df, roles, uniques, ov), {target}, date, groups) if target else [])
@@ -286,6 +301,7 @@ def finalize_plan(raw: dict | None, df: pd.DataFrame, profile: dict, goal: str, 
     used ={c for a in analyses for v in a["params"].values() for c in (v if isinstance(v, list) else [v])}
     relevant = list(dict.fromkeys([c for c in (raw.get("relevant_columns") or []) if c in roles] + [c for c in used if c in roles] + ([target] if target else []) + ([date] if date else [])
                                   + [c for c in ov.get("include") or [] if c in roles]))
+    relevant += plausible_dimensions(df, roles, uniques, target, relevant)
     questions = [str(q) for q in (raw.get("questions") or [])][:4] or fallback["questions"]
     skipped = [s for s in (raw.get("skipped") or []) if isinstance(s, dict) and s.get("column") in roles][:10]
     objective = fallback["objective"] if explore else str(raw.get("objective") or goal)

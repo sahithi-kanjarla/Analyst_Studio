@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { api, DashData, DashMeasure, RunResult } from "../api";
+import FindingGallery from "./FindingGallery";
 import InsightCard from "./InsightCard";
 import { Columns, Donut, HBar, Item, PALETTE } from "./charts";
 
@@ -59,6 +60,7 @@ export default function BIDashboard({ run }: { run: RunResult }) {
   const [mIdx, setMIdx] = useState(0);
   const [f, setF] = useState<Filters>(EMPTY);
   const [open, setOpen] = useState<string | null>(null);
+  const [allRows, setAllRows] = useState(false);
 
   useEffect(() => {
     api.getDashboard(run.run_id).then(setData).catch((e) => setErr(e.message));
@@ -105,7 +107,7 @@ export default function BIDashboard({ run }: { run: RunResult }) {
       e.c += 1;
       g.set(k, e);
     }
-    return [...g.entries()].map(([key, e]) => ({ key, value: mm.agg === "sum" ? e.s : e.s / e.c, n: e.c }));
+    return [...g.entries()].map(([key, e]) => ({ key, value: mm.agg === "sum" ? e.s : e.s / e.c, n: e.c, s: e.s }));
   }
   const total = (rs: Row[], mm: DashMeasure) => {
     let s = 0, c = 0;
@@ -155,12 +157,24 @@ export default function BIDashboard({ run }: { run: RunResult }) {
     : undefined;
   const dimItems = (col: string, max: number) => {
     const all = group(rows.filter((r) => passes(r, col)), (r) => r.d[col], m).sort((a, b) => b.value - a.value);
-    return { items: all.slice(0, max).map((g) => ({ key: g.key, label: g.key, value: g.value })), more: Math.max(0, all.length - max) };
+    // top `max` by the plotted value, always keeping the best and the worst group, then one pooled "Other" bar (total, or pooled mean)
+    let shown = all.slice(0, max);
+    const worst = all[all.length - 1];
+    if (worst && !shown.includes(worst)) shown = [...shown.slice(0, max - 1), worst];
+    const rest = all.filter((g) => !shown.includes(g));
+    const items: Item[] = shown.map((g) => ({ key: g.key, label: g.key, value: g.value, n: g.n }));
+    if (rest.length) {
+      const n = rest.reduce((s, g) => s + g.n, 0), sum = rest.reduce((s, g) => s + g.s, 0);
+      items.push({ key: "__other", label: `Other (${rest.length} groups)`, value: m.agg === "sum" ? sum : sum / n, n, other: true });
+    }
+    return { items, more: rest.length, shown: shown.length, total: all.length };
   };
   const tableDim = data.dims[0];
   const tableRows = tableDim
-    ? group(rows.filter((r) => passes(r, tableDim.col)), (r) => r.d[tableDim.col], m).sort((a, b) => b.value - a.value).slice(0, 8)
+    ? group(rows.filter((r) => passes(r, tableDim.col)), (r) => r.d[tableDim.col], m).sort((a, b) => b.value - a.value)
     : [];
+  const tableAll = tableRows.length;
+  const tableShown = allRows ? tableRows : tableRows.slice(0, 10);
   const tableTotal = tableRows.reduce((s, r) => s + r.value, 0) || 1;
   const tableMax = Math.max(...tableRows.map((r) => Math.abs(r.value)), 0.0001);
 
@@ -256,21 +270,21 @@ export default function BIDashboard({ run }: { run: RunResult }) {
             </Card>
           )}
           {barDims.map((d) => {
-            const { items, more } = dimItems(d.col, 8);
+            const { items, more, shown, total } = dimItems(d.col, 8);
             return (
-              <Card key={d.col} title={`${m.label} by ${d.col}`} sub={more ? `top ${items.length} of ${items.length + more}, highest first` : "highest first"}>
+              <Card key={d.col} title={`${m.label} by ${d.col}`} sub={more ? `showing top ${shown} of ${total} groups; totals and filters use all ${total}` : "highest first"}>
                 <HBar items={items} selected={f.dims[d.col] ?? []} onToggle={(k) => toggleDim(d.col, k)} fmt={fmt} />
               </Card>
             );
           })}
           {tableDim && tableRows.length > 0 && (
-            <Card title={`${tableDim.col} breakdown`} sub={m.agg === "sum" ? `each ${tableDim.col}'s share of ${m.label.toLowerCase()}` : `each ${tableDim.col} vs the overall average`} wide={barDims.length + (donutDim ? 1 : 0) < 2}>
+            <Card title={`${tableDim.col} breakdown`} sub={m.agg === "sum" ? `each ${tableDim.col}'s share of ${m.label.toLowerCase()}` : `each ${tableDim.col} vs the overall average`} wide>
               <table className="bi-table">
                 <thead>
                   <tr><th>{tableDim.col}</th><th className="r">Records</th><th className="r">{m.label}</th><th>{m.agg === "sum" ? "Share" : "vs average"}</th></tr>
                 </thead>
                 <tbody>
-                  {tableRows.map((r, i) => {
+                  {tableShown.map((r, i) => {
                     const on = (f.dims[tableDim.col] ?? []).includes(r.key);
                     const diff = overall ? (r.value - overall) / Math.abs(overall) : 0;
                     return (
@@ -290,10 +304,15 @@ export default function BIDashboard({ run }: { run: RunResult }) {
                   })}
                 </tbody>
               </table>
+              {tableAll > 10 && (
+                <p className="bi-muted small">Showing {tableShown.length} of {tableAll}. <button className="bi-chip" onClick={() => setAllRows(!allRows)}>{allRows ? "Show top 10" : `Show all ${tableAll}`}</button></p>
+              )}
             </Card>
           )}
         </div>
       )}
+
+      <FindingGallery run={run} />
 
       {(takeaways.length > 0 || topStrategy) && (
         <section className="bi-take">

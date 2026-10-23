@@ -76,6 +76,21 @@ export interface BusinessContextInput {
 export interface FindingTable {
   columns: string[];
   rows: (string | number)[][];
+  total?: number;
+}
+
+export interface DerivedMetric {
+  name: string;
+  a: string;
+  b: string;
+  meaning: string;
+  part_of?: boolean;
+}
+
+export interface GoalAnswer {
+  sentence: string;
+  groups_sentence: string;
+  finding_ids: string[];
 }
 
 export interface Finding {
@@ -179,7 +194,18 @@ export interface GlossaryEntry {
   notes: string;
 }
 
+export interface Decision {
+  decision: string;
+  source: "llm" | "repaired" | "fallback" | "rules-only";
+  chosen: unknown;
+  why: string;
+  errors: string[];
+}
+
 export interface RunResult {
+  decisions?: Decision[];
+  run_mode?: string;
+  stage_sources?: Record<string, string>;
   context?: BusinessContext;
   strategies?: Strategy[];
   strategy_summary?: string;
@@ -206,6 +232,8 @@ export interface RunResult {
     source: string;
   };
   applied_definitions?: AppliedDefinition[];
+  derived_metrics?: { created: DerivedMetric[]; rejected: { a: string; b: string; reason: string }[]; removed: DerivedMetric[] };
+  goal_answer?: GoalAnswer | null;
   powerbi?: { files: string[]; measures: string[]; visuals: { visual: string; axis: string; values: string; tip: string }[] };
 }
 
@@ -299,6 +327,8 @@ export const api = {
     }
     return fetch("/api/runs", { method: "POST", body: fd }).then((r) => json<{ run_id: string }>(r));
   },
+  removeDerived: (id: string, names: string[]) =>
+    fetch(`/api/runs/${id}/remove-derived`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ names }) }).then((r) => json<{ run_id: string }>(r)),
   getDashboard: (id: string) => fetch(`/api/runs/${id}/dashboard`).then((r) => json<DashData>(r)),
   getSources: (id: string) => fetch(`/api/runs/${id}/sources`).then((r) => json<DataSource[]>(r)),
   downloadUrl: (id: string, source: string) => `/api/runs/${id}/data/download?source=${encodeURIComponent(source)}`,

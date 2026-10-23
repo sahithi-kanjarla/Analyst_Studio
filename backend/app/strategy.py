@@ -55,6 +55,7 @@ def candidates(state: dict) -> list[dict]:
     lens = ctxmod.lens(ctx)
     cust, levers = lens["customer"], lens["levers"]
     plan = state["plan"]
+    pol = state.get("polarity")
     out: list[dict] = []
     seen_titles: set[str] = set()
 
@@ -76,7 +77,8 @@ def candidates(state: dict) -> list[dict]:
 
         if tool == "group_compare":
             target, group, top, bot = p["target"], p["group"], st["best"], st["worst"]
-            bad = polarity(target) == "bad"
+            pv = polarity(target, pol)
+            bad = pv == "bad"
             noun = f"{target} rate" if st.get("kind") == "binary" else target
             if bad:
                 add(_cand(**base, id="", title=f"Run a focused {target} reduction programme for {group} = {top}", theme="Targeting",
@@ -89,6 +91,15 @@ def candidates(state: dict) -> list[dict]:
                           how_to_test=f"Run a 4-8 week pilot: apply the intervention to a random half of the {top} {cust} and keep the rest as control. Compare {noun} between the halves; the random split separates the effect of the change from the pre-existing gap.",
                           kpis=[f"{noun} for {top}", f"Gap between {top} and {bot}", "Pilot vs control difference"],
                           risks=["The gap may reflect other differences between the groups, not the group itself (association, not cause).", f"Focusing on {top} can neglect other groups; keep watching them."]))
+            elif pv == "neutral":
+                add(_cand(**base, id="", title=f"Explain why {target} differs by {group}: {top} vs {bot}", theme="Understanding",
+                          objective=f"Find out why {target} is highest for {group} = {top} and lowest for {bot}, before deciding whether either is a problem.",
+                          rationale=f.get("insight", {}).get("headline", ""),
+                          actions=[f"Agree with the business whether a higher or lower {target} is better, and for which {cust}.",
+                                   f"Compare mix, pricing, channel and service for {top} and {bot}.",
+                                   f"Track {target} by {group} monthly to see whether the gap persists."],
+                          effort="Low", how_to_test=f"Check whether the {top} vs {bot} gap holds inside other splits (e.g. region, product) before any change.",
+                          kpis=[f"{target} for {top} and for {bot}"], risks=["Without a clear good direction for this measure, a gap is a pattern to explain, not a problem or a win."]))
             else:
                 add(_cand(**base, id="", title=f"Put more behind what works: {group} = {top}", theme="Growth",
                           objective=f"Grow overall {target} by investing where it is strongest ({top}) while diagnosing why {bot} lags.",
@@ -102,7 +113,7 @@ def candidates(state: dict) -> list[dict]:
                           risks=[f"{top} may already be near its ceiling, so extra spend could show diminishing returns.", "The gap may partly reflect differences in mix rather than the group itself."]))
         elif tool == "outcome_compare":
             target, col, pos, dirn = p["target"], p["col"], st.get("positive", "yes"), st.get("direction", "higher")
-            if polarity(target) == "bad":
+            if polarity(target, pol) == "bad":
                 add(_cand(**base, id="", title=f"Build an early-warning signal on {col} for {target} = {pos}", theme="Early warning",
                           objective=f"Spot at-risk {cust} early and act before {target} = {pos} happens.",
                           rationale=f.get("insight", {}).get("headline", ""),
@@ -123,13 +134,18 @@ def candidates(state: dict) -> list[dict]:
         elif tool == "trend":
             target = p["target"]
             up = (st.get("slope") or 0) > 0
-            good = up != (polarity(target) == "bad")
-            add(_cand(**base, id="", title=(f"Understand and sustain the rise in {target}" if good else f"Find and fix what is driving {target} the wrong way"), theme="Monitoring",
-                      objective=f"Explain the {'upward' if up else 'downward'} movement in {target} and decide whether to {'extend' if good else 'reverse'} it.",
+            pv = polarity(target, pol)
+            good = up != (pv == "bad")
+            if pv == "neutral":
+                title, verb = f"Understand the {'rise' if up else 'fall'} in {target}", "explain"
+            else:
+                title, verb = ((f"Understand and sustain the {'rise' if up else 'fall'} in {target}") if good else f"Find and fix what is driving {target} the wrong way"), ("extend" if good else "reverse")
+            add(_cand(**base, id="", title=title, theme="Monitoring",
+                      objective=f"Explain the {'upward' if up else 'downward'} movement in {target}" + ("." if pv == "neutral" else f" and decide whether to {verb} it."),
                       rationale=f.get("insight", {}).get("headline", ""),
                       actions=["Find when the movement began and list what changed then (pricing, campaigns, product, staffing, data collection).",
                                "Break the trend down by segment to see where it comes from.",
-                               f"Decide whether to {'invest further in what is working' if good else 'intervene'} and agree how you will measure it."],
+                               f"Decide whether to {'invest further in what is working' if good else 'intervene'} and agree how you will measure it." if pv != "neutral" else "Agree with the business whether this movement is good or bad, and how you will measure it."],
                       effort="Low", how_to_test="Compare periods before and after the suspected cause, and check the same calendar period in previous years to rule out seasonality.",
                       kpis=[f"{target} by month", "Segment contribution to the change"], risks=["The first and last periods may be partial.", "Seasonality can mimic a trend."]))
         elif tool == "segment_trend":
@@ -162,6 +178,8 @@ def candidates(state: dict) -> list[dict]:
                       kpis=[a, b], risks=["Correlation can come from a hidden common cause; the test is what shows whether it is a lever."]))
         elif tool == "seasonality":
             target, hi, lo = p["target"], st["best"], st["worst"]
+            if polarity(target, pol) == "bad":    # when lower is better the period with the highest value is the weak one
+                hi, lo = lo, hi
             add(_cand(**base, id="", title=f"Plan around the {st.get('cycle', 'weekday')} pattern in {target}", theme="Timing",
                       objective=f"Match staffing, stock and promotions to when {target} is strong ({hi}) and weak ({lo}).",
                       rationale=f.get("insight", {}).get("headline", ""),

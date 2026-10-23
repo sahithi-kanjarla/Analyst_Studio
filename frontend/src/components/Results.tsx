@@ -22,6 +22,18 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "powerbi", label: "Power BI" },
 ];
 
+const DECISION_LABEL: Record<string, string> = {
+  llm: "chosen by AI",
+  repaired: "chosen by AI (repaired once)",
+  fallback: "fallback rule used",
+  "rules-only": "rules only (no AI)",
+};
+
+function summariseChosen(v: unknown): string {
+  if (v && typeof v === "object" && !Array.isArray(v)) return Object.entries(v as Record<string, unknown>).map(([k, x]) => `${k}: ${String(x)}`).join(", ");
+  return String(v ?? "");
+}
+
 export default function Results({ run }: { run: RunResult }) {
   const [tab, setTab] = useState<Tab>("dashboard");
   const card = useRef<HTMLDivElement>(null);
@@ -47,6 +59,7 @@ export default function Results({ run }: { run: RunResult }) {
           </button>
         ))}
         <span className="spacer" />
+        {run.run_mode && <span className={`pill ${run.run_mode === "AI-assisted" ? "pill-ok" : run.run_mode === "mixed" ? "" : "pill-muted"}`} title="How much of this run was decided by the AI versus fixed rules">{run.run_mode}</span>}
         <button className="chip" onClick={toggleFull} title="Full screen (Esc to exit)">{full ? "⤢ Exit full screen" : "⛶ Full screen"}</button>
         <a className="primary small" href={api.powerbiUrl(run.run_id)}>
           Download Power BI pack
@@ -131,6 +144,19 @@ export default function Results({ run }: { run: RunResult }) {
               </li>
             ))}
           </ol>
+          {run.decisions && run.decisions.length > 0 && (
+            <>
+              <h4>Decisions</h4>
+              <ul>
+                {run.decisions.map((d, i) => (
+                  <li key={i}>
+                    <strong>{d.decision}</strong>: {DECISION_LABEL[d.source] ?? d.source}
+                    <div className="muted">{summariseChosen(d.chosen)}{d.why ? ` · ${d.why}` : ""}{d.source === "fallback" && d.errors.length ? ` · ${d.errors.join("; ")}` : ""}</div>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
           {run.plan.skipped.length > 0 && (
             <>
               <h4>Deliberately skipped</h4>
