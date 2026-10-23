@@ -19,7 +19,7 @@ from typing import TypedDict
 import pandas as pd
 from langgraph.graph import END, START, StateGraph
 
-from . import clarify, derived, glossary
+from . import brief as briefmod, clarify, derived, glossary, placeholders
 from . import goal as goalmod
 from . import context as ctxmod
 from . import critic as critic_mod
@@ -71,6 +71,8 @@ class RunState(TypedDict, total=False):
     decisions: list
     stage_sources: dict
     run_mode: str
+    brief: dict
+    placeholder_questions: list
 
 
 def _wd(state) -> Path:
@@ -112,10 +114,50 @@ def profile_node(state: RunState) -> dict:
     return {"tables": meta, "table_profiles": profs}
 
 
+def _answers_for(state, qs: list[dict]) -> dict:
+    """The answer to each placeholder question as the rest of the run will resolve it: the user's, else the saved glossary's, else the default."""
+    wd = _wd(state)
+    afile = wd / "answers.json"
+    given = json.loads(afile.read_text(encoding="utf-8")) if afile.exists() else None
+    ws = glossary.get_workspace(glossary.workspace_key(state.get("context") or {}))
+    return clarify.resolve(qs, (given or {}).get("answers"), ws["answers"], skip=bool((given or {}).get("skip")))[0]
+
+
+def _placeholders_before_join(state, typed: dict, profiles: dict, model: dict, base: str, pre_log: list) -> tuple[dict, list]:
+    """Look for placeholder numbers in each source table. Used columns become one question each (default: missing); unused ones are set to missing and logged."""
+    cands = placeholders.scan(typed)
+    out = {"questions": [], "masked": [], "before": dict(typed)}
+    if not cands:
+        return out, pre_log
+    joined, unused = model["df"], set(model["unused_tables"])
+    used = [c for c in cands if placeholders.reaches_analysis(c, joined, c["table"], base, c["table"] not in unused)]
+    idle = [c for c in cands if c not in used]
+    qs = [placeholders.question(c, c["column"], at_source=True) for c in used]
+    final = _answers_for(state, qs)
+    out["questions"] = qs
+    out["masked"] = idle + [c for c, q in zip(used, qs) if final[q["id"]] == "missing"]
+    log = list(pre_log)
+    for c in idle:
+        log.append({"step": "Placeholder values", "detail": f"[{c['table']}] {c['count']:,} values of {c['value']:g} in {c['column']} ({c['reason']}) set to missing; the column is not used by the analysis, so you were not asked",
+                    "count": c["count"]})
+    for c, q in zip(used, qs):
+        if final[q["id"]] == "missing":
+            log.append({"step": "Placeholder values", "detail": f"[{c['table']}] {c['count']:,} values of {c['value']:g} in {c['column']} ({c['reason']}) set to missing before the tables were joined", "count": c["count"]})
+    return out, log
+
+
+def _single_table_placeholders(state) -> dict:
+    """One table: nothing to join, so the question's default is an ordinary treat_value_as_missing directive that runs with the other definitions."""
+    raw = pd.read_pickle(_wd(state) / "raw.pkl")
+    typed, _ = coerce_types(raw, state["profile"])
+    cands = placeholders.scan({"data": typed})
+    return {"placeholder_questions": [placeholders.question(c, c["column"], at_source=False) for c in cands]}
+
+
 def relate_node(state: RunState) -> dict:
-    """Joiner agent. No-op for a single table."""
+    """Joiner agent. For a single table it only looks for placeholder values."""
     if not state.get("tables"):
-        return {}
+        return _single_table_placeholders(state)
     rid, wd = state["run_id"], _wd(state)
     llm, _ = get_llm()
     emit(rid, "Joiner", "Working out how the tables connect (key columns, value overlap)…")
@@ -143,11 +185,18 @@ def relate_node(state: RunState) -> dict:
         emit(rid, "Joiner", f"Ignored the reviewer's coarser base '{review['base_table']}': the base is always the finest-grain table '{base}' so no columns are aggregated away.")
     emit(rid, "Joiner", f"Analysis grain: one row per '{base}' row ({why}).")
 
-    if not edges:
-        model = {"df": typed[base], "steps": [], "origin": {c: base for c in typed[base].columns}, "status": {}, "unused_tables": [t for t in typed if t != base],
-                 "warnings": [{"severity": "warn", "text": "No reliable key links were found between the uploaded tables, so only '" + base + "' is analysed. Check that the files share an ID column (e.g. customer_id)."}]}
-    else:
-        model = relations.build_model(typed, profiles, edges, base)
+    def build(tt, pp):
+        if not edges:
+            return {"df": tt[base], "steps": [], "origin": {c: base for c in tt[base].columns}, "status": {}, "unused_tables": [t for t in tt if t != base],
+                    "warnings": [{"severity": "warn", "text": "No reliable key links were found between the uploaded tables, so only '" + base + "' is analysed. Check that the files share an ID column (e.g. customer_id)."}]}
+        return relations.build_model(tt, pp, edges, base)
+
+    model = build(typed, profiles)
+    pq, pre_log = _placeholders_before_join(state, typed, profiles, model, base, pre_log)
+    if pq["masked"]:
+        typed = placeholders.mask_values(typed, pq["masked"])
+        profiles = {n: (profile_df(typed[n]) if typed[n] is not t0 else profiles[n]) for n, t0 in pq["before"].items()}
+        model = build(typed, profiles)
     for s in model["steps"]:
         emit(rid, "Joiner", s["detail"])
     for w in model["warnings"]:
@@ -165,7 +214,41 @@ def relate_node(state: RunState) -> dict:
     tcols = {m["name"]: [{"name": c["name"], "role": c["role"]} for c in profiles[m["name"]]["columns"]] for m in state["tables"]}
     data_model = {"tables": [{**m, "columns": tcols.get(m["name"], [])} for m in state["tables"]], "base_table": base, "base_reason": why, "relationships": rels, "steps": model["steps"],
                   "warnings": model["warnings"], "unused_tables": model["unused_tables"], "origin": model["origin"]}
-    return {"profile": prof, "data_model": data_model, "pre_clean_log": pre_log}
+    return {"profile": prof, "data_model": data_model, "pre_clean_log": pre_log, "placeholder_questions": pq["questions"]}
+
+
+def brief_node(state: RunState) -> dict:
+    """One LLM call that decides what each column means and which column each named KPI is. Reused (not asked again) when a paused run restarts."""
+    rid, wd = state["run_id"], _wd(state)
+    llm, _ = get_llm()
+    prof, ctx = state["profile"], state.get("context") or {}
+    bfile = wd / "brief.json"
+    if bfile.exists():
+        stored = json.loads(bfile.read_text(encoding="utf-8"))
+        brief, decision = stored["brief"], stored["decision"]
+        decisions = [*(state.get("decisions") or []), decision]
+    else:
+        st: dict = {"decisions": list(state.get("decisions") or [])}
+        emit(rid, "Analyst brief", "Working out what each column means and which column each KPI is…" if llm else "No LLM configured, so the name and data rules decide what each column means.")
+        brief = briefmod.resolve(llm, pd.read_pickle(wd / "raw.pkl"), prof, state["goal"], ctx, st)
+        decisions = st["decisions"]
+        bfile.write_text(json.dumps({"brief": brief, "decision": decisions[-1]}), encoding="utf-8")
+    new_prof = briefmod.apply_roles(prof, brief["roles"])
+    if brief["source"] in ("llm", "repaired"):
+        changed = briefmod.role_changes(prof, new_prof)
+        emit(rid, "Analyst brief", "Column meanings from the LLM" + (" (after one repair)" if brief["source"] == "repaired" else "") + (": " + "; ".join(changed) if changed else ", matching the rules.")
+             + (" KPIs: " + "; ".join(f"{k} -> {v or 'no column'}" for k, v in brief["kpis"].items()) + "." if brief["kpis"] else ""))
+        for d in brief["dropped"]:
+            emit(rid, "Analyst brief", f"Ignored part of the answer ({d}); the rules decide that part.")
+        if brief.get("hierarchy"):
+            emit(rid, "Analyst brief", "Hierarchy (checked against the data): " + "; ".join(f"{h['parent']} > {h['child']}" for h in brief["hierarchy"]) + ".")
+        bits = [f"goal intent: {brief['intent']}" if brief.get("intent") else "", f"industry lens: {ctxmod.INDUSTRIES[brief['industry']]['label']}" if brief.get("industry") else ""]
+        if any(bits):
+            emit(rid, "Analyst brief", "From the LLM, " + "; ".join(b for b in bits if b) + ".")
+    elif brief["source"] == "fallback":
+        emit(rid, "Analyst brief", "The LLM answer was unusable, so the rules decide what each column means.")
+    out_ctx = {"context": {**ctx, "industry_key": brief["industry"]}} if brief.get("industry") and ctx else {}
+    return {**out_ctx, "brief": brief, "profile": new_prof, "decisions": decisions, "stage_sources": {**(state.get("stage_sources") or {}), "brief": brief["source"]}}
 
 
 SOURCE_WORDS = {"user": "your answers", "default": "defaults", "glossary": "the saved glossary", "goal": "your goal"}
@@ -186,7 +269,10 @@ def clarify_node(state: RunState) -> dict:
     else:
         llm, _ = get_llm()
         typed, _ = coerce_types(pd.read_pickle(wd / "raw.pkl"), state["profile"])
-        questions, ignored = clarify.build_questions_and_ignored(typed, state["profile"], state["goal"], ctx, bool(state.get("explore")), llm, ws)
+        pq = state.get("placeholder_questions") or []
+        skip = {c for q in pq for c in (q["columns"][0], f"{q['table']}_{q['columns'][0]}")}
+        questions, ignored = clarify.build_questions_and_ignored(typed, state["profile"], state["goal"], ctx, bool(state.get("explore")), llm, ws, skip)
+        questions = pq + questions
         for q in questions:
             saved = (ws["answers"].get(q["id"]) or {}).get("value")
             q["prefill"], q["prefill_source"] = (saved, "glossary") if saved in clarify.option_values(q) else (q["default"], "default")
@@ -238,11 +324,12 @@ def plan_node(state: RunState) -> dict:
     ctx, explore = state.get("context") or {}, bool(state.get("explore"))
     questions, answers = state.get("questions") or [], state.get("answers") or {}
     extra: dict = {}
-    ov: dict = {}
+    ov: dict = {"kinds": briefmod.kinds(state.get("brief")), "kpi_map": (state.get("brief") or {}).get("kpis") or {},
+          "hierarchy": briefmod.hierarchy_pairs(state.get("brief")), "intent": (state.get("brief") or {}).get("intent")}
     new_cols: list[str] = []
     if questions:  # plan on the data as the user defined it (rows excluded, net amount added)
         typed, _, effects, new_cols = apply_directives(typed, questions, answers)
-        ov = clarify.plan_overrides(questions, answers)
+        ov = {**ov, **clarify.plan_overrides(questions, answers)}
         extra["applied_definitions"] = clarify.summarise(questions, answers, state.get("answer_sources") or {}, effects,
                                                          glossary.get_workspace(state.get("workspace") or "default")["answers"], state.get("workspace") or "default")
         shown = [f"{k}: {v}" for k, v in (("main number", ov["target"]), ("date column", ov["date_col"])) if v]
@@ -267,10 +354,11 @@ def plan_node(state: RunState) -> dict:
     if new_cols:
         prof = {**prof, "columns": prof["columns"] + [profile_df(typed[[c]])["columns"][0] for c in new_cols], "cols": prof["cols"] + len(new_cols)}
         extra["profile"] = prof
-    raw_plan = planner.llm_plan(llm, prof, state["goal"], ctx, explore, ov) if llm else None
-    if llm and raw_plan is None:
-        emit(rid, "Planner", "The LLM answer was unusable, so rule-based planning was used instead.")
-    plan, notes = planner.finalize_plan(raw_plan, typed, prof, state["goal"], ctx, explore, ov)
+    st: dict = {"decisions": list(state.get("decisions") or [])}
+    plan, notes = planner.propose_plan(llm, typed, prof, state["goal"], ctx, explore, ov, st)
+    if llm and st["decisions"][-1]["source"] == "fallback":
+        emit(rid, "Planner", "The LLM answer was unusable after one repair, so rule-based planning was used instead.")
+    extra["decisions"] = st["decisions"]
     for n in notes:
         emit(rid, "Planner", n)
     emit(rid, "Planner", f"Target: {plan['target'] or 'none (descriptive analysis)'}. Using {len(plan['relevant_columns'])} of {prof['cols']} columns, {len(plan['analyses'])} analyses planned.",
@@ -305,7 +393,7 @@ def analyze_node(state: RunState) -> dict:
     df = pd.read_pickle(_wd(state) / "clean.pkl")
     todo = state["plan"]["analyses"] if it == 0 else state["critique"]["followups"]
     findings = list(state.get("findings", []))
-    ctx = {"charts_dir": _wd(state) / "charts", "currency": (state.get("context") or {}).get("currency", "")}
+    ctx = {"charts_dir": _wd(state) / "charts", "currency": (state.get("context") or {}).get("currency", ""), "kinds": briefmod.kinds(state.get("brief"))}
     emit(rid, "Analyst", f"{'Running the planned analyses' if it == 0 else 'Running follow-up checks requested by the Critic'} ({len(todo)})…")
     for spec in todo:
         try:
@@ -396,19 +484,20 @@ def powerbi_node(state: RunState) -> dict:
     rid = state["run_id"]
     emit(rid, "Power BI", "Packaging cleaned data, DAX measures and visual specs for Power BI…")
     df = pd.read_pickle(_wd(state) / "clean.pkl")
-    info = powerbi.build_pack(_wd(state), df, state["profile"], state["plan"], state["findings"], state["goal"], state.get("data_model"))
+    info = powerbi.build_pack(_wd(state), df, state["profile"], state["plan"], state["findings"], state["goal"], state.get("data_model"), briefmod.kinds(state.get("brief")))
     emit(rid, "Power BI", f"Pack ready: {len(info['measures'])} DAX measures, {len(info['visuals'])} visual specs" + (", plus the table relationships." if state.get("data_model") else "."))
     return {"powerbi": info}
 
 
 def build_graph():
     g = StateGraph(RunState)
-    for name, fn in (("profile", profile_node), ("relate", relate_node), ("clarify", clarify_node), ("plan", plan_node), ("clean", clean_node), ("analyze", analyze_node),
+    for name, fn in (("profile", profile_node), ("relate", relate_node), ("brief", brief_node), ("clarify", clarify_node), ("plan", plan_node), ("clean", clean_node), ("analyze", analyze_node),
                      ("critic", critic_node), ("insights", insights_node), ("strategy", strategy_node), ("report", report_node), ("powerbi", powerbi_node)):
         g.add_node(name, fn)
     g.add_edge(START, "profile")
     g.add_edge("profile", "relate")
-    g.add_edge("relate", "clarify")
+    g.add_edge("relate", "brief")
+    g.add_edge("brief", "clarify")
     g.add_conditional_edges("clarify", route_after_clarify, {"plan": "plan", END: END})
     g.add_edge("plan", "clean")
     g.add_edge("clean", "analyze")

@@ -173,11 +173,14 @@ GENERIC_KPI = {"customer", "customers", "client", "clients", "user", "users", "t
                "monthly", "annual", "weekly", "daily", "overall", "per", "new", "average", "growth"}
 
 
-def kpi_tokens(ctx: dict | None) -> set[str]:
+def kpi_tokens(ctx: dict | None, mapped: dict | None = None) -> set[str]:
     """Meaningful words of the KPIs the user named. Generic words ('customer', 'total', 'rate') are dropped so that
-    'customer satisfaction' is not 'found' just because some column contains the word customer."""
+    'customer satisfaction' is not 'found' just because some column contains the word customer.
+    A KPI the analysis brief mapped to a column (`mapped` {kpi: column or None}) is matched by that column instead, so its words are left out."""
     out: set[str] = set()
     for k in (ctx or {}).get("kpis", []):
+        if (mapped or {}).get(k):
+            continue
         t = tokens(k)
         out |= (t - GENERIC_KPI) or t
     return out

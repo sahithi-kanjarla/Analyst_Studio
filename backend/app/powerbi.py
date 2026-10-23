@@ -22,7 +22,7 @@ def _col(c: str) -> str:
     return f"'{TABLE}'[{c}]"
 
 
-def build_measures(df: pd.DataFrame, plan: dict, roles: dict) -> list[dict]:
+def build_measures(df: pd.DataFrame, plan: dict, roles: dict, kinds: dict | None = None) -> list[dict]:
     m = [{"name": "Row Count", "dax": f"Row Count = COUNTROWS('{TABLE}')", "note": "Number of records."}]
     t, date = plan.get("target"), plan.get("date_col")
     groups = [a["params"]["group"] for a in plan.get("analyses", []) if "group" in a["params"]]
@@ -34,8 +34,12 @@ def build_measures(df: pd.DataFrame, plan: dict, roles: dict) -> list[dict]:
             m.append({"name": f"{t} Rate", "dax": f"{t} Rate = DIVIDE(CALCULATE(COUNTROWS('{TABLE}'), {_col(t)} = {lit}), COUNTROWS('{TABLE}'))",
                       "note": f"Share of rows where {t} = {pos}. Format as percentage."})
             base = f"[{t} Rate]"
+        elif t in {d["name"] for d in plan.get("derived") or []}:
+            d = next(d for d in plan["derived"] if d["name"] == t)      # a ratio is total A over total B, never an average of row ratios
+            m.append({"name": t, "dax": f"{t} = DIVIDE(SUM({_col(d['a'])}), SUM({_col(d['b'])}))", "note": f"Total {d['a']} over total {d['b']}. Format as {'percentage' if d.get('part_of') else 'a plain number'}."})
+            base = f"[{t}]"
         else:
-            use_sum = has_sum_word(t)
+            use_sum = has_sum_word(t, overrides=kinds)
             m.append({"name": f"Total {t}", "dax": f"Total {t} = SUM({_col(t)})", "note": ""})
             m.append({"name": f"Average {t}", "dax": f"Average {t} = AVERAGE({_col(t)})", "note": ""})
             m.append({"name": f"Median {t}", "dax": f"Median {t} = MEDIAN({_col(t)})", "note": "Better than average when the column is skewed."})
@@ -48,7 +52,7 @@ def build_measures(df: pd.DataFrame, plan: dict, roles: dict) -> list[dict]:
             m.append({"name": f"{t} Prior Month", "dax": f"{t} Prior Month = CALCULATE({base}, DATEADD({_col(date)}, -1, MONTH))",
                       "note": "Needs a continuous date column; mark a Date table if you add one."})
             m.append({"name": f"{t} MoM %", "dax": f"{t} MoM % = DIVIDE({base} - [{t} Prior Month], [{t} Prior Month])", "note": "Format as percentage."})
-            if roles.get(t) != "binary" and has_sum_word(t):
+            if roles.get(t) != "binary" and has_sum_word(t, overrides=kinds):
                 m.append({"name": f"{t} YTD", "dax": f"{t} YTD = TOTALYTD({base}, {_col(date)})", "note": ""})
     return m
 
@@ -87,7 +91,7 @@ def build_visuals(findings: list[dict], plan: dict) -> list[dict]:
     return out
 
 
-def build_pack(workdir: Path, df: pd.DataFrame, profile: dict, plan: dict, findings: list[dict], goal: str, data_model: dict | None = None) -> dict:
+def build_pack(workdir: Path, df: pd.DataFrame, profile: dict, plan: dict, findings: list[dict], goal: str, data_model: dict | None = None, kinds: dict | None = None) -> dict:
     pack = workdir / "powerbi"
     pack.mkdir(exist_ok=True)
     roles = {c["name"]: c["role"] for c in profile["columns"]}
@@ -121,7 +125,7 @@ The flat `cleaned_data.csv` already combines your tables (one row per `{data_mod
         "missing_pct": c["missing_pct"], "unique_values": c["unique"], "used_in_analysis": c["name"] in plan.get("relevant_columns", [])} for c in profile["columns"]])
     dd.to_csv(pack / "data_dictionary.csv", index=False)
 
-    measures = build_measures(df, plan, roles)
+    measures = build_measures(df, plan, roles, kinds)
     (pack / "measures.dax").write_text("\n\n".join(f"// {x['note']}\n{x['dax']}" if x["note"] else x["dax"] for x in measures) + "\n", encoding="utf-8")
     visuals = build_visuals(findings, plan)
     (pack / "visuals.json").write_text(json.dumps(visuals, indent=2), encoding="utf-8")

@@ -22,11 +22,14 @@ import numpy as np
 import pandas as pd
 
 from . import context as ctxmod
-from . import polarity as polmod
+from . import polarity as polmod, wording
 from .llm import ask_json
+from .brief import kinds, kpi_columns, kpi_found
 from .measures import has_sum_word, is_money
+from .derived import ratio_of_sums
 from .tools import _fmt, to_binary
 
+FINANCIAL = re.compile(r"margin|profit|cost|cogs", re.I)
 NUM_RE = re.compile(r"\d[\d,]*\.?\d*")
 
 
@@ -172,7 +175,7 @@ def confidence(f: dict) -> dict:
 
 
 # ------------------------------------------------------------------ per-tool narrative
-def _narrative(f: dict, ctx: dict, pol: dict | None = None) -> dict:
+def _narrative(f: dict, ctx: dict, pol: dict | None = None, cols: list[str] | None = None) -> dict:
     lens = ctxmod.lens(ctx)
     cust, lever = lens["customer"], lens["levers"][0]
     tool, st, p, sig = f["tool"], f["stats"], f.get("params", {}), f.get("significant")
@@ -197,8 +200,10 @@ def _narrative(f: dict, ctx: dict, pol: dict | None = None) -> dict:
             ratio = hv / lv if (hv and lv and lv > 0 and hv > 0) else None
             h = (f"{group} = {top} averages {ratio:.1f}× the {target} of {bot}{eff}{note}" if sig and ratio and ratio >= 1.15
                  else f"{group} = {top} has the highest {target}, ahead of {bot}{eff}{note}" if sig else f"{target} does not differ reliably across {group}")
+        ent_top, ent_bot = wording.entity(group, top), wording.entity(group, bot)
+        what = wording.columns_phrase(cols, "the other columns")
         if sig and not small:
-            why = (f"{target} is not spread evenly: the problem is concentrated in {top}, so a one-size-fits-all programme would spend effort where it is not needed. Starting with {top} {cust} gives the best chance of moving the overall number."
+            why = (f"{target} is not spread evenly: the problem is concentrated in {ent_top}, so a one-size-fits-all programme would spend effort where it is not needed. Starting with {ent_top} gives the best chance of moving the overall number."
                    if bad else
                    f"{target} is highest in {top} and lowest in {bot}. Whether that is good or bad depends on what {target} means for the business, so read it as a pattern to explain rather than a performance ranking."
                    if neutral else
@@ -207,8 +212,8 @@ def _narrative(f: dict, ctx: dict, pol: dict | None = None) -> dict:
             why = f"The gap between {top} and {bot} is real but small, so on its own it is unlikely to justify a change."
         else:
             why = f"{group} does not look like a useful way to split {target} here; there is no evidence yet for treating these groups differently."
-        hyp = [f"{top} may differ in mix: product, price level, size or channel", f"Another column could be driving both {group} and {target} (a confounder)",
-               f"{bot} {cust} may be served differently (support, pricing, onboarding)"] if sig else \
+        hyp = [f"{ent_top} may differ in mix, for example in {what}", f"Another column could be driving both {group} and {target} (a confounder)",
+               f"{ent_bot} may be handled differently from {ent_top}"] if sig else \
               ["The groups may genuinely behave the same", "The sample may be too small to show a real but modest difference"]
         nxt = ([f"Check whether the {top} vs {bot} gap holds inside other splits (e.g. region, product) before acting",
                 "Pilot any change on part of the group, with the rest as a control"] if sig and not small else
@@ -244,12 +249,12 @@ def _narrative(f: dict, ctx: dict, pol: dict | None = None) -> dict:
         target, group = p["target"], p["group"]
         fast, slow = st["fastest"], st["slowest"]
         g = st.get("groups", {})
-        h = (f"{fast} is moving fastest ({g[fast]['relative_change']:+.0%}) while {slow} moves the other way ({g[slow]['relative_change']:+.0%})" if sig
-             else f"Trends in {target} do not differ reliably across {group}")
-        why = (f"The overall trend hides diverging segments: {fast} and {slow} are heading in different directions, so the average movement is a poor guide to where to act." if sig
-               else f"No segment of {group} is moving differently enough to single out.")
-        hyp = [f"{fast} may be gaining from a recent change (campaign, product, pricing)", f"{slow} may be losing {cust} to alternatives or has a seasonal pattern"]
-        nxt = [f"Investigate what changed for {fast} and {slow} over the period"]
+        h = wording.trend_headline(st, group, target, _fmt)
+        why = wording.trend_why(st, group, target)
+        what = wording.columns_phrase(cols, "the business or how the data is recorded")
+        mixed = wording.trend_shape(st) == "mixed"
+        hyp = [f"{wording.entity(group, fast)} may be changing because of a recent change in {what}"] + ([f"{wording.entity(group, slow)} may have a seasonal pattern or a shift in its mix"] if mixed else [])
+        nxt = [f"Investigate what changed for {fast}" + (f" and {slow}" if mixed else "") + " over the period"]
     elif tool == "pareto":
         target, group = p["target"], p["group"]
         k, share = st["top_k"], st["top_share"]
@@ -347,13 +352,14 @@ def _narrative(f: dict, ctx: dict, pol: dict | None = None) -> dict:
 def build_insights(state: dict) -> None:
     """Adds f['insight'] to every finding (in place)."""
     ctx = state.get("context") or {}
-    kt = ctxmod.kpi_tokens(ctx)
+    brief = state.get("brief")
+    kt, kcols = ctxmod.kpi_tokens(ctx, (brief or {}).get("kpis")), kpi_columns(brief)
     for f in state["findings"]:
-        n = _narrative(f, ctx, state.get("polarity"))
+        n = _narrative(f, ctx, state.get("polarity"), wording.other_columns(state, f.get("params", {}).get("group") or ""))
         conf = confidence(f)
         target = f.get("params", {}).get("target") or f.get("params", {}).get("col") or ""
         name_tokens = ctxmod.tokens(re.sub(r"([a-z])([A-Z])", r"\1 \2", target).replace("_", " "))
-        kpi = bool(kt & name_tokens)
+        kpi = bool(kt & name_tokens) or target in kcols
         st = f["stats"]
         eff = {"large": 2, "medium": 1.2, "small": 0.4}.get(effect_label(st) or "", 0.5 if f["tool"] in ("trend", "pareto", "segment_trend", "seasonality") else 0)
         score = ((3 if st.get("survives_correction", True) and f.get("significant") else 2 if f.get("significant") else 0)
@@ -409,7 +415,12 @@ def key_metrics(state: dict, df: pd.DataFrame) -> list[dict]:
     cur = ctx.get("currency", "")
     m = [{"label": "Rows analysed", "value": f"{prof['rows']:,}", "note": f"{len(plan['relevant_columns'])} of {prof['cols']} columns used"}]
     t = plan.get("target")
-    if t and t in df.columns:
+    dspec = next((d for d in plan.get("derived") or [] if d["name"] == t), None)
+    if dspec is not None and t in df.columns:      # a ratio is total A over total B, shown as % or a plain number, never with a currency symbol
+        r = ratio_of_sums(df, dspec)
+        if r is not None:
+            m.append({"label": f"{t} (total {dspec['a']} over total {dspec['b']})", "value": f"{r:.1%}" if dspec.get("part_of") else _fmt(r), "note": ""})
+    elif t and t in df.columns:
         s = df[t]
         b, pos = to_binary(s) if s.dropna().nunique() == 2 else (None, None)
         if b is not None:
@@ -418,7 +429,7 @@ def key_metrics(state: dict, df: pd.DataFrame) -> list[dict]:
             x = pd.to_numeric(s, errors="coerce").dropna()
             if len(x):
                 c = cur if is_money(t, narrow=True) else ""
-                if has_sum_word(t):
+                if has_sum_word(t, overrides=kinds(state.get("brief"))):
                     m.append({"label": f"Total {t}", "value": f"{c}{_fmt(x.sum())}", "note": ""})
                 m.append({"label": f"Average {t}", "value": f"{c}{_fmt(x.mean())}", "note": f"median {c}{_fmt(x.median())}"})
     d = plan.get("date_col")
@@ -427,10 +438,9 @@ def key_metrics(state: dict, df: pd.DataFrame) -> list[dict]:
     used = [c for c in prof["columns"] if c["name"] in plan["relevant_columns"]]
     if used:
         m.append({"label": "Data completeness", "value": f"{100 - float(np.mean([c['missing_pct'] for c in used])):.1f}%", "note": "of values present in the columns used, before cleaning"})
-    tested = [f for f in state["findings"] if f.get("significant") is not None]
-    if tested:
-        n_sig = sum(1 for f in tested if f["significant"] and f["stats"].get("survives_correction", True))
-        m.append({"label": "Reliable findings", "value": f"{n_sig} of {len(tested)}", "note": "significant after correcting for multiple tests"})
+    c = wording.counts(state["findings"])
+    if c["tested"]:
+        m.append({"label": "Reliable findings", "value": f"{c['reliable']} of {c['tested']}", "note": f"significant after correcting for {c['comparisons']} comparisons"})
     return m
 
 
@@ -441,6 +451,8 @@ def data_gaps(state: dict) -> list[dict]:
     blob = " ".join(names).lower()
     gaps: list[dict] = []
     for k in ctx.get("kpis", []):
+        if kpi_found(state.get("brief"), k):
+            continue
         kt = ctxmod.kpi_tokens({"kpis": [k]})
         if kt and not any(kt & ctxmod.tokens(re.sub(r"([a-z])([A-Z])", r"\1 \2", n).replace("_", " ")) for n in names):
             gaps.append({"severity": "warn", "title": f"KPI '{k}' was not found in the data",
@@ -463,8 +475,11 @@ def data_gaps(state: dict) -> list[dict]:
     if not any(c["role"] in ("categorical", "binary") for c in prof["columns"] if c["name"] in plan["relevant_columns"]):
         gaps.append({"severity": "info", "title": "No segment columns used", "detail": "Without categories (region, product, plan...) results cannot be broken down by segment.",
                      "suggestion": "Add descriptive columns such as segment, region, channel or product."})
+    derived_names = " ".join(f"{d['name']} {d['a']} {d['b']}" for d in plan.get("derived") or []).lower()
     for rx, what in ctxmod.lens(ctx)["data_wants"]:
-        if not re.search(rx, blob):
-            gaps.append({"severity": "info", "title": f"No {what} data", "detail": f"Typical for {ctxmod.lens(ctx)['label'].lower()} analysis, and it would let the agents test more explanations.",
-                         "suggestion": f"Consider adding {what}."})
+        # a profit or margin measure (a column, or a ratio the analysis derived) answers a want for cost or margin data, and the other way round
+        if re.search(rx, blob + " " + derived_names) or (re.search(r"margin|cost", rx) and FINANCIAL.search(blob + " " + derived_names)):
+            continue
+        gaps.append({"severity": "info", "title": f"No {what} data", "detail": f"Typical for {ctxmod.lens(ctx)['label'].lower()} analysis, and it would let the agents test more explanations.",
+                     "suggestion": f"Consider adding {what}."})
     return gaps[:8]

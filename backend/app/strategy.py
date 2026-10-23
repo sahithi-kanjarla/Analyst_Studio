@@ -13,7 +13,8 @@ from __future__ import annotations
 import json
 import re
 
-from . import context as ctxmod
+from . import context as ctxmod, wording
+from .measures import measure_kind
 from .insights import allowed_numbers, effect_label, numbers_ok, polarity
 from .llm import ask_json
 from .tools import _fmt
@@ -42,6 +43,23 @@ def _impact(f: dict) -> str:
         spread = abs(g.get(st.get("fastest"), {}).get("relative_change", 0) - g.get(st.get("slowest"), {}).get("relative_change", 0))
         return "High" if spread >= 0.6 else "Medium"
     return "Medium"
+
+
+def _additive(state: dict, name: str) -> bool:
+    """A share of the total only makes sense for a measure that adds up; never for a ratio, a rate or a derived ratio."""
+    if name in {d["name"] for d in (state.get("plan") or {}).get("derived") or []}:
+        return False
+    return measure_kind(name, overrides=((state.get("brief") or {}).get("kinds") or {})) == "additive"
+
+
+# a strategy pushes one way: reducing a measure and promoting it are opposite directions
+DOWN_WORDS = re.compile(r"\b(reduc\w*|lower\w*|cut|decreas\w*|curb\w*|fix)\b", re.I)
+UP_WORDS = re.compile(r"\b(promot\w*|boost\w*|grow\w*|increas\w*|upsell\w*|expand\w*|invest\w*)\b", re.I)
+
+
+def pushes_both_ways(*texts: str) -> bool:
+    blob = " ".join(texts)
+    return bool(DOWN_WORDS.search(texts[0]) and UP_WORDS.search(blob)) or bool(UP_WORDS.search(texts[0]) and DOWN_WORDS.search(" ".join(texts[1:])))
 
 
 def _cand(**kw) -> dict:
@@ -80,37 +98,40 @@ def candidates(state: dict) -> list[dict]:
             pv = polarity(target, pol)
             bad = pv == "bad"
             noun = f"{target} rate" if st.get("kind") == "binary" else target
+            e_top, e_bot = wording.entity(group, top), wording.entity(group, bot)
+            what = wording.columns_phrase(wording.other_columns(state, group))
+            share_kpi = [f"Share of total {target} coming from {e_top}"] if _additive(state, target) else []
             if bad:
                 add(_cand(**base, id="", title=f"Run a focused {target} reduction programme for {group} = {top}", theme="Targeting",
-                          objective=f"Reduce {target} where it is concentrated ({group} = {top}) instead of spreading effort across all {cust}.",
+                          objective=f"Reduce {target} where it is concentrated ({e_top}) instead of spreading effort across every {wording.human(group)}.",
                           rationale=f.get("insight", {}).get("headline", ""),
-                          actions=[f"Profile {cust} with {group} = {top}: what do they share that {bot} {cust} do not (contract, channel, usage, price)?",
-                                   f"Design a targeted intervention around {levers[0]} for {top}, keeping {bot} as a comparison group.",
+                          actions=[f"Compare {e_top} with {e_bot}: where do they differ in {what}?",
+                                   f"Design a targeted intervention to lower {noun} for {e_top}, keeping {e_bot} as a comparison group.",
                                    f"Set a baseline {noun} for {top}, agree a target and name an owner."],
                           effort="Medium",
-                          how_to_test=f"Run a 4-8 week pilot: apply the intervention to a random half of the {top} {cust} and keep the rest as control. Compare {noun} between the halves; the random split separates the effect of the change from the pre-existing gap.",
+                          how_to_test=f"Run a 4-8 week pilot: apply the intervention to a random half of {e_top} and keep the rest as control. Compare {noun} between the halves; the random split separates the effect of the change from the pre-existing gap.",
                           kpis=[f"{noun} for {top}", f"Gap between {top} and {bot}", "Pilot vs control difference"],
-                          risks=["The gap may reflect other differences between the groups, not the group itself (association, not cause).", f"Focusing on {top} can neglect other groups; keep watching them."]))
+                          risks=["The gap may reflect other differences between the groups, not the group itself (association, not cause).", f"Focusing on {e_top} can neglect other groups; keep watching them."]))
             elif pv == "neutral":
                 add(_cand(**base, id="", title=f"Explain why {target} differs by {group}: {top} vs {bot}", theme="Understanding",
                           objective=f"Find out why {target} is highest for {group} = {top} and lowest for {bot}, before deciding whether either is a problem.",
                           rationale=f.get("insight", {}).get("headline", ""),
-                          actions=[f"Agree with the business whether a higher or lower {target} is better, and for which {cust}.",
-                                   f"Compare mix, pricing, channel and service for {top} and {bot}.",
+                          actions=[f"Agree with the business whether a higher or lower {target} is better, and for which {wording.human(group)} values.",
+                                   f"Compare {e_top} and {e_bot} on {what}.",
                                    f"Track {target} by {group} monthly to see whether the gap persists."],
                           effort="Low", how_to_test=f"Check whether the {top} vs {bot} gap holds inside other splits (e.g. region, product) before any change.",
                           kpis=[f"{target} for {top} and for {bot}"], risks=["Without a clear good direction for this measure, a gap is a pattern to explain, not a problem or a win."]))
             else:
                 add(_cand(**base, id="", title=f"Put more behind what works: {group} = {top}", theme="Growth",
-                          objective=f"Grow overall {target} by investing where it is strongest ({top}) while diagnosing why {bot} lags.",
+                          objective=f"Grow overall {target} by investing where it is strongest ({e_top}) while diagnosing why {e_bot} lags.",
                           rationale=f.get("insight", {}).get("headline", ""),
-                          actions=[f"Direct more {levers[0]} to {top} and track {target} per {cust[:-1] if cust.endswith('s') else cust}.",
-                                   f"Find out why {bot} lags: compare pricing, channel, product mix and service levels against {top}.",
-                                   f"Decide whether to lift {bot} or deliberately shift resources toward {top}."],
+                          actions=[f"Direct more {levers[0]} to {e_top} and track {target} for it.",
+                                   f"Find out why {e_bot} lags: compare it with {e_top} on {what}.",
+                                   f"Decide whether to lift {e_bot} or deliberately shift resources toward {e_top}."],
                           effort="Medium",
                           how_to_test=f"Pilot the extra investment on part of {top} (or a comparable subset) for 4-8 weeks with a hold-out group, and compare {target} between them.",
-                          kpis=[f"{target} for {top} and for {bot}", f"Share of total {target} coming from {top}", "Pilot vs hold-out difference"],
-                          risks=[f"{top} may already be near its ceiling, so extra spend could show diminishing returns.", "The gap may partly reflect differences in mix rather than the group itself."]))
+                          kpis=[f"{target} for {top} and for {bot}", *share_kpi, "Pilot vs hold-out difference"],
+                          risks=[f"{e_top} may already be near its ceiling, so extra spend could show diminishing returns.", "The gap may partly reflect differences in mix rather than the group itself."]))
         elif tool == "outcome_compare":
             target, col, pos, dirn = p["target"], p["col"], st.get("positive", "yes"), st.get("direction", "higher")
             if polarity(target, pol) == "bad":
@@ -143,21 +164,30 @@ def candidates(state: dict) -> list[dict]:
             add(_cand(**base, id="", title=title, theme="Monitoring",
                       objective=f"Explain the {'upward' if up else 'downward'} movement in {target}" + ("." if pv == "neutral" else f" and decide whether to {verb} it."),
                       rationale=f.get("insight", {}).get("headline", ""),
-                      actions=["Find when the movement began and list what changed then (pricing, campaigns, product, staffing, data collection).",
+                      actions=["Find when the movement began and list what changed then, in the business or in how the data is recorded.",
                                "Break the trend down by segment to see where it comes from.",
                                f"Decide whether to {'invest further in what is working' if good else 'intervene'} and agree how you will measure it." if pv != "neutral" else "Agree with the business whether this movement is good or bad, and how you will measure it."],
                       effort="Low", how_to_test="Compare periods before and after the suspected cause, and check the same calendar period in previous years to rule out seasonality.",
                       kpis=[f"{target} by month", "Segment contribution to the change"], risks=["The first and last periods may be partial.", "Seasonality can mimic a trend."]))
         elif tool == "segment_trend":
             target, group, fast, slow = p["target"], p["group"], st["fastest"], st["slowest"]
-            add(_cand(**base, id="", title=f"Rebalance attention across {group}: {fast} rising, {slow} falling", theme="Allocation",
-                      objective=f"Respond to diverging trends in {target} between {fast} and {slow}.",
+            if wording.trend_shape(st) != "mixed":
+                continue                  # everything moves the same way: there is nothing to rebalance
+            moves = [(g, wording.significant_direction(st, g)) for g in (fast, slow)]
+            moves = [(g, d) for g, d in moves if d]
+            if not moves:
+                continue                  # no group's own trend is reliable, so no group is called rising or falling
+            named = ", ".join(f"{g} {d}" for g, d in moves)
+            subj = " and ".join(wording.entity(group, g) for g, _ in moves)
+            add(_cand(**base, id="", title=f"Rebalance attention across {group}: {named}", theme="Allocation",
+                      objective=f"Respond to the diverging trends in {target}: {named}.",
                       rationale=f.get("insight", {}).get("headline", ""),
-                      actions=[f"Identify what changed for {fast} (campaign, product, pricing) and whether it can be repeated.",
-                               f"Diagnose why {slow} is slipping before more budget flows there.",
-                               f"Review how {levers[0]} are allocated across the {group} groups."],
-                      effort="Medium", how_to_test=f"Hold {slow}'s current plan for one group of accounts and change it for another; compare the next 8 weeks.",
-                      kpis=[f"{target} by {group} by month", f"Share of {target} from {fast}"], risks=["Per-segment trends rest on fewer data points and are less certain than the overall trend."]))
+                      actions=[f"Identify what changed for {wording.entity(group, g)} and whether it can be repeated." if d == "rising" else
+                               f"Diagnose why {wording.entity(group, g)} is slipping before more effort flows there." for g, d in moves]
+                              + [f"Review how effort is allocated across the {wording.human(group)} values."],
+                      effort="Medium", how_to_test=f"Keep the current plan for one set of {subj} and change it for another; compare the next 8 weeks.",
+                      kpis=[f"{target} by {group} by month"] + ([f"Share of {target} from {fast}"] if _additive(state, target) else []),
+                      risks=["Per-segment trends rest on fewer data points and are less certain than the overall trend."]))
         elif tool == "pareto":
             target, group, k = p["target"], p["group"], st["top_k"]
             add(_cand(**base, id="", title=f"Protect the {k} {group} values that drive {target}, and grow the tail", theme="Concentration",
@@ -181,11 +211,11 @@ def candidates(state: dict) -> list[dict]:
             if polarity(target, pol) == "bad":    # when lower is better the period with the highest value is the weak one
                 hi, lo = lo, hi
             add(_cand(**base, id="", title=f"Plan around the {st.get('cycle', 'weekday')} pattern in {target}", theme="Timing",
-                      objective=f"Match staffing, stock and promotions to when {target} is strong ({hi}) and weak ({lo}).",
+                      objective=f"Match effort and resources to when {target} is strong ({hi}) and weak ({lo}).",
                       rationale=f.get("insight", {}).get("headline", ""),
-                      actions=[f"Schedule capacity and inventory for {hi}.", f"Test a promotion or offer in the weak period ({lo}) to lift it.", "Review the pattern each quarter in case customer habits shift."],
-                      effort="Low", how_to_test=f"Move one promotion from {hi} to {lo} for a few weeks and compare {target} against the usual pattern.",
-                      kpis=[f"{target} by {'day' if st.get('cycle') == 'weekday' else 'month'}", "Capacity utilisation"], risks=["The pattern may come from one-off events in the period covered."]))
+                      actions=[f"Plan capacity and resources for {hi}.", f"Test one change in the weak period ({lo}) to lift it.", "Review the pattern each quarter in case it shifts."],
+                      effort="Low", how_to_test=f"Shift one planned activity from {hi} to {lo} for a few weeks and compare {target} against the usual pattern.",
+                      kpis=[f"{target} by {'day' if st.get('cycle') == 'weekday' else 'month'}"], risks=["The pattern may come from one-off events in the period covered."]))
         elif tool == "correlation":
             pairs = st.get("top_pairs") or {}
             key, r = max(pairs.items(), key=lambda kv: abs(kv[1] or 0), default=(None, 0))
@@ -255,6 +285,7 @@ def refine_with_llm(llm, state: dict, strategies: list[dict]) -> int:
         facts = [f for f in state["findings"] if f["id"] in s["evidence"]]
         allowed = allowed_numbers(json.dumps(payload, default=str), ctx_txt, *[json.dumps(f["stats"], default=str) for f in facts])
         changed = False
+        before = {k: list(v) if isinstance(v, list) else v for k, v in s.items() if k in ("title", "objective", "actions", "risks", "kpis", "how_to_test")}
 
         def ok_text(v, lo=8, hi=260):
             return isinstance(v, str) and lo <= len(v.strip()) <= hi and numbers_ok(v, allowed)
@@ -266,6 +297,9 @@ def refine_with_llm(llm, state: dict, strategies: list[dict]) -> int:
             lst = [x.strip() for x in (item.get(key) or []) if ok_text(x)][:mx]
             if len(lst) >= (2 if key != "kpis" else 1):
                 s[key], changed = lst, True
+        if changed and pushes_both_ways(s["title"] + " " + s["objective"], *s["actions"]):
+            s.update({k: v for k, v in before.items()})        # reducing and promoting the same thing in one strategy: keep the rule-based wording
+            changed = False
         if changed:
             s["source"] = "llm"
             improved += 1

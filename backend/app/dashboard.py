@@ -31,7 +31,12 @@ def _eta_squared(y: pd.Series, g: pd.Series) -> float:
     return float((grp["count"] * (grp["mean"] - d["y"].mean()) ** 2).sum() / tot)
 
 
-def _measure(df: pd.DataFrame, col: str, currency: str):
+def _measure(df: pd.DataFrame, col: str, currency: str, kinds: dict | None = None, ratios: dict | None = None):
+    spec = (ratios or {}).get(col)
+    if spec is not None and spec["b"] in df.columns:      # a derived ratio: the page weights each row by its denominator, so groups show sum A / sum B, never a mean of row ratios
+        x = pd.to_numeric(df[col], errors="coerce")
+        return x, {"col": col, "label": col, "agg": "ratio", "den": f"__w_{col}", "den_col": spec["b"], "fmt": "pct" if spec.get("part_of") else "num",
+                   "note": f"total {spec['a']} over total {spec['b']}"}
     s = df[col]
     b, pos = to_binary(s) if s.dropna().nunique() == 2 else (None, None)
     if b is not None:
@@ -39,7 +44,7 @@ def _measure(df: pd.DataFrame, col: str, currency: str):
     x = pd.to_numeric(s, errors="coerce")
     if x.notna().sum() == 0:
         return None, None
-    additive = measure_kind(col) == "additive"
+    additive = measure_kind(col, overrides=kinds) == "additive"
     money = is_money(col, narrow=True) and bool(currency)
     return x, {"col": col, "label": col if additive else f"Average {col}", "agg": "sum" if additive else "avg",
                "fmt": "money" if money else "num", "note": ""}
@@ -59,7 +64,7 @@ def build_dashboard(wd: Path, result: dict) -> dict:
     for c in cands:
         if len(measures) >= MAX_MEASURES:
             break
-        vals, spec = _measure(df, c, currency)
+        vals, spec = _measure(df, c, currency, (result.get("brief") or {}).get("kinds"), {d["name"]: d for d in plan.get("derived") or []})
         if spec is not None:
             cols[c] = vals
             measures.append(spec)
@@ -94,6 +99,8 @@ def build_dashboard(wd: Path, result: dict) -> dict:
         out[d["col"]] = df[d["col"]].astype(str).where(df[d["col"]].notna())
     for m in measures:
         out[m["col"]] = cols[m["col"]].round(4)
+        if m.get("den"):
+            out[m["den"]] = pd.to_numeric(df[m["den_col"]], errors="coerce").round(4)
     if date:
         out["__date"] = df[date].dt.strftime("%Y-%m-%d")
     total = int(len(out))
@@ -105,7 +112,7 @@ def build_dashboard(wd: Path, result: dict) -> dict:
 
     return {"title": (result.get("context") or {}).get("company") or "", "objective": plan.get("objective", ""),
             "currency": currency, "date": "__date" if date else None, "date_label": date,
-            "measures": measures, "dims": [{"col": d["col"], "unique": d["unique"], "score": round(d["score"], 3)} for d in dims],
+            "measures": [{k: v for k, v in m.items() if k != "den_col"} for m in measures], "dims": [{"col": d["col"], "unique": d["unique"], "score": round(d["score"], 3)} for d in dims],
             "columns": columns, "rows": rows, "total_rows": total, "sampled": total > MAX_ROWS}
 
 

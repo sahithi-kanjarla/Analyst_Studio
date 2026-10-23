@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 
+from . import wording
 from .llm import ask_json
 from .planner import roles_and_uniques
 from .tools import spec_signature, validate_spec
@@ -23,7 +24,7 @@ def review(state: dict, llm) -> dict:
     followups: list[dict] = []
 
     # --- multiple testing across group comparisons
-    family = [f for f in findings if f["tool"] in ("group_compare", "outcome_compare", "scatter", "composition", "seasonality") and f["stats"].get("p") is not None]
+    family = wording.comparison_family(findings)
     gc = [f for f in family if f["tool"] == "group_compare"]
     k = len(family)
     for f in family:
@@ -96,7 +97,12 @@ def review(state: dict, llm) -> dict:
                 ok, _ = validate_spec(spec if isinstance(spec, dict) else {}, roles, uniques)
                 if ok and spec_signature(ok) not in done and ok not in followups:
                     followups.append(ok)
+    dropped = []
     for n in notes:
-        issues.append({"severity": "info", "finding": None, "text": n, "source": "llm"})
+        why = wording.contradicts(n, state)     # a limitation the findings contradict would mislead the reader
+        if why:
+            dropped.append({"text": n, "reason": why})
+        else:
+            issues.append({"severity": "info", "finding": None, "text": n, "source": "llm"})
 
-    return {"issues": issues, "followups": followups, "approved": not followups}
+    return {"issues": issues, "followups": followups, "approved": not followups, "dropped_notes": dropped}

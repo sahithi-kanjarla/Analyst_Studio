@@ -1,0 +1,198 @@
+"""The analysis brief: one LLM call per run that says what each column means and which column each KPI the user named is.
+
+It works from a compact view (names, roles, dtypes, distinct counts, up to 3 sample values; never raw rows) and answers with closed words and column names only.
+Every part is checked on its own. A part that fails is dropped and the existing rules decide it, so a bad answer never blocks a run.
+"""
+from __future__ import annotations
+
+import re
+
+import pandas as pd
+
+from . import context as ctxmod
+from .context import INDUSTRIES
+from .measures import KINDS
+from .profiler import ID_NAME
+from .propose import propose
+
+ROLES = ("id", "measure", "dimension", "date", "text")
+INTENTS = ("change", "compare", "drivers", "summary")
+MAX_COLUMNS = 80
+MAX_HIERARCHIES = 5
+
+SYSTEM = """You are a data analyst reading the column list of a dataset before any analysis starts. Decide what each column means and which column each KPI the user named is.
+role: id (labels a row or an entity, including codes such as pincode, zip, phone or account numbers even when they are numbers), measure (a quantity you can add or average),
+dimension (a category to group by), date, text (free text).
+kind, only for measures: additive (totals make sense: revenue, units, cost), rate (average it, never add it up: percentages, ratios, prices, scores, ages), other.
+kpis: for each KPI name given, the single numeric measure column that holds it, or null when no column does.
+hierarchy: pairs of category columns where each child value belongs to exactly one parent value (a broad category and its sub-category, a country and its city). Empty list when there are none.
+intent: what the goal is after. change (growth, decline, trend over time), compare (groups or segments against each other), drivers (what explains or influences an outcome), summary (an overview or description).
+industry: the one that best fits the business, one of: """ + ", ".join(INDUSTRIES) + """ (general when none fits or it is unclear).
+Use only the column names, KPI names and words given, exactly as written. Never write a number.
+Return JSON: {"columns": {"<column>": {"role": "id|measure|dimension|date|text", "kind": "additive|rate|other"}}, "kpis": {"<kpi name>": "<column>" | null},
+"hierarchy": [{"parent": "<column>", "child": "<column>"}], "intent": "change|compare|drivers|summary", "industry": "<industry>", "why": "one short sentence"}"""
+
+
+def _sample(s: pd.Series) -> list[str]:
+    return [str(v)[:30] for v in s.dropna().astype(str).drop_duplicates().head(3)]
+
+
+def build_view(df: pd.DataFrame, profile: dict, goal: str, ctx: dict | None) -> str:
+    lines = []
+    for c in profile["columns"][:MAX_COLUMNS]:
+        name = c["name"]
+        samples = _sample(df[name]) if name in df.columns else []
+        lines.append(f"- {name} | role by rules: {c['role']} | dtype: {c['dtype']} | distinct: {c['unique']} | samples: {samples}")
+    kpis = (ctx or {}).get("kpis") or []
+    return (f"GOAL: {goal or 'none given (exploratory)'}\nBUSINESS CONTEXT: {ctxmod.context_text(ctx) or 'none'}\nKPIS NAMED BY THE USER: {kpis if kpis else 'none'}\n"
+            "COLUMNS:\n" + "\n".join(lines))
+
+
+def _id_like(name: str, rule_role: str) -> bool:
+    return rule_role == "id" or bool(ID_NAME.search(name))
+
+
+def _check_hierarchy(df: pd.DataFrame, parent: str, child: str) -> str | None:
+    """None when every child value maps to exactly one parent value and the child is the finer level; otherwise the reason it is not a hierarchy."""
+    sub = df[[parent, child]].dropna().astype(str)
+    if sub.empty:
+        return "there are no rows with both values"
+    if sub[parent].nunique() < 2:
+        return f"'{parent}' has a single value"
+    if sub[child].nunique() <= sub[parent].nunique():
+        return f"'{child}' does not have more values than '{parent}', so it is not a finer level"
+    if (sub.groupby(child)[parent].nunique() > 1).any():
+        return f"some '{child}' values appear under more than one '{parent}' value"
+    return None
+
+
+def _make_validator(profile: dict, kpis: list[str], df: pd.DataFrame):
+    rule = {c["name"]: c["role"] for c in profile["columns"][:MAX_COLUMNS]}
+    numeric = {c["name"] for c in profile["columns"][:MAX_COLUMNS] if "int" in c["dtype"] or "float" in c["dtype"] or c.get("convert") == "numeric"}
+
+    def validate(obj):
+        if not isinstance(obj, dict):
+            return None, ["the reply must be a JSON object"]
+        cols, kp = obj.get("columns"), obj.get("kpis")
+        if not isinstance(cols, dict) and not isinstance(kp, dict):
+            return None, ["the reply needs a 'columns' object and a 'kpis' object"]
+        out = {"roles": {}, "kinds": {}, "kpis": {}, "hierarchy": [], "intent": None, "industry": None, "answered": [], "dropped": []}
+        for col, spec in (cols if isinstance(cols, dict) else {}).items():
+            if col not in rule:
+                out["dropped"].append(f"column '{col}' does not exist")
+                continue
+            role = spec.get("role") if isinstance(spec, dict) else None
+            if role not in ROLES:
+                out["dropped"].append(f"column '{col}' has an invalid role")
+                continue
+            if role == "measure" and _id_like(col, rule[col]):
+                role = "id"
+            out["roles"][col] = role
+            kind = spec.get("kind")
+            if kind in (None, ""):
+                continue
+            if role != "measure":
+                out["dropped"].append(f"kind for '{col}' ignored: it is not a measure")
+            elif kind not in KINDS or col not in numeric:
+                out["dropped"].append(f"kind '{kind}' for '{col}' is not usable")
+            else:
+                out["kinds"][col] = kind
+        for k, col in (kp if isinstance(kp, dict) else {}).items():
+            if k not in kpis:
+                out["dropped"].append(f"'{k}' is not a KPI the user named")
+            elif col is None:
+                out["kpis"][k] = None
+            elif not isinstance(col, str) or col not in rule:
+                out["dropped"].append(f"KPI '{k}' maps to '{col}', a column that does not exist")
+            else:
+                role = out["roles"].get(col)
+                if col not in numeric or _id_like(col, rule[col]) or not (role == "measure" or (role is None and rule[col] == "numeric")):
+                    out["dropped"].append(f"KPI '{k}' maps to '{col}', which is not a numeric measure")
+                else:
+                    out["kpis"][k] = col
+        if "hierarchy" in obj:
+            out["answered"].append("hierarchy")
+            pairs = obj["hierarchy"]
+            if not isinstance(pairs, list):
+                out["dropped"].append("hierarchy must be a list of parent/child pairs")
+                pairs = []
+            for pr in pairs[:MAX_HIERARCHIES]:
+                p, c = (pr.get("parent"), pr.get("child")) if isinstance(pr, dict) else (None, None)
+                if not (isinstance(p, str) and isinstance(c, str) and p != c and p in rule and c in rule and p in df.columns and c in df.columns):
+                    out["dropped"].append(f"hierarchy {p!r} > {c!r} names a column that does not exist")
+                elif any(out["roles"].get(x, "dimension" if rule[x] == "categorical" else None) != "dimension" for x in (p, c)):
+                    out["dropped"].append(f"hierarchy '{p}' > '{c}' dropped: both must be category columns")
+                elif (why := _check_hierarchy(df, p, c)):
+                    out["dropped"].append(f"hierarchy '{p}' > '{c}' dropped: {why}")
+                elif {"parent": p, "child": c} not in out["hierarchy"]:
+                    out["hierarchy"].append({"parent": p, "child": c})
+        for key, allowed, label in (("intent", INTENTS, "intent"), ("industry", INDUSTRIES, "industry")):
+            if key in obj:
+                if obj[key] in allowed:
+                    out[key] = obj[key]
+                    out["answered"].append(key)
+                else:
+                    out["dropped"].append(f"{label} '{obj[key]}' is not one of the allowed words")
+        return out, []
+
+    return validate
+
+
+def resolve(llm, df: pd.DataFrame, profile: dict, goal: str, ctx: dict | None, state: dict | None = None) -> dict:
+    """{roles, kinds, kpis, hierarchy, intent, industry, dropped, source}. Empty maps / None (the rules decide) when there is no LLM or its answer is unusable."""
+    kpis = list((ctx or {}).get("kpis") or [])
+    empty = lambda: {"roles": {}, "kinds": {}, "kpis": {}, "hierarchy": [], "intent": None, "industry": None, "answered": [], "dropped": []}
+    res = propose(llm, "analysis brief", SYSTEM, build_view(df, profile, goal, ctx), _make_validator(profile, kpis, df), empty, state)
+    out = {**res["value"], "source": res["source"]}
+    if state is not None:
+        _log_parts(state, out, res, ctx)
+    return out
+
+
+def _log_parts(state: dict, out: dict, res: dict, ctx: dict | None) -> None:
+    """The brief's three extra decisions, each in the decision log. A part the model did not answer validly is decided by the rules."""
+    ai = res["source"] in ("llm", "repaired")
+    rule_src = res["source"] if not ai else "rules"
+    for name, key, rule_choice in (("column hierarchy", "hierarchy", []), ("goal intent", "intent", "keyword match on the goal"), ("industry lens", "industry", ctxmod.detect_industry(ctx or {}))):
+        used = ai and key in out["answered"]
+        errs = [d for d in out["dropped"] if d.startswith(key) or d.startswith(f"{key} ")] if ai else []
+        state["decisions"].append({"decision": name, "source": res["source"] if used else rule_src, "chosen": out[key] if used else rule_choice,
+                                   "why": res["why"] if used or not ai else "The rules decide this part.", "errors": errs})
+
+
+def apply_roles(profile: dict, roles: dict) -> dict:
+    """The profile with the brief's roles applied where they correct the rules: a column that is really an identifier is an id (even if numeric), and a
+    numeric column the brief calls a dimension becomes a category when it has few values. Date, text and measure only confirm what the rules found."""
+    if not roles:
+        return profile
+    cols = []
+    for c in profile["columns"]:
+        r, new = roles.get(c["name"]), c["role"]
+        if r == "id" and c["role"] in ("numeric", "categorical", "text"):
+            new = "id"
+        elif r == "dimension" and c["role"] == "numeric" and c["unique"] <= 50:
+            new = "categorical"
+        cols.append({**c, "role": new} if new != c["role"] else c)
+    return {**profile, "columns": cols}
+
+
+def role_changes(profile: dict, new_profile: dict) -> list[str]:
+    old = {c["name"]: c["role"] for c in profile["columns"]}
+    return [f"{c['name']}: {old[c['name']]} -> {c['role']}" for c in new_profile["columns"] if old.get(c["name"]) != c["role"]]
+
+
+def kpi_columns(brief: dict | None) -> set[str]:
+    return {c for c in ((brief or {}).get("kpis") or {}).values() if c}
+
+
+def kpi_found(brief: dict | None, kpi: str) -> bool:
+    return bool(((brief or {}).get("kpis") or {}).get(kpi))
+
+
+def kinds(brief: dict | None) -> dict:
+    return (brief or {}).get("kinds") or {}
+
+
+def hierarchy_pairs(brief: dict | None) -> list[tuple[str, str]]:
+    """Verified (parent, child) column pairs."""
+    return [(h["parent"], h["child"]) for h in (brief or {}).get("hierarchy") or []]

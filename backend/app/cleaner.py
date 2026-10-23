@@ -169,6 +169,8 @@ def apply_directives(df: pd.DataFrame, questions: list[dict], answers: dict) -> 
     for q, o, a in sorted(todo, key=lambda t: phases.get(t[2]["type"], 9)):
         t = a["type"]
         if t == "note_only":
+            if o.get("effect"):      # already carried out on the source tables, before the join
+                note(q, o["effect"], o.get("rows"))
             continue
         if t == "set_date_column":
             if not gone(q, [a["column"]]):
