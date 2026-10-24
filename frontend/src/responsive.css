@@ -1,0 +1,87 @@
+/* Responsive layer: loaded last, only adds fixes for tablet and phone widths. */
+html, body { overflow-x: hidden; }
+img, svg, video { max-width: 100%; }
+.tile-grid { grid-template-columns: repeat(auto-fill, minmax(min(340px, 100%), 1fr)); }
+.bi-grid { grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); }
+.table, .gtable { max-width: 100%; }
+.report, .gallery, .glossary, .qform { min-width: 0; }
+.report table { display: block; overflow-x: auto; max-width: 100%; }
+
+@media (max-width: 900px) {
+  .side { position: static; max-height: none; }
+  .topbar { top: 6px; }
+  .stats { grid-template-columns: repeat(2, auto); gap: 14px 0; }
+  .stats > div:nth-child(2) { border: 0; margin: 0; padding: 0; }
+  .sec { margin-top: 56px; }
+}
+
+@media (max-width: 760px) {
+  .tabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { white-space: nowrap; flex: none; }
+  .tabs .spacer { display: none; }
+  .tab-active::after { bottom: -1px; }
+  .matrix { grid-template-columns: 80px repeat(3, 1fr); }
+  .kpi { flex: 1 1 140px; }
+  .dash-head { flex-direction: column; }
+  .modal { padding: 10px; }
+  .modal-card { padding: 14px; max-height: 94vh; }
+}
+
+@media (max-width: 640px) {
+  .shell { padding: 0 14px 40px; }
+  body { font-size: 14.5px; }
+  h1 { font-size: 28px; }
+  .hero2 { padding-bottom: 20px; }
+  .hero2 p { font-size: 16px; }
+  .hero h1 { font-size: 32px; }
+  .topbar { padding: 8px 10px; margin: 8px 0 20px; border-radius: 14px; }
+  .topbar .topright { gap: 2px; }
+  .navlink { padding: 6px 8px; font-size: 13px; }
+  .pill { font-size: 11px; padding: 3px 8px; }
+  .form { padding: 16px; }
+  .drop { padding: 22px 14px; }
+  .card { padding: 16px; }
+  .cta .primary, .cta .ghost { flex: 1 1 100%; text-align: center; }
+  .stats b { font-size: 22px; }
+  .pv-kpis { grid-template-columns: 1fr 1fr 1fr; padding: 10px 12px; }
+  .pv-kpis b { font-size: 16px; }
+  .pv-row { grid-template-columns: 44px 1fr 30px; }
+  .steps { grid-template-columns: 1fr; }
+  .sec { margin-top: 44px; }
+  .flow-detail { padding: 14px; }
+  .fd-head .tag { margin-left: 0; }
+  .page-head h2 { font-size: 24px; }
+  .hist-search { max-width: none; min-width: 0; width: 100%; }
+  .search { width: 100%; }
+  .search input { min-width: 0; flex: 1; }
+  .viewer-bar { align-items: stretch; }
+  .srcpick, .srcpick select { max-width: 100%; width: 100%; }
+  .seg { max-width: 100%; }
+  .bi { padding: 12px; border-radius: 12px; }
+  .bi h3 { font-size: 18px; }
+  .bi-head { align-items: stretch; }
+  .bi-slicers { width: 100%; }
+  .bi-slicer { flex: 1 1 130px; }
+  .bi-slicer select { min-width: 0; width: 100%; }
+  .bi-kpis { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .bi-kpi { padding: 10px 12px; }
+  .bi-kpi b { font-size: 21px; }
+  .bi-card { padding: 12px; }
+  .bi-table { display: block; overflow-x: auto; }
+  .legend { min-width: 0; }
+  .insight, .strat { padding: 12px; }
+  .insight-head h4, .strat h4 { font-size: 15.5px; }
+  .qactions { flex-wrap: wrap; }
+  .qopt { padding: 8px 10px; }
+  .gws header { flex-wrap: wrap; gap: 8px; }
+  .foot { flex-direction: column; }
+  .results:fullscreen { padding: 10px; }
+}
+
+@media (max-width: 400px) {
+  .brand small { display: none; }
+  .bi-kpis { grid-template-columns: 1fr; }
+  .pv-kpis { grid-template-columns: 1fr; }
+  .topbar .pill { display: none; }
+}
