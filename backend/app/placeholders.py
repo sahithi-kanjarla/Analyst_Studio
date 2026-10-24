@@ -4,6 +4,7 @@ A placeholder that is joined first and found later has already been averaged int
 Two patterns count, both on numeric columns only:
   - far above:   one value that is the column's maximum (or minimum), repeated many times, and sits far outside the rest of the column
   - blank twin:  a repeated extreme or conventional value whose rows are blank in another column of the same table, while that column is filled elsewhere
+                 (for an extreme value that is not a conventional number, the blank column must be a date)
 A column the analysis uses gets one question (default: as missing). A column it does not use is set to missing and logged, without asking."""
 from __future__ import annotations
 
@@ -32,13 +33,13 @@ def _far_from_rest(x: pd.Series, v: float) -> bool:
     return False
 
 
-def _blank_twin(df: pd.DataFrame, col: str, mask: pd.Series) -> str | None:
+def _blank_twin(df: pd.DataFrame, col: str, mask: pd.Series, dates_only: bool = False) -> str | None:
     """A column that is blank on the placeholder rows and filled on most others."""
     k, others = int(mask.sum()), len(df) - int(mask.sum())
     if k == 0 or others == 0:
         return None
     for other in df.columns:
-        if other == col:
+        if other == col or (dates_only and not pd.api.types.is_datetime64_any_dtype(df[other])):
             continue
         blank = df[other].isna()
         if blank[mask].mean() >= BLANK_TWIN and 1 - blank[~mask].mean() >= FILLED_ELSEWHERE:
@@ -54,15 +55,19 @@ def detect(df: pd.DataFrame) -> list[dict]:
         if not pd.api.types.is_numeric_dtype(s) or pd.api.types.is_bool_dtype(s):
             continue
         x = s.dropna()
-        if len(x) < MIN_ROWS or x.nunique() < 10:       # a coded scale has no "far above"; the joined-table sentinel check covers it
+        if len(x) < MIN_ROWS or x.nunique() < 3:        # a flag has no "far above"; a coded scale never passes the distance test below
             continue
-        for v, k in x.value_counts().head(6).items():
-            if k < max(MIN_COUNT, MIN_SHARE * len(x)) or k > 0.5 * len(x) or v not in (x.min(), x.max()):
+        counts = x.value_counts()
+        for v in dict.fromkeys([x.max(), x.min()]):      # a placeholder is the top or the bottom of the column, however rare it is next to the ordinary values
+            k = int(counts[v])
+            if k < max(MIN_COUNT, MIN_SHARE * len(x)) or k > 0.5 * len(x):
                 continue
-            twin = None
-            if _far_from_rest(x, v):
+            far = _far_from_rest(x, v)
+            twin = _blank_twin(df, col, s == v, dates_only=not (v in CONVENTIONAL_NUMERIC))
+            if far:
                 reason = "far above the rest of the column" if v == x.max() else "far below the rest of the column"
-            elif v in CONVENTIONAL_NUMERIC and (twin := _blank_twin(df, col, s == v)):
+                reason += f", and {twin} is blank on those rows" if twin else ""
+            elif twin:
                 reason = f"lines up with blanks in {twin}"
             else:
                 continue
@@ -96,6 +101,12 @@ def question(c: dict, shown: str, at_source: bool) -> dict:
             "options": [{"value": "missing", "label": "As missing (default)", "action": miss, "effect": effect, "rows": n},
                         {"value": "keep", "label": "Keep as a real value", "action": {"type": "note_only"}}],
             "table": c["table"]}
+
+
+def log_line(c: dict, how: str = "default", note: str = "") -> dict:
+    """The cleaning-log entry for a column set to missing: 'treated N values of <value> in <col> as missing (default)'."""
+    return {"step": "Placeholder values", "detail": f"[{c['table']}] treated {c['count']:,} values of {_fmt(c['value'])} in {c['column']} as missing ({how}); {c['reason']}" + (f"; {note}" if note else ""),
+            "count": c["count"]}
 
 
 def mask_values(tables: dict[str, pd.DataFrame], cands: list[dict]) -> dict[str, pd.DataFrame]:

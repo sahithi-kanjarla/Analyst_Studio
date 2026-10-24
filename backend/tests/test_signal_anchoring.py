@@ -119,9 +119,9 @@ def test_a_model_that_rewords_the_real_questions_and_adds_invented_ones_keeps_on
     mine = ideal(sigs)
     qs = clarify.build_questions(typed, prof, "Explore", {}, True, Writer(lambda s: wrong + mine), None)
     texts = {q["text"] for q in qs}
-    assert {m["text"] for m in mine} <= texts                                                              # the reworded versions are kept as written
+    assert texts <= {m["text"] for m in mine} and len(qs) <= clarify.MAX_QUESTIONS                         # only reworded ones are kept, as written, and no more than the cap
     assert not {w["text"] for w in wrong} & texts                                                          # the invented ones are not
-    sent = next(q for q in qs if q["kind"] == "sentinel" and q["columns"] == [col])
+    sent = next(q for q in qs if q["kind"] == "sentinel" and q["columns"] == [col])           # the repeated value outranks every other kind, so the cap keeps it
     assert sent["id"] == sent["signal"] and sent["text"].startswith("Does ")
     if neg:
         assert any(q["kind"] == "negatives" and q["columns"] == [neg] and q["text"].startswith("Are the negative values") for q in qs)

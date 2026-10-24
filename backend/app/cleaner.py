@@ -192,7 +192,7 @@ def apply_directives(df: pd.DataFrame, questions: list[dict], answers: dict) -> 
             n = int(mask.sum())
             if n:
                 df[col] = df[col].where(~mask)
-            note(q, f"{n:,} values ({shown}) in {col} were treated as missing.", n, detail=f"'{col}': {n:,} placeholder values ({shown}) set to missing (your definition)", count=n)
+            note(q, f"{n:,} values ({shown}) in {col} were treated as missing.", n, detail=f"treated {n:,} values of {shown} in {col} as missing ({'default' if o['value'] == q['default'] else 'your answer'})", count=n)
         elif t == "filter_rows" or (t == "handle_negatives" and a["mode"] == "exclude"):
             if gone(q, [a["column"]]):
                 continue

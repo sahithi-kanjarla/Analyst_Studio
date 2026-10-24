@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import re
 
-from . import context as ctxmod, tiering, wording
+from . import context as ctxmod, summary as summary_mod, tiering, wording
 from .clarify import named_in_goal
 from .insights import allowed_numbers, unverified_numbers
 from .llm import ask_json
@@ -296,6 +296,9 @@ def build_report(state: dict, summary: str, recs: list[str], run_mode: str = "",
     if km:
         L += ["", "## Key numbers", ""] + [f"- **{m['label']}:** {m['value']}" + (f" ({m['note']})" if m.get("note") else "") for m in km]
 
+    for r in (x for x in view.get("rankings") or [] if x.get("kind") == "growth"):      # every group, not only the significant ones
+        L += ["", f"## Growth in {r['measure']} by {r['group']}, {r['periods'][0]} vs {r['periods'][1]}", ""] + [f"- {g['line']}" for g in r["groups"]]
+
     L += [""] + _evidence_section(view) + _checked_section(view) + _strategy_section(state, view)
 
     gaps = state.get("data_gaps") or []
@@ -324,6 +327,9 @@ def write_report(state: dict, llm) -> tuple[str, str]:
     view = state.get("report_view") or tiering.build_view(state)
     if view["answers"]:       # every planned question gets one line (or "Not answered: <reason>"), whether or not an LLM wrote the rest
         summary = "**What we set out to answer, in one line each**\n" + "\n".join(f"- **{a['question']}** {a['answer']}" for a in view["answers"]) + "\n\n" + summary
+    diff = summary_mod.difference_lines(state)
+    if diff:      # a ratio KPI that does not reliably differ across a group the goal names is said in the summary, one line each
+        summary = "\n".join(diff) + "\n\n" + summary
     if ans:      # the goal is answered first, in the app's own words and numbers, whether or not an LLM wrote the rest
         summary = f"**Answer to your goal.** {ans['sentence']}" + (f" {ans['groups_sentence']}" if ans.get("groups_sentence") else "") + "\n\n" + summary
     return build_report(state, summary, recs, derive_mode({**(state.get("stage_sources") or {}), "report": mode}), view), mode

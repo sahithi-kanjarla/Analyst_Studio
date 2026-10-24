@@ -214,7 +214,7 @@ def test_llm_saying_there_is_nothing_to_ask_is_respected():
     assert asked(qs) == []
 
 
-def test_llm_questions_without_a_signal_are_dropped_duplicates_merge_and_the_cap_is_six():
+def test_llm_questions_without_a_signal_are_dropped_duplicates_merge_and_the_cap_is_three():
     typed, prof = prep(DOMAINS["hospital"]())
     sigs = [{"id": f"x:{c}", "type": "near_sum", "columns": [c], "evidence": {}, "strong": True} for c in typed.columns]
 
@@ -229,7 +229,7 @@ def test_llm_questions_without_a_signal_are_dropped_duplicates_merge_and_the_cap
     assert len(qs) == 1 and qs[0]["id"] == "x:cost"                                 # all nine ask the same thing about the same signal: merged
     distinct = [q(f"Is {c} measured the same way throughout?", c, f"x:{c}") for c in typed.columns]
     qs, _ = clarify.validate_all(distinct, prof, sigs, limit=clarify.MAX_QUESTIONS)
-    assert len(qs) == 6 and all(x["id"].startswith("x:") for x in qs)
+    assert len(qs) == clarify.MAX_QUESTIONS == 3 and all(x["id"].startswith("x:") for x in qs)
     off_target = q("Is cost real?", "cost", "x:ward")                               # a real signal, but the option acts on a column it is not about
     assert clarify.validate_question(off_target, prof, {x["id"]: x for x in sigs})[0] is None
 
@@ -502,7 +502,7 @@ def small():
 
 def test_directive_treat_value_as_missing():
     out, log, eff, _ = run_directive(small(), {"type": "treat_value_as_missing", "column": "a", "values": [999]})
-    assert out["a"].isna().sum() == 1 and pd.isna(out.loc[4, "a"]) and eff["rows"] == 1 and log[0]["count"] == 1 and "set to missing" in log[0]["detail"]
+    assert out["a"].isna().sum() == 1 and pd.isna(out.loc[4, "a"]) and eff["rows"] == 1 and log[0]["count"] == 1 and "as missing" in log[0]["detail"]
     out, log, eff, _ = run_directive(small(), {"type": "treat_value_as_missing", "column": "k", "values": ["X", "z"]})
     assert out["k"].isna().sum() == 4 and eff["rows"] == 4                          # text matches ignore case and spaces
 

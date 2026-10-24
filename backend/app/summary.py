@@ -2,6 +2,8 @@
 
   * ranking facts: for every goal-named or hierarchy group column and every KPI, the top and bottom group by total (additive KPI, with the top group's share
     of the total) or by ratio of sums (ratio KPI, naming loss-making groups). Built from the cleaned data, so they exist even when no difference was significant
+  * growth facts: with a date column spanning two or more full periods, every group's total in the first full period against the last, as an absolute and a
+    % change, every group listed, each marked statistically reliable or not
   * answers: the LLM sees the questions and a closed list of finding ids and returns the ids that answer each one (or "none"); ids not in the list are rejected.
     Without an LLM, or when its answer is unusable, the same choice is made by matching the question's words to a finding's measure and group column
   * the text of an answer is always the text of the chosen findings, so every number in it was computed by the tools
@@ -11,7 +13,9 @@ from __future__ import annotations
 import json
 import re
 
+import numpy as np
 import pandas as pd
+from scipy import stats
 
 from . import derived, wording
 from .brief import hierarchy_pairs, kinds
@@ -24,6 +28,8 @@ HEADLINES_MAX = 5
 MIN_GROUP_ROWS = 5            # a group with fewer rows is too small to be called the top or the bottom
 MAX_GROUPS = 50
 MAX_ADDITIVE = 8
+MIN_SUB_PERIODS = 3           # a change between two periods is only tested when each period holds this many sub-periods (months, weeks)
+GROWTH_UNITS = (("Y", "M", "month"), ("Q", "M", "month"), ("M", "W", "week"))     # (period freq, sub-period freq, sub-period word): the longest unit with 2+ full periods wins
 PICKS_MAX = 2
 NOT_A_FINDING = ("robust_compare", "summary_table", "group_table", "distribution", "outliers", "category_share")
 TIME_TOOLS = ("trend", "segment_trend", "seasonality")
@@ -136,15 +142,81 @@ def _rank_ratio(df, spec: dict, group: str, measure: str, n: int) -> dict | None
     return {"id": f"r{n}", "tool": "ranking", "basis": "ratio", "group": group, "measure": measure, "top": str(r.index[0]), "bottom": str(r.index[-1]), "text": text}
 
 
+# ------------------------------------------------------------------ growth facts
+def _full_periods(t: pd.Series, freq: str) -> list:
+    """Periods of `freq` that the dates cover from start to end (give or take a twelfth of the period), in order."""
+    lo, hi = t.min(), t.max()
+    out = []
+    for p in pd.period_range(lo.to_period(freq), hi.to_period(freq), freq=freq):
+        start, end = p.start_time, p.end_time
+        slack = (end - start) / 12
+        if start >= lo - slack and end <= hi + slack:
+            out.append(p)
+    return out
+
+
+def _asked_text(state: dict) -> str:
+    return " ".join([state.get("goal", "")] + list((state.get("plan") or {}).get("questions") or []))
+
+
+def _growth_fact(df, state: dict, group: str, measure: str, date: str, n: int) -> dict | None:
+    d = pd.DataFrame({"t": pd.to_datetime(df[date], errors="coerce"), "g": _clean_groups(df, group), "y": pd.to_numeric(df[measure], errors="coerce")}).dropna()
+    if len(d) < 2 * MIN_GROUP_ROWS or d["g"].nunique() < 2:
+        return None
+    for freq, sub, sub_word in GROWTH_UNITS:
+        periods = _full_periods(d["t"], freq)
+        if len(periods) >= 2:
+            break
+    else:
+        return None
+    first, last = periods[0], periods[-1]
+    d["p"] = d["t"].dt.to_period(freq)
+    d = d[d["p"].isin([first, last])]
+    totals = d.pivot_table(index="g", columns="p", values="y", aggfunc="sum", fill_value=0.0).reindex(columns=[first, last], fill_value=0.0)
+    totals = totals[(totals != 0).any(axis=1)]
+    if len(totals) < 2:
+        return None
+    mean_first, k, cur = float(totals[first].abs().mean()), len(totals), _cur(measure, state)
+    rows = []
+    for g, r in totals.iterrows():
+        a, b = float(r[first]), float(r[last])
+        subs = []
+        for p in (first, last):
+            part = d[(d["g"] == g) & (d["p"] == p)]
+            idx = pd.period_range(p.start_time.to_period(sub), p.end_time.to_period(sub), freq=sub)
+            subs.append(part.groupby(part["t"].dt.to_period(sub))["y"].sum().reindex(idx, fill_value=0.0).values)
+        p_adj = None
+        if all(len(x) >= MIN_SUB_PERIODS for x in subs):
+            pv = stats.ttest_ind(subs[0], subs[1], equal_var=False).pvalue
+            p_adj = min(1.0, (1.0 if np.isnan(pv) else float(pv)) * k)
+        pct_ok = a > 0 and a >= wording.NEAR_ZERO * mean_first          # a start at or near zero, or below it, makes a percentage meaningless
+        rows.append({"group": str(g), "first": a, "last": b, "change": b - a, "pct": (b - a) / a if pct_ok else None, "p_adjusted": p_adj, "reliable": bool(p_adj is not None and p_adj < 0.05)})
+    rows.sort(key=lambda x: -x["change"])
+    parts = []
+    for x in rows:
+        move = f"from {full(x['first'], cur)} to {full(x['last'], cur)}"
+        ch = (f"{x['pct']:+.1%} ({move})" if x["pct"] is not None
+              else f"{'+' if x['change'] >= 0 else '-'}{full(abs(x['change']), cur)} ({move}; no % because the start is zero, negative or near zero)")
+        x["line"] = f"{wording.entity(group, x['group'])} {ch}, {'statistically reliable' if x['reliable'] else 'not statistically reliable'}"
+        parts.append(x["line"])
+    text = (f"Growth in total {measure} by {group}, {first} vs {last} (first and last full periods): " + "; ".join(parts)
+            + f". Reliability is a Welch test on {sub_word}ly totals, corrected for {k} groups.")
+    return {"id": f"r{n}", "tool": "ranking", "kind": "growth", "basis": "total", "group": group, "measure": measure, "date": date, "periods": [str(first), str(last)],
+            "top": rows[0]["group"], "bottom": rows[-1]["group"], "groups": rows, "text": text}
+
+
 def ranking_facts(state: dict, df) -> list[dict]:
-    """One fact per (group column, KPI), whether or not the difference between the groups was significant."""
+    """One fact per (group column, KPI), whether or not the difference between the groups was significant, plus a growth fact per (group column, additive KPI) when there is a date."""
     if df is None:
         return []
     cols, ratios = kpi_measures(state, df)
     out: list[dict] = []
+    date = (state.get("plan") or {}).get("date_col")
     for group in group_columns(state, df):
         for m in cols:
             if m != group and (fact := _rank_additive(df, state, group, m, len(out) + 1)):
+                out.append(fact)
+            if date in df.columns and m != group and (fact := _growth_fact(df, state, group, m, date, len(out) + 1)):
                 out.append(fact)
         for name, spec in ratios.items():
             if name != group and (fact := _rank_ratio(df, spec, group, name, len(out) + 1)):
@@ -178,7 +250,7 @@ def basis(f: dict) -> str:
 
 def catalog(state: dict, rankings: list[dict]) -> list[dict]:
     """[{id, text, column, measure}] for every ranking fact and finding that can answer a question. Nothing else may be cited."""
-    out = [{"id": r["id"], "text": r["text"], "column": r["group"], "measure": r["measure"], "tool": "ranking"} for r in rankings]
+    out = [{"id": r["id"], "text": r["text"], "column": r["group"], "measure": r["measure"], "tool": "ranking", "kind": r.get("kind", "")} for r in rankings]
     for f in state.get("findings") or []:
         if f["tool"] in NOT_A_FINDING:
             continue
@@ -201,6 +273,8 @@ def _fit(q: str, item: dict) -> tuple[float, bool] | None:
         return None
     if item["tool"] == "ranking" or cols:
         named = any(mentions(c, q) for c in cols)
+        if item.get("kind") == "growth":       # a growth fact answers a question about growth or change, and then beats the plain ranking
+            return (frac + 1, True) if named and wording.TREND_Q.search(q) else None
         return (frac, True) if named else None
     return (frac, False) if (qt & tokens(item["text"])) - mt else None
 
@@ -308,7 +382,7 @@ def headlines(state: dict, facts: dict | None, answered: list[dict]) -> list[dic
     from .tiering import reliable
     by_id = {f["id"]: f for f in state.get("findings") or []}
     rankings = {r["id"]: r for r in (facts or {}).get("rankings") or []}
-    ranked_cells = {(r["group"], r["measure"]) for r in rankings.values()}
+    ranked_cells = {(r["group"], r["measure"]) for r in rankings.values() if r.get("kind") != "growth"}
     seen, out = set(), []
 
     def add(i: str):
@@ -326,4 +400,20 @@ def headlines(state: dict, facts: dict | None, answered: list[dict]) -> list[dic
     strong = [f for f in state.get("findings") or [] if f["tool"] not in NOT_A_FINDING and reliable(f) and effect_label(f.get("stats") or {}) in size]
     for f in sorted(strong, key=lambda f: (size[effect_label(f.get("stats") or {})], basis(f) == "average", -((f.get("insight") or {}).get("score", 0)))):
         add(f["id"])
+    return out
+
+
+# ------------------------------------------------------------------ ratio differences that are not reliable
+def difference_lines(state: dict) -> list[str]:
+    """One line per goal-named group column and ratio KPI whose comparison across the groups was not significant: '<ratio> does not reliably differ across <column>'."""
+    from .tiering import reliable
+    ratios, asked, out = _ratios(state), _asked_text(state), []
+    for f in state.get("findings") or []:
+        p = f.get("params") or {}
+        if f.get("tool") != "group_compare" or p.get("target") not in ratios or reliable(f):
+            continue
+        group = str(p.get("group") or "")
+        line = f"{p['target']} does not reliably differ across {group}."
+        if group and (named_in_goal(group, asked) or mentions(group, asked)) and line not in out:
+            out.append(line)
     return out
