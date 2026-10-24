@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
+import rehypeRaw from "rehype-raw";
 import remarkGfm from "remark-gfm";
 import { api, RunResult } from "../api";
 
@@ -7,6 +8,7 @@ import DataModel from "./DataModel";
 import BIDashboard from "./BIDashboard";
 import DataViewer from "./DataViewer";
 import InsightCard from "./InsightCard";
+import Tiers from "./Tiers";
 import StrategyView from "./StrategyView";
 
 type Tab = "dashboard" | "report" | "insights" | "strategy" | "data" | "model" | "cleaning" | "plan" | "powerbi";
@@ -55,8 +57,8 @@ export default function Results({ run }: { run: RunResult }) {
         {TABS.filter((t) => (t.id !== "model" || run.data_model) && (t.id !== "strategy" || run.strategies?.length)).map((t) => (
           <button key={t.id} className={`tab ${tab === t.id ? "tab-active" : ""}`} onClick={() => setTab(t.id)}>
             {t.label}
-                        {t.id === "insights" && <span className="count">{ranked.length}</span>}
-            {t.id === "strategy" && <span className="count">{run.strategies?.length ?? 0}</span>}
+                        {t.id === "insights" && <span className="count">{run.report_view ? run.report_view.evidence.length : ranked.length}</span>}
+            {t.id === "strategy" && <span className="count">{run.report_view ? run.report_view.strategies.strategies.length : run.strategies?.length ?? 0}</span>}
             {t.id === "report" && warns > 0 && <span className="count count-warn">{warns}</span>}
           </button>
         ))}
@@ -85,20 +87,20 @@ export default function Results({ run }: { run: RunResult }) {
 
       {tab === "report" && (
         <article className="report">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>{run.report_md ?? ""}</ReactMarkdown>
+          <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{run.report_md ?? ""}</ReactMarkdown>
         </article>
       )}
 
       {tab === "insights" && (
         <div className="insights">
           {run.context?.company && <p className="muted">Tailored for <strong>{run.context.company}</strong>{run.context.explore ? " (exploratory run: no specific question was set)" : ""}.</p>}
-          {ranked.map((f, i) => <InsightCard key={f.id} f={f} index={i + 1} />)}
+          {run.report_view ? <Tiers view={run.report_view} goalAnswer={run.goal_answer} /> : ranked.map((f, i) => <InsightCard key={f.id} f={f} index={i + 1} />)}
           {!ranked.length && <p>No insights were produced.</p>}
         </div>
       )}
 
       {tab === "strategy" && run.strategies && (
-        <StrategyView strategies={run.strategies} summary={run.strategy_summary ?? ""} gaps={run.data_gaps ?? []} findings={run.findings ?? []} />
+        <StrategyView strategies={run.report_view?.strategies.strategies ?? run.strategies} foundation={run.report_view?.strategies.foundation} dropped={run.report_view?.strategies.dropped ?? 0} summary={run.strategy_summary ?? ""} gaps={run.data_gaps ?? []} findings={run.findings ?? []} />
       )}
 
       {tab === "model" && run.data_model && <DataModel model={run.data_model} />}

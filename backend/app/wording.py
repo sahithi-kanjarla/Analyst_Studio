@@ -109,6 +109,34 @@ def significant_direction(st: dict, g: str) -> str | None:
     return None if not _is_sig(e) else "rising" if (_delta(e) or 0) > 0 else "falling" if (_delta(e) or 0) < 0 else None
 
 
+# ------------------------------------------------------------------ overall trend: percent or absolute
+def _ratio_names(state: dict) -> set[str]:
+    plan = state.get("plan") or {}
+    return {d["name"] for d in plan.get("derived") or []} | {d["name"] for d in (state.get("derived_metrics") or {}).get("created") or []}
+
+
+def pct_change_ok(st: dict, target, state: dict) -> bool:
+    """A % change in a fitted trend is shown only when it means something: never for a ratio, and not when the series is, or may be, on both sides of zero
+    (the column has negative and positive values, or the fitted line itself passes through zero)."""
+    rel = st.get("relative_change")
+    if rel is None or abs(rel) > 2:           # the fit moves by more than twice the level: it starts and ends on opposite sides of zero
+        return False
+    if st.get("agg") == "ratio of sums" or target in _ratio_names(state):
+        return False
+    col = next((c for c in (state.get("profile") or {}).get("columns", []) if c.get("name") == target), None)
+    lo, hi = ((col or {}).get("stats") or {}).get("min"), ((col or {}).get("stats") or {}).get("max")
+    return not (lo is not None and hi is not None and lo < 0 < hi)
+
+
+def trend_size(st: dict, target, state: dict, signed: bool = False, fmt=_g) -> str:
+    """The size of the fitted change across the period: a percentage when that is honest, otherwise the absolute change in the measure's own units."""
+    if pct_change_ok(st, target, state):
+        r = st["relative_change"]
+        return f"{r:+.0%}" if signed else f"{abs(r):.0%}"
+    d = (st.get("slope") or 0) * max((st.get("periods") or 1) - 1, 0)
+    return (("+" if d > 0 else "-" if d < 0 else "") if signed else "") + fmt(abs(d))
+
+
 # ------------------------------------------------------------------ counts
 def comparison_family(findings: list[dict]) -> list[dict]:
     return [f for f in findings if f["tool"] in COMPARISON_TOOLS and f["stats"].get("p") is not None]

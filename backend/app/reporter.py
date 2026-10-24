@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import re
 
-from . import context as ctxmod, wording
+from . import context as ctxmod, tiering, wording
 from .clarify import named_in_goal
 from .insights import allowed_numbers, unverified_numbers
 from .llm import ask_json
@@ -20,10 +20,6 @@ def _rank(findings: list[dict]) -> list[dict]:
     return sorted(findings, key=lambda f: -_score(f))
 
 
-def _backed(state: dict) -> list[dict]:
-    return [s for s in state.get("strategies", []) if s["kind"] == "data"]
-
-
 def rule_summary(state: dict) -> tuple[str, list[str]]:
     findings = state["findings"]
     prof, plan, ctx = state["profile"], state["plan"], state.get("context") or {}
@@ -32,11 +28,8 @@ def rule_summary(state: dict) -> tuple[str, list[str]]:
             if plan.get("explore") else f"**Goal:** {state['goal']}")
     summary = (f"{head}\n\nThe dataset has {prof['rows']:,} rows and {prof['cols']} columns. The agents focused on **{plan.get('target') or 'general profiling'}**. "
                f"{wording.counts_sentence(wording.counts(findings))}")
-    top = [f for f in _rank(findings) if f["tool"] not in ("robust_compare",)][:3]
-    if top:
-        summary += "\n\n**Headline results**\n" + "\n".join(f"- **{f['insight']['headline']}.** {f['text']}" for f in top)
-    backed = _backed(state)
-    recs = [f"{s['title']}: {s['objective']}" for s in backed[:3]]
+    strategies = tiering.merge_strategies(state)["strategies"]
+    recs = [f"{x['title']}: {x['objective']} ({', '.join(x['evidence'])})" for x in strategies[:tiering.ACTIONS_MAX]]
     if not recs:
         recs = ["No strong, data-backed lever was found in this data. Collect more data or additional variables, or refine the goal, before acting."]
     return summary, recs
@@ -96,11 +89,6 @@ def llm_summary(llm, state: dict) -> tuple[str, list[str], bool] | None:
     if dropped:
         _log(state, "numbers_ok: some sentences/recommendations had numbers not in the findings and were dropped", rejected, raw, dropped)
     return " ".join(kept), recs[:6], bool(dropped)
-
-
-def _badge(f: dict) -> str:
-    c = f["insight"]["confidence"]
-    return f" · confidence: **{c['label']}**" + (" · your KPI" if f["insight"].get("kpi_related") else "")
 
 
 SOURCE_LABEL = {"user": "You", "default": "Default (rules)", "glossary": "Saved glossary", "goal": "Your goal"}
@@ -164,42 +152,107 @@ def split_insights(state: dict) -> tuple[list[dict], list[dict]]:
     return first, later
 
 
-def _insight_blocks(findings: list[dict]) -> list[str]:
-    L: list[str] = []
-    for f in findings:
-        ins = f["insight"]
-        flag = " ✅" if ins["confidence"]["level"] == "high" else ""
-        L += [f"### {ins['headline']}{flag}", "", f"*{f['title']}*{_badge(f)}", ""]
-        if f.get("chart"):
-            L += [f"![{f['title']}]({f['chart']})", ""]
-        if f.get("table"):
-            t = f["table"]
-            total = t.get("total") or len(t["rows"])
-            L += ["| " + " | ".join(t["columns"]) + " |", "|" + "---|" * len(t["columns"])] + ["| " + " | ".join(str(c) for c in r) + " |" for r in t["rows"][:10]]
-            L += [f"*Showing 10 of {total} rows; the Data and Dashboard tabs show all of them.*" if total > 10 else "", ""]
-        L += [f"**What we see.** {ins['observation']}", ""]
-        if ins.get("why_it_matters"):
-            L += [f"**Why it matters.** {ins['why_it_matters']}", ""]
-        L += ["**How much to trust it.** " + " ".join(ins["confidence"]["reasons"]), ""]
-        if ins.get("hypotheses"):
-            L += ["**Possible explanations to test (not conclusions):**"] + [f"- {h}" for h in ins["hypotheses"]] + [""]
-        if ins.get("check_next"):
-            L += ["**Check next:**"] + [f"- {c}" for c in ins["check_next"]] + [""]
+def _details(summary: str, body: list[str]) -> list[str]:
+    return ["<details>", f"<summary>{summary}</summary>", ""] + body + ["", "</details>", ""]
+
+
+def _table_md(t: dict) -> list[str]:
+    rows = ["| " + " | ".join(t["columns"]) + " |", "|" + "---|" * len(t["columns"])] + ["| " + " | ".join(str(c) for c in r) + " |" for r in t["rows"]]
+    return rows + ([f"*Showing {len(t['rows'])} of {t['total']} rows; the Data and Dashboard tabs show all of them.*"] if t["total"] > len(t["rows"]) else [])
+
+
+def _badge(c: dict) -> str:
+    return f" · confidence: **{c['confidence']['label']}**" + (" · your KPI" if c.get("kpi_related") else "") + f" · {', '.join(c['members'])}"
+
+
+def _card_md(c: dict, level: str = "###") -> list[str]:
+    """One card: the finding, its median check on one line, a ratio of the same measure as a sub-section, and per-group tables collapsed."""
+    flag = " ✅" if c["confidence"]["level"] == "high" else ""
+    L = [f"{level} {c['headline']}{flag}", "", f"*{c['title']}*{_badge(c)}", ""]
+    if c.get("chart"):
+        L += [f"![{c['title']}]({c['chart']})", ""]
+    L += [f"**What we see.** {c['observation']}", ""]
+    if c.get("why_it_matters"):
+        L += [f"**Why it matters.** {c['why_it_matters']}", ""]
+    L += ["**How much to trust it.** " + " ".join(c["confidence"]["reasons"]), ""]
+    L += [f"- {x}" for x in c["checks"]] + ([""] if c["checks"] else [])
+    for a in c["also"]:
+        L += [f"**Same split, {a['target']}.** {a['headline']}. {a['observation']}"] + [f"- {x}" for x in a["checks"]] + [""]
+    for t in c["tables"] + [t for a in c["also"] for t in a["tables"]]:
+        L += _details(f"Per-group figures: {t['title']}", _table_md(t))
+    if c.get("hypotheses"):
+        L += ["**Possible explanations to test (not conclusions):**"] + [f"- {h}" for h in c["hypotheses"]] + [""]
+    if c.get("check_next"):
+        L += ["**Check next:**"] + [f"- {x}" for x in c["check_next"]] + [""]
     return L
 
 
-def build_report(state: dict, summary: str, recs: list[str], run_mode: str = "") -> str:
+def _evidence_section(view: dict) -> list[str]:
+    ev = view["evidence"]
+    if not ev:
+        return ["## Evidence", "", "No finding named by the goal, or reliable with a medium or larger effect, was found.", ""]
+    L = ["## Evidence", "", f"The {len(ev)} findings that matter most: named by your goal, or still significant after correction with a medium or larger effect. Ordered by importance.", ""]
+    for c in ev:
+        L += _card_md(c)
+    return L
+
+
+def _checked_section(view: dict) -> list[str]:
+    ch = view["checked"]
+    if not ch:
+        return []
+    return ["## Checked, nothing found", "", "Tested and not statistically significant: no reliable pattern.", ""] + [f"- {c['line']}" + (f" {c['check']}" if c.get("check") else "") + f" ({c['id']})" for c in ch] + [""]
+
+
+def _strategy_section(state: dict, view: dict) -> list[str]:
+    st = view["strategies"]
+    n_all = len([s for s in state.get("strategies") or [] if s.get("kind") == "data"])
+    if st["strategies"]:
+        L = ["## Strategy and Recommendations", "", f"{len(st['strategies'])} data-backed strateg{'y' if len(st['strategies']) == 1 else 'ies'}" + (f" (merged from {n_all} candidates of the same kind)" if n_all > len(st["strategies"]) else "")
+             + f", ranked by expected impact, confidence and effort. Each is a hypothesis to test with a small pilot first: the analysis shows association, not cause.", ""]
+    else:
+        L = ["## Strategy and Recommendations", "", state.get("strategy_summary", ""), ""]
+    for s in st["strategies"]:
+        L += [f"### {s['rank']}. {s['title']}", "",
+              f"*Data-backed · impact: **{s['impact']}** · effort: **{s['effort']}** · timeline: **{s['horizon']}**" + (f" · confidence: **{str(s['confidence']).capitalize()}**" if s["confidence"] else "") + f" · based on {', '.join(s['evidence'])}*", "",
+              f"**Objective.** {s['objective']}", ""]
+        L += ["**Actions**"] + [f"{i + 1}. {a}" for i, a in enumerate(s["actions"])] + [""]
+        L += [f"**How to test it first.** {s['how_to_test']}", "", "**KPIs to track:** " + "; ".join(s["kpis"]), ""]
+        L += ["**Risks**"] + [f"- {r}" for r in s["risks"][:2]] + [""]
+    if st["dropped"]:
+        L += [f"*{st['dropped']} lower-ranked strateg{'y' if st['dropped'] == 1 else 'ies'} not shown; the Strategy tab of the app lists all of them.*", ""]
+    if st["foundation"]:
+        L += ["**Foundations**", ""] + [f"- {f['line']}" for f in st["foundation"]] + [""]
+    return L
+
+
+def _profile_section(view: dict) -> list[str]:
+    p = view["profile"]
+    body = []
+    for title, key in (("Distributions", "distributions"), ("Outliers (one line per column)", "outliers"), ("Composition", "composition")):
+        if p[key]:
+            body += [f"**{title}**", ""] + [f"- {x['line']}" for x in p[key]] + [""]
+    for t in p["tables"]:
+        body += _details(f"Per-group figures: {t['title']}", _table_md(t))
+    return _details(f"Data profile ({sum(len(p[k]) for k in ('distributions', 'outliers', 'composition'))} lines)", body) if body else []
+
+
+def _appendix_section(view: dict) -> list[str]:
+    L = ["## Appendix", ""]
+    if view["appendix"]:
+        body: list[str] = []
+        for c in view["appendix"]:
+            body += _card_md(c, "####")
+        L += _details(f"More findings ({len(view['appendix'])}): reliable but small, or not named by the goal", body)
+    return L + _profile_section(view)
+
+
+def _setup_section(state: dict) -> list[str]:
     plan, prof, ctx = state["plan"], state["profile"], state.get("context") or {}
-    title = "# Analysis report" + (f": {ctx['company']}" if ctx.get("company") else "")
-    L = [title, "", f"**Mode:** {run_mode or derive_mode(state.get('stage_sources'))}", "", "## Executive summary", "", summary, "", "**Top recommendations**", ""] + [f"- {r}" for r in recs]
-
-    km = state.get("key_metrics") or []
-    if km:
-        L += ["", "## Key numbers", ""] + [f"- **{m['label']}:** {m['value']}" + (f" ({m['note']})" if m.get("note") else "") for m in km]
-
+    L: list[str] = []
     if ctxmod.has_context(ctx):
         lens = ctxmod.lens(ctx)
-        L += ["", "## About the business (as you described it)", ""]
+        L += ["### About the business (as you described it)", ""]
         if ctx.get("company"):
             L.append(f"- **Company:** {ctx['company']}")
         L.append(f"- **Industry lens used:** {ctx.get('industry') or lens['label']}")
@@ -210,13 +263,11 @@ def build_report(state: dict, summary: str, recs: list[str], run_mode: str = "")
         if ctx.get("audience"):
             L.append(f"- **Audience:** {ctx['audience']}")
         L.append("- This context steers what is analysed and how it is worded. It is not verified against the data.")
-
-    L += ["", "## What we set out to answer", "", f"**Objective:** {plan['objective']}", ""]
-    L += [f"- {q}" for q in plan["questions"]]
+    L += ["", "### What we set out to answer", "", f"**Objective:** {plan['objective']}", ""] + [f"- {q}" for q in plan["questions"]]
 
     dm = state.get("data_model")
     if dm:
-        L += ["", "## Data sources and how they were connected", "",
+        L += ["", "### Data sources and how they were connected", "",
               f"{len(dm['tables'])} tables were uploaded: " + ", ".join(f"**{t['name']}** ({t['rows']:,} rows)" for t in dm["tables"]) + ".",
               f"The analysis uses **one row per `{dm['base_table']}` row** ({dm['base_reason']}).", ""]
         for r in dm["relationships"]:
@@ -226,29 +277,25 @@ def build_report(state: dict, summary: str, recs: list[str], run_mode: str = "")
         if not dm["relationships"]:
             L.append("- No key links were found between the tables.")
 
-    L += ["", "## Data and cleaning", "",
+    L += ["", "### Data and cleaning", "",
           f"{prof['rows']:,} rows × {prof['cols']} columns. Columns used: {', '.join(f'`{c}`' for c in plan['relevant_columns']) or 'n/a'}.", ""]
-    L += [f"- **{s['step']}**: {s['detail']}" for s in state["cleaning_log"]] or ["- No cleaning changes were needed."]
-    L += _definitions_section(state)
+    return L + ([f"- **{s['step']}**: {s['detail']}" for s in state["cleaning_log"]] or ["- No cleaning changes were needed."])
 
-    L += ["", "## Insights", "", "Each insight shows what the data says, why it matters, how much to trust it, and what to check next. Ordered by importance.", ""]
-    first, later = split_insights(state)
-    L += _insight_blocks(first)
-    if later:
-        L += ["## What drives the result", "", "Coverage the analysis added on its own: the breakdowns by the broader and finer levels of your categories, the seasonality by month, and the other measures. Ordered by importance.", ""]
-        L += _insight_blocks(later)
 
-    L += ["## Strategy and Recommendations", "", state.get("strategy_summary", ""), ""]
-    for s in state.get("strategies", []):
-        tag = "Data-backed" if s["kind"] == "data" else "Foundation (not derived from a finding)"
-        L += [f"### {s['rank']}. {s['title']}", "",
-              f"*{tag} · impact: **{s['impact']}** · effort: **{s['effort']}** · timeline: **{s['horizon']}**" + (f" · confidence: **{str(s['confidence']).capitalize()}**" if s["confidence"] else "") + "*", "",
-              f"**Objective.** {s['objective']}", ""]
-        if s["evidence"]:
-            L += ["**Based on.** " + "; ".join(f"{f['insight']['headline']}" for f in state["findings"] if f["id"] in s["evidence"]), ""]
-        L += ["**Actions**"] + [f"1. {a}" if i == 0 else f"{i + 1}. {a}" for i, a in enumerate(s["actions"])] + [""]
-        L += [f"**How to test it first.** {s['how_to_test']}", "", "**KPIs to track:** " + "; ".join(s["kpis"]), ""]
-        L += ["**Risks**"] + [f"- {r}" for r in s["risks"]] + [""]
+def build_report(state: dict, summary: str, recs: list[str], run_mode: str = "", view: dict | None = None) -> str:
+    ctx = state.get("context") or {}
+    view = view or state.get("report_view") or tiering.build_view(state)
+    title = "# Analysis report" + (f": {ctx['company']}" if ctx.get("company") else "")
+    L = [title, "", f"**Mode:** {run_mode or derive_mode(state.get('stage_sources'))}", "", "## Executive summary", "", summary, ""]
+    if view["headlines"]:
+        L += ["**Headline findings**", ""] + [f"- {h['text']} ({h['id']})" for h in view["headlines"]] + [""]
+    L += ["**Top recommendations**", ""] + [f"- {r}" for r in recs[:tiering.ACTIONS_MAX]]
+
+    km = view["numbers"] or state.get("key_metrics") or []
+    if km:
+        L += ["", "## Key numbers", ""] + [f"- **{m['label']}:** {m['value']}" + (f" ({m['note']})" if m.get("note") else "") for m in km]
+
+    L += [""] + _evidence_section(view) + _checked_section(view) + _strategy_section(state, view)
 
     gaps = state.get("data_gaps") or []
     if gaps:
@@ -256,8 +303,10 @@ def build_report(state: dict, summary: str, recs: list[str], run_mode: str = "")
 
     L += ["## Reliability and limitations", ""]
     L += [f"- {'⚠️ ' if i['severity'] == 'warn' else ''}{i['text']}" for i in state["critique"]["issues"]] or ["- No issues flagged."]
-    L += ["- These are statistical associations in observational data; they do not prove cause and effect. Strategies are hypotheses to test."]
-    L += ["", "## Power BI", "", "A ready-to-load Power BI pack (cleaned data, data model, DAX measures and visual specs) was generated alongside this report."]
+    L += ["- These are statistical associations in observational data; they do not prove cause and effect. Strategies are hypotheses to test.", ""]
+    L += _definitions_section(state)
+    L += _appendix_section(view) + _details("How the data was set up (business, sources, cleaning)", _setup_section(state))
+    L += ["## Power BI", "", "A ready-to-load Power BI pack (cleaned data, data model, DAX measures and visual specs) was generated alongside this report."]
     return "\n".join(L)
 
 

@@ -27,7 +27,7 @@ function Matrix({ items }: { items: Strategy[] }) {
   );
 }
 
-export default function StrategyView({ strategies, summary, gaps, findings }: { strategies: Strategy[]; summary: string; gaps: DataGap[]; findings: Finding[] }) {
+export default function StrategyView({ strategies, summary, gaps, findings, foundation = [], dropped = 0 }: { strategies: Strategy[]; summary: string; gaps: DataGap[]; findings: Finding[]; foundation?: { id: string; line: string }[]; dropped?: number }) {
   const backed = strategies.filter((s) => s.kind === "data");
   const headline = (id: string) => findings.find((f) => f.id === id)?.insight?.headline ?? id;
   return (
@@ -61,7 +61,7 @@ export default function StrategyView({ strategies, summary, gaps, findings }: { 
           <p>{s.objective}</p>
           {s.evidence.length > 0 && (
             <p className="muted small">
-              <strong>Based on:</strong> {s.evidence.map(headline).join("; ")}
+              <strong>Based on:</strong> {s.evidence.map((id) => `${headline(id)} (${id})`).join("; ")}
             </p>
           )}
           <div className="strat-cols">
@@ -92,6 +92,14 @@ export default function StrategyView({ strategies, summary, gaps, findings }: { 
           </div>
         </article>
       ))}
+
+      {dropped > 0 && <p className="muted small">{dropped} lower-ranked {dropped === 1 ? "strategy is" : "strategies are"} not shown.</p>}
+      {foundation.length > 0 && (
+        <section>
+          <h4>Foundations</h4>
+          <ul className="tight">{foundation.map((f) => <li key={f.id}>{f.line}</li>)}</ul>
+        </section>
+      )}
 
       {gaps.length > 0 && (
         <section className="gaps">

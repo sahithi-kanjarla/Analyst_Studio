@@ -35,6 +35,58 @@ export interface Strategy {
   horizon: string;
   confidence: string;
   source: "rules" | "llm";
+  merged_from?: string[];
+}
+
+export interface CardTable {
+  id: string;
+  title: string;
+  columns: string[];
+  rows: (string | number | null)[][];
+  total: number;
+}
+
+export interface CardPart {
+  id: string;
+  target: string;
+  headline: string;
+  observation: string;
+  checks: string[];
+  tables: CardTable[];
+}
+
+/** One card of the report: a finding with its median check, its ratio and its per-group tables folded in. */
+export interface ReportCard {
+  id: string;
+  members: string[];
+  tool: string;
+  title: string;
+  tier: number;
+  headline: string;
+  observation: string;
+  why_it_matters: string;
+  confidence: Insight["confidence"];
+  kpi_related: boolean;
+  chart?: string;
+  chart_url?: string;
+  checks: string[];
+  tables: CardTable[];
+  also: CardPart[];
+  hypotheses: string[];
+  check_next: string[];
+  stats: { n?: number; p?: number; p_adjusted?: number };
+}
+
+export interface ReportView {
+  answers: { question: string; answer: string }[];
+  numbers: { label: string; value: string; note: string }[];
+  headlines: { id: string; members: string[]; text: string }[];
+  actions: { text: string; evidence: string[] }[];
+  evidence: ReportCard[];
+  appendix: ReportCard[];
+  checked: { id: string; line: string; check: string }[];
+  profile: { distributions: { id: string; line: string }[]; outliers: { id: string; line: string }[]; composition: { id: string; line: string }[]; tables: CardTable[] };
+  strategies: { strategies: Strategy[]; foundation: { id: string; title: string; line: string }[]; dropped: number };
 }
 
 export interface DataGap {
@@ -218,6 +270,7 @@ export interface RunResult {
   error?: string;
   llm_mode?: string;
   report_md?: string;
+  report_view?: ReportView;
   findings?: Finding[];
   cleaning_log?: CleaningStep[];
   critique?: { issues: Issue[] };
