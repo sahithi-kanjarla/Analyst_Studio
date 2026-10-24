@@ -23,7 +23,7 @@ from . import brief as briefmod, clarify, derived, glossary, placeholders
 from . import goal as goalmod
 from . import context as ctxmod
 from . import critic as critic_mod
-from . import insights, planner, polarity as polmod, powerbi, relations, reporter, signals, strategy, tiering, tools
+from . import insights, planner, polarity as polmod, powerbi, relations, reporter, signals, strategy, summary, tiering, tools
 from .cleaner import add_derived, apply_directives, coerce_types, scoped_clean
 from .config import MAX_ITERATIONS
 from .events import emit, set_quiet
@@ -68,6 +68,7 @@ class RunState(TypedDict, total=False):
     remove_derived: list
     derived_metrics: dict
     goal_answer: dict
+    summary_facts: dict
     polarity: dict
     workspace: str
     decisions: list
@@ -489,13 +490,15 @@ def report_node(state: RunState) -> dict:
     emit(rid, "Reporter", "Writing the report…")
     answer = goalmod.answer(state)
     st = {**state, "goal_answer": answer, "decisions": list(state.get("decisions") or [])}
-    view = tiering.build_view(st, pd.read_pickle(_wd(state) / "clean.pkl"))
+    df = pd.read_pickle(_wd(state) / "clean.pkl")
+    st["summary_facts"] = summary.pick(llm, st, summary.ranking_facts(st, df))      # group rankings from the data; which finding answers which question
+    view = tiering.build_view(st, df)
     st["report_view"] = view
     md, mode = reporter.write_report(st, llm)
     (_wd(state) / "report.md").write_text(md, encoding="utf-8")
     emit(rid, "Reporter", f"Report written ({ {'llm': 'summary by LLM, numbers from the analysis tools', 'mixed': 'LLM summary with unverified sentences dropped'}.get(mode, 'rule-based summary') }).")
     sources = {**(state.get("stage_sources") or {}), "report": mode}
-    return {"report_md": md, "report_view": view, "goal_answer": answer, "stage_sources": sources, "run_mode": derive_mode(sources), "decisions": st["decisions"]}
+    return {"report_md": md, "report_view": view, "goal_answer": answer, "summary_facts": st["summary_facts"], "stage_sources": sources, "run_mode": derive_mode(sources), "decisions": st["decisions"]}
 
 
 def powerbi_node(state: RunState) -> dict:

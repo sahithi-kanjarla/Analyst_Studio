@@ -62,7 +62,12 @@ def ids(cards):
 def test_tier_caps_and_hypotheses_only_on_tiers_one_and_two():
     view = tiering.build_view(make_state())
     assert len(view["evidence"]) == tiering.EVIDENCE_MAX == 8
-    assert len(view["headlines"]) == tiering.HEADLINES_MAX == 5 and view["headlines"][0]["id"] == view["evidence"][0]["id"]
+    assert len(view["headlines"]) == tiering.HEADLINES_MAX == 5
+    ranking_ids = {r["id"] for r in view["rankings"]}
+    finding_ids = {f["id"] for f in make_state()["findings"]}
+    assert all(h["id"] in ranking_ids | finding_ids for h in view["headlines"])                           # ranking facts and findings that answer goal questions lead
+    if ranking_ids:
+        assert view["headlines"][0]["id"] in ranking_ids
     assert len(view["actions"]) <= tiering.ACTIONS_MAX == 3
     assert all(len(c["hypotheses"]) <= 2 and len(c["check_next"]) <= 2 and c["hypotheses"] for c in view["evidence"])
     assert view["appendix"] and all(not c["hypotheses"] and not c["check_next"] for c in view["appendix"])

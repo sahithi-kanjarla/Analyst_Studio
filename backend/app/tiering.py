@@ -1,6 +1,6 @@
 """Report size: three tiers over the same findings. Presentation only; no analysis or statistic is computed or changed here.
 
-  Tier 1  the answer: one line per goal question, key numbers, up to 5 headline findings, up to 3 actions
+  Tier 1  the answer: one line per goal question (or "Not answered"), key numbers, up to 5 headline findings, up to 3 actions
   Tier 2  evidence: up to 8 cards (goal-named, or significant after correction with a medium or larger effect)
   Tier 3  appendix: everything else, collapsed. Not significant -> one "Checked, nothing found" line each; composition, distribution and outliers -> data profile
 
@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import re
 
-from . import wording
+from . import summary, wording
 from .clarify import named_in_goal
 from .insights import effect_label
 from .tools import _fmt
@@ -274,34 +274,22 @@ def merge_strategies(state: dict) -> dict:
 
 # ------------------------------------------------------------------ key numbers
 def key_numbers(state: dict, df=None) -> list[dict]:
-    """Total of each additive KPI, the overall ratio KPI(s), and the period. Computed from the cleaned data when it is given; otherwise from the existing key metrics."""
+    """Total of every additive KPI (written in full), every ratio KPI as a ratio of sums, and the period. Computed from the cleaned data when it is given; otherwise from the existing key metrics."""
     existing = [m for m in state.get("key_metrics") or [] if m["label"].startswith(("Total ", "Period")) or "(total " in m["label"]]
     if df is None:
         return existing
     import pandas as pd
-    from .brief import kinds
     from .derived import ratio_of_sums
-    from .measures import is_money, measure_kind
-    plan, cur = state.get("plan") or {}, (state.get("context") or {}).get("currency", "")
-    ratios = _ratios(state)
-    ov = kinds(state.get("brief"))
-    roles = (state.get("brief") or {}).get("roles") or {}
-    used = [plan.get("target")] + [c for c, r in roles.items() if r == "measure" and c in (plan.get("relevant_columns") or [])] + [(f.get("params") or {}).get("target") for f in state.get("findings") or []]
-    cols, seen = [], set()
-    for c in used:
-        if c and c in df.columns and c not in seen and c not in ratios and measure_kind(c, overrides=ov) == "additive":
-            seen.add(c)
-            cols.append(c)
+    cols, ratios = summary.kpi_measures(state, df)
     out = []
-    for c in cols[:4]:
+    for c in cols:
         x = pd.to_numeric(df[c], errors="coerce").dropna()
         if len(x):
-            out.append({"label": f"Total {c}", "value": f"{cur if is_money(c, narrow=True) else ''}{_fmt(x.sum())}", "note": ""})
+            out.append({"label": f"Total {c}", "value": summary.full(x.sum(), summary._cur(c, state)), "note": ""})
     for name, spec in ratios.items():
-        if name in df.columns and spec.get("a") in df.columns and spec.get("b") in df.columns:
-            r = ratio_of_sums(df, spec)
-            if r is not None:
-                out.append({"label": f"{name} (total {spec['a']} over total {spec['b']})", "value": f"{r:.1%}" if spec.get("part_of") else _fmt(r), "note": ""})
+        r = ratio_of_sums(df, spec)
+        if r is not None:
+            out.append({"label": f"{name} (total {spec['a']} over total {spec['b']})", "value": summary._ratio_text(r, r), "note": ""})
     per = next((m for m in existing if m["label"].startswith("Period")), None)
     return out + ([per] if per else [])
 
@@ -322,12 +310,15 @@ def build_view(state: dict, df=None) -> dict:
         f = by_id[c["id"]]
         c["hypotheses"], c["check_next"] = _bullets(_ins(f).get("hypotheses")), _bullets(_ins(f).get("check_next"))
     strat = merge_strategies(state)
-    heads = evidence[:HEADLINES_MAX]
+    facts = state.get("summary_facts") or ({"rankings": summary.ranking_facts(state, df)} if df is not None else None)
+    answered = summary.answers(state, facts)
+    heads = summary.headlines(state, facts, answered)
     actions = [{"text": f"{s['title']}: {s['objective']}", "evidence": s["evidence"]} for s in strat["strategies"][:ACTIONS_MAX]]
     return {
-        "answers": [{"question": q, "answer": a} for q, a in wording.question_answers(state, named_in_goal)],
+        "answers": answered,
         "numbers": key_numbers(state, df),
-        "headlines": [{"id": c["id"], "members": c["members"], "text": c["headline"]} for c in heads],
+        "headlines": heads,
+        "rankings": (facts or {}).get("rankings") or [],
         "actions": actions,
         "evidence": evidence,
         "appendix": appendix,
