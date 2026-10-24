@@ -1,9 +1,16 @@
+@property --angle { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
 :root {
-  --bg: #f6f7fb; --card: #fff; --ink: #1f2937; --muted: #6b7280; --line: #e5e7eb;
-  --brand: #4f6bed; --brand-ink: #fff; --ok: #137a4b; --ok-bg: #e3f6ec; --warn: #9a5b00; --warn-bg: #fff2d6; --err: #b42318; --err-bg: #fde8e6;
+  --bg: #f3f5f9; --card: #ffffff; --ink: #0f172a; --muted: #5b667a; --line: #dfe4ec;
+  --brand: #2b59d6; --brand-2: #2b59d6; --brand-ink: #fff; --grad: #2b59d6;
+  --ok: #0f7a4a; --ok-bg: #e1f4ea; --warn: #92580a; --warn-bg: #fdf0d5; --err: #b42318; --err-bg: #fde8e6;
+  --shadow: 0 1px 2px rgba(15,23,42,.04), 0 4px 14px -6px rgba(15,23,42,.10);
+  --glow-a: rgba(43,89,214,.07); --glow-b: transparent; --glow-c: transparent; --grid: rgba(15,23,42,.06);
 }
 @media (prefers-color-scheme: dark) {
-  :root { --bg: #0f1218; --card: #171b24; --ink: #e5e7eb; --muted: #9aa3b2; --line: #2a303c; --ok: #5fd39a; --ok-bg: #12301f; --warn: #f2b84b; --warn-bg: #332708; --err: #ff8a80; --err-bg: #3a1613; }
+  :root { --bg: #0b0f17; --card: #121826; --ink: #e6eaf2; --muted: #93a0b5; --line: #232d3f; --brand: #6c8cff; --brand-2: #6c8cff; --grad: #4d72f0;
+    --ok: #5fd39a; --ok-bg: rgba(95,211,154,.13); --warn: #f2b84b; --warn-bg: rgba(242,184,75,.13); --err: #ff8a80; --err-bg: rgba(255,138,128,.13);
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px -10px rgba(0,0,0,.6);
+    --glow-a: rgba(77,114,240,.10); --grid: rgba(255,255,255,.045); }
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 Inter, system-ui, -apple-system, "Segoe UI", sans-serif; }
@@ -188,7 +195,7 @@ textarea:disabled { opacity: .55; }
 
 /* ---- interactive BI dashboard (always dark, like a Power BI report canvas) ---- */
 .bi { --b-ink: #f4f1ff; --b-mute: #a69dc9; --b-line: rgba(255,255,255,.14); --b-card: rgba(255,255,255,.065);
-  background: radial-gradient(1200px 600px at 10% -10%, #3a1f73 0%, transparent 60%), linear-gradient(160deg, #1b1035 0%, #271350 55%, #1a1233 100%);
+  background: #141a2b;
   color: var(--b-ink); border-radius: 16px; padding: 20px; min-width: 0; }
 .bi h3 { margin: 0; font-size: 22px; letter-spacing: -.01em; }
 .bi-muted { color: var(--b-mute); margin: 2px 0 0; }
