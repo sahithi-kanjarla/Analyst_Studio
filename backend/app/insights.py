@@ -82,21 +82,43 @@ def allowed_numbers(*texts) -> list[float]:
     return vals + extra
 
 
-def numbers_ok(text: str, allowed: list[float]) -> bool:
-    """Anti-hallucination guard for LLM prose: every number must come from the facts we gave it (small counts and years excepted)."""
-    for m in NUM_RE.finditer(str(text)):
+SUFFIX_RE = re.compile(r"\s?(Cr|crore|lakh|million|billion|thousand|bn|K|k|M|L)\b")
+SUFFIX_SCALE = {"K": 1e3, "k": 1e3, "thousand": 1e3, "L": 1e5, "lakh": 1e5, "M": 1e6, "million": 1e6, "Cr": 1e7, "crore": 1e7, "bn": 1e9, "billion": 1e9}
+
+
+def _matches(v: float, decimals: int, scale: float, allowed: list[float]) -> bool:
+    """True when the written number `v` (with `decimals` shown and a K/M/L/Cr `scale`) is a rounding of an allowed value,
+    read as written, as a percent of a fraction (0.385 = 38.5%) or as a fraction of a percent (38.5 = 0.385)."""
+    half = 0.5 * 10 ** -decimals * scale + 1e-9
+    target = v * scale
+    for a in allowed:
+        for c in (a, a * 100 if abs(a) <= 1 else a, a / 100 if abs(a) > 1 else a):
+            if abs(target - c) <= half:
+                return True
+    return False
+
+
+def unverified_numbers(text: str, allowed: list[float]) -> list[str]:
+    """Numbers in LLM prose that match nothing we gave it. Accepted: a rounding to 0-2 decimals, fraction/percent, K/M/L/Cr suffixes,
+    thousands separators, and years that appear in the data. Small integers get no free pass."""
+    text, bad = str(text), []
+    for m in NUM_RE.finditer(text):
         raw = m.group(0).replace(",", "").rstrip(".")
         try:
             v = float(raw)
         except ValueError:
             continue
-        pct = text[m.end():m.end() + 1] == "%"
-        if v == int(v) and not pct and (v <= 10 or 1900 <= v <= 2100):
-            continue
-        tol = max(0.5, 0.01 * abs(v)) if abs(v) >= 10 else max(0.06 * abs(v), 0.006)
-        if not any(abs(v - a) <= tol for a in allowed):
-            return False
-    return True
+        suf = SUFFIX_RE.match(text, m.end())
+        scale = SUFFIX_SCALE[suf.group(1)] if suf else 1.0
+        decimals = len(raw.split(".")[1]) if "." in raw else 0
+        if not _matches(v, decimals, scale, allowed):
+            bad.append(m.group(0).rstrip(".,") + (suf.group(0) if suf else "") + ("%" if text[m.end():m.end() + 1] == "%" else ""))
+    return bad
+
+
+def numbers_ok(text: str, allowed: list[float]) -> bool:
+    """Anti-hallucination guard for LLM prose: every number must come from the facts we gave it (see `unverified_numbers`)."""
+    return not unverified_numbers(text, allowed)
 
 
 # ------------------------------------------------------------------ why this chart
@@ -383,7 +405,7 @@ def enrich_with_llm(llm, state: dict) -> int:
     findings = [f for f in state["findings"] if f["tool"] != "robust_compare"][:12]
     ctx_txt = ctxmod.context_text(state.get("context"))
     payload = [{"id": f["id"], "headline": f["insight"]["headline"], "facts": f["text"].replace("**", ""), "confidence": f["insight"]["confidence"]["label"]} for f in findings]
-    out = ask_json(llm, ENRICH_SYSTEM, (f"COMPANY CONTEXT (user-written, unverified):\n{ctx_txt}\n\n" if ctx_txt else "") + f"GOAL: {state['goal']}\nINSIGHTS:\n{json.dumps(payload, default=str)}")
+    out = ask_json(llm, ENRICH_SYSTEM, (f"COMPANY CONTEXT (user-written, unverified):\n{ctx_txt}\n\n" if ctx_txt else "") + f"GOAL: {state['goal']}\nINSIGHTS:\n{json.dumps(payload, default=str, ensure_ascii=False)}")
     if not out or not isinstance(out.get("insights"), list):
         return 0
     by_id = {f["id"]: f for f in findings}
@@ -392,7 +414,7 @@ def enrich_with_llm(llm, state: dict) -> int:
         f = by_id.get(item.get("id")) if isinstance(item, dict) else None
         if not f:
             continue
-        allowed = allowed_numbers(f["text"], f["title"], json.dumps(f["stats"], default=str), ctx_txt)
+        allowed = allowed_numbers(f["text"], f["title"], json.dumps(f["stats"], default=str, ensure_ascii=False), ctx_txt)
         ins, changed = f["insight"], False
         why = item.get("why_it_matters")
         if isinstance(why, str) and 20 <= len(why) <= 500 and numbers_ok(why, allowed):
@@ -451,7 +473,7 @@ def data_gaps(state: dict) -> list[dict]:
     blob = " ".join(names).lower()
     gaps: list[dict] = []
     for k in ctx.get("kpis", []):
-        if kpi_found(state.get("brief"), k):
+        if kpi_found(state.get("brief"), k) or any(d.get("kpi") == k for d in (state.get("derived_metrics") or {}).get("created", [])):
             continue
         kt = ctxmod.kpi_tokens({"kpis": [k]})
         if kt and not any(kt & ctxmod.tokens(re.sub(r"([a-z])([A-Z])", r"\1 \2", n).replace("_", " ")) for n in names):

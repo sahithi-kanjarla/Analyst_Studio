@@ -3,10 +3,11 @@ The LLM (if available) only writes the executive summary and top recommendations
 from __future__ import annotations
 
 import json
+import re
 
 from . import context as ctxmod, wording
 from .clarify import named_in_goal
-from .insights import allowed_numbers, numbers_ok
+from .insights import allowed_numbers, unverified_numbers
 from .llm import ask_json
 from .propose import derive_mode
 
@@ -41,7 +42,18 @@ def rule_summary(state: dict) -> tuple[str, list[str]]:
     return summary, recs
 
 
-def llm_summary(llm, state: dict) -> tuple[str, list[str]] | None:
+def _log(state: dict, reason: str, rejected: list[str], raw, dropped: list[str] | None = None) -> None:
+    state.setdefault("decisions", []).append({
+        "decision": "report_summary", "source": "fallback" if dropped is None else "mixed", "chosen": "rules summary" if dropped is None else "LLM summary with unverified sentences dropped",
+        "why": reason, "errors": [f"rejected numbers: {', '.join(rejected) or 'none'}"] + (dropped or []), "raw_output": str(raw)[:500]})
+
+
+def _sentences(text: str) -> list[str]:
+    return [s for s in re.split(r"(?<=[.!?])\s+|\n+", text) if s.strip()]
+
+
+def llm_summary(llm, state: dict) -> tuple[str, list[str], bool] | None:
+    """(summary, recommendations, partial). Sentences/recommendations with numbers not in the findings are dropped; None only if nothing is left."""
     ctx_txt = ctxmod.context_text(state.get("context"))
     c = wording.counts(state["findings"])
     payload = [{"headline": f["insight"]["headline"], "facts": f["text"].replace("**", ""), "confidence": f["insight"]["confidence"]["label"],
@@ -52,14 +64,38 @@ def llm_summary(llm, state: dict) -> tuple[str, list[str]] | None:
         "Be plain and concise, distinguish association from causation, and respect the caveats. If company context is given, use its vocabulary. "
         "Return JSON: {\"summary\": \"3-5 sentence executive summary answering the goal\", \"recommendations\": [3-5 concrete, prioritized actions tied to specific findings]}",
         (f"COMPANY CONTEXT (user-written, unverified):\n{ctx_txt}\n" if ctx_txt else "") +
-        f"GOAL: {state['goal']}\nCOUNTS (quote these exactly, never recount): {json.dumps(c)}\nCAVEATS: {json.dumps([i['text'] for i in state['critique']['issues']][:8])}\nFINDINGS: {json.dumps(payload, default=str)}",
+        f"GOAL: {state['goal']}\nCOUNTS (quote these exactly, never recount): {json.dumps(c, ensure_ascii=False)}\nCAVEATS: {json.dumps([i['text'] for i in state['critique']['issues']][:8], ensure_ascii=False)}\nFINDINGS: {json.dumps(payload, default=str, ensure_ascii=False)}",
     )
-    if out and isinstance(out.get("summary"), str) and isinstance(out.get("recommendations"), list) and out["recommendations"]:
-        allowed = allowed_numbers(json.dumps(payload, default=str), ctx_txt, str(state["profile"]["rows"]), json.dumps(c))
-        text = out["summary"] + " " + " ".join(str(r) for r in out["recommendations"])
-        if numbers_ok(text, allowed):
-            return out["summary"], [str(r) for r in out["recommendations"]][:6]
-    return None
+    if not out:
+        _log(state, "bad JSON: the model returned nothing parseable", [], out)
+        return None
+    if not (isinstance(out.get("summary"), str) and isinstance(out.get("recommendations"), list) and out["recommendations"]):
+        _log(state, "missing fields: need a string 'summary' and a non-empty 'recommendations' list", [], json.dumps(out, default=str))
+        return None
+    allowed = allowed_numbers(json.dumps(payload, default=str, ensure_ascii=False), ctx_txt, str(state["profile"]["rows"]), json.dumps(c, ensure_ascii=False))
+    kept, dropped, rejected = [], [], []
+    for s in _sentences(out["summary"]):
+        bad = unverified_numbers(s, allowed)
+        if bad:
+            dropped.append(f"summary sentence dropped: {s}")
+            rejected.extend(bad)
+        else:
+            kept.append(s)
+    recs = []
+    for r in (str(r) for r in out["recommendations"]):
+        bad = unverified_numbers(r, allowed)
+        if bad:
+            dropped.append(f"recommendation dropped: {r}")
+            rejected.extend(bad)
+        else:
+            recs.append(r)
+    raw = json.dumps(out, default=str)
+    if not kept:
+        _log(state, "numbers_ok: no summary sentence survived verification", rejected, raw, None)
+        return None
+    if dropped:
+        _log(state, "numbers_ok: some sentences/recommendations had numbers not in the findings and were dropped", rejected, raw, dropped)
+    return " ".join(kept), recs[:6], bool(dropped)
 
 
 def _badge(f: dict) -> str:
@@ -103,6 +139,52 @@ def _definitions_section(state: dict) -> list[str]:
         L += [f"- **{_cell(t)}:** {_cell(x)}" for t, x in terms.items()]
         if notes:
             L.append(f"- *Notes:* {_cell(notes)}")
+    return L
+
+
+GROUP_PARAMS = ("group", "group_a", "group_b", "by")
+
+
+def _group_cols(f: dict) -> list[str]:
+    return [f["params"][k] for k in GROUP_PARAMS if f.get("params", {}).get(k)]
+
+
+def split_insights(state: dict) -> tuple[list[dict], list[dict]]:
+    """(on the goal's own terms, what drives the result). A finding on a column the goal names comes first. What the code added for coverage, and the splits
+    by columns the goal does not name, come later. When the goal names no column the plan splits by, only the code-added findings come later."""
+    goal = state.get("goal", "")
+    plan_groups = {c for a in state["plan"]["analyses"] for k, c in a["params"].items() if k in GROUP_PARAMS}
+    goal_named = any(named_in_goal(c, goal) for c in plan_groups)
+    first, later = [], []
+    for f in _rank(state["findings"]):
+        cols = _group_cols(f)
+        named = any(named_in_goal(c, goal) for c in cols)
+        coverage = (f.get("origin") == "code" and not named) or (goal_named and bool(cols) and not named)
+        (later if coverage else first).append(f)
+    return first, later
+
+
+def _insight_blocks(findings: list[dict]) -> list[str]:
+    L: list[str] = []
+    for f in findings:
+        ins = f["insight"]
+        flag = " ✅" if ins["confidence"]["level"] == "high" else ""
+        L += [f"### {ins['headline']}{flag}", "", f"*{f['title']}*{_badge(f)}", ""]
+        if f.get("chart"):
+            L += [f"![{f['title']}]({f['chart']})", ""]
+        if f.get("table"):
+            t = f["table"]
+            total = t.get("total") or len(t["rows"])
+            L += ["| " + " | ".join(t["columns"]) + " |", "|" + "---|" * len(t["columns"])] + ["| " + " | ".join(str(c) for c in r) + " |" for r in t["rows"][:10]]
+            L += [f"*Showing 10 of {total} rows; the Data and Dashboard tabs show all of them.*" if total > 10 else "", ""]
+        L += [f"**What we see.** {ins['observation']}", ""]
+        if ins.get("why_it_matters"):
+            L += [f"**Why it matters.** {ins['why_it_matters']}", ""]
+        L += ["**How much to trust it.** " + " ".join(ins["confidence"]["reasons"]), ""]
+        if ins.get("hypotheses"):
+            L += ["**Possible explanations to test (not conclusions):**"] + [f"- {h}" for h in ins["hypotheses"]] + [""]
+        if ins.get("check_next"):
+            L += ["**Check next:**"] + [f"- {c}" for c in ins["check_next"]] + [""]
     return L
 
 
@@ -150,26 +232,11 @@ def build_report(state: dict, summary: str, recs: list[str], run_mode: str = "")
     L += _definitions_section(state)
 
     L += ["", "## Insights", "", "Each insight shows what the data says, why it matters, how much to trust it, and what to check next. Ordered by importance.", ""]
-    for f in _rank(state["findings"]):
-        ins = f["insight"]
-        sig = f.get("significant")
-        flag = " ✅" if ins["confidence"]["level"] == "high" else ""
-        L += [f"### {ins['headline']}{flag}", "", f"*{f['title']}*{_badge(f)}", ""]
-        if f.get("chart"):
-            L += [f"![{f['title']}]({f['chart']})", ""]
-        if f.get("table"):
-            t = f["table"]
-            total = t.get("total") or len(t["rows"])
-            L += ["| " + " | ".join(t["columns"]) + " |", "|" + "---|" * len(t["columns"])] + ["| " + " | ".join(str(c) for c in r) + " |" for r in t["rows"][:10]]
-            L += [f"*Showing 10 of {total} rows; the Data and Dashboard tabs show all of them.*" if total > 10 else "", ""]
-        L += [f"**What we see.** {ins['observation']}", ""]
-        if ins.get("why_it_matters"):
-            L += [f"**Why it matters.** {ins['why_it_matters']}", ""]
-        L += ["**How much to trust it.** " + " ".join(ins["confidence"]["reasons"]), ""]
-        if ins.get("hypotheses"):
-            L += ["**Possible explanations to test (not conclusions):**"] + [f"- {h}" for h in ins["hypotheses"]] + [""]
-        if ins.get("check_next"):
-            L += ["**Check next:**"] + [f"- {c}" for c in ins["check_next"]] + [""]
+    first, later = split_insights(state)
+    L += _insight_blocks(first)
+    if later:
+        L += ["## What drives the result", "", "Coverage the analysis added on its own: the breakdowns by the broader and finer levels of your categories, the seasonality by month, and the other measures. Ordered by importance.", ""]
+        L += _insight_blocks(later)
 
     L += ["## Strategy and Recommendations", "", state.get("strategy_summary", ""), ""]
     for s in state.get("strategies", []):
@@ -196,8 +263,13 @@ def build_report(state: dict, summary: str, recs: list[str], run_mode: str = "")
 
 def write_report(state: dict, llm) -> tuple[str, str]:
     res = llm_summary(llm, state) if llm is not None else None
-    mode = "llm" if res else "rules"
-    summary, recs = res if res else rule_summary(state)
+    mode = ("mixed" if res[2] else "llm") if res else "rules"
+    if res:
+        summary, recs = res[0], res[1]
+        if not recs:
+            recs, mode = rule_summary(state)[1], "mixed"
+    else:
+        summary, recs = rule_summary(state)
     ans = state.get("goal_answer")
     qa = wording.question_answers(state, named_in_goal)
     if qa:       # every planned question gets one line, whether or not an LLM wrote the rest

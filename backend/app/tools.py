@@ -218,6 +218,21 @@ def _derived(ctx, col):
     return ((ctx or {}).get("derived") or {}).get(col)
 
 
+def _pct_ratio(df, spec) -> bool:
+    """A ratio whose numerator can go negative (a profit-like measure, judged from the data of the spec's numerator) is shown as a percentage with loss wording."""
+    if spec is None or spec.get("a") not in df.columns:
+        return False
+    return bool((pd.to_numeric(df[spec["a"]], errors="coerce") < 0).any())
+
+
+def _rfmt(v, pct: bool, plain) -> str:
+    return f"{v:.1%}" if pct else plain(v)
+
+
+def _loss_note(v, name, pct: bool) -> str:
+    return f", loss-making (negative {name})" if pct and v < 0 else ""
+
+
 def _shorten(s, n: int = 28) -> str:
     s = str(s)
     return s if len(s) <= n else s[:n - 1] + "…"
@@ -374,13 +389,20 @@ def _group_frame(df, target, group):
     return d, kind, pos
 
 
-def group_compare(df, ctx, target, group):
+def group_compare(df, ctx, target, group, within=None, within_value=None):
+    """`within` + `within_value` limit the comparison to the rows of one parent value (a drill-down into one category)."""
+    if within is not None:
+        df = df[df[within].astype(str) == str(within_value)]
+        scope = f" within {within} = {within_value}"
+    else:
+        scope = ""
     d, kind, pos = _group_frame(df, target, group)
     if d["g"].nunique() < 2 or len(d) < 10:
         return None
     n_groups = d["g"].nunique()
     cur = _cur(target, ctx)
     spec = _derived(ctx, target) if kind == "numeric" else None      # a derived ratio is shown as a ratio of sums, never a mean of row ratios
+    pct = _pct_ratio(df, spec)
     if kind == "binary":
         agg = d.groupby("g")["y"].agg(["mean", "count"])
         ct = pd.crosstab(d["g"], d["y"])
@@ -416,7 +438,7 @@ def group_compare(df, ctx, target, group):
         text = (f"The {label} for **{target}** is highest in **{group} = {top}** ({means[0]:.1%}) and lowest in **{bot}** ({means[-1]:.1%}). The difference is {sig_word} ({test}).")
     else:
         what = f"**{target}** (total {spec['a']} over total {spec['b']})" if spec is not None else f"Average **{target}**"
-        text = f"{what} is highest for **{group} = {top}** ({cur}{_fmt(means[0])}) and lowest for **{bot}** ({cur}{_fmt(means[-1])}). The difference is {sig_word} ({test})."
+        text = f"{what} is highest for **{group} = {top}** ({_rfmt(means[0], pct, lambda v: cur + _fmt(v))}{_loss_note(means[0], target, pct)}) and lowest for **{bot}** ({_rfmt(means[-1], pct, lambda v: cur + _fmt(v))}{_loss_note(means[-1], target, pct)}). The difference is {sig_word} ({test})."
     st = {"kind": kind, "p": _f(p), "effect": _f(effect), "effect_name": effect_name, "n": int(len(d)), "groups": int(n_groups),
           "min_group_n": int(agg["count"].min()), "best": str(top), "worst": str(bot), "values": {str(k): _f(r) for k, r in agg["mean"].items()}}
     if kind == "binary":
@@ -424,11 +446,14 @@ def group_compare(df, ctx, target, group):
     else:
         st["target_skew"] = _f(d["y"].skew())
         st["ratio_of_sums"] = spec is not None
+    if within is not None:
+        text = f"Within {within} = {within_value}: {text}"
+        st["within"] = {"column": within, "value": str(within_value)}
 
     # ---- what is drawn: the top 8 by the plotted value, always with the best and worst group, then one pooled 'Other' bar
     shown = pick_shown(order, [top, bot], TOP_BARS)
     rest = [g for g in order if g not in shown]
-    fmtv = (lambda v: f"{v:.0%}") if kind == "binary" else (lambda v: f"{cur}{_fmt(v)}")
+    fmtv = (lambda v: f"{v:.0%}") if kind == "binary" else (lambda v: f"{v:.1%}") if pct else (lambda v: f"{cur}{_fmt(v)}")
     labels, values, ns = [str(g) for g in shown], [float(agg.loc[g, "mean"]) for g in shown], [int(agg.loc[g, "count"]) for g in shown]
     err = [1.96 * float(agg.loc[g, "sem"]) if (kind != "binary" and spec is None and pd.notna(agg.loc[g, "sem"])) else 0.0 for g in shown]
     other_at = None
@@ -465,7 +490,7 @@ def group_compare(df, ctx, target, group):
         what = f"the highest rate of {target} = {pos}" if kind == "binary" else f"the highest {target}"
         action = (f"**{group} = {top}** has {what}, versus **{bot}** at the lowest; investigate what separates them. "
                   f"This is an association, so test any change (e.g. a targeted pilot) before assuming cause.")
-    return finding("group_compare", f"{target} by {group}", text, st, _save(fig, ctx, _slug("cmp", target, group)),
+    return finding("group_compare", f"{target} by {group}{scope}", text, st, _save(fig, ctx, _slug("cmp", target, group, within, within_value)),
                    significant=bool(p < 0.05), action=action)
 
 
@@ -636,7 +661,9 @@ def correlation(df, ctx, cols=None):
     pairs = (corr.where(np.triu(np.ones(corr.shape), 1).astype(bool)).stack().sort_values(key=abs, ascending=False).head(3))
     listing = "; ".join(f"{a} & {b}: r={v:.2f}" for (a, b), v in pairs.items())
     strong = [(a, b, v) for (a, b), v in pairs.items() if abs(v) >= 0.5]
-    text = f"Strongest relationships: {listing}. Correlation shows columns move together, not that one causes the other."
+    ratios = [c for c in corr.columns if c in (ctx.get("derived") or {})]
+    basis = f" {', '.join(ratios)} is a ratio, so these correlations use its per-row values (not a group-level ratio of sums)." if ratios else ""
+    text = f"Strongest relationships: {listing}. Correlation shows columns move together, not that one causes the other.{basis}"
     action = f"{strong[0][0]} and {strong[0][1]} are strongly related (r={strong[0][2]:.2f}); consider whether one can serve as a lever or an early indicator for the other." if strong else None
     return finding("correlation", "Relationships between numeric columns", text,
                    {"top_pairs": {f"{a}|{b}": _f(v) for (a, b), v in pairs.items()}, "n": int(len(num))},
@@ -673,7 +700,8 @@ def heatmap(df, ctx, target, group_a, group_b):
     shown = shown.loc[shown.mean(axis=1).sort_values(ascending=False).index, shown.mean(axis=0).sort_values(ascending=False).index]
     cnt = cnt.loc[shown.index, shown.columns]
     cur = _cur(target, ctx)
-    fmt = (lambda v: f"{v:.0%}") if kind == "binary" else (lambda v: f"{cur}{_fmt(v)}")
+    pct = _pct_ratio(df, spec)
+    fmt = (lambda v: f"{v:.0%}") if kind == "binary" else (lambda v: f"{v:.1%}") if pct else (lambda v: f"{cur}{_fmt(v)}")
     trimmed = len(rows_by_size) > len(rs) or len(cols_by_size) > len(cs)
     note = (f"showing the {len(rs)} biggest of {len(rows_by_size)} {group_a} values and {len(cs)} of {len(cols_by_size)} {group_b} values; best and weakest cells use all data"
             if trimmed else "")
@@ -695,8 +723,8 @@ def heatmap(df, ctx, target, group_a, group_b):
                         color="white" if (v - lo) / span > 0.6 else "#1F2937")
     _title(ax, f"Best: {a_hi} × {b_hi} ({fmt(hi)}). Weakest: {a_lo} × {b_lo} ({fmt(lo)})")
     gap = f", a {hi / lo:.1f}× gap" if kind != "binary" and lo > 0 else ""
-    text = (f"Across **{group_a}** and **{group_b}**, {'the rate of ' + str(pos) + ' for ' if kind == 'binary' else ''}**{target}** is highest for **{a_hi} × {b_hi}** ({fmt(hi)}) "
-            f"and lowest for **{a_lo} × {b_lo}** ({fmt(lo)}){gap}. Only combinations with at least 10 rows are shown; these cell-level gaps are not individually "
+    text = (f"Across **{group_a}** and **{group_b}**, {'the rate of ' + str(pos) + ' for ' if kind == 'binary' else ''}**{target}** is highest for **{a_hi} × {b_hi}** ({fmt(hi)}{_loss_note(hi, target, pct)}) "
+            f"and lowest for **{a_lo} × {b_lo}** ({fmt(lo)}{_loss_note(lo, target, pct)}){gap}. Only combinations with at least 10 rows are shown; these cell-level gaps are not individually "
             f"tested, so treat them as leads to check rather than proven differences." + (f" The chart draws only the {len(rs)} biggest {group_a} and {len(cs)} biggest {group_b} values (of {len(rows_by_size)} and {len(cols_by_size)}); the best and weakest cells are found over all data." if trimmed else ""))
     return finding("heatmap", f"{target}: {group_a} × {group_b}", text,
                    {"kind": "heatmap", "n": int(len(d)), "cells": int(cells.size), "positive": str(pos) if kind == "binary" else None, "target_kind": kind,
@@ -969,7 +997,7 @@ def seasonality(df, ctx, target, date):
         m = rr["means"]
         names = [rr["labels"][int(i) - (1 if nm == "month" else 0)] for i in m.index]
         bars = ax.bar(names, m.values, color=[PALETTE[1] if v == m.max() else PALETTE[3] if v == m.min() else "#C9D3F8" for v in m.values])
-        ax.bar_label(bars, labels=[(f"{v:.0%}" if kind == "binary" else _fmt(v)) for v in m.values], padding=2, fontsize=7)
+        ax.bar_label(bars, labels=[(f"{v:.0%}" if kind == "binary" else f"{v:.1%}" if _pct_ratio(df, spec) else _fmt(v)) for v in m.values], padding=2, fontsize=7)
         ax.axhline(rr["grand"], color="#888", ls="--", lw=1)
         ax.margins(y=0.15)
         ax.grid(axis="x", visible=False)
@@ -980,10 +1008,11 @@ def seasonality(df, ctx, target, date):
     hi, lo = r["labels"][int(m.idxmax()) - (1 if name == "month" else 0)], r["labels"][int(m.idxmin()) - (1 if name == "month" else 0)]
     fig.suptitle((f"{target} peaks on {hi} and is lowest on {lo}" if name == "weekday" else f"{target} peaks in {hi} and is lowest in {lo}") if sig else f"No reliable {name} pattern in {target}",
                  fontsize=12, fontweight="bold", x=0.02, ha="left", y=1.04)
-    fmt = (lambda v: f"{v:.0%}") if kind == "binary" else _fmt
+    pct = _pct_ratio(df, spec)
+    fmt = (lambda v: f"{v:.0%}") if kind == "binary" else (lambda v: f"{v:.1%}") if pct else _fmt
     unit = "day of the week" if name == "weekday" else "month of the year"
     text = (f"**{target}** {'varies reliably' if sig else 'does not vary reliably'} by {unit} ({'ANOVA on period totals' if total else 'Kruskal-Wallis'} p{_pf(r['p'])}, effect size eta²={r['eta']:.3f}). "
-            f"Highest: **{hi}** ({fmt(m.max())}); lowest: **{lo}** ({fmt(m.min())}); overall {fmt(r['grand'])}. "
+            f"Highest: **{hi}** ({fmt(m.max())}{_loss_note(m.max(), target, pct)}); lowest: **{lo}** ({fmt(m.min())}{_loss_note(m.min(), target, pct)}); overall {fmt(r['grand'])}. "
             + (f"Values are the average {'monthly' if name == 'month' else 'daily'} total{' across years' if name == 'month' else ''}, not a per-row average." if total
                else f"Values are total {spec['a']} over total {spec['b']} for each {'day of the week' if name == 'weekday' else 'month'}; the test compares {'daily' if name == 'weekday' else 'monthly'} ratios." if spec is not None
                else "Values are averages per row."))
@@ -1097,6 +1126,8 @@ def validate_spec(spec: dict, roles: dict[str, str], uniques: dict[str, int]) ->
         return None, "composition: group and by must be different columns"
     if tool == "scatter" and clean["x"] == clean["y"]:
         return None, "scatter: x and y must be different columns"
+    if tool == "group_compare" and params.get("within") in roles and roles[params["within"]] in ("categorical", "binary") and params.get("within_value") not in (None, ""):
+        clean["within"], clean["within_value"] = params["within"], str(params["within_value"])
     if tool in ("correlation", "summary_table"):
         clean["cols"] = [c for c in (params.get("cols") or []) if roles.get(c) == "numeric"]
     return {"tool": tool, "params": clean, "why": str(spec.get("why", ""))[:240]}, "ok"

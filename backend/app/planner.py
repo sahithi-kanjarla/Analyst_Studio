@@ -14,11 +14,13 @@ import re
 import pandas as pd
 
 from . import context as ctxmod
+from . import derived as derivedmod
 from . import directives as dv
 from . import goal as goalmod
+from . import polarity as polmod
 from .clarify import named_in_goal
 from .profiler import compact_profile
-from .measures import has_sum_word
+from .measures import has_sum_word, measure_kind
 from .propose import AI_SOURCES, propose
 from .tools import CATALOG, MONTH_CYCLE_MIN_DAYS, additive, assoc_strength, spec_signature, validate_spec, target_values  # noqa: F401
 
@@ -26,6 +28,7 @@ PRIOR_TARGET = re.compile(r"revenue|sales|profit|income|price|amount|churn|conve
 MAX_ANALYSES = 14
 MAX_ANALYSES_EXPLORE = 18
 MAX_EXTRA_MEASURES = 3      # measures besides the target that get their own charts: the derived ratio first, then the others (all of them are in the summary table)
+MIN_YEAR_MONTHS = 12        # dates covering this many calendar months always get a month-of-year pattern for the main total and each ratio KPI
 MIN_MEASURE_UNIQUE = 10     # fewer distinct numbers than this is a code or a scale, not a measure
 
 
@@ -95,15 +98,43 @@ def measure_extras(df: pd.DataFrame, roles: dict, uniques: dict, measures: list[
     for m in rest[:MAX_EXTRA_MEASURES]:
         if date:
             out.append({"tool": "trend", "params": {"target": m, "date": date}, "why": f"{m} is also a candidate measure. See how it changes over time (totals or averages, whichever suits it)."})
-        for g in groups[:1]:
+        for i, g in enumerate(groups):
             out.append({"tool": "group_compare", "params": {"target": m, "group": g}, "why": f"Compare the average {m} per record across {g}."})
-            out.append({"tool": "group_table", "params": {"target": m, "group": g}, "why": f"Give the exact totals and averages of {m} by {g}."})
+            if i == 0:     # the exact table is kept for the first group; the comparison itself covers every planned group
+                out.append({"tool": "group_table", "params": {"target": m, "group": g}, "why": f"Give the exact totals and averages of {m} by {g}."})
     return out
+
+
+ID_LIKE_SHARE = 0.05      # an integer column with at least this many distinct values per row, and no declared kind, is a code
+ID_LIKE_MIN_UNIQUE = 50
+ID_LIKE_FILL = 0.5      # share of the min..max range the distinct values occupy; below it the integers are labels, not quantities
+
+
+def id_like_columns(df: pd.DataFrame, roles: dict, uniques: dict, ov: dict) -> list[str]:
+    """Numeric columns that label rows rather than measure anything: the brief called them an id or a code, the rules saw an id, or they are integers with
+    many distinct values whose kind (additive or rate) nobody declared, so a total or an average of them means nothing (postal codes, phone numbers)."""
+    brief = ov.get("brief_roles") or {}
+    kinds = ov.get("kinds") or {}
+    out = []
+    for c, r in roles.items():
+        if r not in ("numeric", "id") or c not in df.columns or c in {d["name"] for d in ov.get("derived") or []}:
+            continue
+        if brief.get(c) == "id" or r == "id":
+            out.append(c)
+        elif r == "numeric" and measure_kind(c, None, kinds) == "other" and uniques.get(c, 0) >= max(ID_LIKE_MIN_UNIQUE, ID_LIKE_SHARE * len(df)) and _integer_valued(df[c]):
+            out.append(c)
+    return out
+
+
+def _integer_valued(s: pd.Series) -> bool:
+    nn = pd.to_numeric(s, errors="coerce").dropna()
+    return bool(len(nn)) and bool((nn % 1 == 0).all()) and nn.nunique() < ID_LIKE_FILL * (nn.max() - nn.min() + 1)      # a code is sparse in its range; tenure or age fills it
 
 
 def candidate_measures(df: pd.DataFrame, roles: dict, uniques: dict, ov: dict) -> list[str]:
     derived = [d["name"] for d in ov.get("derived") or [] if d["name"] in roles]
-    rest = [c for c, r in roles.items() if r == "numeric" and uniques[c] >= MIN_MEASURE_UNIQUE and c in df.columns and c not in derived]
+    ids = set(id_like_columns(df, roles, uniques, ov))
+    rest = [c for c, r in roles.items() if r == "numeric" and uniques[c] >= MIN_MEASURE_UNIQUE and c in df.columns and c not in derived and c not in ids]
     return derived + rest
 
 
@@ -135,14 +166,57 @@ def _span_days(s: pd.Series) -> int:
     return int((t.max() - t.min()).days) if len(t) else 0
 
 
+def _span_months(s: pd.Series) -> int:
+    t = pd.to_datetime(s, errors="coerce").dropna()
+    return int((t.max().year - t.min().year) * 12 + t.max().month - t.min().month + 1) if len(t) else 0
+
+
 def _code(spec: dict, reason: str) -> dict:
     return {**spec, "why": reason, "origin": "code"}
 
 
+def kpi_measures(df: pd.DataFrame, roles: dict, uniques: dict, ov: dict, target: str | None) -> tuple[list[str], list[dict]]:
+    """(additive measures, ratio-of-sums KPI specs): the target first, then the KPIs the user named, then a few other additive candidates."""
+    derived = ov.get("derived") or []
+    kpis = [c for c in (ov.get("kpi_map") or {}).values() if c]
+    others = [c for c in candidate_measures(df, roles, uniques, ov) if c != target and c not in kpis][:MAX_EXTRA_MEASURES]
+    names = {d["name"] for d in derived}
+    adds = [m for m in dict.fromkeys(([target] if target else []) + kpis + others) if roles.get(m) == "numeric" and m not in names and additive(m, {"kinds": ov.get("kinds")})]
+    return adds, [d for d in derived if d.get("kind") == "ratio_of_sums" and d["name"] in roles and d["name"] in df.columns]
+
+
+def top_pairs(pairs: list[tuple[str, str]]) -> list[tuple[str, str]]:
+    """The (parent, child) pairs whose parent is not itself the child of another pair: the top level of each hierarchy."""
+    children = {c for _, c in pairs}
+    return [(p, c) for p, c in pairs if p not in children]
+
+
+def drill_parents(df: pd.DataFrame, parent: str, main: str | None, ratios: list[dict]) -> list[tuple[str, str]]:
+    """(parent value, why) computed from the data: the parent holding the largest share of the main additive KPI, and the parent with the worst ratio KPI
+    (the lowest ratio, or the highest when lower is better for it)."""
+    key = df[parent].astype(str).where(df[parent].notna())
+    out: list[tuple[str, str]] = []
+    if main and main in df.columns:
+        sums = pd.to_numeric(df[main], errors="coerce").groupby(key).sum()
+        if len(sums) and sums.max() > 0:
+            out.append((str(sums.idxmax()), f"{parent} = {sums.idxmax()} holds the largest share of {main}"))
+    for spec in ratios:
+        try:
+            r = derivedmod.group_ratio(df, spec, key)
+        except Exception:
+            continue
+        if len(r) >= 2:
+            worst = r.idxmax() if polmod.direction(spec["name"]) == polmod.LOWER else r.idxmin()
+            if str(worst) not in {v for v, _ in out}:
+                out.append((str(worst), f"{parent} = {worst} has the worst {spec['name']}"))
+    return out
+
+
 def ensure_required(df: pd.DataFrame, roles: dict, uniques: dict, goal: str, explore: bool, ov: dict, target: str | None, date: str | None, analyses: list[dict]) -> list[dict]:
     """The items every plan must have, whoever drew it up. Code adds what is missing (origin "code", with the reason) and never removes anything:
-    a month-of-year seasonality for each additive measure when the goal asks about change and the dates span two years; the parent level of a verified
-    hierarchy right before its child; the measures the user named as KPIs."""
+    a month-of-year seasonality for the main total and each ratio KPI when the dates cover 12 months (and for the other additive measures when the goal
+    asks about change over two years); the parent level of a verified hierarchy right before its child, and for every hierarchy the top level for each KPI plus
+    a drill-down into its child level inside the parent with the largest share and the parent with the worst ratio; the measures the user named as KPIs."""
     out = list(analyses)
 
     def has(spec: dict) -> dict | None:
@@ -176,12 +250,28 @@ def ensure_required(df: pd.DataFrame, roles: dict, uniques: dict, goal: str, exp
             add({"tool": "group_compare", "params": {"target": col, "group": groups[0]}}, why)
         if not date and not groups:
             add({"tool": "distribution", "params": {"col": col}}, why)
-    if date and date in df.columns and goalmod.asks_about_change(goal, explore, ov.get("intent")) and _span_days(df[date]) >= MONTH_CYCLE_MIN_DAYS:
-        ratios = {d["name"] for d in ov.get("derived") or []}
-        kpis = [c for c in (ov.get("kpi_map") or {}).values() if c]
-        others = [c for c in candidate_measures(df, roles, uniques, ov) if c != target and c not in kpis][:MAX_EXTRA_MEASURES]
-        for m in dict.fromkeys(([target] if target else []) + kpis + others):
-            if roles.get(m) == "numeric" and m not in ratios and additive(m, {"kinds": ov.get("kinds")}):
+    adds, ratios = kpi_measures(df, roles, uniques, ov, target)
+    ratio_kpis = [d["name"] for d in ratios]
+    for p, c in top_pairs(_pairs(ov)):      # the broad level of every hierarchy is analysed for each KPI, then the fine level inside the two parents that matter most
+        for m in adds + ratio_kpis:
+            add({"tool": "group_compare", "params": {"target": m, "group": p}}, f"{m} by {p}, the top level of the {p} > {c} hierarchy (added by code: required coverage).")
+        if p in df.columns and c in df.columns:
+            for value, why in drill_parents(df, p, adds[0] if adds else None, ratios):
+                if df.loc[df[p].astype(str) == value, c].nunique() < 2:
+                    continue
+                for m in adds[:1] + ratio_kpis:
+                    add({"tool": "group_compare", "params": {"target": m, "group": c, "within": p, "within_value": value}}, f"Drill-down into {c} for {m}: {why} (added by code: required coverage).")
+    if ratio_kpis and not any(a["tool"] == "correlation" for a in out):     # a ratio KPI is always checked against the numeric drivers (discount, price...), whatever the plan drew up
+        cols = candidate_measures(df, roles, uniques, ov)
+        if len(cols) >= 2:
+            add({"tool": "correlation", "params": {"cols": cols}}, f"{ratio_kpis[0]} is a ratio KPI, so how it moves with the numeric drivers is always checked.")
+    if date and date in df.columns:
+        if _span_months(df[date]) >= MIN_YEAR_MONTHS:      # a year or more of dates: the month-of-year pattern of the main total and of each ratio KPI (ratio of sums per month) is always checked
+            for m in adds[:1] + ratio_kpis:
+                add({"tool": "seasonality", "params": {"target": m, "date": date}},
+                    f"The dates cover {MIN_YEAR_MONTHS} months or more, so the month-of-year pattern of {m} ({'a ratio of sums' if m in ratio_kpis else 'a total'}) is always checked (added by code: required coverage).")
+        if goalmod.asks_about_change(goal, explore, ov.get("intent")) and _span_days(df[date]) >= MONTH_CYCLE_MIN_DAYS:
+            for m in adds[1:]:
                 add({"tool": "seasonality", "params": {"target": m, "date": date}},
                     f"The goal asks about change over time and the dates span two years or more, so the month-of-year pattern of {m} (a total) is always checked.")
     return out
@@ -233,7 +323,7 @@ def heuristic_plan(df: pd.DataFrame, profile: dict, goal: str, context: dict | N
     pair_ab = next(((a, b) for i, a in enumerate(groups) for b in groups[i + 1:] if not _related(a, b, hier)), None)   # a parent and its child always line up, so they make a poor pair
     pair_ac = next(((groups[0], b) for b in groups[2:] if not _related(groups[0], b, hier)), None) if groups else None
 
-    nums = [c for c, r in roles.items() if r == "numeric" and c != target]
+    nums = [c for c, r in roles.items() if r == "numeric" and c != target and c not in id_like_columns(df, roles, uniques, ov)]
     drivers = nums[:5]
     if target and nums:
         y = target_values(df[target])[0]
@@ -329,7 +419,7 @@ Available analysis tools (use exact names and parameter names; no other tool exi
 Rules:
 - Use only column names that appear in the profile. Match column role to tool requirements. Never use an identifier column.
 - Choose at most {cap} analyses, each with a short "why" tied to the goal or the business context. More than {cap} is rejected.
-- The code adds these itself when you leave them out, so do not spend your {cap} on them: a month-of-year seasonality for each additive measure when the goal asks about change over time and the dates span two years, the broader level of a verified hierarchy, and the measures the user named as KPIs.
+- The code adds these itself when you leave them out, so do not spend your {cap} on them: a month-of-year seasonality for the main total and each ratio KPI when the dates cover a year, the broader level of a verified hierarchy for each KPI with a drill-down into its child level, and the measures the user named as KPIs.
 - If the goal says exploratory mode: choose the 1-2 most business-relevant outcome columns and a broad, varied set of analyses.
 - Skip identifier and free-text columns. List notable skipped columns with a reason.
 - Answer with names and words only, never numbers.
@@ -438,7 +528,8 @@ def finalize_plan(raw: dict | None, df: pd.DataFrame, profile: dict, goal: str, 
         need = [a for a in fallback["analyses"] if a["tool"] in ("trend", "segment_trend") and a["params"].get("target") == target and spec_signature(a) not in have]
         analyses = [_code(a, f"The goal asks about change over time, so the {'overall' if a['tool'] == 'trend' else 'per-group'} trend of {target} is always included.") for a in need] + analyses
     seen_sigs = {spec_signature(a) for a in analyses}
-    groups = [a["params"]["group"] for a in fallback["analyses"] if a["tool"] == "group_compare" and a["params"].get("target") == fallback["target"]]
+    groups = list(dict.fromkeys([a["params"]["group"] for a in analyses + fallback["analyses"] if a["tool"] == "group_compare" and "within" not in a["params"]
+                                 and a["params"].get("target") == target]))
     more = _include_extras(roles, date, ov, target) + (measure_extras(df, roles, uniques, candidate_measures(df, roles, uniques, ov), {target}, date, groups) if target else [])
     analyses += [_code(a, a["why"]) for a in more if spec_signature(a) not in seen_sigs]
     analyses = ensure_required(df, roles, uniques, goal, explore, ov, target, date, analyses)

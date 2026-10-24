@@ -27,6 +27,7 @@ from . import insights, planner, polarity as polmod, powerbi, relations, reporte
 from .cleaner import add_derived, apply_directives, coerce_types, scoped_clean
 from .config import MAX_ITERATIONS
 from .events import emit, set_quiet
+from . import llm as llmmod
 from .llm import get_llm
 from .propose import derive_mode
 from .profiler import load_tables, profile_df
@@ -225,14 +226,14 @@ def brief_node(state: RunState) -> dict:
     bfile = wd / "brief.json"
     if bfile.exists():
         stored = json.loads(bfile.read_text(encoding="utf-8"))
-        brief, decision = stored["brief"], stored["decision"]
-        decisions = [*(state.get("decisions") or []), decision]
+        brief = stored["brief"]
+        decisions = [*(state.get("decisions") or []), *(stored.get("decisions") or [stored["decision"]])]
     else:
         st: dict = {"decisions": list(state.get("decisions") or [])}
         emit(rid, "Analyst brief", "Working out what each column means and which column each KPI is…" if llm else "No LLM configured, so the name and data rules decide what each column means.")
         brief = briefmod.resolve(llm, pd.read_pickle(wd / "raw.pkl"), prof, state["goal"], ctx, st)
         decisions = st["decisions"]
-        bfile.write_text(json.dumps({"brief": brief, "decision": decisions[-1]}), encoding="utf-8")
+        bfile.write_text(json.dumps({"brief": brief, "decisions": decisions[len(state.get("decisions") or []):]}, default=str), encoding="utf-8")
     new_prof = briefmod.apply_roles(prof, brief["roles"])
     if brief["source"] in ("llm", "repaired"):
         changed = briefmod.role_changes(prof, new_prof)
@@ -246,7 +247,9 @@ def brief_node(state: RunState) -> dict:
         if any(bits):
             emit(rid, "Analyst brief", "From the LLM, " + "; ".join(b for b in bits if b) + ".")
     elif brief["source"] == "fallback":
-        emit(rid, "Analyst brief", "The LLM answer was unusable, so the rules decide what each column means.")
+        emit(rid, "Analyst brief", "The LLM answer was unusable, so the rules decide what each column means." + (f" ({llmmod.last_error()})" if llmmod.last_error() else ""))
+    for k, m in (brief.get("ratios") or {}).items():
+        emit(rid, "Analyst brief", f"Ratio KPI '{k}' = {m['numerator']} / {m['denominator']} (from {'the LLM' if m['path'] == 'llm' else 'a second LLM call' if m['path'] == 'llm-retry' else 'the rules'}).")
     out_ctx = {"context": {**ctx, "industry_key": brief["industry"]}} if brief.get("industry") and ctx else {}
     return {**out_ctx, "brief": brief, "profile": new_prof, "decisions": decisions, "stage_sources": {**(state.get("stage_sources") or {}), "brief": brief["source"]}}
 
@@ -337,7 +340,12 @@ def plan_node(state: RunState) -> dict:
             emit(rid, "Planner", "Applying your definitions (" + "; ".join(shown) + ").")
     # several candidate measures are never a question: all are analysed. A ratio is only added when the LLM proposes one with a business meaning and the data passes the checks.
     removed = set(state.get("remove_derived") or [])
+    # a ratio the user named as a KPI is created by code whenever the brief (or the rules) found its two columns; the LLM's own ideas only fill the remaining slots
+    from_kpi, kpi_rejected = derived.kpi_ratios(typed, (state.get("brief") or {}).get("ratios"))
     proposed, rejected = derived.propose(llm, typed, signals.measure_columns(typed, prof), state["goal"], ctxmod.context_text(ctx))
+    have = {(d["a"], d["b"]) for d in from_kpi}
+    proposed = from_kpi + [d for d in proposed if (d["a"], d["b"]) not in have][:max(0, derived.MAX_DERIVED - len(from_kpi))]
+    rejected = kpi_rejected + rejected
     kept = [d for d in proposed if d["name"] not in removed]
     dropped = [d for d in proposed if d["name"] in removed]
     for r in rejected:
@@ -354,7 +362,12 @@ def plan_node(state: RunState) -> dict:
     if new_cols:
         prof = {**prof, "columns": prof["columns"] + [profile_df(typed[[c]])["columns"][0] for c in new_cols], "cols": prof["cols"] + len(new_cols)}
         extra["profile"] = prof
+    ov = {**ov, "brief_roles": (state.get("brief") or {}).get("roles") or {}}
     st: dict = {"decisions": list(state.get("decisions") or [])}
+    id_roles, id_uniques = planner.roles_and_uniques(prof)
+    for c in planner.id_like_columns(typed, id_roles, id_uniques, ov):
+        st["decisions"].append({"decision": "excluded as id-like", "source": "rules", "chosen": f"excluded as id-like: {c}",
+                                "why": "An id, a code, or an integer with many distinct values and no declared kind: totals and averages of it mean nothing.", "errors": []})
     plan, notes = planner.propose_plan(llm, typed, prof, state["goal"], ctx, explore, ov, st)
     if llm and st["decisions"][-1]["source"] == "fallback":
         emit(rid, "Planner", "The LLM answer was unusable after one repair, so rule-based planning was used instead.")
@@ -393,7 +406,8 @@ def analyze_node(state: RunState) -> dict:
     df = pd.read_pickle(_wd(state) / "clean.pkl")
     todo = state["plan"]["analyses"] if it == 0 else state["critique"]["followups"]
     findings = list(state.get("findings", []))
-    ctx = {"charts_dir": _wd(state) / "charts", "currency": (state.get("context") or {}).get("currency", ""), "kinds": briefmod.kinds(state.get("brief"))}
+    ctx = {"charts_dir": _wd(state) / "charts", "currency": (state.get("context") or {}).get("currency", ""), "kinds": briefmod.kinds(state.get("brief")),
+           "derived": {d["name"]: d for d in state["plan"].get("derived") or []}}
     emit(rid, "Analyst", f"{'Running the planned analyses' if it == 0 else 'Running follow-up checks requested by the Critic'} ({len(todo)})…")
     for spec in todo:
         try:
@@ -404,7 +418,7 @@ def analyze_node(state: RunState) -> dict:
         if f is None:
             emit(rid, "Analyst", f"Skipped {spec['tool']} {spec['params']}: not enough usable data.")
             continue
-        f.update({"id": f"f{len(findings) + 1}", "params": spec["params"], "why": spec.get("why", ""), "round": it})
+        f.update({"id": f"f{len(findings) + 1}", "params": spec["params"], "why": spec.get("why", ""), "round": it, "origin": spec.get("origin")})
         findings.append(f)
         emit(rid, "Analyst", f"{f['title']}: " + f["text"].replace("**", ""), finding=f["id"], chart=f.get("chart"))
     return {"findings": findings, "iteration": it + 1}
@@ -473,11 +487,12 @@ def report_node(state: RunState) -> dict:
     llm, _ = get_llm()
     emit(rid, "Reporter", "Writing the report…")
     answer = goalmod.answer(state)
-    md, mode = reporter.write_report({**state, "goal_answer": answer}, llm)
+    st = {**state, "goal_answer": answer, "decisions": list(state.get("decisions") or [])}
+    md, mode = reporter.write_report(st, llm)
     (_wd(state) / "report.md").write_text(md, encoding="utf-8")
-    emit(rid, "Reporter", f"Report written ({'summary by LLM, numbers from the analysis tools' if mode == 'llm' else 'rule-based summary'}).")
+    emit(rid, "Reporter", f"Report written ({ {'llm': 'summary by LLM, numbers from the analysis tools', 'mixed': 'LLM summary with unverified sentences dropped'}.get(mode, 'rule-based summary') }).")
     sources = {**(state.get("stage_sources") or {}), "report": mode}
-    return {"report_md": md, "goal_answer": answer, "stage_sources": sources, "run_mode": derive_mode(sources)}
+    return {"report_md": md, "goal_answer": answer, "stage_sources": sources, "run_mode": derive_mode(sources), "decisions": st["decisions"]}
 
 
 def powerbi_node(state: RunState) -> dict:

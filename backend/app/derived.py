@@ -13,11 +13,12 @@ never at what a column is called:
 from __future__ import annotations
 
 import json
+import re
 
 import numpy as np
 import pandas as pd
 
-from . import directives as dv
+from . import context as ctxmod, directives as dv
 from .llm import ask_json
 
 MAX_DERIVED = 2
@@ -28,6 +29,9 @@ PART_OF_SHARE = 0.8         # a "part of" ratio has A within 0..B in at least th
 MIN_POSITIVE = 0.95
 COUNT_MAX_DISTINCT = 50
 MEANING_MIN, MEANING_MAX = 8, 200
+
+KPI_RATIO_WORDS = re.compile(r"margin|rate|ratio|share|percent|pct|%|conversion|yield|proportion|\bper\b", re.I)    # wording of a KPI that is one measure over another
+RATIO_STRIP = {"margin", "rate", "ratio", "share", "percent", "percentage", "pct", "conversion", "yield", "proportion", "per"}
 
 PROPOSE_SYSTEM = """You design derived metrics for a data-analysis team. Given the measures of a dataset and the user's goal, propose at most 2 ratios
 A / B that a business reader would act on, where A is a part or outcome of B (for example a component over its total). Propose none if nothing is clearly useful.
@@ -161,3 +165,77 @@ def group_ratio(df: pd.DataFrame, spec: dict, groups: pd.Series) -> pd.Series:
     d = pd.DataFrame({"g": groups, "x": x, "y": y}).dropna()
     s = d.groupby("g")[["x", "y"]].sum()
     return (s["x"] / s["y"].where(s["y"] != 0)).dropna()
+
+
+
+# ------------------------------------------------------------------------------------ ratios the user asked for
+def kpi_numerator_tokens(kpi: str) -> set[str]:
+    """The words of a KPI name that say what is divided ('profit' in 'profit margin'); empty when the name is not worded as a ratio."""
+    if not KPI_RATIO_WORDS.search(str(kpi)):
+        return set()
+    return ctxmod.tokens(kpi) - ctxmod.GENERIC_KPI - RATIO_STRIP
+
+
+def _col_tokens(name: str) -> set[str]:
+    return ctxmod.tokens(re.sub(r"([a-z])([A-Z])", r"\1 \2", str(name)).replace("_", " "))
+
+
+def _match(df: pd.DataFrame, words: set[str], pool: list[str]) -> str | None:
+    """The column of `pool` whose name shares most words with `words` (shortest name, then alphabetical, on a tie)."""
+    scored = [(-len(words & _col_tokens(c)), len(c), c) for c in pool if c in df.columns and words & _col_tokens(c)]
+    return min(scored)[2] if scored else None
+
+
+def rules_ratio(df: pd.DataFrame, kpi: str, measures: list[str], kpi_cols: dict[str, str | None] | None = None) -> dict | None:
+    """{numerator, denominator} for a ratio-worded KPI from the data alone, or None. The numerator is the measure named by the KPI's own words. The denominator is
+    a column the user's other KPIs map to when there is one; otherwise the measure that passes the ratio checks, is a total of the numerator ("part of") and is largest."""
+    words = kpi_numerator_tokens(kpi)
+    measures = [m for m in measures if m in df.columns]
+    num = _match(df, words, measures) if words else None
+    if num is None:
+        return None
+    others = [c for k, c in (kpi_cols or {}).items() if k != kpi and c in measures and c != num]
+    if others:
+        return {"numerator": num, "denominator": others[0]}
+    best = None
+    for b in measures:
+        if b == num:
+            continue
+        ok, _, facts = check_ratio(df, num, b)
+        if ok and facts["part_of"]:
+            key = (-float(_num(df, b).abs().median()), b)
+            best = key if best is None or key < best else best
+    return {"numerator": num, "denominator": best[1]} if best else None
+
+
+def kpi_ratios(df: pd.DataFrame, mapping: dict | None, taken: set[str] | None = None) -> tuple[list[dict], list[dict]]:
+    """(created, rejected) for the ratios the user's KPIs map to. `mapping` is {kpi: {numerator, denominator, path}}. Both columns must exist and be numeric and the
+    denominator must not sum to zero; nothing else is checked, because the user asked for this KPI by name. Always ratios of sums."""
+    created: list[dict] = []
+    rejected: list[dict] = []
+    taken = set(taken if taken is not None else df.columns)
+    seen: set[tuple] = set()
+    for kpi, m in (mapping or {}).items():
+        a, b = (m or {}).get("numerator"), (m or {}).get("denominator")
+        if not (a in df.columns and b in df.columns and a != b):
+            rejected.append({"a": a, "b": b, "kpi": kpi, "reason": f"the columns for '{kpi}' do not both exist"})
+            continue
+        x, y = _num(df, a), _num(df, b)
+        if x.notna().sum() == 0 or y.notna().sum() == 0:
+            rejected.append({"a": a, "b": b, "kpi": kpi, "reason": f"{a} and {b} are not both numeric"})
+            continue
+        if not float(y[x.notna() & y.notna()].sum()):
+            rejected.append({"a": a, "b": b, "kpi": kpi, "reason": f"{b} sums to zero, so '{kpi}' cannot be a ratio of sums"})
+            continue
+        if (a, b) in seen:
+            continue
+        seen.add((a, b))
+        both = pd.DataFrame({"x": x, "y": y}).dropna()
+        both = both[both["y"] > 0]
+        within = float(((both["x"] >= 0) & (both["x"] <= both["y"])).mean()) if len(both) else 0.0
+        rho = float(both["x"].div(both["y"]).corr(both["y"], method="spearman") or 0.0) if len(both) >= 3 else 0.0
+        name = dv.clean_name(f"{a}_to_{b}_ratio", taken)
+        taken.add(name)
+        created.append({"kind": "ratio_of_sums", "name": name, "a": a, "b": b, "meaning": f"Your KPI '{kpi}': {a} as a share of {b}.", "part_of": within >= PART_OF_SHARE,
+                        "rho": round(rho, 3), "source": "kpi", "kpi": kpi, "path": (m or {}).get("path", "rules")})
+    return created, rejected

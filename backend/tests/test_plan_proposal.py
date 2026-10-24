@@ -116,24 +116,25 @@ def test_a_seasonality_the_model_chose_stays_its_own():
     assert [o for t, p, o in tools(plan) if t == "seasonality" and p[0] == "amount"] == ["ai"]
 
 
-def test_no_added_seasonality_without_two_years_or_without_a_question_about_change():
-    short, _ = plan_with(Seq(good_plan()), df=data(years=1))
+def test_no_added_seasonality_under_a_year_and_no_extra_totals_without_a_question_about_change():
+    df = data()
+    short, _ = plan_with(Seq(good_plan()), df=df[df["order_date"] < pd.Timestamp("2021-09-01")])
     assert not any(a["tool"] == "seasonality" and a["origin"] == "code" for a in short["analyses"])
-    flat, _ = plan_with(Seq(good_plan()), goal="Which region sells the most?")
-    assert not any(a["tool"] == "seasonality" and a["origin"] == "code" for a in flat["analyses"])
+    flat, _ = plan_with(Seq(good_plan()), goal="Which region sells the most?", ov={"kpi_map": {"profit": "profit"}})
+    assert {p[0] for t, p, o in tools(flat) if t == "seasonality" and o == "code"} == {"amount"}      # the main total always; the other totals only when the goal asks about change
 
 
 def test_the_parent_of_a_verified_hierarchy_comes_before_its_child():
     ov = {"hierarchy": [("category", "sub_category")]}
     only_child = good_plan(analyses=[spec("trend", target="amount", date="order_date"), spec("group_compare", target="amount", group="sub_category"), spec("distribution", col="amount")])
     plan, _ = plan_with(Seq(only_child), ov=ov)
-    seq = [(p[1], o) for t, p, o in tools(plan) if t == "group_compare" and p[0] == "amount"]
+    seq = [(a["params"]["group"], a["origin"]) for a in plan["analyses"] if a["tool"] == "group_compare" and a["params"]["target"] == "amount" and "within" not in a["params"]]
     assert seq == [("category", "code"), ("sub_category", "ai")]
     parent = next(a for a in plan["analyses"] if a["tool"] == "group_compare" and a["params"].get("group") == "category")
     assert "broader level" in parent["why"]
     later = good_plan(analyses=[spec("trend", target="amount", date="order_date"), spec("group_compare", target="amount", group="sub_category"), spec("group_compare", target="amount", group="category")])
     plan2, _ = plan_with(Seq(later), ov=ov)
-    order = [(p[1], o) for t, p, o in tools(plan2) if t == "group_compare" and p[0] == "amount"]
+    order = [(a["params"]["group"], a["origin"]) for a in plan2["analyses"] if a["tool"] == "group_compare" and a["params"]["target"] == "amount" and "within" not in a["params"]]
     assert order == [("category", "ai"), ("sub_category", "ai")]
 
 

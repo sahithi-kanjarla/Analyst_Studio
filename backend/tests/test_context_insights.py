@@ -96,7 +96,10 @@ def test_numbers_guard():
     allowed = ins.allowed_numbers("Churn was 37.6% versus 6.2%, n=800, p=0.0004")
     assert ins.numbers_ok("Churn is 37.6% for month-to-month.", allowed)
     assert not ins.numbers_ok("Churn would fall by 83% if fixed.", allowed)
-    assert ins.numbers_ok("Review within 3 steps in 2026.", allowed)   # tiny counts and years are fine
+    # Stricter rule: small integers get no free pass, and a year passes only if it appears in the facts.
+    assert not ins.numbers_ok("Review within 3 steps.", allowed)        # "3" is a claim about the data unless it was given
+    assert not ins.numbers_ok("Review it in 2026.", allowed)            # 2026 is not in the facts, so it could be invented
+    assert ins.numbers_ok("Review it in 2026.", ins.allowed_numbers("Churn was 37.6% in 2026"))
 
 
 def test_key_metrics_and_report_sections(churn_run):
@@ -174,6 +177,37 @@ def test_llm_enrichment_is_validated(churn_run):
     m = strategy.refine_with_llm(llm, state, strategies)
     assert m == 1 and strategies[0]["source"] == "llm" and strategies[0]["title"].startswith("Pilot an early-warning")
     assert ins.enrich_with_llm(None, state) == 0
+
+
+def _rupee_state(churn_run):
+    """Findings whose only source for the amount is `stats` (as a rupee string), so a \u20b9 escape in the dumped stats would hide it."""
+    state = {"goal": "g", "context": {}, "findings": [json.loads(json.dumps(f)) for f in churn_run["findings"]], "plan": churn_run["plan"], "profile": {}, "data_gaps": []}
+    state["findings"][0]["stats"] = {"avg_label": "₹8,216"}
+    return state
+
+
+def test_insight_enrichment_accepts_rupee_amount_from_stats(churn_run):
+    state = _rupee_state(churn_run)
+    f = state["findings"][0]
+    why = "Accounts average ₹8,216 each, so the group is worth watching."
+    assert "8,216" not in f["text"] + f["title"]
+    class L:
+        def invoke(self, m):
+            return Msg(json.dumps({"insights": [{"id": f["id"], "why_it_matters": why, "possible_explanations": [], "check_next": []}]}, ensure_ascii=False))
+    assert ins.enrich_with_llm(L(), state) == 1 and f["insight"]["why_it_matters"] == why
+
+
+def test_strategy_refinement_accepts_rupee_amount_from_stats(churn_run):
+    from app import strategy
+    state = _rupee_state(churn_run)
+    strategies = [json.loads(json.dumps(s)) for s in churn_run["strategies"]]
+    s = next(x for x in strategies if x["kind"] == "data")
+    state["findings"][0]["id"] = s["evidence"][0]
+    state["findings"][0]["text"] = "No amount here."
+    class L:
+        def invoke(self, m):
+            return Msg(json.dumps({"strategies": [{"id": s["id"], "title": "Protect accounts averaging ₹8,216 each", "objective": "x" * 20, "actions": [], "risks": [], "kpis": []}]}, ensure_ascii=False))
+    assert strategy.refine_with_llm(L(), state, strategies) == 1 and "8,216" in s["title"]
 
 
 def test_garbage_llm_leaves_rules_output_untouched(churn_run):

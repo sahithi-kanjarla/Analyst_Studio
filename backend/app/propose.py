@@ -67,7 +67,7 @@ def propose(llm, name: str, system: str, view: str, validator: Callable, fallbac
 def derive_mode(stage_sources: dict | None) -> str:
     """One label from the per-stage sources: AI-assisted (every stage used the model), rules-only mode (none did) or mixed."""
     srcs = [s for s in (stage_sources or {}).values() if s]
-    ai = sum(s in AI_SOURCES for s in srcs)
+    ai = sum(s in AI_SOURCES or s == "mixed" for s in srcs)
     if not ai:
         return RULES_ONLY
-    return AI_ASSISTED if ai == len(srcs) else MIXED
+    return AI_ASSISTED if ai == len(srcs) and "mixed" not in srcs else MIXED
