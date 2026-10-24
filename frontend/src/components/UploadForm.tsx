@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { api, BusinessContextInput, RunSummary } from "../api";
+import { StatusBadge, when } from "./History";
+import { Bento, HeroPreview, HowItWorks, Stats, ThreeSteps } from "./Landing";
 
 const EXAMPLES = [
   "Which customer segment drives the most revenue, and is it growing? What should we focus on?",
@@ -72,15 +74,25 @@ export default function UploadForm({ onStarted }: { onStarted: (id: string) => v
 
   return (
     <div className="home">
-      <section className="hero">
-        <h1>Drop in data. Say why. Get the analysis.</h1>
-        <p>
-          A team of agents profiles your data, connects multiple files on their shared keys, plans only what your goal needs, cleans it, runs the statistics,
-          explains what it found, and proposes strategies you can test, plus a Power BI starter pack.
-        </p>
+      <section className="hero2">
+        <div className="hero2-copy">
+          <span className="eyebrow rise"><i>AI</i> Data analyst agents, checked before they answer</span>
+          <h1 className="rise d1">Turn raw files into <span className="grad-text">decisions you can defend.</span></h1>
+          <p className="rise d2">
+            Upload your data and say what you want to know. A team of agents profiles it, plans the analysis, runs the statistics,
+            challenges its own findings, and hands you a report, strategies and a Power BI starter pack.
+          </p>
+          <div className="cta rise d3">
+            <a className="primary" href="#start">Start an analysis</a>
+            <a className="ghost" href="#how">See how the agents work</a>
+          </div>
+          <Stats />
+        </div>
+        <div className="hero2-art rise d2"><HeroPreview /></div>
       </section>
+      <ThreeSteps />
 
-      <form className="card form" onSubmit={submit}>
+      <form className="card form" id="start" onSubmit={submit}>
         <div
           className={`drop ${drag ? "drop-active" : ""} ${files.length ? "drop-has" : ""}`}
           onClick={() => inputRef.current?.click()}
@@ -106,8 +118,12 @@ export default function UploadForm({ onStarted }: { onStarted: (id: string) => v
               e.target.value = "";
             }}
           />
+          <span className="up">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 16V4M7 9l5-5 5 5M5 20h14" /></svg>
+          </span>
           <strong>{files.length ? "Add more files" : "Drag files here or click to browse"}</strong>
           <span>One or several CSV / Excel / JSON files (an Excel workbook's sheets count as separate tables). Related files are connected automatically.</span>
+          <span className="fmts"><em>.csv</em><em>.xlsx</em><em>.json</em><em>.tsv</em></span>
         </div>
 
         {files.length > 0 && (
@@ -210,18 +226,34 @@ export default function UploadForm({ onStarted }: { onStarted: (id: string) => v
         </button>
       </form>
 
+      <p className="trust">
+        <span>CSV, Excel and JSON supported</span>
+        <span>Related files are linked automatically</span>
+        <span>Up to {MAX_FILES} files per run</span>
+      </p>
+
       {recent.length > 0 && (
         <section className="recent">
-          <h3>Recent analyses</h3>
-          {recent.map((r) => (
-            <a key={r.run_id} className="recent-item" href={`#/run/${r.run_id}`}>
-              <span className={`dot dot-${r.status}`} />
-              <span className="recent-goal">{r.goal}</span>
-              <span className="muted">{r.filename}</span>
+          <div className="recent-head">
+            <h3>Recent analyses</h3>
+            <a className="link" href="#/history">View all history →</a>
+          </div>
+          {recent.slice(0, 4).map((r) => (
+            <a key={r.run_id} className="hist-row" href={`#/run/${r.run_id}`}>
+              <div className="hist-main">
+                <span className="hist-goal">{r.goal || "Exploratory analysis"}</span>
+                <span className="hist-sub">{r.filename || "Uploaded data"}</span>
+              </div>
+              <StatusBadge status={r.status} />
+              <span className="hist-when">{when(r.created)}</span>
+              <span className="hist-go" aria-hidden>›</span>
             </a>
           ))}
         </section>
       )}
+
+      <HowItWorks />
+      <Bento />
     </div>
   );
 }

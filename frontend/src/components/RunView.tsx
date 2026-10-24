@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { AgentEvent, api, RunResult } from "../api";
 import Timeline from "./Timeline";
 import Results from "./Results";
+import AgentFlow from "./AgentFlow";
 import QuestionForm from "./QuestionForm";
 
 export default function RunView({ runId }: { runId: string }) {
@@ -66,8 +67,11 @@ export default function RunView({ runId }: { runId: string }) {
         {error && <div className="error">{error}</div>}
         {running && (
           <div className="card placeholder">
-            <h2>Analysing…</h2>
+            <div className="orb" />
+            <h2>Analysing your data…</h2>
             <p className="muted">Results appear here as soon as the Critic approves them. You can leave this tab open; the run continues on the server.</p>
+            <div className="bar-indet" />
+            <AgentFlow events={events} running compact />
           </div>
         )}
         {run?.status === "needs_input" && <QuestionForm runId={runId} onSubmitted={() => setAttempt((a) => a + 1)} />}

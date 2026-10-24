@@ -3,6 +3,7 @@ import { api } from "./api";
 import UploadForm from "./components/UploadForm";
 import RunView from "./components/RunView";
 import Glossary from "./components/Glossary";
+import History from "./components/History";
 
 function useHashRun(): [string | null, (id: string | null) => void] {
   const read = () => {
@@ -23,9 +24,10 @@ function useHashRun(): [string | null, (id: string | null) => void] {
 
 export default function App() {
   const [runId, go] = useHashRun();
-  const [page, setPage] = useState(window.location.hash === "#/glossary");
+  const readPage = () => (window.location.hash === "#/glossary" ? "glossary" : window.location.hash === "#/history" ? "history" : "");
+  const [page, setPage] = useState(readPage);
   useEffect(() => {
-    const on = () => setPage(window.location.hash === "#/glossary");
+    const on = () => setPage(readPage());
     window.addEventListener("hashchange", on);
     return () => window.removeEventListener("hashchange", on);
   }, []);
@@ -39,16 +41,25 @@ export default function App() {
     <div className="shell">
       <header className="topbar">
         <a className="brand" href="#/" onClick={() => go(null)}>
-          <span className="logo">◆</span> Analyst Studio
+          <span className="logo-mark">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M4 17l5-7 4 4 7-9" /></svg>
+          </span>
+          Analyst Studio <small>AI data analysis</small>
         </a>
         <div className="topright">
-          <a className="navlink" href="#/glossary">Glossary</a>
+          <a className={`navlink ${!page && !runId ? "navlink-on" : ""}`} href="#/" onClick={() => go(null)}>New analysis</a>
+          <a className={`navlink ${page === "history" ? "navlink-on" : ""}`} href="#/history">History</a>
+          <a className={`navlink ${page === "glossary" ? "navlink-on" : ""}`} href="#/glossary">Glossary</a>
           <span className={`pill ${llm.startsWith("rules") || llm === "backend offline" ? "pill-muted" : "pill-ok"}`} title="Which model plans, critiques and writes">
             {llm ? `Brain: ${llm}` : "…"}
           </span>
         </div>
       </header>
-      <main>{page ? <Glossary /> : runId ? <RunView key={runId} runId={runId} /> : <UploadForm onStarted={(id) => go(id)} />}</main>
+      <main>{page === "glossary" ? <Glossary /> : page === "history" ? <History /> : runId ? <RunView key={runId} runId={runId} /> : <UploadForm onStarted={(id) => go(id)} />}</main>
+      <footer className="foot">
+        <span>Analyst Studio · from raw files to decisions</span>
+        <span>Findings are checked by a Critic agent before you see them</span>
+      </footer>
     </div>
   );
 }
