@@ -49,8 +49,9 @@ def llm_summary(llm, state: dict) -> tuple[str, list[str], bool] | None:
     """(summary, recommendations, partial). Sentences/recommendations with numbers not in the findings are dropped; None only if nothing is left."""
     ctx_txt = ctxmod.context_text(state.get("context"))
     c = wording.counts(state["findings"])
+    rankings = (state.get("summary_facts") or {}).get("rankings") or []
     payload = [{"headline": f["insight"]["headline"], "facts": f["text"].replace("**", ""), "confidence": f["insight"]["confidence"]["label"],
-                "survives_correction": f["stats"].get("survives_correction")} for f in _rank(state["findings"])[:12]]
+                "survives_correction": f["stats"].get("survives_correction")} for f in _rank(state["findings"])[:12]] + [{"headline": r["text"], "facts": r["text"], "confidence": "computed from the data", "survives_correction": None} for r in rankings]
     out = ask_json(
         llm,
         "You are a senior data analyst writing for a business reader. Use ONLY the facts and numbers in the findings provided; do not invent numbers. "
@@ -320,9 +321,9 @@ def write_report(state: dict, llm) -> tuple[str, str]:
     else:
         summary, recs = rule_summary(state)
     ans = state.get("goal_answer")
-    qa = wording.question_answers(state, named_in_goal)
-    if qa:       # every planned question gets one line, whether or not an LLM wrote the rest
-        summary = "**What we set out to answer, in one line each**\n" + "\n".join(f"- **{q}** {a}" for q, a in qa) + "\n\n" + summary
+    view = state.get("report_view") or tiering.build_view(state)
+    if view["answers"]:       # every planned question gets one line (or "Not answered: <reason>"), whether or not an LLM wrote the rest
+        summary = "**What we set out to answer, in one line each**\n" + "\n".join(f"- **{a['question']}** {a['answer']}" for a in view["answers"]) + "\n\n" + summary
     if ans:      # the goal is answered first, in the app's own words and numbers, whether or not an LLM wrote the rest
         summary = f"**Answer to your goal.** {ans['sentence']}" + (f" {ans['groups_sentence']}" if ans.get("groups_sentence") else "") + "\n\n" + summary
-    return build_report(state, summary, recs, derive_mode({**(state.get("stage_sources") or {}), "report": mode})), mode
+    return build_report(state, summary, recs, derive_mode({**(state.get("stage_sources") or {}), "report": mode}), view), mode

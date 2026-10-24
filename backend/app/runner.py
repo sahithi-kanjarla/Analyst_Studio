@@ -99,7 +99,7 @@ def _execute(run_id: str) -> None:
             write_status(run_id, "needs_input")
             return
         keys = ("goal", "profile", "plan", "cleaning_log", "findings", "critique", "report_md", "report_view", "powerbi", "llm_mode", "data_model",
-                "context", "strategies", "strategy_summary", "data_gaps", "key_metrics", "applied_definitions", "ignored_definitions", "definitions", "derived_metrics", "goal_answer", "decisions", "run_mode", "stage_sources", "brief")
+                "context", "strategies", "strategy_summary", "data_gaps", "key_metrics", "applied_definitions", "ignored_definitions", "definitions", "derived_metrics", "goal_answer", "summary_facts", "decisions", "run_mode", "stage_sources", "brief")
         result = {k: final.get(k) for k in keys}
         result["run_id"] = run_id
         (wd / "result.json").write_text(json.dumps(result, default=str))
