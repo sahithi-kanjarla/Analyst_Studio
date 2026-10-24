@@ -273,7 +273,7 @@ def refine_with_llm(llm, state: dict, strategies: list[dict]) -> int:
         return 0
     payload = [{"id": s["id"], "title": s["title"], "objective": s["objective"], "actions": s["actions"], "risks": s["risks"], "kpis": s["kpis"], "how_to_test": s["how_to_test"],
                 "facts": [f["text"].replace("**", "") for f in state["findings"] if f["id"] in s["evidence"]]} for s in cands]
-    out = ask_json(llm, REFINE_SYSTEM, (f"COMPANY CONTEXT (user-written, unverified):\n{ctx_txt}\n\n" if ctx_txt else "") + f"GOAL: {state['goal']}\nCANDIDATES:\n{json.dumps(payload, default=str)}")
+    out = ask_json(llm, REFINE_SYSTEM, (f"COMPANY CONTEXT (user-written, unverified):\n{ctx_txt}\n\n" if ctx_txt else "") + f"GOAL: {state['goal']}\nCANDIDATES:\n{json.dumps(payload, default=str, ensure_ascii=False)}")
     if not out or not isinstance(out.get("strategies"), list):
         return 0
     by_id = {s["id"]: s for s in cands}
@@ -283,7 +283,7 @@ def refine_with_llm(llm, state: dict, strategies: list[dict]) -> int:
         if not s:
             continue
         facts = [f for f in state["findings"] if f["id"] in s["evidence"]]
-        allowed = allowed_numbers(json.dumps(payload, default=str), ctx_txt, *[json.dumps(f["stats"], default=str) for f in facts])
+        allowed = allowed_numbers(json.dumps(payload, default=str, ensure_ascii=False), ctx_txt, *[json.dumps(f["stats"], default=str, ensure_ascii=False) for f in facts])
         changed = False
         before = {k: list(v) if isinstance(v, list) else v for k, v in s.items() if k in ("title", "objective", "actions", "risks", "kpis", "how_to_test")}
 

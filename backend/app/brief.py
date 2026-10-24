@@ -9,7 +9,8 @@ import re
 
 import pandas as pd
 
-from . import context as ctxmod
+from . import context as ctxmod, derived
+from .llm import deterministic, last_error
 from .context import INDUSTRIES
 from .measures import KINDS
 from .profiler import ID_NAME
@@ -25,11 +26,13 @@ role: id (labels a row or an entity, including codes such as pincode, zip, phone
 dimension (a category to group by), date, text (free text).
 kind, only for measures: additive (totals make sense: revenue, units, cost), rate (average it, never add it up: percentages, ratios, prices, scores, ages), other.
 kpis: for each KPI name given, the single numeric measure column that holds it, or null when no column does.
+ratios: for each KPI name given that is one measure divided by another (a margin, a rate, a share), its numerator column and its denominator column, both numeric measure columns. Leave out KPIs that are not ratios.
 hierarchy: pairs of category columns where each child value belongs to exactly one parent value (a broad category and its sub-category, a country and its city). Empty list when there are none.
 intent: what the goal is after. change (growth, decline, trend over time), compare (groups or segments against each other), drivers (what explains or influences an outcome), summary (an overview or description).
 industry: the one that best fits the business, one of: """ + ", ".join(INDUSTRIES) + """ (general when none fits or it is unclear).
 Use only the column names, KPI names and words given, exactly as written. Never write a number.
 Return JSON: {"columns": {"<column>": {"role": "id|measure|dimension|date|text", "kind": "additive|rate|other"}}, "kpis": {"<kpi name>": "<column>" | null},
+"ratios": {"<kpi name>": {"numerator": "<column>", "denominator": "<column>"}},
 "hierarchy": [{"parent": "<column>", "child": "<column>"}], "intent": "change|compare|drivers|summary", "industry": "<industry>", "why": "one short sentence"}"""
 
 
@@ -76,7 +79,7 @@ def _make_validator(profile: dict, kpis: list[str], df: pd.DataFrame):
         cols, kp = obj.get("columns"), obj.get("kpis")
         if not isinstance(cols, dict) and not isinstance(kp, dict):
             return None, ["the reply needs a 'columns' object and a 'kpis' object"]
-        out = {"roles": {}, "kinds": {}, "kpis": {}, "hierarchy": [], "intent": None, "industry": None, "answered": [], "dropped": []}
+        out = {"roles": {}, "kinds": {}, "kpis": {}, "ratios": {}, "hierarchy": [], "intent": None, "industry": None, "answered": [], "dropped": []}
         for col, spec in (cols if isinstance(cols, dict) else {}).items():
             if col not in rule:
                 out["dropped"].append(f"column '{col}' does not exist")
@@ -110,6 +113,15 @@ def _make_validator(profile: dict, kpis: list[str], df: pd.DataFrame):
                     out["dropped"].append(f"KPI '{k}' maps to '{col}', which is not a numeric measure")
                 else:
                     out["kpis"][k] = col
+        rt = obj.get("ratios")
+        for k, m in (rt if isinstance(rt, dict) else {}).items():
+            a, b = (m.get("numerator"), m.get("denominator")) if isinstance(m, dict) else (None, None)
+            if k not in kpis:
+                out["dropped"].append(f"ratio for '{k}' ignored: it is not a KPI the user named")
+            elif not (isinstance(a, str) and isinstance(b, str) and a != b and a in numeric and b in numeric and not _id_like(a, rule[a]) and not _id_like(b, rule[b])):
+                out["dropped"].append(f"ratio for '{k}' needs two different numeric measure columns")
+            else:
+                out["ratios"][k] = {"numerator": a, "denominator": b}
         if "hierarchy" in obj:
             out["answered"].append("hierarchy")
             pairs = obj["hierarchy"]
@@ -138,12 +150,51 @@ def _make_validator(profile: dict, kpis: list[str], df: pd.DataFrame):
     return validate
 
 
+def _empty() -> dict:
+    return {"roles": {}, "kinds": {}, "kpis": {}, "ratios": {}, "hierarchy": [], "intent": None, "industry": None, "answered": [], "dropped": []}
+
+
+def _numeric_measures(profile: dict, roles: dict) -> list[str]:
+    return [c["name"] for c in profile["columns"][:MAX_COLUMNS] if ("int" in c["dtype"] or "float" in c["dtype"] or c.get("convert") == "numeric")
+            and roles.get(c["name"], c["role"]) != "id" and not _id_like(c["name"], c["role"])]
+
+
 def resolve(llm, df: pd.DataFrame, profile: dict, goal: str, ctx: dict | None, state: dict | None = None) -> dict:
-    """{roles, kinds, kpis, hierarchy, intent, industry, dropped, source}. Empty maps / None (the rules decide) when there is no LLM or its answer is unusable."""
+    """{roles, kinds, kpis, ratios, hierarchy, intent, industry, dropped, source}. Empty maps / None (the rules decide) when there is no LLM or its answer is unusable.
+
+    A KPI worded as a ratio (a margin, a rate) always ends up with a numerator and a denominator when the data allows one: from the brief, else from one retry of the
+    brief, else from the rules. Each ratio records which of the three gave it in `ratios[kpi]["path"]` (llm, llm-retry, rules), and the choice is in the decision log."""
     kpis = list((ctx or {}).get("kpis") or [])
-    empty = lambda: {"roles": {}, "kinds": {}, "kpis": {}, "hierarchy": [], "intent": None, "industry": None, "answered": [], "dropped": []}
-    res = propose(llm, "analysis brief", SYSTEM, build_view(df, profile, goal, ctx), _make_validator(profile, kpis, df), empty, state)
+    llm = deterministic(llm)
+    view = build_view(df, profile, goal, ctx)
+    validator = _make_validator(profile, kpis, df)
+    res = propose(llm, "analysis brief", SYSTEM, view, validator, _empty, state)
     out = {**res["value"], "source": res["source"]}
+    ratio_kpis = [k for k in kpis if derived.kpi_numerator_tokens(k)]
+    ai = lambda r: r["source"] in ("llm", "repaired")
+    for k in out["ratios"]:
+        out["ratios"][k] = {**out["ratios"][k], "path": "llm"}
+    if llm is not None and ratio_kpis and any(k not in out["ratios"] for k in ratio_kpis):
+        missing = ", ".join(k for k in ratio_kpis if k not in out["ratios"])
+        hint = f"\n\nThese KPIs are ratios of two measures; give each one's numerator and denominator under \"ratios\": {missing}."
+        again = propose(llm, "analysis brief (retry for ratio KPIs)", SYSTEM, view + hint, validator, _empty, state)
+        if ai(again):
+            if not ai(res):
+                out = {**again["value"], "source": again["source"]}
+            for k, m in again["value"]["ratios"].items():
+                out["ratios"].setdefault(k, {**m, "path": "llm-retry"})
+    if ratio_kpis:
+        measures = _numeric_measures(profile, out["roles"])
+        for k in ratio_kpis:
+            if k not in out["ratios"] and (m := derived.rules_ratio(df, k, measures, out["kpis"])):
+                out["ratios"][k] = {**m, "path": "rules"}
+        if state is not None:
+            for k in ratio_kpis:
+                m = out["ratios"].get(k)
+                state["decisions"].append({"decision": f"ratio KPI '{k}'", "source": {"llm": "llm", "llm-retry": "repaired", "rules": "rules"}.get(m["path"], "rules") if m else "rules",
+                                           "chosen": f"{m['numerator']} / {m['denominator']} (path: {m['path']})" if m else "no ratio: no numerator and denominator found in the data",
+                                           "why": "The user named this KPI and it is a ratio of two measures." + (f" LLM problem: {last_error()}" if llm is not None and not ai(res) and last_error() else ""),
+                                           "errors": []})
     if state is not None:
         _log_parts(state, out, res, ctx)
     return out

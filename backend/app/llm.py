@@ -18,6 +18,7 @@ import time
 import urllib.request
 
 _cache: dict = {}
+_last_error: dict = {}      # the most recent failed call, so a silent fallback can say why (rate limit, timeout, bad key)
 
 DEFAULTS = {
     "gemini": "gemini-flash-latest",
@@ -74,6 +75,18 @@ def get_llm():
     return _cache["llm"]
 
 
+def last_error() -> str:
+    return _last_error.get("msg", "")
+
+
+def deterministic(llm):
+    """The same model at temperature 0, for decisions that must repeat from run to run. A model that cannot be re-bound is returned unchanged."""
+    try:
+        return llm.bind(temperature=0) if llm is not None and hasattr(llm, "bind") else llm
+    except Exception:
+        return llm
+
+
 def reset_cache():
     _cache.clear()
 
@@ -86,7 +99,8 @@ def _invoke(llm, system: str, user: str, retries: int = 1) -> str | None:
             if isinstance(content, list):  # some providers return content blocks
                 content = "".join(part.get("text", "") if isinstance(part, dict) else str(part) for part in content)
             return str(content)
-        except Exception:
+        except Exception as e:
+            _last_error["msg"] = f"{type(e).__name__}: {str(e)[:200]}"
             if attempt < retries:
                 time.sleep(2)  # free tiers rate-limit; one gentle retry
     return None
