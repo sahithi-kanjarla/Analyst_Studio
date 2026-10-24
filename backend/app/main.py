@@ -9,7 +9,7 @@ from fastapi.responses import FileResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
 from .config import ALLOWED_EXT, FRONTEND_DIST, MAX_FILES, MAX_UPLOAD_MB, RUNS_DIR
-from . import clarify, glossary
+from . import clarify, glossary, tiering
 from .context import normalise_context
 from .dashboard import build_dashboard, list_sources, source_path, valid_source
 from .events import get_events
@@ -88,6 +88,11 @@ def get_run(run_id: str):
         for f in data.get("findings") or []:
             if f.get("chart"):
                 f["chart_url"] = base + f["chart"]
+        view = data.get("report_view") or tiering.build_view(data)       # runs made before the tiers existed get them computed from the saved findings
+        data["report_view"] = view
+        for c in view["evidence"] + view["appendix"]:
+            if c.get("chart"):
+                c["chart_url"] = base + c["chart"]
         out.update(data)
     return out
 

@@ -34,17 +34,17 @@ def answer(state: dict) -> dict | None:
         why = "there is no date column" if not plan.get("date_col") else "there are too few time periods or rows to test a trend"
         return {"sentence": f"The goal asks about change over time, but it cannot be answered from this data: {why}.", "groups_sentence": "", "finding_ids": [f["id"] for f in (seg,) if f]}
     st = tr["stats"]
-    rel, up, sig = st.get("relative_change") or 0.0, (st.get("slope") or 0) > 0, bool(tr.get("significant"))
+    up, sig = (st.get("slope") or 0) > 0, bool(tr.get("significant"))
     unit = {"D": "day", "W": "week", "MS": "month"}.get(st.get("freq"), "period")
     basis = f"{st.get('periods', 0)} {unit}s"
     d = polmod.direction(target, state.get("polarity"))
     verdict = "" if d == polmod.NEUTRAL else f" This is {'favourable' if (d == polmod.HIGHER) == up else 'worrying'}, as {'higher' if d == polmod.HIGHER else 'lower'} is better for {target}."
     if sig and up:
-        sentence = f"Yes, {target} is growing: it rose about {abs(rel):.0%} over the period, a statistically significant upward trend ({_p(st.get('p'))}, {basis}).{verdict}"
+        sentence = f"Yes, {target} is growing: it rose about {wording.trend_size(st, target, state, fmt=_fmt)} over the period, a statistically significant upward trend ({_p(st.get('p'))}, {basis}).{verdict}"
     elif sig:
-        sentence = f"No, {target} is falling: it fell about {abs(rel):.0%} over the period, a statistically significant downward trend ({_p(st.get('p'))}, {basis}).{verdict}"
+        sentence = f"No, {target} is falling: it fell about {wording.trend_size(st, target, state, fmt=_fmt)} over the period, a statistically significant downward trend ({_p(st.get('p'))}, {basis}).{verdict}"
     else:
-        sentence = f"There is no reliable growth trend in {target}: it changed about {rel:+.0%} over the period, which is not statistically significant ({_p(st.get('p'))}, {basis})."
+        sentence = f"There is no reliable growth trend in {target}: it changed about {wording.trend_size(st, target, state, signed=True, fmt=_fmt)} over the period, which is not statistically significant ({_p(st.get('p'))}, {basis})."
     groups = ""
     if seg is not None:
         g = seg["stats"]

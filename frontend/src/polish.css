@@ -171,3 +171,11 @@ textarea:focus, .ctx-grid input:focus, .ctx-grid select:focus, .ctx-grid textare
 .status-ok { background: var(--ok-bg); color: var(--ok); } .status-err { background: var(--err-bg); color: var(--err); }
 .status-run { background: var(--warn-bg); color: var(--warn); } .status-run i { animation: pulse 1.6s infinite; }
 @media (max-width: 640px) { .hist-when, .hist-go { display: none; } .hist-row { gap: 10px; } }
+
+/* report tiers */
+.tiers h3 { margin: 22px 0 10px; }
+.tier1 { border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; margin-bottom: 8px; }
+.tier1 h3 { margin-top: 0; }
+details.fold { margin: 10px 0; }
+details.fold > summary { cursor: pointer; font-weight: 600; }
+details.appendix > summary { font-size: 1.05em; padding: 8px 0; }
