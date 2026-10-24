@@ -28,7 +28,10 @@ from .llm import ask_json
 from .profiler import compact_profile
 from .signals import compute_signals
 
-MAX_QUESTIONS = 6
+MAX_QUESTIONS = 3        # at most this many questions are asked, in the LLM and the rules path alike
+MAX_CANDIDATES = 12      # valid questions considered before the cap picks the ones that matter most
+# How much an answer changes the analysis, most first: a placeholder or a repeated value moves every total and average; a date choice moves every trend; and so on.
+IMPACT = ("placeholder", "sentinel", "multi_date", "negatives", "near_sum", "duplicate_columns", "rare_labels", "high_missing")
 MAX_OPTIONS = 6
 UNASKED = {"multi_measure"}      # signals that feed the planner instead of the user
 # What an answer may do about each kind of ambiguity. A question that borrows a real signal id but offers other actions is not about that signal.
@@ -232,7 +235,7 @@ def template_questions(signals: list[dict], profile: dict, goal: str, ctx: dict 
         if t:
             autos[s["id"]] = t.pop("_auto", False)
             raw.append(t)
-    qs, _ = validate_all(raw, profile, signals, limit=MAX_QUESTIONS + 4, keep_values=True)
+    qs, _ = validate_all(raw, profile, signals, limit=MAX_CANDIDATES, keep_values=True)
     for q in qs:
         if autos.get(q["signal"]):
             q["auto"] = "goal"
@@ -249,7 +252,7 @@ placeholder for "no value", whether negative values are real, whether a column i
 NEVER ask which chart, grouping, how to define a group, column to look at, time frame, growth interval, total-versus-average or view to show, or which number is "the main one":
 the app analyses every reasonable option and ranks them. A question is only worth asking if at least one answer changes the data (filters, drops, merges, treats a value as missing,
 derives a column) or picks between dates; questions whose answers are all notes or "analyse this column" are discarded by code.
-NEVER ask what the glossary already answers. Merge questions about the same thing. Write plain business language, no jargon. At most {MAX_QUESTIONS} questions; none if nothing is ambiguous.
+NEVER ask what the glossary already answers. Merge questions about the same thing. Write plain business language, no jargon. At most {MAX_QUESTIONS} questions, the ones whose answer changes the analysis most; none if nothing is ambiguous.
 
 Every option carries an "action" chosen ONLY from this closed list (code executes it; any other action is discarded and the question dropped):
 - {{"type":"set_date_column","column":C}}                                  C must be a date column
@@ -283,15 +286,35 @@ def llm_questions(llm, profile: dict, signals: list[dict], goal: str, ctx: dict 
     out = ask_json(llm, WRITER_SYSTEM, user)
     if not isinstance(out, dict) or not isinstance(out.get("questions"), list):
         return None, []
-    qs, dropped = validate_all(out["questions"], profile, signals)
+    qs, dropped = validate_all(out["questions"], profile, signals, limit=MAX_CANDIDATES)
     return (qs if qs or not out["questions"] else None), dropped
 
 
+def _impact(q: dict) -> tuple:
+    """Sort key, most important first: strong before weak, then by kind of ambiguity, then by the rows the default answer touches (when known)."""
+    kind = IMPACT.index(q["kind"]) if q.get("kind") in IMPACT else len(IMPACT)
+    rows = max([o.get("rows") or 0 for o in q["options"]] or [0])
+    return (not q.get("strong"), kind, -rows)
+
+
+def cap_questions(questions: list[dict], limit: int = MAX_QUESTIONS) -> tuple[list[dict], list[dict]]:
+    """(questions with at most `limit` that need an answer, the dropped ones as {question, default}). Questions the goal already settled ("auto") do not count.
+    Ranked by how much the answer changes the analysis. A dropped question whose default changes the data (a placeholder set to missing) stays in the list as
+    auto-resolved, so its default still runs; any other dropped question has a default that leaves the data untouched, so it just goes."""
+    asked = sorted((q for q in questions if not q.get("auto")), key=_impact)        # sorted() is stable: equal impact keeps the original order
+    keep, drop = asked[:limit], asked[limit:]
+    dropped = [{"id": q["id"], "question": q["text"], "default": option_for(q, None)["label"]} for q in drop]
+    runs = {q["id"] for q in drop if not dv.is_harmless(option_for(q, None)["action"])}
+    kept = keep + [{**q, "auto": "capped"} for q in drop if q["id"] in runs] + [q for q in questions if q.get("auto")]
+    return kept, dropped
+
+
 def build_questions_and_ignored(df: pd.DataFrame, profile: dict, goal: str, ctx: dict | None, explore: bool, llm, saved: dict | None = None,
-                                skip_columns: set | None = None) -> tuple[list[dict], list[dict]]:
+                                skip_columns: set | None = None, dropped: list | None = None) -> tuple[list[dict], list[dict]]:
     """(questions, saved glossary answers that were ignored). The model writes the questions when there is one; otherwise (or if its answer is unusable) the templates do.
     Weak signals alone never pause a run: they are only included when something stronger already needs an answer.
     A saved answer is ignored when its ambiguity is in this data but the question was dropped as no longer valid, or the saved option no longer exists.
+    At most MAX_QUESTIONS are asked; the others are appended to `dropped` (when given) with the default that was used.
     `skip_columns` are columns whose placeholder values were already asked about on the source tables, so no second "is this a placeholder" question is raised for them."""
     skip = skip_columns or set()
     signals = [sg for sg in compute_signals(df, profile) if sg["type"] not in UNASKED and not (sg["type"] == "sentinel" and set(sg["columns"]) <= skip)]
@@ -302,7 +325,9 @@ def build_questions_and_ignored(df: pd.DataFrame, profile: dict, goal: str, ctx:
         qs = template_questions(signals, profile, goal, ctx, explore)
     if not any(q.get("strong") and not q.get("auto") for q in qs):
         qs = [q for q in qs if q.get("strong")]
-    qs = [q for q in qs if not q.get("auto")][:MAX_QUESTIONS] + [q for q in qs if q.get("auto")]
+    qs, over = cap_questions(qs)
+    if dropped is not None:
+        dropped.extend(over)
     by_id = {q["id"]: q for q in qs}
     ignored = []
     for qid, a in ((saved or {}).get("answers") or {}).items():

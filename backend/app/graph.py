@@ -126,6 +126,13 @@ def _answers_for(state, qs: list[dict]) -> dict:
     return clarify.resolve(qs, (given or {}).get("answers"), ws["answers"], skip=bool((given or {}).get("skip")))[0]
 
 
+def _user_set(state, qid: str) -> bool:
+    """Did the user (not the default or the glossary) answer this question?"""
+    afile = _wd(state) / "answers.json"
+    given = json.loads(afile.read_text(encoding="utf-8")) if afile.exists() else None
+    return bool(given) and not given.get("skip") and qid in (given.get("answers") or {})
+
+
 def _placeholders_before_join(state, typed: dict, profiles: dict, model: dict, base: str, pre_log: list) -> tuple[dict, list]:
     """Look for placeholder numbers in each source table. Used columns become one question each (default: missing); unused ones are set to missing and logged."""
     cands = placeholders.scan(typed)
@@ -140,12 +147,10 @@ def _placeholders_before_join(state, typed: dict, profiles: dict, model: dict, b
     out["questions"] = qs
     out["masked"] = idle + [c for c, q in zip(used, qs) if final[q["id"]] == "missing"]
     log = list(pre_log)
-    for c in idle:
-        log.append({"step": "Placeholder values", "detail": f"[{c['table']}] {c['count']:,} values of {c['value']:g} in {c['column']} ({c['reason']}) set to missing; the column is not used by the analysis, so you were not asked",
-                    "count": c["count"]})
+    log += [placeholders.log_line(c, "default", "the column is not used by the analysis, so you were not asked") for c in idle]
     for c, q in zip(used, qs):
         if final[q["id"]] == "missing":
-            log.append({"step": "Placeholder values", "detail": f"[{c['table']}] {c['count']:,} values of {c['value']:g} in {c['column']} ({c['reason']}) set to missing before the tables were joined", "count": c["count"]})
+            log.append(placeholders.log_line(c, "default" if q["default"] == "missing" and not _user_set(state, q["id"]) else "your answer", "set to missing before the tables were joined"))
     return out, log
 
 
@@ -268,21 +273,23 @@ def clarify_node(state: RunState) -> dict:
     qfile, afile = wd / "questions.json", wd / "answers.json"
     given = json.loads(afile.read_text(encoding="utf-8")) if afile.exists() else None
     ignored: list = []
+    dropped: list = []
     if qfile.exists():
         stored = json.loads(qfile.read_text(encoding="utf-8"))
-        questions, ignored = stored["questions"], stored.get("ignored") or []  # the same questions as before the pause (the LLM part is not deterministic)
+        questions, ignored, dropped = stored["questions"], stored.get("ignored") or [], stored.get("dropped") or []  # the same questions as before the pause (the LLM part is not deterministic)
     else:
         llm, _ = get_llm()
         typed, _ = coerce_types(pd.read_pickle(wd / "raw.pkl"), state["profile"])
         pq = state.get("placeholder_questions") or []
         skip = {c for q in pq for c in (q["columns"][0], f"{q['table']}_{q['columns'][0]}")}
-        questions, ignored = clarify.build_questions_and_ignored(typed, state["profile"], state["goal"], ctx, bool(state.get("explore")), llm, ws, skip)
-        questions = pq + questions
+        questions, ignored = clarify.build_questions_and_ignored(typed, state["profile"], state["goal"], ctx, bool(state.get("explore")), llm, ws, skip, dropped)
+        questions, over = clarify.cap_questions(pq + questions)        # placeholder questions and the others share one cap of MAX_QUESTIONS
+        dropped += over
         for q in questions:
             saved = (ws["answers"].get(q["id"]) or {}).get("value")
             q["prefill"], q["prefill_source"] = (saved, "glossary") if saved in clarify.option_values(q) else (q["default"], "default")
         if any(not q.get("auto") for q in questions):       # only a run that may pause needs its questions frozen
-            qfile.write_text(json.dumps({"workspace": glossary.workspace_key(ctx), "questions": questions, "ignored": ignored}), encoding="utf-8")
+            qfile.write_text(json.dumps({"workspace": glossary.workspace_key(ctx), "questions": questions, "ignored": ignored, "dropped": dropped}), encoding="utf-8")
     asked = [q for q in questions if not q.get("auto")]
     final, sources = clarify.resolve(questions, (given or {}).get("answers"), ws["answers"], skip=bool((given or {}).get("skip")))
     covered = all(sources[q["id"]] == "glossary" for q in asked)
@@ -296,6 +303,11 @@ def clarify_node(state: RunState) -> dict:
         text = (text + "\n" if text else "") + "Answers to clarifying questions:\n" + "\n".join(notes)
     if text:
         out["context"] = {**ctx, "definitions_text": text}
+    if dropped:
+        out["decisions"] = [*(state.get("decisions") or []), {"decision": "clarifying questions capped", "source": "rules", "chosen": f"asked {len(asked)} of {len(asked) + len(dropped)} questions",
+                                                              "why": f"at most {clarify.MAX_QUESTIONS} questions are asked, ranked by how much the answer changes the analysis; the rest used their defaults",
+                                                              "errors": [f"not asked: {d['question']} -> default used: {d['default']}" for d in dropped], "raw_output": ""}]
+        emit(rid, "Clarifier", f"{len(dropped)} lower-priority question{'s' if len(dropped) != 1 else ''} not asked; the default answer was used.")
     if waiting:
         emit(rid, "Clarifier", f"{len(asked)} short question{'s' if len(asked) != 1 else ''} about the data need your answer before the analysis starts (or skip them to use defaults).",
              questions=[q["id"] for q in asked])
