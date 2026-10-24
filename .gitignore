@@ -8,3 +8,12 @@ frontend/dist/
 *.pkl
 .env
 *.tsbuildinfo
+
+# local test fixtures and generated output
+sample_data/kaveri_test/
+scripts/scorecard_history.csv
+*.log
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
