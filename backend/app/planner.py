@@ -22,6 +22,7 @@ from .clarify import named_in_goal
 from .profiler import compact_profile
 from .measures import has_sum_word, measure_kind
 from .propose import AI_SOURCES, propose
+from .retail_roles import demote_quantities
 from .signals import flag_values
 from .tools import CATALOG, MONTH_CYCLE_MIN_DAYS, additive, assoc_strength, spec_signature, validate_spec, target_values  # noqa: F401
 
@@ -130,6 +131,9 @@ def id_like_columns(df: pd.DataFrame, roles: dict, uniques: dict, ov: dict) -> l
 def _integer_valued(s: pd.Series) -> bool:
     nn = pd.to_numeric(s, errors="coerce").dropna()
     return bool(len(nn)) and bool((nn % 1 == 0).all()) and nn.nunique() < ID_LIKE_FILL * (nn.max() - nn.min() + 1)      # a code is sparse in its range; tenure or age fills it
+
+
+CORR_COLS_MAX = 12      # the correlation tool reads at most this many columns
 
 
 def candidate_measures(df: pd.DataFrame, roles: dict, uniques: dict, ov: dict) -> list[str]:
@@ -280,10 +284,13 @@ def ensure_required(df: pd.DataFrame, roles: dict, uniques: dict, goal: str, exp
     if not explore and adds:      # the goal names a category column and there is a main total: each group's share of that total is always shown, whichever analyses the plan drew up
         for g in [c for c, r in roles.items() if r == "categorical" and c in df.columns and named_in_goal(c, goal)][:3]:
             add({"tool": "group_table", "params": {"target": adds[0], "group": g}}, f"The goal names {g}, so each {g}'s share of {adds[0]} is always shown (added by code: required coverage).")
-    if ratio_kpis and not any(a["tool"] == "correlation" for a in out):     # a ratio KPI is always checked against the numeric drivers (discount, price...), whatever the plan drew up
+    have_corr = next((a for a in out if a["tool"] == "correlation"), None)
+    if ratio_kpis and have_corr is None:     # a ratio KPI is always checked against the numeric drivers (discount, price...), whatever the plan drew up
         cols = candidate_measures(df, roles, uniques, ov)
         if len(cols) >= 2:
             add({"tool": "correlation", "params": {"cols": cols}}, f"{ratio_kpis[0]} is a ratio KPI, so how it moves with the numeric drivers is always checked.")
+    elif ratio_kpis and not set(ratio_kpis) <= set(have_corr["params"].get("cols") or []):      # the plan's own correlation never leaves a ratio KPI out: its columns go first, so a column cap cannot crowd them out
+        have_corr["params"]["cols"] = (ratio_kpis + [c for c in have_corr["params"].get("cols") or [] if c not in ratio_kpis])[:CORR_COLS_MAX]
     if date and date in df.columns:
         if _span_months(df[date]) >= MIN_YEAR_MONTHS:      # a year or more of dates: the month-of-year pattern of the main total and of each ratio KPI (ratio of sums per month) is always checked
             for m in adds[:1] + ratio_kpis:
@@ -300,7 +307,7 @@ def heuristic_plan(df: pd.DataFrame, profile: dict, goal: str, context: dict | N
     context = context or {}
     ov = overrides or {}
     roles, uniques = roles_and_uniques(profile)
-    roles = _apply_exclusions(roles, ov)
+    roles = demote_quantities(df, _apply_exclusions(roles, ov), ov.get("brief_roles"))
     # In explore mode the "goal" is a placeholder sentence, so it must not influence column choice.
     goal_tokens = set() if explore else set(re.findall(r"[a-z0-9]+", goal.lower()))
     kpi_tokens = ctxmod.kpi_tokens(context, ov.get("kpi_map"))
@@ -494,7 +501,7 @@ def propose_plan(llm, df: pd.DataFrame, profile: dict, goal: str, context: dict 
     roles, uniques = roles_and_uniques(profile)
     ids = {c for c, r in roles.items() if r == "id"}
     cap = plan_cap(explore)
-    res = propose(llm, "analysis plan", plan_system(cap), plan_view(profile, goal, context, explore, ov), plan_validator(_apply_exclusions(roles, ov), uniques, ids, cap), lambda: None)
+    res = propose(llm, "analysis plan", plan_system(cap), plan_view(profile, goal, context, explore, ov), plan_validator(demote_quantities(df, _apply_exclusions(roles, ov), ov.get("brief_roles")), uniques, ids, cap), lambda: None)
     ai = res["source"] in AI_SOURCES
     plan, notes = finalize_plan(res["value"] if ai else None, df, profile, goal, context, explore, ov)
     plan["source"] = "llm" if res["source"] == "llm" else "repaired" if ai else "rules"
@@ -513,7 +520,7 @@ def finalize_plan(raw: dict | None, df: pd.DataFrame, profile: dict, goal: str, 
     notes: list[str] = []
     ov = overrides or {}
     roles, uniques = roles_and_uniques(profile)
-    roles = _apply_exclusions(roles, ov)
+    roles = demote_quantities(df, _apply_exclusions(roles, ov), ov.get("brief_roles"))
     fallback = heuristic_plan(df, profile, goal, context, explore, ov)
     if not raw:
         return fallback, notes

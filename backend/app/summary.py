@@ -22,11 +22,14 @@ from .brief import hierarchy_pairs, kinds
 from .clarify import named_in_goal
 from .llm import ask_json
 from .measures import is_money, measure_kind
+from .retail_roles import is_quantity
 from .tools import _fmt
 
 HEADLINES_MAX = 5
 MIN_GROUP_ROWS = 5            # a group with fewer rows is too small to be called the top or the bottom
 MAX_GROUPS = 50
+MAX_ALL_GROUPS = 30           # the main KPI is ranked by every category column up to this many groups, not only the ones the goal names
+DOMINANT_SHARE = 0.4          # a group holding more of the total than this is called dominant
 MAX_ADDITIVE = 8
 MIN_SUB_PERIODS = 3           # a change between two periods is only tested when each period holds this many sub-periods (months, weeks)
 GROWTH_UNITS = (("Y", "M", "month"), ("Q", "M", "month"), ("M", "W", "week"))     # (period freq, sub-period freq, sub-period word): the longest unit with 2+ full periods wins
@@ -88,15 +91,20 @@ def _cur(col: str, state: dict) -> str:
 
 
 # ------------------------------------------------------------------ ranking facts
-def group_columns(state: dict, df) -> list[str]:
-    """Category columns the goal or a question names, and both levels of every verified hierarchy."""
+def group_columns(state: dict, df, every: bool = False) -> list[str]:
+    """Category columns the goal or a question names, and both levels of every verified hierarchy. every=True: every category column with 2-MAX_ALL_GROUPS groups.
+    A column judged to be a quantity is never a group."""
     prof = {c["name"]: c for c in (state.get("profile") or {}).get("columns", [])}
     asked = " ".join([state.get("goal", "")] + list((state.get("plan") or {}).get("questions") or []))
     hier = [c for pair in hierarchy_pairs(state.get("brief")) for c in pair]
+    brief_roles = (state.get("brief") or {}).get("roles") or {}
     out: list[str] = []
     for name, c in prof.items():
-        if name in df.columns and c.get("role") in ("categorical", "binary") and 2 <= (c.get("unique") or 0) <= MAX_GROUPS \
-                and (name in hier or named_in_goal(name, asked) or mentions(name, asked)):
+        if name not in df.columns or c.get("role") not in ("categorical", "binary") or is_quantity(df[name], brief_roles.get(name)):
+            continue
+        n = c.get("unique") or 0
+        named = name in hier or named_in_goal(name, asked) or mentions(name, asked)
+        if (2 <= n <= MAX_ALL_GROUPS) if every else (2 <= n <= MAX_GROUPS and named):
             out.append(name)
     return out
 
@@ -119,11 +127,14 @@ def _rank_additive(df, state: dict, group: str, measure: str, n: int) -> dict | 
     top, bot = s.index[0], s.index[-1]
     frac = s["sum"].iloc[0] / total if total > 0 and s["sum"].iloc[0] > 0 else None
     share = "" if frac is None else f" ({frac:.1%} of all {measure})" if frac <= 1 else f" ({frac:.1%} of the net total {measure}, because other groups lose money)"
+    dominant = frac is not None and DOMINANT_SHARE < frac <= 1       # above 100% the total is net of losses and 'dominant' would mislead
+    if dominant:
+        share = share[:-1] + ", dominant)" if share.endswith(")") else share
     text = (f"By total {measure}, {wording.entity(group, top)} is highest at {full(s['sum'].iloc[0], cur)}{share} and {wording.entity(group, bot)} is lowest at {full(s['sum'].iloc[-1], cur)}.")
     loss = [g for g, v in s["sum"].items() if v < 0]
     if loss:
         text += " Loss-making (negative total): " + ", ".join(f"{wording.entity(group, g)} ({full(s.loc[g, 'sum'], cur)})" for g in loss[:5]) + "."
-    return {"id": f"r{n}", "tool": "ranking", "basis": "total", "group": group, "measure": measure, "top": top, "bottom": bot, "text": text}
+    return {"id": f"r{n}", "tool": "ranking", "basis": "total", "group": group, "measure": measure, "top": top, "bottom": bot, "dominant": top if dominant else None, "text": text}
 
 
 def _rank_ratio(df, spec: dict, group: str, measure: str, n: int) -> dict | None:
@@ -212,13 +223,14 @@ def ranking_facts(state: dict, df) -> list[dict]:
     cols, ratios = kpi_measures(state, df)
     out: list[dict] = []
     date = (state.get("plan") or {}).get("date_col")
-    for group in group_columns(state, df):
-        for m in cols:
+    focus = group_columns(state, df)
+    for group in group_columns(state, df, every=True):
+        for m in (cols if group in focus else cols[:1]):       # the main additive KPI, and its growth, by every category column; the other KPIs and ratios only by the focus columns
             if m != group and (fact := _rank_additive(df, state, group, m, len(out) + 1)):
-                out.append(fact)
+                out.append({**fact, "focus": group in focus})
             if date in df.columns and m != group and (fact := _growth_fact(df, state, group, m, date, len(out) + 1)):
                 out.append(fact)
-        for name, spec in ratios.items():
+        for name, spec in (ratios.items() if group in focus else ()):
             if name != group and (fact := _rank_ratio(df, spec, group, name, len(out) + 1)):
                 out.append(fact)
     return out
@@ -396,6 +408,9 @@ def headlines(state: dict, facts: dict | None, answered: list[dict]) -> list[dic
             superseded = f is not None and basis(f) == "average" and ((f.get("params") or {}).get("group"), _measure_of(f)) in ranked_cells
             if not superseded:
                 add(i)
+    for r in rankings.values():       # a group holding more than DOMINANT_SHARE of the main KPI is always worth a headline
+        if r.get("dominant"):
+            add(r["id"])
     size = {"large": 0, "medium": 1}
     strong = [f for f in state.get("findings") or [] if f["tool"] not in NOT_A_FINDING and reliable(f) and effect_label(f.get("stats") or {}) in size]
     for f in sorted(strong, key=lambda f: (size[effect_label(f.get("stats") or {})], basis(f) == "average", -((f.get("insight") or {}).get("score", 0)))):

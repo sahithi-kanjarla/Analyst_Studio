@@ -303,6 +303,10 @@ def build_report(state: dict, summary: str, recs: list[str], run_mode: str = "",
     for r in (x for x in view.get("rankings") or [] if x.get("kind") == "growth"):      # every group, not only the significant ones
         L += ["", f"## Growth in {r['measure']} by {r['group']}, {r['periods'][0]} vs {r['periods'][1]}", ""] + [f"- {g['line']}" for g in r["groups"]]
 
+    other = [x for x in view.get("rankings") or [] if x.get("kind") != "growth" and x.get("basis") == "total" and x.get("focus") is False]
+    if other:       # the main KPI by every other category column: the top and bottom group, even when the goal did not name the column
+        L += ["", f"## {other[0]['measure']} by other categories", ""] + [f"- {x['text']}" for x in other]
+
     L += [""] + _evidence_section(view) + _checked_section(view) + _strategy_section(state, view)
 
     gaps = state.get("data_gaps") or []

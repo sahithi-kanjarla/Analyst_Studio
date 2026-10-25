@@ -1,0 +1,57 @@
+run ae30c606a675 started...
+
+mall scorecard, run 1/2 (ae30c606a675); ratio KPI path: none
+
+ #  Result  Check                                     Detail
+ 1  PASS    Revenue total (within 1.5%: blank Qty)    truth 81,887,060; found 81,105,167
+ 2  PASS    Top store Phoenix Mall                    
+ 3  PASS    Shrinking store Lakeside Outlet           - store Lakeside Outlet -47.0% (from 1,389,672 to 736,505), not statistically reliable
+ 4  PASS    High-return brand Urban Weave 36.5%       - **Which segments (Brand, Dept, Return Flag) perform best and worst on revenue?** Brand =
+ 5  PASS    Festive peak Oct/Nov, weak Jun            month pattern: highest Oct, lowest Jun
+ 6  PASS    Dominant dept Menswear ~49%               - By total revenue, dept Menswear is highest at 39,799,896 (49.1% of all revenue, dominant
+ 7  PASS    Decoys not called drivers                 
+ 8  PASS    No invented margin/profit                 only the data-gap line
+ 9  PASS    Gap line says margin not computable       
+10  PASS    Bill No not a measure                     []
+11  PASS    <=3 questions, relevant                   flag_rows, blank_values
+12  PASS    All five mess items handled               
+
+Total: 12/12
+run 660841cbe6e4 started...
+
+mall scorecard, run 2/2 (660841cbe6e4); ratio KPI path: none
+
+ #  Result  Check                                     Detail
+ 1  PASS    Revenue total (within 1.5%: blank Qty)    truth 81,887,060; found 81,105,167
+ 2  PASS    Top store Phoenix Mall                    
+ 3  PASS    Shrinking store Lakeside Outlet           - store Lakeside Outlet -47.0% (from 1,389,672 to 736,505), not statistically reliable
+ 4  PASS    High-return brand Urban Weave 36.5%       - **Which segments (Brand, Dept, Return Flag) perform best and worst on revenue?** Brand =
+ 5  PASS    Festive peak Oct/Nov, weak Jun            month pattern: highest Oct, lowest Jun
+ 6  PASS    Dominant dept Menswear ~49%               - By total revenue, dept Menswear is highest at 39,799,896 (49.1% of all revenue, dominant
+ 7  PASS    Decoys not called drivers                 
+ 8  PASS    No invented margin/profit                 only the data-gap line
+ 9  PASS    Gap line says margin not computable       
+10  PASS    Bill No not a measure                     []
+11  PASS    <=3 questions, relevant                   flag_rows, blank_values
+12  PASS    All five mess items handled               
+
+Total: 12/12
+
+Per-check passes across 2 finished run(s) of 2
+
+ #  Passed   Check
+ 1  2/2      Revenue total (within 1.5%: blank Qty)
+ 2  2/2      Top store Phoenix Mall
+ 3  2/2      Shrinking store Lakeside Outlet
+ 4  2/2      High-return brand Urban Weave 36.5%
+ 5  2/2      Festive peak Oct/Nov, weak Jun
+ 6  2/2      Dominant dept Menswear ~49%
+ 7  2/2      Decoys not called drivers
+ 8  2/2      No invented margin/profit
+ 9  2/2      Gap line says margin not computable
+10  2/2      Bill No not a measure
+11  2/2      <=3 questions, relevant
+12  2/2      All five mess items handled
+
+Totals per run: [12, 12]
+Median: 12.0/12   Minimum: 12/12
