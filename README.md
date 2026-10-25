@@ -12,24 +12,30 @@ plans, critiques and writes prose, and it can be a free local model, a free-tier
     ▲                                       │
     └───── live agent events (SSE) ◀────────┤
                                             ▼
-   Profiler → Joiner → Clarifier → Planner → Cleaner → Analyst → Critic ──┐ (needs a follow-up check?)
-                                      ▲              │ yes
-                                      └──────────────┘
-                                         │ no
-                                         ▼
-                              Reporter → Power BI pack
+   Profiler → Joiner → Brief → Clarifier → Planner → Cleaner → Analyst → Critic ──┐ (needs a follow-up check?)
+                                                         ▲              │ yes
+                                                         └──────────────┘
+                                                            │ no
+                                                            ▼
+                                  Insights → Strategist → Reporter → Power BI pack
 ```
+
+The stage order lives in `backend/app/graph.py`. Every stage is wrapped so that a failure falls back to the rules version (or is skipped) with a warning, and the run still finishes with everything that exists.
 
 | Agent | Job | Uses LLM? |
 |---|---|---|
 | **Profiler** | Detects the role of every column (id, numeric, binary, category, date, text), including numbers/dates stored as text | no |
 | **Joiner** | With 2+ files (or Excel sheets): finds the key links, picks the analysis grain from your goal, joins safely, and measures every join | optional (can veto links) |
-| **Clarifier** | Finds ambiguities from the data alone (two dates, placeholder values, negatives, derived or duplicate columns), asks a few short questions, and applies the answers through a closed list of actions | optional (writes the questions; templates otherwise) |
+| **Brief** | One LLM call per run: what each column means (id, measure, dimension, date, text), whether a measure is additive or a rate, which column each KPI you named is, and which ratios or line totals exist. Every part is checked by code; a part that fails is dropped and the rules decide | optional (rules fallback) |
+| **Clarifier** | Finds ambiguities from the data alone (two dates, placeholder values such as 999 or -1 found on the source tables before joining, negatives, derived or duplicate columns), asks **at most 3** short questions, and applies the answers through a closed list of actions | optional (writes the questions; templates otherwise) |
 | **Planner** | Turns the goal into questions, picks the target and only the relevant columns, and chooses analyses | optional (rules fallback) |
 | **Cleaner** | Fixes types, standardises missing values, removes duplicates, imputes, flags outliers, **only for needed columns**, logging every change | no |
 | **Analyst** | Runs the planned analyses from a tested toolbox (tests, effect sizes, charts) | no |
 | **Critic** | Multiple-testing correction, small samples, skew, practical vs statistical significance; can send the Analyst back for robustness checks | optional |
-| **Reporter** | Assembles the report. The LLM only writes the summary and recommendations. Numbers come from the tools | optional |
+| **Insights** | Turns each finding into a card: what we see, why it matters, how much to trust it, explanations to test | optional (rules wording) |
+| **Strategist** | Ranked, testable strategies from significant findings only | optional (rules wording) |
+| **Reporter** | Assembles the report in three tiers. The LLM only writes the summary and recommendations. Numbers come from the tools | optional |
+| **Power BI pack** | Cleaned data, data dictionary, DAX measures, visual specs, theme and guide | no |
 
 Anything an LLM proposes is validated against the real columns. Hallucinated tools or columns are dropped, and
 unusable output falls back to the rule-based planner.
@@ -48,13 +54,15 @@ If an LLM is enabled, the context text is sent to it, so leave out anything conf
 
 ## Business glossary and clarifying questions
 
-Before planning, the Clarifier looks for things in the data that would change what a number *means*, asks a few short questions (**6 at most**), and applies the answers. It works on **any tabular data**: the question logic contains no word lists about any business domain and never looks at what a column is called (a test scans the code for domain words).
+Before planning, the Clarifier looks for things in the data that would change what a number *means*, asks a few short questions (**3 at most**, ranked by how much the answer changes the analysis; the rest use their defaults and the run says so), and applies the answers. It works on **any tabular data**: the question logic contains no word lists about any business domain and never looks at what a column is called (a test scans the code for domain words).
 
 ```
 data -> signals.py (neutral facts) -> question writer -> validator -> you answer or skip -> cleaner executes the chosen actions
                                        LLM rewords, or one generic
                                        template per signal
 ```
+
+**Placeholders** (`placeholders.py`) are looked for table by table before any join, because a 999 that is joined first gets averaged into a summary and can no longer be found. A column the analysis uses gets one question (default: treat as missing); an unused column is set to missing and logged without asking.
 
 **Signals** (`signals.py`, values and distributions only): two or more date columns; several candidate measures (never a question: the planner analyses every one of them, see below); negative values in a column that is mostly positive; a placeholder-looking value (-1, 9999, 'unknown'…) or a spike of one value; a column that is almost exactly another plus or minus a third; very rare labels; high missingness; two columns that look like duplicates. Each has a stable id (hash of type + columns), so a saved answer matches the same ambiguity on the next run.
 
@@ -99,7 +107,7 @@ data -> signals.py (neutral facts) -> question writer -> validator -> you answer
 
 ## Derived metrics (ratios) are proposed, then checked against the data
 
-Rules alone never create a ratio. With an LLM, the planner may propose ratios A / B, and each proposal must come with a one-line business meaning and then pass checks that look at **values only** (`derived.py`, no column names, no domain words):
+A ratio you name as a KPI (for example "profit margin") is created by code whenever the Brief, or the rules as a fallback, find its numerator and denominator columns. Beyond that, rules alone never invent a ratio. With an LLM, the planner may propose up to 2 more ratios A / B, and each proposal must come with a one-line business meaning and then pass checks that look at **values only** (`derived.py`, `derived_check.py`, no column names, no domain words):
 
 | Check | Rejects |
 |---|---|
@@ -113,6 +121,18 @@ Rules alone never create a ratio. With an LLM, the planner may propose ratios A 
 ## The goal gets a direct answer
 
 If the goal asks whether something is growing, falling or changing over time, the planner puts the overall trend and the per-group trends first, and the report opens with **Answer to your goal**: one sentence with the direction, the size of the change and its significance (for example "There is no reliable growth trend in amount: it changed about -5% over the period, which is not statistically significant (p=0.58, 24 months)"), plus one on the groups, corrected for the number of groups tested. The dashboard shows that sentence with the two trend charts above everything else.
+
+## The report has three tiers
+
+`tiering.py` arranges the same findings; it computes nothing new.
+
+| Tier | Content |
+|---|---|
+| 1. The answer | One line per goal question (or "Not answered"), key numbers, up to 5 headline findings, up to 3 actions. Ranking facts ("which X is most Y") and growth facts (every group's first full period against the last, marked reliable or not) are built from the cleaned data, so they exist even when no difference was significant (`summary.py`) |
+| 2. Evidence | Up to 8 cards: findings named by the goal, or significant after correction with a medium or larger effect |
+| 3. Appendix | Everything else, collapsed. Non-significant tests become one "Checked, nothing found" line each; distributions and shares go to a data profile |
+
+Numbers in the prose are checked against the findings; a number the tools did not compute is rejected and the rule-based text is kept. If an AI call failed (rate limit, timeout, auth), the report says so instead of presenting rules text as AI text.
 
 ## Charts show a readable slice; statistics always use all the data
 
@@ -142,18 +162,19 @@ LLM output can only reword these; any number it introduces that is not in the fi
 
 ## The dashboard, data viewer and ER diagram
 
+- **Tabs:** Dashboard, Insights, Strategy, Report, Data, Data model, Cleaning log, Plan, Power BI. A History view lists the 20 newest runs.
 - **Dashboard** (first tab): headline number tiles, the top recommendation, the two most important charts large, then every chart grouped by the question it answers (what drives the result, over time, shape of the data, tables). Filter by high confidence or your own KPIs; click any chart for its full insight card and *why this chart was chosen*.
 - **Data**: browse the cleaned table the agents actually used (search, sort, paginate), switch to the original, see per-column *what cleaning changed* (type, missing values), and download the cleaned CSV.
 - **Data model**: for several files, an ER diagram drawn from what the Joiner agent found: tables with their columns, key columns highlighted, 1 / N ends on each link, solid lines for links used, dashed for links skipped or rejected. Hover a line for the match rate and reason.
 
 ## Charts and tables the agents can choose from
 
-Histogram, box plot, bar chart with error bars, Pareto, trend line, multi-line segment trends, weekday/month seasonality, correlation heatmap, two-way heatmap, scatter with fitted line (zooms past extreme points and says so), 100% stacked composition bars, plus a numeric summary table and a per-group table. The planner picks by column types and the goal; each chart records why it was chosen. An LLM, if enabled, can only choose from this list (anything invented is dropped).
+Sixteen tools in all (`tools.py`): distribution, outliers, category share, group compare, outcome compare, robust compare, Pareto, trend, correlation, heatmap, segment trend, scatter, composition, seasonality, summary table and group table. As charts: histogram, box plot, bar chart with error bars, Pareto, trend line, multi-line segment trends, weekday/month seasonality, correlation heatmap, two-way heatmap, scatter with fitted line (zooms past extreme points and says so), 100% stacked composition bars, plus a numeric summary table and a per-group table. The planner picks by column types and the goal; each chart records why it was chosen. An LLM, if enabled, can only choose from this list (anything invented is dropped).
 Month-of-year seasonality is only claimed with at least two years of data, because with less it cannot be told apart from a trend.
 
 ## Several files? They get connected
 
-Upload multiple files (or one Excel workbook with several sheets) and the **Joiner** agent:
+Upload up to 8 files (or one Excel workbook with several sheets; each non-empty sheet becomes a table) and the **Joiner** agent:
 
 1. **Finds links**: a key must be unique on one side and its values must appear on the other, with name evidence (`orders.customer_id` → `customers.customer_id`). Keys are normalised (`101` = `101.0` = `" 101 "`), and coincidental overlaps (two tables that both have `id` = 1..N, small numbers vs ids) are rejected.
 2. **Picks the grain from your goal**: *"why do customers churn?"* → one row per customer; *"which segment drives revenue?"* → one row per order.
@@ -204,7 +225,7 @@ raw rows. With Ollama nothing leaves your machine.
 Power BI Desktop is Windows-only and `.pbix` is a proprietary binary, so the app does not pretend to generate one.
 The **Power BI pack** (button in the UI, or `GET /api/runs/{id}/powerbi`) contains:
 
-- `cleaned_data.csv` / `.parquet`: load with *Get data*
+- `cleaned_data.csv` / `.parquet`: load with *Get data* (with several files, also the original tables and `relationships.csv`)
 - `data_dictionary.csv`: detected types and recommended Power BI types
 - `measures.dax`: ready-to-paste measures (totals, rates, shares, month-over-month, YTD)
 - `visuals.json` + `POWERBI_GUIDE.md`: which visual to build for each finding, step by step
@@ -217,16 +238,20 @@ registration and a Power BI Pro licence, so it is not part of the free path).
 ## Tests
 
 ```bash
-cd backend && pytest -q        # 185 tests: pipeline, API, edge cases, multi-table joins, business context, clarifying questions and glossary, insights, strategies, LLM failure modes (fake model, no network)
+cd backend && pytest -q        # 419 tests: pipeline, API, edge cases, multi-table joins, clarifying questions and glossary, derived metrics, report tiers, run safety, LLM failure modes (fake model, no network)
 ```
+
+**Scorecard.** `python scripts/scorecard.py [--dataset mall] [--runs N]` runs the real pipeline on a built-in test dataset (Kaveri, 3 files; or mall, 40 000 rows) and checks the report against a known answer in 12 checks. Both datasets were built for this project. Latest recorded results: Kaveri 12/12 and mall 12/12 (25 Oct 2026). See `docs/facts.md` for measured limits, timings and storage.
 
 ## Layout
 
 ```
-backend/app/   profiler.py  relations.py  signals.py  clarify.py  directives.py  glossary.py  planner.py  cleaner.py  tools.py  critic.py  reporter.py  powerbi.py
-               graph.py (LangGraph)  llm.py (providers)  runner.py  main.py (FastAPI)
-frontend/src/  App.tsx  components/{UploadForm,RunView,QuestionForm,Glossary,Timeline,Results}.tsx
-sample_data/   sales.csv  churn.csv  shop/{customers,orders,products}.csv
+backend/app/   profiler.py  relations.py  brief.py  signals.py  placeholders.py  clarify.py  directives.py  glossary.py  planner.py  derived.py  derived_check.py
+               measures.py  polarity.py  retail_roles.py  cleaner.py  tools.py  critic.py  insights.py  strategy.py  summary.py  tiering.py  goal.py
+               wording.py  reporter.py  powerbi.py  dashboard.py  graph.py (LangGraph)  llm.py (providers)  runner.py  events.py  main.py (FastAPI)
+backend/tests/ 419 tests        scripts/  scorecard.py  make_mall.py        docs/  facts.md  decision_points.md  flow_audit.md
+frontend/src/  App.tsx  components/ (Landing, UploadForm, QuestionForm, RunView, Results, BIDashboard, InsightCard, StrategyView, DataViewer, DataModel, Glossary, History, ...)
+sample_data/   sales.csv  churn.csv  shop/{customers,orders,products}.csv  mall/ (40 000-row scorecard dataset with truth.json)
 ```
 
 ## Known limits
@@ -234,7 +259,12 @@ sample_data/   sales.csv  churn.csv  shop/{customers,orders,products}.csv
 - Charts are static images (PNG), not interactive: you can click to enlarge but not filter them. Power BI is the place for interactive slicing; the pack is built for that.
 - Non-English column names need a system font that has those letters (Nirmala UI on Windows, Noto Sans elsewhere).
 
-- **Local use only.** There is no authentication, and run folders live on disk (`backend/data/runs`). Add auth before exposing it.
+- **Local use only.** There is no authentication or user separation, and run folders live on disk (`backend/data/runs`). Anyone who can reach the server can list recent runs and read any run whose id they have. Run folders are never deleted automatically and are 8 to 20 times the size of the input, so clear old ones yourself.
+- **No run queue.** Each upload starts its own thread immediately; there is no cap, parallel runs were not tested, and a server restart loses runs in flight (they stay `running` or `queued`).
+- **Size.** There is no row or column limit, only 8 files and 50 MB in total. The largest dataset tested is 40 000 rows by 13 columns, which took about 1.5 to 2.5 minutes on the Groq free tier; most of that time is LLM calls and chart rendering, not row processing. Much larger files are untested and the whole upload is held in memory.
+- **Formats.** `.xls` is accepted by the upload check but needs `xlrd`, which is not in `requirements.txt`; save as `.xlsx` instead. `.json` must be table-shaped.
+- **Free-tier LLMs** rate-limit and sometimes time out (60 s timeout, one retry). The app then falls back to rules for that step and says so in the report; runs get slower and less tailored but still finish.
+- **Retail-centred helpers.** Detecting quantity times price as an amount (`retail_roles.py`) and the test datasets are retail. Detection uses values, not column names, and the module is swappable, but other domains get only the generic path.
 - Joins use single-column keys (no composite keys) and never join many-to-many. A table that can only be reached through a summarised table (e.g. `products` when the grain is one row per customer) is reported as not used; ask a question at that level instead. Up to 8 files and 50 MB in total by default (`MAX_FILES`, `MAX_UPLOAD_MB`).
 - Key detection is heuristic. It is conservative, and always shows the match rate, but check the *Data model* tab before trusting a surprising result.
 - Associations, not causes. The report says so, and the Critic flags weak or small effects rather than recommending on them.
