@@ -200,3 +200,13 @@ def test_scope_keeps_categorical_columns_that_could_drive_the_kpi():
         assert c in plan["relevant_columns"], c
     roles = {c["name"]: c["role"] for c in profile_df(df)["columns"]}
     assert plausible_dimensions(df, roles, {c: df[c].nunique() for c in df.columns}, None, []) == []   # no target, no claim
+
+
+def test_month_of_year_is_reported_even_when_the_weekday_pattern_is_the_more_reliable_one(tmp_path):
+    rng = np.random.default_rng(3)
+    days = pd.date_range("2022-01-01", "2023-12-31")
+    amount = rng.normal(100, 5, len(days)) * np.where(days.dayofweek == 5, 3.0, 1.0)       # a strong Saturday effect, no month effect
+    df = pd.DataFrame({"order_date": days, "sales_amount": amount})
+    f = tools.seasonality(df, {"charts_dir": tmp_path}, "sales_amount", "order_date")
+    assert f["stats"]["cycle"] == "weekday" and set(f["stats"]["cycles"]) == {"weekday", "month"}
+    assert "month of the year" in f["text"] and f["stats"]["cycles"]["month"]["best"] in f["text"]

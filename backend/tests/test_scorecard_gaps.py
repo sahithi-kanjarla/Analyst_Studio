@@ -174,3 +174,10 @@ def test_cleaning_log_always_says_what_was_treated_as_missing():
     assert any(f"treated {n_used:,} values of 999 in wait_days as missing (default)" in d for d in log)          # asked column, default taken
     assert any(f"treated {n_idle:,} values of 9999 in seconds as missing (default)" in d for d in log)           # a column the analysis never uses
     assert "treated" in result(rid)["report_md"] and "as missing (default)" in result(rid)["report_md"]
+
+
+def test_a_question_the_data_settled_is_recorded_but_not_counted_among_the_three_asked():
+    qs = [fake_q(k) for k in ("placeholder", "multi_date", "negatives", "near_sum")] + [{**fake_q("product_basis"), "auto": "data"}]
+    kept, dropped = clarify.cap_questions(qs)
+    assert [q["kind"] for q in kept if not q.get("auto")] == ["placeholder", "product_basis"][:0] + ["placeholder", "multi_date", "negatives"]
+    assert any(q["kind"] == "product_basis" and q["auto"] == "data" for q in kept) and [d["id"] for d in dropped] == ["near_sum:c"]

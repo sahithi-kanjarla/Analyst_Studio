@@ -417,12 +417,12 @@ def enrich_with_llm(llm, state: dict) -> int:
         allowed = allowed_numbers(f["text"], f["title"], json.dumps(f["stats"], default=str, ensure_ascii=False), ctx_txt)
         ins, changed = f["insight"], False
         why = item.get("why_it_matters")
-        if isinstance(why, str) and 20 <= len(why) <= 500 and numbers_ok(why, allowed):
+        if isinstance(why, str) and 20 <= len(why) <= 500 and numbers_ok(why, allowed) and not wording.unsupported_profit_claim(why, state):
             ins["why_it_matters"], changed = why.strip(), True
-        hyp = [h.strip() for h in (item.get("possible_explanations") or []) if isinstance(h, str) and 8 <= len(h) <= 220 and numbers_ok(h, allowed)][:3]
+        hyp = [h.strip() for h in (item.get("possible_explanations") or []) if isinstance(h, str) and 8 <= len(h) <= 220 and numbers_ok(h, allowed) and not wording.unsupported_profit_claim(h, state)][:3]
         if hyp:
             ins["hypotheses"], changed = hyp, True
-        chk = [c.strip() for c in (item.get("check_next") or []) if isinstance(c, str) and 8 <= len(c) <= 220 and numbers_ok(c, allowed)][:2]
+        chk = [c.strip() for c in (item.get("check_next") or []) if isinstance(c, str) and 8 <= len(c) <= 220 and numbers_ok(c, allowed) and not wording.unsupported_profit_claim(c, state)][:2]
         if chk:
             ins["check_next"], changed = chk, True
         if changed:
@@ -498,7 +498,13 @@ def data_gaps(state: dict) -> list[dict]:
         gaps.append({"severity": "info", "title": "No segment columns used", "detail": "Without categories (region, product, plan...) results cannot be broken down by segment.",
                      "suggestion": "Add descriptive columns such as segment, region, channel or product."})
     derived_names = " ".join(f"{d['name']} {d['a']} {d['b']}" for d in plan.get("derived") or []).lower()
+    no_cost = not wording.has_profit_measure(state) and bool(plan.get("target")) and is_money(plan["target"])
+    if no_cost:      # a money measure to report, and nothing that says what it cost: said once, in these words, instead of the industry's own "no cost data" line
+        gaps.append({"severity": "info", "title": "Margin: not computable, no cost column", "detail": "Nothing in the data records what the sales cost, so only figures on the revenue side are reported.",
+                     "suggestion": "Add a cost column (cost per unit or per line) to the data."})
     for rx, what in ctxmod.lens(ctx)["data_wants"]:
+        if no_cost and re.search(r"margin|cost", rx):
+            continue
         # a profit or margin measure (a column, or a ratio the analysis derived) answers a want for cost or margin data, and the other way round
         if re.search(rx, blob + " " + derived_names) or (re.search(r"margin|cost", rx) and FINANCIAL.search(blob + " " + derived_names)):
             continue

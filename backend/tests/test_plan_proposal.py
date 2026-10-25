@@ -121,7 +121,7 @@ def test_no_added_seasonality_under_a_year_and_no_extra_totals_without_a_questio
     short, _ = plan_with(Seq(good_plan()), df=df[df["order_date"] < pd.Timestamp("2021-09-01")])
     assert not any(a["tool"] == "seasonality" and a["origin"] == "code" for a in short["analyses"])
     flat, _ = plan_with(Seq(good_plan()), goal="Which region sells the most?", ov={"kpi_map": {"profit": "profit"}})
-    assert {p[0] for t, p, o in tools(flat) if t == "seasonality" and o == "code"} == {"amount"}      # the main total always; the other totals only when the goal asks about change
+    assert {p[0] for t, p, o in tools(flat) if t == "seasonality" and o == "code"} == {"amount", "profit"}      # every additive measure when dates span 2+ years, whether or not the goal asks about change
 
 
 def test_the_parent_of_a_verified_hierarchy_comes_before_its_child():

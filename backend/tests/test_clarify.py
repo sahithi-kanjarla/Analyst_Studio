@@ -593,8 +593,8 @@ def test_default_answers_leave_the_data_untouched(name, writer):
 # --------------------------------------------------------------------------------------- the code has no domain vocabulary
 
 DOMAIN_WORDS = {"refund", "refunds", "return", "returns", "returned", "cancel", "cancelled", "canceled", "cancellation", "discount", "discounts", "status", "state", "stage", "test", "amount",
-                "revenue", "segment", "segments", "price", "prices", "sales", "profit", "customer", "customers", "order", "orders", "churn", "salary", "invoice", "shipment", "delay",
-                "patient", "student", "employee", "score", "cost", "quantity", "region", "product", "ticket", "transaction", "payment"}
+                "revenue", "segment", "segments", "price", "prices", "sales", "profit", "customer", "customers", "churn", "salary", "invoice", "shipment", "delay",
+                "patient", "student", "employee", "score", "cost", "quantity", "region", "ticket", "transaction", "payment"}   # not listed: order (date order) and product (arithmetic) are false positives
 
 
 def test_question_logic_has_no_domain_words():

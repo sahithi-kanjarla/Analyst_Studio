@@ -261,7 +261,7 @@ def brief_node(state: RunState) -> dict:
     return {**out_ctx, "brief": brief, "profile": new_prof, "decisions": decisions, "stage_sources": {**(state.get("stage_sources") or {}), "brief": brief["source"]}}
 
 
-SOURCE_WORDS = {"user": "your answers", "default": "defaults", "glossary": "the saved glossary", "goal": "your goal"}
+SOURCE_WORDS = {"user": "your answers", "default": "defaults", "glossary": "the saved glossary", "goal": "your goal", "data": "the data itself"}
 
 
 def clarify_node(state: RunState) -> dict:
@@ -279,10 +279,14 @@ def clarify_node(state: RunState) -> dict:
         questions, ignored, dropped = stored["questions"], stored.get("ignored") or [], stored.get("dropped") or []  # the same questions as before the pause (the LLM part is not deterministic)
     else:
         llm, _ = get_llm()
-        typed, _ = coerce_types(pd.read_pickle(wd / "raw.pkl"), state["profile"])
+        raw = pd.read_pickle(wd / "raw.pkl")
+        typed, _ = coerce_types(raw, state["profile"])
+        # the signals read the cleaned values, so the roles come from the cleaned table (a price stored as "Rs. 1,299" is a number here), with the brief's corrections on top
+        typed_profile = briefmod.apply_roles(profile_df(typed), (state.get("brief") or {}).get("roles") or {})
         pq = state.get("placeholder_questions") or []
         skip = {c for q in pq for c in (q["columns"][0], f"{q['table']}_{q['columns'][0]}")}
-        questions, ignored = clarify.build_questions_and_ignored(typed, state["profile"], state["goal"], ctx, bool(state.get("explore")), llm, ws, skip, dropped)
+        questions, ignored = clarify.build_questions_and_ignored(typed, typed_profile, state["goal"], ctx, bool(state.get("explore")), llm, ws, skip, dropped,
+                                                                 raw=raw, raw_profile=state["profile"], kinds=briefmod.kinds(state.get("brief")))
         questions, over = clarify.cap_questions(pq + questions)        # placeholder questions and the others share one cap of MAX_QUESTIONS
         dropped += over
         for q in questions:
@@ -337,9 +341,9 @@ def plan_node(state: RunState) -> dict:
     if has_context(state.get("context")):
         c = state["context"]
         emit(rid, "Planner", "Using your business context" + (f" ({c['company']})" if c.get("company") else "") + f" with the {lens(c)['label']} lens" + (f"; KPIs: {', '.join(c['kpis'][:4])}" if c.get("kpis") else "") + ".")
-    typed, _ = coerce_types(raw, prof)
-    ctx, explore = state.get("context") or {}, bool(state.get("explore"))
     questions, answers = state.get("questions") or [], state.get("answers") or {}
+    typed, _ = coerce_types(raw, prof, clarify.date_orders(questions, answers))
+    ctx, explore = state.get("context") or {}, bool(state.get("explore"))
     extra: dict = {}
     ov: dict = {"kinds": briefmod.kinds(state.get("brief")), "kpi_map": (state.get("brief") or {}).get("kpis") or {},
           "hierarchy": briefmod.hierarchy_pairs(state.get("brief")), "intent": (state.get("brief") or {}).get("intent")}
@@ -347,6 +351,7 @@ def plan_node(state: RunState) -> dict:
     if questions:  # plan on the data as the user defined it (rows excluded, net amount added)
         typed, _, effects, new_cols = apply_directives(typed, questions, answers)
         ov = {**ov, **clarify.plan_overrides(questions, answers)}
+        ov["kinds"] = {**ov["kinds"], **{a["name"]: "additive" for _, _, a in clarify.chosen(questions, answers) if a["type"] == "define_derived_metric" and a["kind"] == "product"}}
         extra["applied_definitions"] = clarify.summarise(questions, answers, state.get("answer_sources") or {}, effects,
                                                          glossary.get_workspace(state.get("workspace") or "default")["answers"], state.get("workspace") or "default")
         shown = [f"{k}: {v}" for k, v in (("main number", ov["target"]), ("date column", ov["date_col"])) if v]
@@ -397,7 +402,7 @@ def clean_node(state: RunState) -> dict:
     rid = state["run_id"]
     emit(rid, "Cleaner", "Fixing types and cleaning only what the plan needs…")
     raw = pd.read_pickle(_wd(state) / "raw.pkl")
-    typed, log1 = coerce_types(raw, state["profile"])
+    typed, log1 = coerce_types(raw, state["profile"], clarify.date_orders(state.get("questions") or [], state.get("answers") or {}))
     log_def: list = []
     if state.get("questions"):
         typed, log_def, _, _ = apply_directives(typed, state["questions"], state.get("answers") or {})

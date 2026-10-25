@@ -1,0 +1,76 @@
+run 0ef274a793c0 started...
+
+Kaveri scorecard, run 1/3 (0ef274a793c0); ratio KPI path: profit margin: llm
+
+ #  Result  Check                                     Detail
+ 1  PASS    Revenue total                             truth 45,422,281; found 45,422,281
+ 2  PASS    Profit total and margin                   truth 2,635,797 / 5.8%; profit total found, margin found
+ 3  PASS    Gold top tier, ~38.5% share               share sentence found
+ 4  PASS    Tier growth 2023->2024                    Bronze -18% ok; Gold +41% ok; Silver -9% ok
+ 5  PASS    Summary: tier margin not reliably differ  in executive summary
+ 6  PASS    Electronics loss-making (~-5.0%)          found
+ 7  PASS    Discount vs margin (r~-0.83)              finding f10
+ 8  PASS    Seasonality: Oct high, Aug low            found
+ 9  PASS    <=3 questions, none scope                 3 asked (+1 settled by data)
+10  PASS    999 delivery_days handled                 asked
+11  PASS    Pincode not a measure                     not used in any finding
+12  PASS    Ratios are sum/sum                        1 ratio(s), all consistent
+
+Total: 12/12
+run cc1433d1b791 started...
+
+Kaveri scorecard, run 2/3 (cc1433d1b791); ratio KPI path: profit margin: rules
+
+ #  Result  Check                                     Detail
+ 1  PASS    Revenue total                             truth 45,422,281; found 45,422,281
+ 2  PASS    Profit total and margin                   truth 2,635,797 / 5.8%; profit total found, margin found
+ 3  PASS    Gold top tier, ~38.5% share               share sentence found
+ 4  PASS    Tier growth 2023->2024                    Bronze -18% ok; Gold +41% ok; Silver -9% ok
+ 5  PASS    Summary: tier margin not reliably differ  in executive summary
+ 6  PASS    Electronics loss-making (~-5.0%)          found
+ 7  PASS    Discount vs margin (r~-0.83)              finding f10
+ 8  PASS    Seasonality: Oct high, Aug low            found
+ 9  PASS    <=3 questions, none scope                 3 asked (+1 settled by data)
+10  PASS    999 delivery_days handled                 asked
+11  PASS    Pincode not a measure                     not used in any finding
+12  PASS    Ratios are sum/sum                        1 ratio(s), all consistent
+
+Total: 12/12
+run 502b2626d100 started...
+
+Kaveri scorecard, run 3/3 (502b2626d100); ratio KPI path: profit margin: rules
+
+ #  Result  Check                                     Detail
+ 1  PASS    Revenue total                             truth 45,422,281; found 45,422,281
+ 2  PASS    Profit total and margin                   truth 2,635,797 / 5.8%; profit total found, margin found
+ 3  PASS    Gold top tier, ~38.5% share               share sentence found
+ 4  PASS    Tier growth 2023->2024                    Bronze -18% ok; Gold +41% ok; Silver -9% ok
+ 5  PASS    Summary: tier margin not reliably differ  in executive summary
+ 6  PASS    Electronics loss-making (~-5.0%)          found
+ 7  PASS    Discount vs margin (r~-0.83)              finding f10
+ 8  PASS    Seasonality: Oct high, Aug low            found
+ 9  PASS    <=3 questions, none scope                 3 asked (+1 settled by data)
+10  PASS    999 delivery_days handled                 asked
+11  PASS    Pincode not a measure                     not used in any finding
+12  PASS    Ratios are sum/sum                        1 ratio(s), all consistent
+
+Total: 12/12
+
+Per-check passes across 3 finished run(s) of 3
+
+ #  Passed   Check
+ 1  3/3      Revenue total
+ 2  3/3      Profit total and margin
+ 3  3/3      Gold top tier, ~38.5% share
+ 4  3/3      Tier growth 2023->2024
+ 5  3/3      Summary: tier margin not reliably different
+ 6  3/3      Electronics loss-making (~-5.0%)
+ 7  3/3      Discount vs margin (r~-0.83)
+ 8  3/3      Seasonality: Oct high, Aug low
+ 9  3/3      <=3 questions, none scope
+10  3/3      999 delivery_days handled
+11  3/3      Pincode not a measure
+12  3/3      Ratios are sum/sum
+
+Totals per run: [12, 12, 12]
+Median: 12/12   Minimum: 12/12

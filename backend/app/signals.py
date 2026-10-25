@@ -6,7 +6,9 @@ glossary answer matches the same ambiguity on the next run.
 
 multi_measure is never asked about: the planner analyses every such column (totals, averages per record).
 
-Types: multi_date, multi_measure, negatives, sentinel, near_sum, rare_labels, high_missing, duplicate_columns."""
+Types: multi_date, multi_measure, negatives, sentinel, near_sum, rare_labels, high_missing, duplicate_columns, and four that need no word list either:
+product_basis (two columns whose product no column already holds, found by retail_roles), flag_rows (a yes/no column), blank_values (blanks in the
+count-like column) and date_order (d/m/y dates whose day and month cannot be told apart)."""
 from __future__ import annotations
 
 import hashlib
@@ -15,11 +17,14 @@ import itertools
 import numpy as np
 import pandas as pd
 
+from .retail_roles import derive_product_measure
+from .profiler import _DMY_FULL, infer_date_order, parse_dates
+
 SAMPLE_ROWS = 5000
 MIN_ROWS = 30
 CONVENTIONAL_NUMERIC = {-1, -9, -99, -999, -9999, -99999, 99, 999, 9999, 99999, 999999}    # numbers people type in to mean "no value"
 PLACEHOLDER_LABELS = {"unknown", "n/a", "na", "none", "null", "nil", "missing", "undefined", "tbd", "?", "-", "--", "not available", "not specified", "unspecified", "blank", "other/unknown"}
-MAX_SIGNALS = 12
+MAX_SIGNALS = 16
 
 
 def signal_id(kind: str, columns: list[str]) -> str:
@@ -189,13 +194,88 @@ def duplicate_columns(df, cols) -> list[dict]:
     return out[:3]
 
 
-def compute_signals(df: pd.DataFrame, profile: dict) -> list[dict]:
-    """Strong signals first. `df` should already have its types fixed (numbers as numbers, dates as dates)."""
+# ------------------------------------------------------------------ products, flags, blanks, date order
+YES_WORDS = {"y", "yes", "true", "t", "1", "1.0"}
+NO_WORDS = {"n", "no", "false", "f", "0", "0.0"}
+
+def flag_values(s: pd.Series):
+    """(the value that reads as yes, its share of the non-blank rows) when the column holds exactly one yes-word and one no-word, else None. Values only."""
+    vals = list(pd.unique(s.dropna()))
+    if len(vals) != 2:
+        return None
+    key = {v: str(v).strip().lower() for v in vals}
+    pos, neg = [v for v in vals if key[v] in YES_WORDS], [v for v in vals if key[v] in NO_WORDS]
+    if len(pos) != 1 or len(neg) != 1:
+        return None
+    pos_v = pos[0].item() if hasattr(pos[0], "item") else pos[0]
+    return pos_v, float((s == pos[0]).sum() / s.notna().sum())
+
+
+def product_basis(df, cols, kinds=None) -> list[dict]:
+    pm = derive_product_measure(df, cols, kinds)
+    if pm is None or pm["basis"] == "total":
+        return []
+    return [_sig("product_basis", [pm["count"], pm["rate"]], {k: pm.get(k) for k in ("count", "rate", "basis", "others", "rows", "ratio", "mean_count")}, strong=True)]
+
+
+def blank_values(df, cols, kinds=None) -> list[dict]:
+    pm = derive_product_measure(df, cols, kinds)
+    if pm is None:
+        return []
+    n = int(df[pm["count"]].isna().sum())
+    if n < 3 or n > 0.4 * len(df):
+        return []
+    return [_sig("blank_values", [pm["count"]], {"count": n, "share": _round(n / len(df)), "rate": pm["rate"]}, strong=True)]
+
+
+def flag_rows(df, cols, kinds=None) -> list[dict]:
+    """A yes/no column is only worth a question when an amount can be built from the rows (retail_roles reports both roles): that is where flagged rows move the totals."""
+    if derive_product_measure(df, cols, kinds) is None:
+        return []
+    out = []
+    for n, c in cols.items():
+        if n not in df.columns or c["role"] not in ("binary", "categorical") or pd.api.types.is_bool_dtype(df[n]):
+            continue
+        fv = flag_values(df[n])
+        if fv and 0.005 <= fv[1] <= 0.5:
+            out.append(_sig("flag_rows", [n], {"positive": fv[0], "count": int(round(fv[1] * df[n].notna().sum())), "share": _round(fv[1])}, strong=True))
+    return out[:2]
+
+
+def date_order_signals(raw: pd.DataFrame, profile: dict) -> list[dict]:
+    """d/m/y dates where no value has a part above 12, so day-first and month-first both read every value: the answer moves every date by up to months."""
+    out = []
+    for c in profile["columns"]:
+        n = c["name"]
+        if c.get("convert") != "date" or n not in raw.columns:
+            continue
+        dayfirst, ambiguous = infer_date_order(raw[n].dropna())
+        if not ambiguous:
+            continue
+        parts = raw[n].dropna().astype(str).str.extract(_DMY_FULL).dropna().astype(int)
+        if len(parts[parts[0] != parts[1]].drop_duplicates()) < 3:      # distinct dates, not rows: one date repeated has no period for the order to move
+            continue
+        rng = {}
+        for label, first in (("day_first", True), ("month_first", False)):
+            d = parse_dates(raw[n], first).dropna()
+            rng[label] = [str(d.min())[:10], str(d.max())[:10]]
+        out.append(_sig("date_order", [n], {"ranges": rng, "values": int(len(parts))}, strong=True))
+    return out
+
+
+def compute_signals(df: pd.DataFrame, profile: dict, raw: pd.DataFrame | None = None, raw_profile: dict | None = None, kinds: dict | None = None) -> list[dict]:
+    """Strong signals first. `df` should already have its types fixed (numbers as numbers, dates as dates). `raw` and `raw_profile` (the data as loaded and its profile)
+    are only needed to see which text dates cannot be told apart; `kinds` are the brief's {column: additive|rate|other}."""
     cols = _roles(profile)
     sigs: list[dict] = []
-    for fn in (multi_date, negatives, sentinels, multi_measure, near_sum, duplicate_columns, rare_labels, high_missing):
+    jobs = [lambda: multi_date(df, cols), lambda: negatives(df, cols), lambda: sentinels(df, cols), lambda: multi_measure(df, cols), lambda: near_sum(df, cols),
+            lambda: duplicate_columns(df, cols), lambda: rare_labels(df, cols), lambda: high_missing(df, cols), lambda: product_basis(df, cols, kinds),
+            lambda: blank_values(df, cols, kinds), lambda: flag_rows(df, cols, kinds)]
+    if raw is not None and raw_profile is not None:
+        jobs.append(lambda: date_order_signals(raw, raw_profile))
+    for job in jobs:
         try:
-            sigs += fn(df, cols)
+            sigs += job()
         except Exception:      # a signal is advice, never a reason to fail a run
             continue
     sigs.sort(key=lambda s: not s["strong"])

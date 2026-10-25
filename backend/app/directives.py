@@ -5,12 +5,14 @@ containing only the whitelisted parameters (or None and a reason). `cleaner.appl
 
     set_date_column         {column}                                 the date used for time analysis
     set_measures            {columns[], pin_main}                    the number(s) the analysis is built around (first = main unless pin_main is false)
-    define_derived_metric   {name, kind: ratio_of_sums|difference, a, b, use_as_main}
+    define_derived_metric   {name, kind: ratio_of_sums|difference|product, a, b, use_as_main}
     filter_rows             {column, operator, value}                KEEP the rows where the condition holds
     treat_value_as_missing  {column, values[]}                       placeholder values become missing in the analysis copy
     handle_negatives        {column, mode: keep|exclude|net_against_column, against, name, use_as_main}
     drop_column             {column}                                 the column is left out of the analysis
     merge_columns           {columns[], name, how: first_non_null|sum}
+    fill_missing            {column, value}                          blank cells of a numeric column get this number
+    set_date_order          {column, dayfirst}                       how the day and month of d/m/y dates are read
     note_only               {}                                       recorded as context for the LLM, the data is not touched
 """
 from __future__ import annotations
@@ -18,17 +20,17 @@ from __future__ import annotations
 import re
 
 OPERATORS = ("eq", "ne", "lt", "le", "gt", "ge", "in", "not_in", "is_null", "not_null")
-DERIVED_KINDS = ("ratio_of_sums", "difference")
+DERIVED_KINDS = ("ratio_of_sums", "difference", "product")
 NEG_MODES = ("keep", "exclude", "net_against_column")
 MERGE_HOW = ("first_non_null", "sum")
 ACTION_TYPES = ("set_date_column", "set_measures", "define_derived_metric", "filter_rows", "treat_value_as_missing",
-                "handle_negatives", "drop_column", "merge_columns", "note_only")
+                "handle_negatives", "drop_column", "merge_columns", "fill_missing", "set_date_order", "note_only")
 MAX_LIST = 20
 
 # A default answer must leave the data exactly as it is, so that "Skip, use defaults" never changes a number.
 def is_harmless(action: dict) -> bool:
     t = action.get("type")
-    return t in ("note_only", "set_date_column", "set_measures") or (t == "handle_negatives" and action.get("mode") == "keep")
+    return t in ("note_only", "set_date_column", "set_measures") or (t == "handle_negatives" and action.get("mode") == "keep") or (t == "set_date_order" and action.get("dayfirst") is True)
 
 
 def changes_meaning(action: dict) -> bool:
@@ -90,9 +92,10 @@ def validate_action(action, roles: dict[str, str], taken_names: set[str] | None 
         c = col("column")
         return ({"type": t, "column": c}, "") if c else (None, "drop_column needs an existing column")
     if t == "define_derived_metric":
-        a, b = col("a", "numeric"), col("b", "numeric")
+        want = ("numeric", "categorical") if action.get("kind") == "product" else ("numeric",)      # a quantity with few distinct values is read as a category
+        a, b = col("a", *want), col("b", *want)
         if not a or not b or a == b or action.get("kind") not in DERIVED_KINDS:
-            return None, "define_derived_metric needs two different numeric columns and kind ratio_of_sums or difference"
+            return None, "define_derived_metric needs two different numeric columns and kind ratio_of_sums, difference or product"
         return {"type": t, "kind": action["kind"], "a": a, "b": b, "name": clean_name(action.get("name") or f"{a}_{action['kind']}_{b}", taken),
                 "use_as_main": action.get("use_as_main") is not False}, ""
     if t == "treat_value_as_missing":
@@ -127,6 +130,16 @@ def validate_action(action, roles: dict[str, str], taken_names: set[str] | None 
             return None, "net_against_column needs a different existing numeric column in `against`"
         return {"type": t, "column": c, "mode": mode, "against": against, "name": clean_name(action.get("name") or f"{c}_net", taken),
                 "use_as_main": action.get("use_as_main") is not False}, ""
+    if t == "fill_missing":
+        c, v = col("column"), action.get("value")
+        if not c or isinstance(v, bool) or not isinstance(v, (int, float)):
+            return None, "fill_missing needs an existing column and a number"
+        return {"type": t, "column": c, "value": v}, ""
+    if t == "set_date_order":
+        c = col("column", "date")
+        if not c or not isinstance(action.get("dayfirst"), bool):
+            return None, "set_date_order needs an existing date column and dayfirst true or false"
+        return {"type": t, "column": c, "dayfirst": action["dayfirst"]}, ""
     if t == "merge_columns":
         cs = col_list("columns")
         how = action.get("how") or "first_non_null"

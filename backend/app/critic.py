@@ -99,7 +99,7 @@ def review(state: dict, llm) -> dict:
                     followups.append(ok)
     dropped = []
     for n in notes:
-        why = wording.contradicts(n, state)     # a limitation the findings contradict would mislead the reader
+        why = wording.contradicts(n, state) or ("talks about margin or profit, but the data has no cost, margin or profit measure" if wording.unsupported_profit_claim(n, state) else None)     # a limitation the findings contradict would mislead the reader
         if why:
             dropped.append({"text": n, "reason": why})
         else:

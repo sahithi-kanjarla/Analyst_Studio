@@ -128,8 +128,8 @@ def titles(state):
 
 
 def test_data_gaps_do_not_deny_margin_or_cost_data_that_exists():
-    assert any("cost or margin" in t for t in titles(gap_state(["sales", "when", "units"])))                       # genuinely absent: still reported
-    assert not any("cost or margin" in t for t in titles(gap_state(["sales", "when", "profit"])))                  # a profit measure exists
-    assert not any("cost or margin" in t for t in titles(gap_state(["sales", "when", "gross_profit"])))
+    assert any("no cost column" in t for t in titles(gap_state(["sales", "when", "units"])))                       # genuinely absent: still reported
+    assert not any("no cost column" in t for t in titles(gap_state(["sales", "when", "profit"])))                  # a profit measure exists
+    assert not any("no cost column" in t for t in titles(gap_state(["sales", "when", "gross_profit"])))
     derived_only = {**SPEC, "a": "earnings", "b": "sales", "name": "earnings_to_sales_ratio"}
-    assert not any("cost or margin" in t for t in titles(gap_state(["sales", "when", "earnings"], [{**derived_only, "name": "margin_ratio"}])))     # a derived margin ratio exists
+    assert not any("no cost column" in t for t in titles(gap_state(["sales", "when", "earnings"], [{**derived_only, "name": "margin_ratio"}])))     # a derived margin ratio exists

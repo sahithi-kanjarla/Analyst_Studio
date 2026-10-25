@@ -4,28 +4,42 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from .profiler import infer_date_order, normalize_strings, try_datetime, try_numeric
+from .profiler import infer_date_order, normalize_strings, parse_dates, try_datetime, try_numeric
 
 
-def coerce_types(df: pd.DataFrame, profile: dict) -> tuple[pd.DataFrame, list[dict]]:
-    """Generic, safe fixes that do not depend on the analysis goal."""
+def merge_labels(df: pd.DataFrame, log: list[dict]) -> pd.DataFrame:
+    """In every text column, values that differ only by case or spacing become one label (the most frequent spelling). Each merge is logged."""
+    for c in df.columns:
+        s = df[c]
+        if pd.api.types.is_numeric_dtype(s) or pd.api.types.is_datetime64_any_dtype(s) or pd.api.types.is_bool_dtype(s):
+            continue
+        txt = s.dropna()
+        if not len(txt) or not all(isinstance(v, str) for v in txt.head(200)):
+            continue
+        key = txt.str.replace(r"\s+", " ", regex=True).str.strip().str.lower()
+        counts = txt.value_counts()
+        mapping: dict[str, str] = {}
+        for variants in txt.groupby(key).unique():
+            if len(variants) > 1:
+                keep = max(variants, key=lambda v: (v == " ".join(v.split()), counts[v], v))
+                mapping.update({v: keep for v in variants if v != keep})
+        if not mapping:
+            continue
+        n = int(txt.isin(list(mapping)).sum())
+        df[c] = s.replace(mapping)
+        ex = "; ".join(f"{v!r} → {k!r}" for v, k in list(mapping.items())[:3])
+        log.append({"step": "Merge labels", "detail": f"merged {len(mapping)} spelling variants in {c} that differed only by case/spacing ({ex}); {n:,} values relabelled", "count": n})
+    return df
+
+
+def coerce_types(df: pd.DataFrame, profile: dict, date_order: dict | None = None) -> tuple[pd.DataFrame, list[dict]]:
+    """Generic, safe fixes that do not depend on the analysis goal. `date_order` is {column: dayfirst} for the columns whose d/m/y order the user answered."""
     log: list[dict] = []
     df = df.copy()
     df.columns = [str(c).strip() for c in df.columns]
     df, n_na = normalize_strings(df)
     if n_na:
         log.append({"step": "Standardise missing values", "detail": "Trimmed whitespace and converted placeholders like 'N/A', 'null', '-' to real missing values", "count": n_na})
-    before = len(df)
-    # Exact duplicates are only safely "errors" when rows could plausibly be unique (an ID, a number, a date or free text exists).
-    # In a purely categorical table, identical rows are legitimate repeated observations - removing them would destroy data.
-    can_identify = any(c["role"] in ("id", "numeric", "date", "text") for c in profile["columns"])
-    n_dup = int(df.duplicated().sum())
-    if can_identify:
-        df = df.drop_duplicates().reset_index(drop=True)
-        if before - len(df):
-            log.append({"step": "Remove duplicates", "detail": "Dropped exact duplicate rows", "count": before - len(df)})
-    elif n_dup:
-        log.append({"step": "Kept duplicates", "detail": f"{n_dup} identical rows were KEPT: with only categorical columns they are probably genuine repeated records, not errors", "count": n_dup})
     for col in profile["columns"]:
         name, conv = col["name"], col.get("convert")
         if name not in df.columns or not conv:
@@ -33,17 +47,36 @@ def coerce_types(df: pd.DataFrame, profile: dict) -> tuple[pd.DataFrame, list[di
         if conv == "numeric":
             conv_s = try_numeric(df[name])
             if conv_s is not None:
+                was_text = int(df[name].notna().sum())
                 bad = int(conv_s.isna().sum() - df[name].isna().sum())
                 df[name] = conv_s
-                log.append({"step": "Convert to number", "detail": f"'{name}' stored as text (symbols/commas stripped)" + (f"; {bad} unparseable values set to missing" if bad else ""), "count": int(df[name].notna().sum())})
+                log.append({"step": "Convert to number", "detail": f"converted {was_text:,} values in {name} (currency words/symbols, thousands separators and spaces stripped)" + (f"; {bad} unparseable values set to missing" if bad else ""), "count": int(df[name].notna().sum())})
         elif conv == "date":
             dayfirst, ambiguous = infer_date_order(df[name].dropna())
             conv_s = try_datetime(df[name])
+            given = (date_order or {}).get(name)
+            if conv_s is not None and given is not None and dayfirst is not None:
+                conv_s, dayfirst, ambiguous = parse_dates(df[name], given), given, False
             if conv_s is not None:
                 df[name] = conv_s
                 order = {True: "day-first (dd/mm/yyyy)", False: "month-first (mm/dd/yyyy)", None: "ISO / year-first"}[dayfirst]
+                order += " (your answer)" if (date_order or {}).get(name) is not None and dayfirst is not None else ""
                 warn = " ALL values were ambiguous (day and month both ≤ 12), so day-first was assumed - please verify." if ambiguous else ""
-                log.append({"step": "Convert to date", "detail": f"'{name}' parsed as dates, order inferred as {order}.{warn}", "count": int(df[name].notna().sum())})
+                span = f" Each value was parsed on its own, so mixed formats are handled. Range: {conv_s.min():%d %b %Y} to {conv_s.max():%d %b %Y}."
+                log.append({"step": "Convert to date", "detail": f"'{name}' parsed as dates, order inferred as {order}.{warn}{span}", "count": int(df[name].notna().sum())})
+    df = merge_labels(df, log)
+    before = len(df)
+    # Exact duplicates are only safely "errors" when rows could plausibly be unique (an ID, a number, a date or free text exists).
+    # In a purely categorical table, identical rows are legitimate repeated observations - removing them would destroy data.
+    # Runs last, so rows that only differed by formatting (a currency prefix, a label's case) count as duplicates too.
+    can_identify = any(c["role"] in ("id", "numeric", "date", "text") for c in profile["columns"])
+    n_dup = int(df.duplicated().sum())
+    if can_identify:
+        df = df.drop_duplicates().reset_index(drop=True)
+        if before - len(df):
+            log.append({"step": "Remove duplicates", "detail": f"Dropped {before - len(df):,} exact duplicate rows", "count": before - len(df)})
+    elif n_dup:
+        log.append({"step": "Kept duplicates", "detail": f"{n_dup} identical rows were KEPT: with only categorical columns they are probably genuine repeated records, not errors", "count": n_dup})
     return df, log
 
 
@@ -153,7 +186,7 @@ def apply_directives(df: pd.DataFrame, questions: list[dict], answers: dict) -> 
     effects: dict[str, dict] = {}
     added: list[str] = []
     todo = list(chosen(questions, answers))
-    phases = {"treat_value_as_missing": 0, "filter_rows": 1, "handle_negatives": 1, "merge_columns": 2, "define_derived_metric": 2, "drop_column": 3}
+    phases = {"treat_value_as_missing": 0, "filter_rows": 1, "handle_negatives": 1, "merge_columns": 2, "define_derived_metric": 2, "drop_column": 3, "fill_missing": 0, "set_date_order": 0}
 
     def note(q, effect, rows=None, detail=None, count=None):
         effects[q["id"]] = {"rows": rows, "effect": effect}
@@ -230,6 +263,8 @@ def apply_directives(df: pd.DataFrame, questions: list[dict], answers: dict) -> 
             x, y = pd.to_numeric(df[a["a"]], errors="coerce"), pd.to_numeric(df[a["b"]], errors="coerce")
             if a["kind"] == "difference":
                 df[a["name"]], formula, extra = x - y, f"{a['a']} - {a['b']}", ""
+            elif a["kind"] == "product":
+                df[a["name"]], formula, extra = x * y, f"{a['a']} x {a['b']}", " A row with either number blank gets no value and is not counted."
             else:
                 df[a["name"]] = x / y.where(y != 0)
                 formula, tot = f"{a['a']} / {a['b']}", y.sum()
@@ -237,6 +272,15 @@ def apply_directives(df: pd.DataFrame, questions: list[dict], answers: dict) -> 
             added.append(a["name"])
             n = int(df[a["name"]].notna().sum())
             note(q, f"Created '{a['name']}' = {formula} for {n:,} rows.{extra}", n, detail=f"Created '{a['name']}' = {formula} ({a['kind'].replace('_', ' ')}).{extra}", count=n)
+        elif t == "fill_missing":
+            if gone(q, [a["column"]]):
+                continue
+            n = int(df[a["column"]].isna().sum())
+            df[a["column"]] = pd.to_numeric(df[a["column"]], errors="coerce").fillna(a["value"])
+            note(q, f"{n:,} blank values in {a['column']} were set to {a['value']:g}.", n, detail=f"set {n:,} blank values in {a['column']} to {a['value']:g}", count=n)
+        elif t == "set_date_order":
+            if not gone(q, [a["column"]]):       # the dates were already read in this order when the types were fixed
+                note(q, f"Day and month of the dates in {a['column']} are read {'day' if a['dayfirst'] else 'month'}-first.", None)
         elif t == "merge_columns":
             if gone(q, a["columns"]):
                 continue

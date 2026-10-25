@@ -435,7 +435,7 @@ def group_compare(df, ctx, target, group, within=None, within_value=None):
     sig_word = "statistically significant" if p < 0.05 else "not statistically significant"
     test = f"chi-square p{_pf(p)}, Cramér's V={effect:.2f}, {effect_label(effect * effect)} effect" if kind == "binary" else f"permutation test on the ratio of sums p{_pf(p)}, eta²={effect:.3f}, {effect_label(effect)} effect" if spec is not None else f"ANOVA p{_pf(p)}, eta²={effect:.3f}, {effect_label(effect)} effect"
     if kind == "binary":
-        text = (f"The {label} for **{target}** is highest in **{group} = {top}** ({means[0]:.1%}) and lowest in **{bot}** ({means[-1]:.1%}). The difference is {sig_word} ({test}).")
+        text = (f"The {label} for **{target}** is highest in **{group} = {top}** ({means[0]:.1%}) and lowest in **{bot}** ({means[-1]:.1%}); across all rows it is {float(d['y'].mean()):.1%}. The difference is {sig_word} ({test}).")
     else:
         what = f"**{target}** (total {spec['a']} over total {spec['b']})" if spec is not None else f"Average **{target}**"
         text = f"{what} is highest for **{group} = {top}** ({_rfmt(means[0], pct, lambda v: cur + _fmt(v))}{_loss_note(means[0], target, pct)}) and lowest for **{bot}** ({_rfmt(means[-1], pct, lambda v: cur + _fmt(v))}{_loss_note(means[-1], target, pct)}). The difference is {sig_word} ({test})."
@@ -443,6 +443,7 @@ def group_compare(df, ctx, target, group, within=None, within_value=None):
           "min_group_n": int(agg["count"].min()), "best": str(top), "worst": str(bot), "values": {str(k): _f(r) for k, r in agg["mean"].items()}}
     if kind == "binary":
         st["positive"] = str(pos)
+        st["overall_rate"] = _f(d["y"].mean())
     else:
         st["target_skew"] = _f(d["y"].skew())
         st["ratio_of_sums"] = spec is not None
@@ -1016,10 +1017,18 @@ def seasonality(df, ctx, target, date):
             + (f"Values are the average {'monthly' if name == 'month' else 'daily'} total{' across years' if name == 'month' else ''}, not a per-row average." if total
                else f"Values are total {spec['a']} over total {spec['b']} for each {'day of the week' if name == 'weekday' else 'month'}; the test compares {'daily' if name == 'weekday' else 'monthly'} ratios." if spec is not None
                else "Values are averages per row."))
+    for on, orr in results.items():     # the cycle that was not the most reliable is still reported (month-of-year is a required view), in one sentence
+        if on == name:
+            continue
+        om, off = orr["means"], 1 if on == "month" else 0
+        ohi, olo = orr["labels"][int(om.idxmax()) - off], orr["labels"][int(om.idxmin()) - off]
+        ounit = "day of the week" if on == "weekday" else "month of the year"
+        text += (f" By {ounit}, **{target}** {'varies reliably' if orr['p'] < 0.05 else 'does not vary reliably'} (p{_pf(orr['p'])}, eta²={orr['eta']:.3f}): "
+                 f"highest **{ohi}** ({fmt(om.max())}), lowest **{olo}** ({fmt(om.min())}).")
     action = (f"{target} follows a {name} pattern; plan staffing, stock or promotions around {hi} (high) and {lo} (low)." if sig and r["eta"] >= 0.01 else None)
     vals = {r["labels"][int(i) - (1 if name == "month" else 0)]: _f(v) for i, v in m.items()}
     return finding("seasonality", f"{target} by {unit}", text,
-                   {"p": _f(r["p"]), "effect": _f(r["eta"]), "effect_name": "eta_squared", "n": r["n"], "cycle": name, "best": hi, "worst": lo,
+                   {"p": _f(r["p"]), "effect": _f(r["eta"]), "effect_name": "eta_squared", "n": r["n"], "cycle": name, "cycles": {k: {"p": _f(v["p"]), "best": v["labels"][int(v["means"].idxmax()) - (1 if k == "month" else 0)], "worst": v["labels"][int(v["means"].idxmin()) - (1 if k == "month" else 0)]} for k, v in results.items()}, "best": hi, "worst": lo,
                     "values": vals, "min_group_n": r["min_n"], "kind": kind, "basis": "period totals" if total else "ratio of sums" if spec is not None else "row averages"},
                    _save(fig, ctx, _slug("seas", target, date)), significant=sig, action=action)
 

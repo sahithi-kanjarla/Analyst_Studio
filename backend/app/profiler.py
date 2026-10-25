@@ -74,15 +74,60 @@ def normalize_strings(df: pd.DataFrame) -> tuple[pd.DataFrame, int]:
     return df, changed
 
 
+_CURRENCY = re.compile(r"(?i)\b(?:rs|inr|usd|eur|gbp|rupees?)\b\.?|[,$€£₹%\s]")
+
+
 def try_numeric(s: pd.Series, thresh: float = 0.9):
     if pd.api.types.is_numeric_dtype(s):
         return s
-    t = s.astype("object").map(lambda v: re.sub(r"[,$€£₹%\s]", "", v) if isinstance(v, str) else v)
+    t = s.astype("object").map(lambda v: _CURRENCY.sub("", v) if isinstance(v, str) else v)
     out = pd.to_numeric(t, errors="coerce")
     nn = s.notna().sum()
     if nn and out.notna().sum() / nn >= thresh:
         return out
     return None
+
+
+_DMY = re.compile(r"^\s*(\d{1,2})[/.\-](\d{1,2})[/.\-]\d{2,4}")
+_DMY_FULL = re.compile(r"^\s*(\d{1,2})[/.\-](\d{1,2})[/.\-](\d{2,4})\s*$")
+
+
+def infer_date_order(values: pd.Series) -> tuple[bool | None, bool]:
+    """For the d/m/y-style strings among the values decide day-first vs month-first from the data itself; other formats (ISO, dd-Mon-yyyy) are ignored,
+    so a column mixing formats still gets an answer. Returns (dayfirst, ambiguous). dayfirst is None when no value is d/m/y-style.
+    If every such value is ambiguous (both parts <= 12) we assume day-first and flag it so it can be logged."""
+    m = values.astype(str).str.extract(_DMY).dropna().astype(int)
+    if m.empty:
+        return None, False
+    if (m[0] > 12).any():
+        return True, False
+    if (m[1] > 12).any():
+        return False, False
+    return True, True
+
+
+def parse_dates(s: pd.Series, dayfirst: bool | None = None) -> pd.Series:
+    """Parse every value on its own, so a column holding several formats is read correctly. Numeric d/m/y values follow `dayfirst` (inferred
+    from the whole column when None, day-first by default); everything else (ISO, dd-Mon-yyyy, with or without a time) is unambiguous."""
+    if dayfirst is None:
+        dayfirst = infer_date_order(s.dropna())[0] is not False
+    txt = s.astype("object").map(lambda v: v.strip() if isinstance(v, str) else v)
+    parts = txt.astype(str).str.extract(_DMY_FULL)
+    num = parts[0].notna() & txt.notna()
+    out = pd.Series(pd.NaT, index=s.index, dtype="datetime64[ns]")
+    if num.any():
+        a, b, y = (pd.to_numeric(parts.loc[num, i]) for i in (0, 1, 2))
+        y = y.where(y >= 100, y + np.where(y < 70, 2000, 1900))
+        day, mon = (a, b) if dayfirst else (b, a)
+        out.loc[num] = pd.to_datetime(pd.DataFrame({"year": y, "month": mon, "day": day}), errors="coerce")
+    rest = ~num & txt.notna()
+    iso = rest & txt.astype(str).str.match(r"^\s*\d{4}[-/.]")      # year-first is never day/month ambiguous, and dayfirst would swap its month and day
+    for mask, first in ((iso, False), (rest & ~iso, bool(dayfirst))):
+        if mask.any():
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                out.loc[mask] = pd.to_datetime(txt[mask], errors="coerce", format="mixed", dayfirst=first)
+    return out
 
 
 def try_datetime(s: pd.Series, thresh: float = 0.9):
@@ -98,30 +143,10 @@ def try_datetime(s: pd.Series, thresh: float = 0.9):
         return None
     if sample.str.contains(r"[-/:.]|\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)", case=False, regex=True).mean() < 0.9:
         return None
-    dayfirst, _ = infer_date_order(nn.astype(str))
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        parsed = pd.to_datetime(s, errors="coerce", format="mixed", dayfirst=bool(dayfirst))
+    parsed = parse_dates(s)
     if parsed.notna().sum() / max(s.notna().sum(), 1) >= thresh:
         return parsed
     return None
-
-
-_DMY = re.compile(r"^\s*(\d{1,2})[/.\-](\d{1,2})[/.\-]\d{2,4}")
-
-
-def infer_date_order(values: pd.Series) -> tuple[bool | None, bool]:
-    """For d/m/y-style strings decide day-first vs month-first from the data itself.
-    Returns (dayfirst, ambiguous). dayfirst is None when strings are not d/m/y-style (e.g. ISO 2025-01-31).
-    If every value is ambiguous (both parts <= 12) we assume day-first and flag it so it can be logged."""
-    m = values.astype(str).head(2000).str.extract(_DMY).dropna().astype(int)
-    if len(m) < max(3, 0.5 * min(len(values), 2000)):
-        return None, False
-    if (m[0] > 12).any():
-        return True, False
-    if (m[1] > 12).any():
-        return False, False
-    return True, True
 
 
 ORDINAL_NAME = re.compile(r"rating|score|stars|satisf|grade|rank|nps|severity|priority", re.I)  # ordered scales behave like numbers, not labels

@@ -288,7 +288,7 @@ def refine_with_llm(llm, state: dict, strategies: list[dict]) -> int:
         before = {k: list(v) if isinstance(v, list) else v for k, v in s.items() if k in ("title", "objective", "actions", "risks", "kpis", "how_to_test")}
 
         def ok_text(v, lo=8, hi=260):
-            return isinstance(v, str) and lo <= len(v.strip()) <= hi and numbers_ok(v, allowed)
+            return isinstance(v, str) and lo <= len(v.strip()) <= hi and numbers_ok(v, allowed) and not wording.unsupported_profit_claim(v, state)
 
         for key, hi in (("title", 140), ("objective", 300), ("how_to_test", 420)):
             if ok_text(item.get(key), 8, hi):
