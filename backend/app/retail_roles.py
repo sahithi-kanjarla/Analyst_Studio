@@ -33,6 +33,19 @@ def is_count_like(x: pd.Series) -> bool:
     return len(nn) >= MIN_ROWS and nn.min() >= 1 and nn.max() >= 2 and nn.nunique() <= MAX_COUNT_DISTINCT and nn.median() <= 20 and bool((nn % 1 == 0).all()) and x.isna().mean() <= 0.4
 
 
+def is_quantity(x: pd.Series, brief_role: str | None = None) -> bool:
+    """A column judged to be a quantity: the brief calls it a measure, or its values are whole counts and the brief does not call it a dimension. Never a group or segment column."""
+    if not pd.api.types.is_numeric_dtype(x) or pd.api.types.is_bool_dtype(x) or brief_role in ("id", "dimension"):
+        return False
+    return brief_role == "measure" or is_count_like(x)
+
+
+def demote_quantities(df: pd.DataFrame, roles: dict, brief_roles: dict | None = None) -> dict:
+    """roles with every quantity column that was typed categorical or binary read as numeric instead, so no tool offers it as a group."""
+    brief_roles = brief_roles or {}
+    return {c: ("numeric" if r in ("categorical", "binary") and c in df.columns and is_quantity(df[c], brief_roles.get(c)) else r) for c, r in roles.items()}
+
+
 def is_rate_like(x: pd.Series) -> bool:
     """Positive, many distinct values, and not a whole-number percentage-sized column."""
     nn = x.dropna()

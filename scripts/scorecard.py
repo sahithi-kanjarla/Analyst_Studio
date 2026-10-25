@@ -1,7 +1,8 @@
-"""Kaveri scorecard: run the pipeline on the Kaveri data, check the report and findings against truth.json,
-print PASS/FAIL per check and append the result to scripts/scorecard_history.csv.
+"""Scorecard: run the pipeline on a sample dataset (kaveri by default, or mall), check the report and findings against its truth.json,
+print PASS/FAIL per check and append the result to scripts/scorecard_history.csv (with the dataset name).
 
-    python scripts/scorecard.py              # run the pipeline, then score it
+    python scripts/scorecard.py              # run the pipeline on kaveri, then score it
+    python scripts/scorecard.py --dataset mall --runs 2
     python scripts/scorecard.py --runs 3     # three pipeline runs one after another; per-check pass counts, median and minimum total
     python scripts/scorecard.py --run <id>   # score an existing run in backend/data/runs/ (no pipeline run)
 
@@ -16,7 +17,13 @@ HISTORY = Path(__file__).with_name("scorecard_history.csv")
 SCOPE_Q = re.compile(r"main (number|metric|measure)|which (column|metric|measure)|segment|time ?frame|total or average|revenue or profit|amount or profit|what (should|do you want) .*(show|analy)", re.I)
 
 
+MALL_GOAL = "Which brand and department earn the most revenue, and is it growing?"
+DATASET = "kaveri"          # set by --dataset
+
+
 def data_dir() -> Path:
+    if DATASET == "mall":
+        return ROOT / "sample_data" / "mall"
     for p in (ROOT / "sample_data" / "kaveri", ROOT / "sample_data" / "kaveri_test" / "kaveri_test"):
         if (p / "input.json").exists():
             return p
@@ -43,7 +50,10 @@ def busy_runs() -> list[str]:
 def run_pipeline(d: Path) -> str:
     from app import config  # noqa: F401  (loads .env)
     from app.runner import create_run, start_run, read_status, resume_with_answers, run_dir
-    inp = json.loads((d / "input.json").read_text(encoding="utf-8"))
+    if DATASET == "mall":
+        inp = {"goal": MALL_GOAL, "files": ["sales.csv"], "context": None}
+    else:
+        inp = json.loads((d / "input.json").read_text(encoding="utf-8"))
     rid = create_run(inp["goal"], [(f, (d / f).read_bytes()) for f in inp["files"]], context=inp["context"])
     print(f"run {rid} started...", flush=True)
     start_run(rid)
@@ -86,6 +96,48 @@ def lines_with(text: str, word: str):
 
 
 def score(rid: str):
+    return score_mall(rid) if DATASET == "mall" else score_kaveri(rid)
+
+
+def score_mall(rid: str):
+    wd = ROOT / "backend" / "data" / "runs" / rid
+    r = json.loads((wd / "result.json").read_text(encoding="utf-8"))
+    t = json.loads((data_dir() / "truth.json").read_text(encoding="utf-8"))
+    rep = r.get("report_md") or ""
+    findings = r.get("findings") or []
+    alltext = rep + chr(10) + chr(10).join(f"{f.get('title', '')}. {f.get('text', '')}" for f in findings)
+    rows = []
+
+    def add(n, name, ok, detail):
+        rows.append((n, name, bool(ok), detail))
+    rev = t["total_gross_revenue"]
+    got = [v for v, _ in nums(alltext) if abs(v - rev) <= rev * 0.015]
+    add(1, "Revenue total (within 1.5%: blank Qty)", got, f"truth {rev:,.0f}; found {got[0]:,.0f}" if got else "not found")
+    add(2, "Top store Phoenix Mall", re.search(r"Phoenix Mall is highest", alltext), "")
+    ls = [l for l in alltext.splitlines() if "Lakeside Outlet" in l and re.search(r"-\d+(\.\d+)?%", l)]
+    add(3, "Shrinking store Lakeside Outlet", ls, ls[0][:90] if ls else "no decline line")
+    ur = [l for l in alltext.splitlines() if "Urban Weave" in l and re.search(r"36\.5%|37%", l)]
+    add(4, "High-return brand Urban Weave 36.5%", ur, ur[0][:90] if ur else "")
+    add(5, "Festive peak Oct/Nov, weak Jun", re.search(r"highest Oct", alltext) and re.search(r"lowest Jun", alltext), "month pattern: highest Oct, lowest Jun" if re.search(r"highest Oct", alltext) else "")
+    md = [l for l in alltext.splitlines() if "Menswear" in l and re.search(r"49(\.\d)?%", l)]
+    add(6, "Dominant dept Menswear ~49%", md, md[0][:90] if md else "not stated with its share")
+    dec = [l for l in alltext.splitlines() if re.search(r"Pay Mode|Size", l) and re.search(r"driver|drives|strongest", l, re.I)]
+    add(7, "Decoys not called drivers", not dec, "; ".join(dec)[:90])
+    gap = "Margin: not computable, no cost column"
+    bad = re.findall(r"(?i)margin|\bprofit\w*|markup", chr(10).join(l for l in rep.splitlines() if gap not in l))
+    add(8, "No invented margin/profit", not bad, f"found {set(bad)}" if bad else "only the data-gap line")
+    add(9, "Gap line says margin not computable", gap in rep, "")
+    bn = [f["id"] for f in findings if "Bill No" in json.dumps(f.get("params", {}))]
+    add(10, "Bill No not a measure", not bn, str(bn))
+    qs = json.loads((wd / "questions.json").read_text(encoding="utf-8")).get("questions", []) if (wd / "questions.json").exists() else []
+    asked = [q for q in qs if not q.get("auto")]
+    add(11, "<=3 questions, relevant", len(asked) <= 3 and {q["kind"] for q in asked} >= {"flag_rows", "blank_values"}, ", ".join(q["kind"] for q in asked))
+    log = " ".join(s["detail"] for s in r.get("cleaning_log") or [])
+    add(12, "All five mess items handled", all(k in log for k in ("Rs", "day-first", "raymond", "30 exact duplicate", "revenue' = Qty")) or all(k in log for k in ("currency", "day-first", "raymond", "30 exact duplicate")), "")
+    return rows
+
+
+def score_kaveri(rid: str):
     wd = ROOT / "backend" / "data" / "runs" / rid
     res = json.loads((wd / "result.json").read_text(encoding="utf-8"))
     truth = json.loads((data_dir() / "truth.json").read_text(encoding="utf-8"))
@@ -198,12 +250,17 @@ def table(rows) -> None:
 
 
 def save(rid: str, rows) -> None:
+    if HISTORY.exists():
+        old = list(csv.reader(HISTORY.open(newline="", encoding="utf-8")))
+        if old and "dataset" not in old[0]:        # history written before --dataset existed: every row was kaveri
+            with HISTORY.open("w", newline="", encoding="utf-8") as fh:
+                csv.writer(fh).writerows([old[0] + ["dataset"]] + [r + ["kaveri"] for r in old[1:]])
     new = not HISTORY.exists()
     with HISTORY.open("a", newline="", encoding="utf-8") as fh:
         w = csv.writer(fh)
         if new:
-            w.writerow(["timestamp", "run_id", "score", "total"] + [f"c{r[0]}" for r in rows])
-        w.writerow([datetime.now().isoformat(timespec="seconds"), rid, sum(r[2] for r in rows), len(rows)] + [int(r[2]) for r in rows])
+            w.writerow(["timestamp", "run_id", "score", "total"] + [f"c{r[0]}" for r in rows] + ["dataset"])
+        w.writerow([datetime.now().isoformat(timespec="seconds"), rid, sum(r[2] for r in rows), len(rows)] + [int(r[2]) for r in rows] + [DATASET])
 
 
 def main():
@@ -211,10 +268,13 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--run", help="score an existing run id instead of running the pipeline")
     ap.add_argument("--runs", type=int, default=1, help="number of pipeline runs, one after another")
+    ap.add_argument("--dataset", choices=("kaveri", "mall"), default="kaveri")
     a = ap.parse_args()
+    global DATASET
+    DATASET = a.dataset
     if a.run:
         rows = score(a.run)
-        print(f"\nKaveri scorecard, run {a.run}\n")
+        print(f"\n{DATASET} scorecard, run {a.run}\n")
         table(rows)
         print(f"\nTotal: {sum(r[2] for r in rows)}/{len(rows)}")
         return
@@ -230,7 +290,7 @@ def main():
             continue
         rows = score(rid)
         results.append(rows)
-        print(f"\nKaveri scorecard, run {i}/{a.runs} ({rid}); ratio KPI path: {ratio_path(rid)}\n")
+        print(f"\n{DATASET} scorecard, run {i}/{a.runs} ({rid}); ratio KPI path: {ratio_path(rid)}\n")
         table(rows)
         print(f"\nTotal: {sum(r[2] for r in rows)}/{len(rows)}", flush=True)
         save(rid, rows)

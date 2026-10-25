@@ -57,7 +57,7 @@ def test_category_profit_question_is_answered_by_the_category_ranking_not_the_we
     ranking = next(r for r in view["rankings"] if r["measure"] == "profit")
     assert "Loss-making" in ranking["text"] and "category Furniture" in ranking["text"]
     assert [r["measure"] for r in view["rankings"] if r["group"] == "category"].count("margin") == 1      # a ratio KPI ranks too, by ratio of sums
-    assert "weekday" not in {r["group"] for r in view["rankings"]}                # only goal-named or hierarchy columns get a ranking
+    assert {r["measure"] for r in view["rankings"] if r["group"] == "weekday"} == {"sales"}      # a column the goal does not name is ranked for the main KPI (the plan target) only
 
 
 def test_a_question_nothing_answers_says_not_answered():
