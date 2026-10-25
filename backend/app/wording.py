@@ -5,6 +5,7 @@
   * entity names: a value is named after its own column ("sub-category Laptops"), never with an industry noun attached
   * answers: one line per planned question, taken from the findings
   * limitation statements written by an LLM are dropped when the findings contradict them
+  * sentences about margin or profit are dropped when the data has no cost, margin or profit measure to back them
 Nothing here knows an industry or a column name."""
 from __future__ import annotations
 
@@ -222,6 +223,23 @@ MANY_MISSING = re.compile(r"\b(high|large|substantial|significant|considerable|m
 NO_DATES = re.compile(r"\b(no|lack of|without|missing)\b[^.]{0,25}\b(date|time|temporal)\b", re.I)
 NO_CORRECTION = re.compile(r"\b(no|without|not (been )?(applied|performed))\b[^.]{0,30}\b(multiple[- ](testing|comparison)|correction|bonferroni)\b|\bnot corrected\b", re.I)
 MIN_ROWS_BIG = 1000
+
+
+FINANCIAL = re.compile(r"margin|profit|cost|cogs", re.I)                       # a column or KPI with one of these words can back a statement about profit
+PROFIT_CLAIM = re.compile(r"\bmargins?\b|\bprofit|\bmarkups?\b", re.I)            # margin, profit, profitability, profit driver, markup
+
+
+def has_profit_measure(state: dict) -> bool:
+    """Is there any cost, margin or profit measure: a column, a derived ratio, or a KPI the brief found a column for?"""
+    plan, dm = state.get("plan") or {}, state.get("derived_metrics") or {}
+    names = [c["name"] for c in (state.get("profile") or {}).get("columns", [])] + [d["name"] for d in (plan.get("derived") or []) + (dm.get("created") or [])]
+    names += [c for c in ((state.get("brief") or {}).get("kpis") or {}).values() if c]
+    return any(FINANCIAL.search(str(n)) for n in names)
+
+
+def unsupported_profit_claim(text: str, state: dict) -> bool:
+    """True for a sentence that talks about margin or profit when the data has no cost, margin or profit measure."""
+    return bool(PROFIT_CLAIM.search(str(text))) and not has_profit_measure(state)
 
 
 def contradicts(text: str, state: dict) -> str | None:

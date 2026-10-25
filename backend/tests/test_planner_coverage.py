@@ -75,7 +75,7 @@ def test_the_drill_down_goes_into_the_largest_parent_and_the_worst_ratio_parent(
 
 
 def test_month_of_year_seasonality_for_the_main_total_and_the_ratio_kpi(plan):
-    assert sigs(plan, "seasonality") == {("amount",), ("margin_ratio",)}
+    assert sigs(plan, "seasonality") == {("amount",), ("profit",), ("margin_ratio",)}      # every additive measure, plus the ratio KPI
     r = next(a for a in plan["analyses"] if a["tool"] == "seasonality" and a["params"]["target"] == "margin_ratio")
     assert r["origin"] == "code" and "ratio of sums" in r["why"]
 
@@ -88,7 +88,7 @@ def test_a_year_of_dates_is_enough_and_less_is_not():
 def test_seasonality_does_not_depend_on_the_goal_asking_about_change():
     df = data()
     p = planner.propose_plan(Seq(model_plan()), df, profile_df(df), "Which region sells the most?", {}, False, OV, {})[0]
-    assert sigs(p, "seasonality") == {("amount",), ("margin_ratio",)}
+    assert sigs(p, "seasonality") == {("amount",), ("profit",), ("margin_ratio",)}
 
 
 def test_extra_measures_are_compared_across_every_planned_group():

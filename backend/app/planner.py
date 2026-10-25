@@ -22,6 +22,7 @@ from .clarify import named_in_goal
 from .profiler import compact_profile
 from .measures import has_sum_word, measure_kind
 from .propose import AI_SOURCES, propose
+from .signals import flag_values
 from .tools import CATALOG, MONTH_CYCLE_MIN_DAYS, additive, assoc_strength, spec_signature, validate_spec, target_values  # noqa: F401
 
 PRIOR_TARGET = re.compile(r"revenue|sales|profit|income|price|amount|churn|conversion|score|rating|salary|spend|cost|margin|target|label|outcome|default|fraud|survived|satisfaction", re.I)
@@ -212,10 +213,23 @@ def drill_parents(df: pd.DataFrame, parent: str, main: str | None, ratios: list[
     return out
 
 
+def flag_rate_specs(df: pd.DataFrame, roles: dict, goal: str, explore: bool, target: str | None) -> list[tuple[dict, str]]:
+    """(spec, reason) for the share of rows flagged per group: every yes/no column (by its values) against every category column the goal names."""
+    if explore:
+        return []
+    flags = [c for c, r in roles.items() if r == "binary" and c in df.columns and c != target and flag_values(df[c])]
+    groups = [c for c, r in roles.items() if r == "categorical" and c in df.columns and c not in flags and named_in_goal(c, goal)][:3]
+    out = []
+    for f in flags:
+        for g in groups:
+            why = f"The goal names {g}, and {f} is a yes/no flag, so the share of rows flagged in each {g} (with the overall rate) is always shown (added by code: required coverage)."
+            out += [({"tool": "group_compare", "params": {"target": f, "group": g}}, why), ({"tool": "group_table", "params": {"target": f, "group": g}}, why)]
+    return out
+
+
 def ensure_required(df: pd.DataFrame, roles: dict, uniques: dict, goal: str, explore: bool, ov: dict, target: str | None, date: str | None, analyses: list[dict]) -> list[dict]:
     """The items every plan must have, whoever drew it up. Code adds what is missing (origin "code", with the reason) and never removes anything:
-    a month-of-year seasonality for the main total and each ratio KPI when the dates cover 12 months (and for the other additive measures when the goal
-    asks about change over two years); the parent level of a verified hierarchy right before its child, and for every hierarchy the top level for each KPI plus
+    a month-of-year seasonality for the main total and each ratio KPI when the dates cover 12 months (and for the other additive measures when the dates span two years); the parent level of a verified hierarchy right before its child, and for every hierarchy the top level for each KPI plus
     a drill-down into its child level inside the parent with the largest share and the parent with the worst ratio; the measures the user named as KPIs."""
     out = list(analyses)
 
@@ -261,6 +275,11 @@ def ensure_required(df: pd.DataFrame, roles: dict, uniques: dict, goal: str, exp
                     continue
                 for m in adds[:1] + ratio_kpis:
                     add({"tool": "group_compare", "params": {"target": m, "group": c, "within": p, "within_value": value}}, f"Drill-down into {c} for {m}: {why} (added by code: required coverage).")
+    for spec, why in flag_rate_specs(df, roles, goal, explore, target):
+        add(spec, why)
+    if not explore and adds:      # the goal names a category column and there is a main total: each group's share of that total is always shown, whichever analyses the plan drew up
+        for g in [c for c, r in roles.items() if r == "categorical" and c in df.columns and named_in_goal(c, goal)][:3]:
+            add({"tool": "group_table", "params": {"target": adds[0], "group": g}}, f"The goal names {g}, so each {g}'s share of {adds[0]} is always shown (added by code: required coverage).")
     if ratio_kpis and not any(a["tool"] == "correlation" for a in out):     # a ratio KPI is always checked against the numeric drivers (discount, price...), whatever the plan drew up
         cols = candidate_measures(df, roles, uniques, ov)
         if len(cols) >= 2:
@@ -270,10 +289,10 @@ def ensure_required(df: pd.DataFrame, roles: dict, uniques: dict, goal: str, exp
             for m in adds[:1] + ratio_kpis:
                 add({"tool": "seasonality", "params": {"target": m, "date": date}},
                     f"The dates cover {MIN_YEAR_MONTHS} months or more, so the month-of-year pattern of {m} ({'a ratio of sums' if m in ratio_kpis else 'a total'}) is always checked (added by code: required coverage).")
-        if goalmod.asks_about_change(goal, explore, ov.get("intent")) and _span_days(df[date]) >= MONTH_CYCLE_MIN_DAYS:
+        if _span_days(df[date]) >= MONTH_CYCLE_MIN_DAYS:       # the other additive measures too, whatever the intent a model gave the brief: a seasonal total must not depend on that label
             for m in adds[1:]:
                 add({"tool": "seasonality", "params": {"target": m, "date": date}},
-                    f"The goal asks about change over time and the dates span two years or more, so the month-of-year pattern of {m} (a total) is always checked.")
+                    f"The dates span two years or more, so the month-of-year pattern of {m} (a total) is always checked (added by code: required coverage).")
     return out
 
 
@@ -395,7 +414,8 @@ def heuristic_plan(df: pd.DataFrame, profile: dict, goal: str, context: dict | N
     analyses = ensure_required(df, roles, uniques, goal, explore, ov, target, date, analyses)
 
     relevant = list(dict.fromkeys(([target] if target else []) + ([second] if second else []) + groups + ([date] if date else []) + drivers + [c for c in ov.get("include") or [] if c in roles]
-                                  + [c for a in extras for v in a["params"].values() for c in (v if isinstance(v, list) else [v]) if c in roles]))
+                                  + [c for a in extras for v in a["params"].values() for c in (v if isinstance(v, list) else [v]) if c in roles]
+                                  + [c for s, _ in flag_rate_specs(df, roles, goal, explore, target) for c in s["params"].values()]))
     relevant += plausible_dimensions(df, roles, uniques, target, relevant)
     questions = [f"What explains differences or changes in {target}?" if target else "What does this dataset contain?"]
     if target and groups:

@@ -26,18 +26,21 @@ from . import context as ctxmod
 from . import directives as dv
 from .llm import ask_json
 from .profiler import compact_profile
+from .retail_roles import product_question
 from .signals import compute_signals
 
 MAX_QUESTIONS = 3        # at most this many questions are asked, in the LLM and the rules path alike
 MAX_CANDIDATES = 12      # valid questions considered before the cap picks the ones that matter most
 # How much an answer changes the analysis, most first: a placeholder or a repeated value moves every total and average; a date choice moves every trend; and so on.
-IMPACT = ("placeholder", "sentinel", "multi_date", "negatives", "near_sum", "duplicate_columns", "rare_labels", "high_missing")
+IMPACT = ("placeholder", "sentinel", "product_basis", "date_order", "multi_date", "flag_rows", "blank_values", "negatives", "near_sum", "duplicate_columns", "rare_labels", "high_missing")
 MAX_OPTIONS = 6
 UNASKED = {"multi_measure"}      # signals that feed the planner instead of the user
+CODE_OWNED = {"product_basis", "flag_rows", "blank_values", "date_order"}      # questions code always writes itself: the answer decides how a number is built, so the wording is not left to a model
 # What an answer may do about each kind of ambiguity. A question that borrows a real signal id but offers other actions is not about that signal.
 SIGNAL_ACTIONS = {"multi_date": {"set_date_column"}, "negatives": {"handle_negatives", "filter_rows", "note_only"},
                   "sentinel": {"treat_value_as_missing", "filter_rows", "note_only"}, "near_sum": {"drop_column", "define_derived_metric", "merge_columns", "note_only"},
-                  "rare_labels": {"filter_rows", "note_only"}, "high_missing": {"drop_column", "note_only"}, "duplicate_columns": {"drop_column", "merge_columns", "note_only"}}
+                  "rare_labels": {"filter_rows", "note_only"}, "high_missing": {"drop_column", "note_only"}, "duplicate_columns": {"drop_column", "merge_columns", "note_only"},
+                  "flag_rows": {"filter_rows", "note_only"}, "blank_values": {"fill_missing", "filter_rows", "note_only"}, "date_order": {"set_date_order"}}
 DATE_FILLER = {"date", "time", "at", "on", "dt", "ts", "timestamp", "day"}
 
 
@@ -214,6 +217,25 @@ def _template(sig: dict, goal: str, ctx: dict, explore: bool) -> dict | None:
                 "options": [_o("valid", "Yes, they are valid labels", type="note_only"),
                             _o("exclude", "No, they are noise: exclude those rows", type="filter_rows", column=n, operator="not_in", value=rare[:dv.MAX_LIST])],
                 "why": f"Out of {ev['n_labels']} labels in {n}, {ev['n_rare']} appear only a handful of times each; they may be typos."}
+    if t == "flag_rows":
+        n, pos = c[0], ev["positive"]
+        return {**base, "text": f"{ev['count']:,} rows ({_pct(ev['share'])}) are flagged '{pos}' in {n}. If they are reversed or voided rows, should they be taken out of the totals (net) or counted as they are (gross)?",
+                "default": "gross", "options": [_o("gross", "Gross: count every row", type="note_only"),
+                                                 _o("net", f"Net: leave out the rows flagged '{pos}'", type="filter_rows", column=n, operator="ne", value=pos)],
+                "why": f"{n} marks {_pct(ev['share'])} of the rows; whether they count changes every total and every ranking."}
+    if t == "blank_values":
+        n = c[0]
+        return {**base, "text": f"{ev['count']:,} rows ({_pct(ev['share'])}) have no {n}. How should they count?", "default": "leave",
+                "options": [_o("leave", "Leave them blank: they add nothing to the totals", type="note_only"),
+                            _o("one", f"Count each as 1 unit", type="fill_missing", column=n, value=1),
+                            _o("drop", "Drop those rows", type="filter_rows", column=n, operator="not_null")],
+                "why": f"Without {n} the value of those rows cannot be worked out, so they are missing from every total unless you decide otherwise."}
+    if t == "date_order":
+        n, r = c[0], ev["ranges"]
+        return {**base, "text": f"Are the dates in {n} written day first (dd/mm/yyyy) or month first (mm/dd/yyyy)?", "default": "day",
+                "options": [_o("day", f"Day first: {r['day_first'][0]} to {r['day_first'][1]}", type="set_date_order", column=n, dayfirst=True),
+                            _o("month", f"Month first: {r['month_first'][0]} to {r['month_first'][1]}", type="set_date_order", column=n, dayfirst=False)],
+                "why": f"All {ev['values']:,} such dates have a day and a month of 12 or less, so both readings fit; the period they cover differs."}
     if t == "high_missing":
         n = c[0]
         return {**base, "text": f"{n} is {ev['missing_pct']:g}% empty. Should it still be used?", "default": "keep",
@@ -310,19 +332,26 @@ def cap_questions(questions: list[dict], limit: int = MAX_QUESTIONS) -> tuple[li
 
 
 def build_questions_and_ignored(df: pd.DataFrame, profile: dict, goal: str, ctx: dict | None, explore: bool, llm, saved: dict | None = None,
-                                skip_columns: set | None = None, dropped: list | None = None) -> tuple[list[dict], list[dict]]:
+                                skip_columns: set | None = None, dropped: list | None = None, raw: pd.DataFrame | None = None, raw_profile: dict | None = None,
+                                kinds: dict | None = None) -> tuple[list[dict], list[dict]]:
     """(questions, saved glossary answers that were ignored). The model writes the questions when there is one; otherwise (or if its answer is unusable) the templates do.
     Weak signals alone never pause a run: they are only included when something stronger already needs an answer.
     A saved answer is ignored when its ambiguity is in this data but the question was dropped as no longer valid, or the saved option no longer exists.
     At most MAX_QUESTIONS are asked; the others are appended to `dropped` (when given) with the default that was used.
     `skip_columns` are columns whose placeholder values were already asked about on the source tables, so no second "is this a placeholder" question is raised for them."""
     skip = skip_columns or set()
-    signals = [sg for sg in compute_signals(df, profile) if sg["type"] not in UNASKED and not (sg["type"] == "sentinel" and set(sg["columns"]) <= skip)]
+    signals = [sg for sg in compute_signals(df, profile, raw, raw_profile, kinds) if sg["type"] not in UNASKED and not (sg["type"] == "sentinel" and set(sg["columns"]) <= skip)]
     if not signals:
         return [], []
-    qs, _ = llm_questions(llm, profile, signals, goal, ctx, saved)
-    if qs is None:
-        qs = template_questions(signals, profile, goal, ctx, explore)
+    owned = [sg for sg in signals if sg["type"] in CODE_OWNED]
+    open_ = [sg for sg in signals if sg["type"] not in CODE_OWNED]
+    qs: list[dict] | None = []
+    if open_:
+        qs, _ = llm_questions(llm, profile, open_, goal, ctx, saved)
+        if qs is None:
+            qs = template_questions(open_, profile, goal, ctx, explore)
+    taken = set(df.columns)
+    qs = qs + [product_question(sg, taken) for sg in owned if sg["type"] == "product_basis"] + template_questions([sg for sg in owned if sg["type"] != "product_basis"], profile, goal, ctx, explore)
     if not any(q.get("strong") and not q.get("auto") for q in qs):
         qs = [q for q in qs if q.get("strong")]
     qs, over = cap_questions(qs)
@@ -362,6 +391,11 @@ def resolve(questions: list[dict], user_answers: dict | None, saved: dict, skip:
         else:
             final[qid], source[qid] = q["default"], "default"
     return final, source
+
+
+def date_orders(questions: list[dict], answers: dict) -> dict[str, bool]:
+    """{date column: True when day comes first} for the questions about the order of d/m/y dates, with the answer or else the default."""
+    return {a["column"]: a["dayfirst"] for _, _, a in chosen(questions, answers) if a["type"] == "set_date_order"}
 
 
 def plan_overrides(questions: list[dict], answers: dict) -> dict:

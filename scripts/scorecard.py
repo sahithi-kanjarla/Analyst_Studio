@@ -150,8 +150,9 @@ def score(rid: str):
     add(8, "Seasonality: Oct high, Aug low", hi, "found" if hi else f"no month-of-year seasonality naming Oct and Aug (truth: month {max(idx, key=idx.get)} high, {min(idx, key=idx.get)} low)")
 
     # 9 questions
-    scope = [q["text"] for q in qs if SCOPE_Q.search(q["text"])]
-    add(9, "<=3 questions, none scope", len(qs) <= 3 and not scope, f"{len(qs)} asked" + (f"; scope: {scope}" if scope else ""))
+    asked_qs = [q for q in qs if not q.get("auto")]        # questions the data or the goal settled ("auto") are recorded in the file but never put to the user
+    scope = [q["text"] for q in asked_qs if SCOPE_Q.search(q["text"])]
+    add(9, "<=3 questions, none scope", len(asked_qs) <= 3 and not scope, f"{len(asked_qs)} asked" + (f" (+{len(qs) - len(asked_qs)} settled by data)" if len(qs) > len(asked_qs) else "") + (f"; scope: {scope}" if scope else ""))
 
     # 10 placeholder 999
     asked = [q["text"] for q in qs if re.search(r"999|delivery_days|placeholder", q["text"], re.I)]

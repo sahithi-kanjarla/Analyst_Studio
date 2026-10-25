@@ -1,0 +1,34 @@
+...................                                                      [100%]
+============================== warnings summary ===============================
+tests/test_new_tools_and_views.py::test_any_shape_completes_with_a_report[unicode_headers]
+tests/test_new_tools_and_views.py::test_any_shape_completes_with_a_report[unicode_headers]
+tests/test_new_tools_and_views.py::test_any_shape_completes_with_a_report[unicode_headers]
+  D:\Acer\analyst-studio1\analyst-studio\backend\app\tools.py:128: UserWarning: Glyph 2352 (\N{DEVANAGARI LETTER RA}) missing from font(s) DejaVu Sans.
+    fig.savefig(charts / f"{name}.png", dpi=CHART_DPI, bbox_inches="tight", facecolor="white")
+
+tests/test_new_tools_and_views.py::test_any_shape_completes_with_a_report[unicode_headers]
+tests/test_new_tools_and_views.py::test_any_shape_completes_with_a_report[unicode_headers]
+tests/test_new_tools_and_views.py::test_any_shape_completes_with_a_report[unicode_headers]
+  D:\Acer\analyst-studio1\analyst-studio\backend\app\tools.py:128: UserWarning: Glyph 2325 (\N{DEVANAGARI LETTER KA}) missing from font(s) DejaVu Sans.
+    fig.savefig(charts / f"{name}.png", dpi=CHART_DPI, bbox_inches="tight", facecolor="white")
+
+tests/test_new_tools_and_views.py::test_any_shape_completes_with_a_report[unicode_headers]
+tests/test_new_tools_and_views.py::test_any_shape_completes_with_a_report[unicode_headers]
+tests/test_new_tools_and_views.py::test_any_shape_completes_with_a_report[unicode_headers]
+  D:\Acer\analyst-studio1\analyst-studio\backend\app\tools.py:128: UserWarning: Glyph 2350 (\N{DEVANAGARI LETTER MA}) missing from font(s) DejaVu Sans.
+    fig.savefig(charts / f"{name}.png", dpi=CHART_DPI, bbox_inches="tight", facecolor="white")
+
+tests/test_new_tools_and_views.py::test_any_shape_completes_with_a_report[unicode_headers]
+  D:\Acer\analyst-studio1\analyst-studio\backend\app\tools.py:128: UserWarning: Glyph 2327 (\N{DEVANAGARI LETTER GA}) missing from font(s) DejaVu Sans.
+    fig.savefig(charts / f"{name}.png", dpi=CHART_DPI, bbox_inches="tight", facecolor="white")
+
+tests/test_new_tools_and_views.py::test_any_shape_completes_with_a_report[unicode_headers]
+  D:\Acer\analyst-studio1\analyst-studio\backend\app\tools.py:128: UserWarning: Glyph 2346 (\N{DEVANAGARI LETTER PA}) missing from font(s) DejaVu Sans.
+    fig.savefig(charts / f"{name}.png", dpi=CHART_DPI, bbox_inches="tight", facecolor="white")
+
+tests/test_new_tools_and_views.py::test_any_shape_completes_with_a_report[unicode_headers]
+  D:\Acer\analyst-studio1\analyst-studio\backend\app\tools.py:128: UserWarning: Glyph 2326 (\N{DEVANAGARI LETTER KHA}) missing from font(s) DejaVu Sans.
+    fig.savefig(charts / f"{name}.png", dpi=CHART_DPI, bbox_inches="tight", facecolor="white")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+19 passed, 12 warnings in 98.80s (0:01:38)

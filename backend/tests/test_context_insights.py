@@ -106,7 +106,7 @@ def test_key_metrics_and_report_sections(churn_run):
     labels = [m["label"] for m in churn_run["key_metrics"]]
     assert any("Rows" in l for l in labels)
     md = churn_run["report_md"]
-    for h in ("Executive summary", "Insights", "Strategy and Recommendations", "About the business"):
+    for h in ("Executive summary", "Evidence", "Strategy and Recommendations", "About the business"):
         assert h in md
     assert "Nimbus" in md
 

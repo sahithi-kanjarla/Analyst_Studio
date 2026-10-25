@@ -1,0 +1,200 @@
+{
+  "clean_rows": 39970,
+  "currency": "INR",
+  "period": "2023-04-01 to 2025-03-31",
+  "store_revenue_gross": {
+    "Orion Square": {
+      "year1": 7816120,
+      "year2": 9193753,
+      "yoy_pct": 17.6
+    },
+    "Lakeside Outlet": {
+      "year1": 8005486,
+      "year2": 3719201,
+      "yoy_pct": -53.5
+    },
+    "Central Plaza": {
+      "year1": 5600781,
+      "year2": 6796842,
+      "yoy_pct": 21.4
+    },
+    "Harbor Point": {
+      "year1": 4046765,
+      "year2": 5324435,
+      "yoy_pct": 31.6
+    },
+    "Airport Kiosk": {
+      "year1": 3056259,
+      "year2": 4762250,
+      "yoy_pct": 55.8
+    },
+    "Phoenix Mall": {
+      "year1": 10760332,
+      "year2": 12804836,
+      "yoy_pct": 19.0
+    }
+  },
+  "store_revenue_net_of_returns": {
+    "Orion Square": {
+      "year1": 7231531,
+      "year2": 8502296,
+      "yoy_pct": 17.6
+    },
+    "Lakeside Outlet": {
+      "year1": 7342116,
+      "year2": 3444957,
+      "yoy_pct": -53.1
+    },
+    "Central Plaza": {
+      "year1": 5124195,
+      "year2": 6255052,
+      "yoy_pct": 22.1
+    },
+    "Harbor Point": {
+      "year1": 3762318,
+      "year2": 4889580,
+      "yoy_pct": 30.0
+    },
+    "Airport Kiosk": {
+      "year1": 2829942,
+      "year2": 4375603,
+      "yoy_pct": 54.6
+    },
+    "Phoenix Mall": {
+      "year1": 9917521,
+      "year2": 11835707,
+      "yoy_pct": 19.3
+    }
+  },
+  "top_revenue_store": "Phoenix Mall",
+  "shrinking_store": "Lakeside Outlet",
+  "brand_return_rate_pct": {
+    "Allen Solly": 5.0,
+    "Biba": 4.7,
+    "Leather Co": 5.1,
+    "Levis": 5.2,
+    "Little Stars": 5.3,
+    "Metro Steps": 5.2,
+    "Peter England": 4.7,
+    "Raymond": 4.8,
+    "Stride": 4.5,
+    "Tiny Tots": 5.4,
+    "Urban Weave": 36.5,
+    "Van Heusen": 5.6,
+    "W": 5.3
+  },
+  "high_return_brand": "Urban Weave",
+  "discount_and_revenue_per_unit_by_half_year": {
+    "H1": {
+      "avg_discount_pct": 14.0,
+      "revenue_per_unit": 1519.5
+    },
+    "H2": {
+      "avg_discount_pct": 14.0,
+      "revenue_per_unit": 1531.3
+    },
+    "H3": {
+      "avg_discount_pct": 18.1,
+      "revenue_per_unit": 1450.6
+    },
+    "H4": {
+      "avg_discount_pct": 27.2,
+      "revenue_per_unit": 1286.0
+    }
+  },
+  "monthly_revenue": {
+    "2023-04": 2771192,
+    "2023-05": 3030441,
+    "2023-06": 1728700,
+    "2023-07": 2677843,
+    "2023-08": 2989074,
+    "2023-09": 2944372,
+    "2023-10": 5391304,
+    "2023-11": 5530775,
+    "2023-12": 3429406,
+    "2024-01": 2980363,
+    "2024-02": 2762156,
+    "2024-03": 3050117,
+    "2024-04": 3705661,
+    "2024-05": 3647477,
+    "2024-06": 1875328,
+    "2024-07": 3004534,
+    "2024-08": 3195282,
+    "2024-09": 3388515,
+    "2024-10": 6259126,
+    "2024-11": 5472043,
+    "2024-12": 3550618,
+    "2025-01": 2949700,
+    "2025-02": 2620485,
+    "2025-03": 2932548
+  },
+  "festive_peak_months": [
+    "October",
+    "November"
+  ],
+  "weak_month": "June",
+  "revenue_by_calendar_month": {
+    "January": 5930063,
+    "February": 5382641,
+    "March": 5982665,
+    "April": 6476853,
+    "May": 6677918,
+    "June": 3604028,
+    "July": 5682377,
+    "August": 6184356,
+    "September": 6332887,
+    "October": 11650430,
+    "November": 11002818,
+    "December": 6980024
+  },
+  "total_gross_revenue": 81887060,
+  "dept_revenue_share_pct": {
+    "Menswear": 49.0,
+    "Womenswear": 27.6,
+    "Footwear": 13.0,
+    "Kidswear": 6.8,
+    "Accessories": 3.5
+  },
+  "dominant_dept": "Menswear",
+  "decoys": {
+    "Pay Mode": {
+      "avg_revenue_per_line": {
+        "Card": 2039.9,
+        "Cash": 2049.0,
+        "UPI": 2058.1,
+        "Wallet": 2033.6
+      },
+      "max_vs_min_pct": 1.2
+    },
+    "Size": {
+      "avg_revenue_per_line": {
+        "L": 2046.0,
+        "M": 2020.7,
+        "S": 2057.1,
+        "XL": 2060.8,
+        "XXL": 2058.9
+      },
+      "max_vs_min_pct": 2.0
+    }
+  },
+  "not_computable": [
+    "margin",
+    "profit",
+    "cost",
+    "markup"
+  ],
+  "planted_mess": {
+    "date_formats": [
+      "YYYY-MM-DD",
+      "DD/MM/YYYY",
+      "DD-Mon-YYYY"
+    ],
+    "sale_price_rs_prefix_pct": 5,
+    "blank_qty_pct": 1,
+    "exact_duplicate_rows": 30,
+    "brand_variants": [
+      "Raymond",
+      "raymond "
+    ]
+  }
+}

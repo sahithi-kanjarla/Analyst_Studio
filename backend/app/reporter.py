@@ -70,7 +70,9 @@ def llm_summary(llm, state: dict) -> tuple[str, list[str], bool] | None:
     kept, dropped, rejected = [], [], []
     for s in _sentences(out["summary"]):
         bad = unverified_numbers(s, allowed)
-        if bad:
+        if wording.unsupported_profit_claim(s, state):
+            dropped.append(f"summary sentence dropped (no cost or profit column in the data): {s}")
+        elif bad:
             dropped.append(f"summary sentence dropped: {s}")
             rejected.extend(bad)
         else:
@@ -78,7 +80,9 @@ def llm_summary(llm, state: dict) -> tuple[str, list[str], bool] | None:
     recs = []
     for r in (str(r) for r in out["recommendations"]):
         bad = unverified_numbers(r, allowed)
-        if bad:
+        if wording.unsupported_profit_claim(r, state):
+            dropped.append(f"recommendation dropped (no cost or profit column in the data): {r}")
+        elif bad:
             dropped.append(f"recommendation dropped: {r}")
             rejected.extend(bad)
         else:
