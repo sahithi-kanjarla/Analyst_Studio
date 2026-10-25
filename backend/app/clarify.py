@@ -24,7 +24,7 @@ import pandas as pd
 
 from . import context as ctxmod
 from . import directives as dv
-from .llm import ask_json
+from .llm import note_failure, ask_json
 from .profiler import compact_profile
 from .retail_roles import product_question
 from .signals import compute_signals
@@ -307,6 +307,8 @@ def llm_questions(llm, profile: dict, signals: list[dict], goal: str, ctx: dict 
             + f"SIGNALS:\n{json.dumps([{k: s[k] for k in ('id', 'type', 'columns', 'evidence')} for s in signals], default=str)}")
     out = ask_json(llm, WRITER_SYSTEM, user)
     if not isinstance(out, dict) or not isinstance(out.get("questions"), list):
+        if isinstance(out, dict):
+            note_failure("validation (the reply had no 'questions' list)")
         return None, []
     qs, dropped = validate_all(out["questions"], profile, signals, limit=MAX_CANDIDATES)
     return (qs if qs or not out["questions"] else None), dropped
@@ -333,14 +335,14 @@ def cap_questions(questions: list[dict], limit: int = MAX_QUESTIONS) -> tuple[li
 
 def build_questions_and_ignored(df: pd.DataFrame, profile: dict, goal: str, ctx: dict | None, explore: bool, llm, saved: dict | None = None,
                                 skip_columns: set | None = None, dropped: list | None = None, raw: pd.DataFrame | None = None, raw_profile: dict | None = None,
-                                kinds: dict | None = None) -> tuple[list[dict], list[dict]]:
+                                kinds: dict | None = None, brief: dict | None = None) -> tuple[list[dict], list[dict]]:
     """(questions, saved glossary answers that were ignored). The model writes the questions when there is one; otherwise (or if its answer is unusable) the templates do.
     Weak signals alone never pause a run: they are only included when something stronger already needs an answer.
     A saved answer is ignored when its ambiguity is in this data but the question was dropped as no longer valid, or the saved option no longer exists.
     At most MAX_QUESTIONS are asked; the others are appended to `dropped` (when given) with the default that was used.
     `skip_columns` are columns whose placeholder values were already asked about on the source tables, so no second "is this a placeholder" question is raised for them."""
     skip = skip_columns or set()
-    signals = [sg for sg in compute_signals(df, profile, raw, raw_profile, kinds) if sg["type"] not in UNASKED and not (sg["type"] == "sentinel" and set(sg["columns"]) <= skip)]
+    signals = [sg for sg in compute_signals(df, profile, raw, raw_profile, kinds, brief) if sg["type"] not in UNASKED and not (sg["type"] == "sentinel" and set(sg["columns"]) <= skip)]
     if not signals:
         return [], []
     owned = [sg for sg in signals if sg["type"] in CODE_OWNED]
@@ -396,6 +398,16 @@ def resolve(questions: list[dict], user_answers: dict | None, saved: dict, skip:
 def date_orders(questions: list[dict], answers: dict) -> dict[str, bool]:
     """{date column: True when day comes first} for the questions about the order of d/m/y dates, with the answer or else the default."""
     return {a["column"]: a["dayfirst"] for _, _, a in chosen(questions, answers) if a["type"] == "set_date_order"}
+
+
+def target_source(questions: list[dict], answers: dict) -> str:
+    """Where the main number in plan_overrides came from, in words for a note: a derived measure the user defined, or their answer to a question."""
+    for _, _, a in chosen(questions, answers):
+        if a["type"] in ("define_derived_metric", "handle_negatives") and a.get("use_as_main"):
+            return "a derived measure you defined"
+        if a["type"] == "set_measures" and a.get("pin_main", True):
+            break
+    return "your answer to a clarifying question"
 
 
 def plan_overrides(questions: list[dict], answers: dict) -> dict:

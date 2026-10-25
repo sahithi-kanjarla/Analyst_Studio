@@ -11,6 +11,7 @@ builds one analysis table. For a single table it is a no-op.
 """
 from __future__ import annotations
 
+import functools
 import json
 import re
 from pathlib import Path
@@ -19,7 +20,7 @@ from typing import TypedDict
 import pandas as pd
 from langgraph.graph import END, START, StateGraph
 
-from . import brief as briefmod, clarify, derived, glossary, placeholders
+from . import brief as briefmod, clarify, derived, derived_check as derivedcheck, glossary, placeholders
 from . import goal as goalmod
 from . import context as ctxmod
 from . import critic as critic_mod
@@ -76,10 +77,57 @@ class RunState(TypedDict, total=False):
     run_mode: str
     brief: dict
     placeholder_questions: list
+    warnings: list
+    ai_notes: list
 
 
 def _wd(state) -> Path:
     return Path(state["workdir"])
+
+
+def _ai_failed(state: dict, out: dict, stage: str, llm, cap, source_key: str | None = None) -> dict:
+    """Adds to a node's output what an AI stage did: the exact reason its calls failed (decision log + the one-line `ai_notes` for the report header), and, for stages
+    that did not report a source themselves, whether the model's answer was used (llm) or the rules took over (fallback)."""
+    if llm is None:
+        return out
+    notes = list(out.get("ai_notes", state.get("ai_notes") or []))
+    decisions = list(out.get("decisions", state.get("decisions") or []))
+    if cap.reasons:
+        line = f"AI unavailable for {stage}: {cap.reason}"
+        if line not in notes:
+            notes.append(line)
+            decisions.append({"decision": f"AI unavailable: {stage}", "source": "fallback", "chosen": "the rules version of this stage", "why": cap.reason, "errors": list(dict.fromkeys(cap.reasons)), "raw_output": ""})
+    if source_key and cap.calls:
+        out["stage_sources"] = {**out.get("stage_sources", state.get("stage_sources") or {}), source_key: "fallback" if cap.reasons else "llm"}
+    return {**out, "ai_notes": notes, "decisions": decisions}
+
+
+def isolated(stage: str, rules=None, empty: dict | None = None):
+    """A node that cannot take the run down. On an exception: log it, run the rules version of the stage (or skip it with `empty`), add the
+    warning "stage failed: <stage>" and carry on, so result.json is still written with everything that exists."""
+    def wrap(fn):
+        @functools.wraps(fn)
+        def run(state):
+            try:
+                return fn(state)
+            except Exception as e:
+                err = f"{type(e).__name__}: {e}"
+                emit(state["run_id"], "System", f"stage failed: {stage} ({err})")
+                out, how = dict(empty(state) if callable(empty) else empty or {}), "skipped"
+                if rules is not None:
+                    try:
+                        out, how = dict(rules(state)), "the rules version was used"
+                    except Exception as e2:
+                        err += f"; the rules version failed too ({type(e2).__name__}: {e2})"
+                        out = dict(empty(state) if callable(empty) else empty or {})
+                warn = f"stage failed: {stage} ({err}); {how}"
+                out["warnings"] = [*(out.get("warnings", state.get("warnings") or [])), warn]
+                out["decisions"] = [*out.get("decisions", state.get("decisions") or []), {"decision": f"stage failed: {stage}", "source": "fallback", "chosen": how, "why": err,
+                                                                                           "errors": [err], "raw_output": ""}]
+                out["stage_sources"] = {**out.get("stage_sources", state.get("stage_sources") or {}), stage: "fallback"}
+                return out
+        return run
+    return wrap
 
 
 def _safe_name(name: str) -> str:
@@ -235,12 +283,15 @@ def brief_node(state: RunState) -> dict:
         stored = json.loads(bfile.read_text(encoding="utf-8"))
         brief = stored["brief"]
         decisions = [*(state.get("decisions") or []), *(stored.get("decisions") or [stored["decision"]])]
+        brief_notes = [*(state.get("ai_notes") or []), *(stored.get("ai_notes") or [])]
     else:
         st: dict = {"decisions": list(state.get("decisions") or [])}
         emit(rid, "Analyst brief", "Working out what each column means and which column each KPI is…" if llm else "No LLM configured, so the name and data rules decide what each column means.")
-        brief = briefmod.resolve(llm, pd.read_pickle(wd / "raw.pkl"), prof, state["goal"], ctx, st)
-        decisions = st["decisions"]
-        bfile.write_text(json.dumps({"brief": brief, "decisions": decisions[len(state.get("decisions") or []):]}, default=str), encoding="utf-8")
+        with llmmod.capture() as cap:
+            brief = briefmod.resolve(llm, pd.read_pickle(wd / "raw.pkl"), prof, state["goal"], ctx, st)
+        pre = _ai_failed({**state, "decisions": st["decisions"]}, {}, "the analyst brief", llm, cap)
+        decisions, brief_notes = pre.get("decisions", st["decisions"]), pre.get("ai_notes", list(state.get("ai_notes") or []))
+        bfile.write_text(json.dumps({"brief": brief, "decisions": decisions[len(state.get("decisions") or []):], "ai_notes": brief_notes}, default=str), encoding="utf-8")
     new_prof = briefmod.apply_roles(prof, brief["roles"])
     if brief["source"] in ("llm", "repaired"):
         changed = briefmod.role_changes(prof, new_prof)
@@ -255,10 +306,12 @@ def brief_node(state: RunState) -> dict:
             emit(rid, "Analyst brief", "From the LLM, " + "; ".join(b for b in bits if b) + ".")
     elif brief["source"] == "fallback":
         emit(rid, "Analyst brief", "The LLM answer was unusable, so the rules decide what each column means." + (f" ({llmmod.last_error()})" if llmmod.last_error() else ""))
+    for p in [*((brief.get("derived") or {}).get("accepted") or []), *((brief.get("derived") or {}).get("rejected") or [])]:
+        emit(rid, "Analyst brief", f"Derived measure '{p['name']}' ({p['left']} {derivedcheck.OPS[p['op']]} {p['right']}): {p['verdict']}.")
     for k, m in (brief.get("ratios") or {}).items():
         emit(rid, "Analyst brief", f"Ratio KPI '{k}' = {m['numerator']} / {m['denominator']} (from {'the LLM' if m['path'] == 'llm' else 'a second LLM call' if m['path'] == 'llm-retry' else 'the rules'}).")
     out_ctx = {"context": {**ctx, "industry_key": brief["industry"]}} if brief.get("industry") and ctx else {}
-    return {**out_ctx, "brief": brief, "profile": new_prof, "decisions": decisions, "stage_sources": {**(state.get("stage_sources") or {}), "brief": brief["source"]}}
+    return {**out_ctx, "brief": brief, "profile": new_prof, "decisions": decisions, "ai_notes": list(dict.fromkeys(brief_notes)), "stage_sources": {**(state.get("stage_sources") or {}), "brief": brief["source"]}}
 
 
 SOURCE_WORDS = {"user": "your answers", "default": "defaults", "glossary": "the saved glossary", "goal": "your goal", "data": "the data itself"}
@@ -274,9 +327,10 @@ def clarify_node(state: RunState) -> dict:
     given = json.loads(afile.read_text(encoding="utf-8")) if afile.exists() else None
     ignored: list = []
     dropped: list = []
+    ai: dict = {}       # what the AI part of this stage did: {"ai_notes", "decisions", "stage_sources"} (kept with the frozen questions)
     if qfile.exists():
         stored = json.loads(qfile.read_text(encoding="utf-8"))
-        questions, ignored, dropped = stored["questions"], stored.get("ignored") or [], stored.get("dropped") or []  # the same questions as before the pause (the LLM part is not deterministic)
+        questions, ignored, dropped, ai = stored["questions"], stored.get("ignored") or [], stored.get("dropped") or [], stored.get("ai") or {}  # the same questions as before the pause (the LLM part is not deterministic)
     else:
         llm, _ = get_llm()
         raw = pd.read_pickle(wd / "raw.pkl")
@@ -285,21 +339,27 @@ def clarify_node(state: RunState) -> dict:
         typed_profile = briefmod.apply_roles(profile_df(typed), (state.get("brief") or {}).get("roles") or {})
         pq = state.get("placeholder_questions") or []
         skip = {c for q in pq for c in (q["columns"][0], f"{q['table']}_{q['columns'][0]}")}
-        questions, ignored = clarify.build_questions_and_ignored(typed, typed_profile, state["goal"], ctx, bool(state.get("explore")), llm, ws, skip, dropped,
-                                                                 raw=raw, raw_profile=state["profile"], kinds=briefmod.kinds(state.get("brief")))
+        with llmmod.capture() as cap:
+            questions, ignored = clarify.build_questions_and_ignored(typed, typed_profile, state["goal"], ctx, bool(state.get("explore")), llm, ws, skip, dropped,
+                                                                     raw=raw, raw_profile=state["profile"], kinds=briefmod.kinds(state.get("brief")), brief=state.get("brief"))
+        res = _ai_failed({**state, "decisions": []}, {}, "clarifying questions", llm, cap, "clarifier")
+        ai = {k: res[k] for k in ("ai_notes", "decisions", "stage_sources") if k in res}
         questions, over = clarify.cap_questions(pq + questions)        # placeholder questions and the others share one cap of MAX_QUESTIONS
         dropped += over
         for q in questions:
             saved = (ws["answers"].get(q["id"]) or {}).get("value")
             q["prefill"], q["prefill_source"] = (saved, "glossary") if saved in clarify.option_values(q) else (q["default"], "default")
         if any(not q.get("auto") for q in questions):       # only a run that may pause needs its questions frozen
-            qfile.write_text(json.dumps({"workspace": glossary.workspace_key(ctx), "questions": questions, "ignored": ignored, "dropped": dropped}), encoding="utf-8")
+            qfile.write_text(json.dumps({"workspace": glossary.workspace_key(ctx), "questions": questions, "ignored": ignored, "dropped": dropped, "ai": ai}), encoding="utf-8")
     asked = [q for q in questions if not q.get("auto")]
     final, sources = clarify.resolve(questions, (given or {}).get("answers"), ws["answers"], skip=bool((given or {}).get("skip")))
     covered = all(sources[q["id"]] == "glossary" for q in asked)
     waiting = bool(asked) and given is None and not covered
 
-    out: dict = {"questions": questions, "answers": final, "ignored_definitions": ignored, "workspace": glossary.workspace_key(ctx), "answer_sources": sources, "awaiting_input": waiting,
+    out: dict = {"ai_notes": list(dict.fromkeys([*(state.get("ai_notes") or []), *(ai.get("ai_notes") or [])])),
+                 "decisions": [*(state.get("decisions") or []), *(ai.get("decisions") or [])],
+                 "stage_sources": {**(state.get("stage_sources") or {}), **(ai.get("stage_sources") or {})},
+                 "questions": questions, "answers": final, "ignored_definitions": ignored, "workspace": glossary.workspace_key(ctx), "answer_sources": sources, "awaiting_input": waiting,
                  "definitions": {"terms": ws["definitions"], "notes": ws["notes"]}}
     text = glossary.definitions_text(ws)
     notes = clarify.note_lines(questions, final)
@@ -308,7 +368,7 @@ def clarify_node(state: RunState) -> dict:
     if text:
         out["context"] = {**ctx, "definitions_text": text}
     if dropped:
-        out["decisions"] = [*(state.get("decisions") or []), {"decision": "clarifying questions capped", "source": "rules", "chosen": f"asked {len(asked)} of {len(asked) + len(dropped)} questions",
+        out["decisions"] = [*out["decisions"], {"decision": "clarifying questions capped", "source": "rules", "chosen": f"asked {len(asked)} of {len(asked) + len(dropped)} questions",
                                                               "why": f"at most {clarify.MAX_QUESTIONS} questions are asked, ranked by how much the answer changes the analysis; the rest used their defaults",
                                                               "errors": [f"not asked: {d['question']} -> default used: {d['default']}" for d in dropped], "raw_output": ""}]
         emit(rid, "Clarifier", f"{len(dropped)} lower-priority question{'s' if len(dropped) != 1 else ''} not asked; the default answer was used.")
@@ -347,21 +407,29 @@ def plan_node(state: RunState) -> dict:
     extra: dict = {}
     ov: dict = {"kinds": briefmod.kinds(state.get("brief")), "kpi_map": (state.get("brief") or {}).get("kpis") or {},
           "hierarchy": briefmod.hierarchy_pairs(state.get("brief")), "intent": (state.get("brief") or {}).get("intent")}
+    line_total = ((state.get("brief") or {}).get("derived") or {}).get("already_total")      # the column the brief says already holds the main amount, checked by code
+    if line_total:
+        ov["kinds"] = {line_total: "additive", **ov["kinds"]}
     new_cols: list[str] = []
     if questions:  # plan on the data as the user defined it (rows excluded, net amount added)
         typed, _, effects, new_cols = apply_directives(typed, questions, answers)
         ov = {**ov, **clarify.plan_overrides(questions, answers)}
+        if ov.get("target"):
+            ov["target_source"] = clarify.target_source(questions, answers)
         ov["kinds"] = {**ov["kinds"], **{a["name"]: "additive" for _, _, a in clarify.chosen(questions, answers) if a["type"] == "define_derived_metric" and a["kind"] == "product"}}
         extra["applied_definitions"] = clarify.summarise(questions, answers, state.get("answer_sources") or {}, effects,
                                                          glossary.get_workspace(state.get("workspace") or "default")["answers"], state.get("workspace") or "default")
         shown = [f"{k}: {v}" for k, v in (("main number", ov["target"]), ("date column", ov["date_col"])) if v]
         if shown:
             emit(rid, "Planner", "Applying your definitions (" + "; ".join(shown) + ").")
+    if line_total and not ov.get("target"):
+        ov["target"], ov["target_source"] = line_total, "the analyst brief"
     # several candidate measures are never a question: all are analysed. A ratio is only added when the LLM proposes one with a business meaning and the data passes the checks.
     removed = set(state.get("remove_derived") or [])
     # a ratio the user named as a KPI is created by code whenever the brief (or the rules) found its two columns; the LLM's own ideas only fill the remaining slots
     from_kpi, kpi_rejected = derived.kpi_ratios(typed, (state.get("brief") or {}).get("ratios"))
-    proposed, rejected = derived.propose(llm, typed, signals.measure_columns(typed, prof), state["goal"], ctxmod.context_text(ctx))
+    with llmmod.capture() as cap_derived:
+        proposed, rejected = derived.propose(llm, typed, signals.measure_columns(typed, prof), state["goal"], ctxmod.context_text(ctx))
     have = {(d["a"], d["b"]) for d in from_kpi}
     proposed = from_kpi + [d for d in proposed if (d["a"], d["b"]) not in have][:max(0, derived.MAX_DERIVED - len(from_kpi))]
     rejected = kpi_rejected + rejected
@@ -387,7 +455,8 @@ def plan_node(state: RunState) -> dict:
     for c in planner.id_like_columns(typed, id_roles, id_uniques, ov):
         st["decisions"].append({"decision": "excluded as id-like", "source": "rules", "chosen": f"excluded as id-like: {c}",
                                 "why": "An id, a code, or an integer with many distinct values and no declared kind: totals and averages of it mean nothing.", "errors": []})
-    plan, notes = planner.propose_plan(llm, typed, prof, state["goal"], ctx, explore, ov, st)
+    with llmmod.capture() as cap_plan:
+        plan, notes = planner.propose_plan(llm, typed, prof, state["goal"], ctx, explore, ov, st)
     if llm and st["decisions"][-1]["source"] == "fallback":
         emit(rid, "Planner", "The LLM answer was unusable after one repair, so rule-based planning was used instead.")
     extra["decisions"] = st["decisions"]
@@ -395,7 +464,9 @@ def plan_node(state: RunState) -> dict:
         emit(rid, "Planner", n)
     emit(rid, "Planner", f"Target: {plan['target'] or 'none (descriptive analysis)'}. Using {len(plan['relevant_columns'])} of {prof['cols']} columns, {len(plan['analyses'])} analyses planned.",
          plan=plan)
-    return {"plan": plan, "llm_mode": label if llm else "rules-only", "stage_sources": {**(state.get("stage_sources") or {}), "planner": plan["source"]}, **extra}
+    out = {"plan": plan, "llm_mode": label if llm else "rules-only", "stage_sources": {**(state.get("stage_sources") or {}), "planner": plan["source"]}, **extra}
+    out = _ai_failed(state, out, "derived measures", llm, cap_derived)
+    return _ai_failed(state, out, "the analysis plan", llm, cap_plan)
 
 
 def clean_node(state: RunState) -> dict:
@@ -408,7 +479,7 @@ def clean_node(state: RunState) -> dict:
         typed, log_def, _, _ = apply_directives(typed, state["questions"], state.get("answers") or {})
     typed, log_derived, _ = add_derived(typed, state["plan"].get("derived"))
     log_def += log_derived
-    clean, log2 = scoped_clean(typed, state["profile"], state["plan"])
+    clean, log2 = scoped_clean(typed, state["profile"], state["plan"], state.get("brief"))
     clean.to_pickle(_wd(state) / "clean.pkl")
     clean.to_csv(_wd(state) / "cleaned.csv", index=False, encoding="utf-8-sig")
     log = state.get("pre_clean_log", []) + log1 + log_def + log2
@@ -443,16 +514,21 @@ def analyze_node(state: RunState) -> dict:
     return {"findings": findings, "iteration": it + 1}
 
 
-def critic_node(state: RunState) -> dict:
+def _critic(state: RunState, llm) -> dict:
     rid = state["run_id"]
-    llm, _ = get_llm()
     emit(rid, "Critic", "Challenging the results: multiple-testing, sample sizes, outliers, robustness…")
-    crit = critic_mod.review(state, llm)
+    with llmmod.capture() as cap:
+        crit = critic_mod.review(state, llm)
     for i in crit["issues"]:
         emit(rid, "Critic", ("⚠ " if i["severity"] == "warn" else "") + i["text"])
     if crit["followups"] and state.get("iteration", 1) <= MAX_ITERATIONS:
         emit(rid, "Critic", f"Requesting {len(crit['followups'])} follow-up analysis to verify the result.")
-    return {"critique": crit, "findings": state["findings"]}
+    return _ai_failed(state, {"critique": crit, "findings": state["findings"]}, "the critic", llm, cap, "critic")
+
+
+@isolated("critic", rules=lambda st: _critic(st, None), empty={"critique": {"issues": [], "followups": [], "approved": True, "dropped_notes": []}})
+def critic_node(state: RunState) -> dict:
+    return _critic(state, get_llm()[0])
 
 
 def route_after_critic(state: RunState) -> str:
@@ -461,17 +537,18 @@ def route_after_critic(state: RunState) -> str:
     return "insights"
 
 
-def insights_node(state: RunState) -> dict:
+def _insights(state: RunState, llm) -> dict:
     rid = state["run_id"]
-    llm, _ = get_llm()
     emit(rid, "Insights", "Turning findings into insights: what it means, how much to trust it, what to check next…")
-    pol, src = polmod.resolve(llm, polmod.measures_used(state), state["goal"], state.get("context"), state)   # one call per run (a second only to repair a bad answer)
+    with llmmod.capture() as cap_pol:
+        pol, src = polmod.resolve(llm, polmod.measures_used(state), state["goal"], state.get("context"), state)   # one call per run (a second only to repair a bad answer)
     state["polarity"] = pol
     lower = [m for m, d in pol.items() if d == polmod.LOWER]
     if pol:
         emit(rid, "Insights", f"Metric direction ({'LLM' if src == 'llm' else 'name rules'}): " + (f"lower is better for {', '.join(lower)}; " if lower else "") + f"higher is better for {sum(d == polmod.HIGHER for d in pol.values())}, neutral for {sum(d == polmod.NEUTRAL for d in pol.values())}.")
     insights.build_insights(state)
-    improved = insights.enrich_with_llm(llm, state) if llm else 0
+    with llmmod.capture() as cap_ins:
+        improved = insights.enrich_with_llm(llm, state) if llm else 0
     df = pd.read_pickle(_wd(state) / "clean.pkl")
     km = insights.key_metrics(state, df)
     gaps = insights.data_gaps(state)
@@ -485,39 +562,79 @@ def insights_node(state: RunState) -> dict:
         if g["severity"] == "warn":
             emit(rid, "Insights", f"⚠ {g['title']}")
     sources = {**(state.get("stage_sources") or {}), "polarity": src, "insights": "llm" if improved else "rules"}
-    return {"findings": state["findings"], "key_metrics": km, "data_gaps": gaps, "polarity": pol, "decisions": state.get("decisions") or [], "stage_sources": sources}
+    out = {"findings": state["findings"], "key_metrics": km, "data_gaps": gaps, "polarity": pol, "decisions": state.get("decisions") or [], "stage_sources": sources}
+    out = _ai_failed(state, out, "metric direction", llm, cap_pol)
+    return _ai_failed(state, out, "insights", llm, cap_ins)
 
 
-def strategy_node(state: RunState) -> dict:
+@isolated("insights", rules=lambda st: _insights(st, None), empty={"key_metrics": [], "data_gaps": []})
+def insights_node(state: RunState) -> dict:
+    return _insights(state, get_llm()[0])
+
+
+def _strategy(state: RunState, llm) -> dict:
     rid = state["run_id"]
-    llm, _ = get_llm()
     emit(rid, "Strategist", "Turning the evidence into prioritised, testable strategies…")
-    strategies, summary, improved = strategy.build_strategies(state, llm)
+    with llmmod.capture() as cap:
+        strategies, summary, improved = strategy.build_strategies(state, llm)
     backed = [s for s in strategies if s["kind"] == "data"]
     if backed:
         emit(rid, "Strategist", f"{len(backed)} data-backed strateg{'y' if len(backed) == 1 else 'ies'}; top priority: {backed[0]['title']}" + (f" ({improved} reworded with your business context)." if improved else "."))
     else:
         emit(rid, "Strategist", "The evidence is too thin for a data-backed strategy; recommending data foundations instead.")
-    return {"strategies": strategies, "strategy_summary": summary, "stage_sources": {**(state.get("stage_sources") or {}), "strategy": "llm" if improved else "rules"}}
+    out = {"strategies": strategies, "strategy_summary": summary, "stage_sources": {**(state.get("stage_sources") or {}), "strategy": "llm" if improved else "rules"}}
+    return _ai_failed(state, out, "strategies", llm, cap)
 
 
-def report_node(state: RunState) -> dict:
+@isolated("strategy", rules=lambda st: _strategy(st, None), empty={"strategies": [], "strategy_summary": ""})
+def strategy_node(state: RunState) -> dict:
+    return _strategy(state, get_llm()[0])
+
+
+def _report(state: RunState, llm) -> dict:
     rid = state["run_id"]
-    llm, _ = get_llm()
     emit(rid, "Reporter", "Writing the report…")
     answer = goalmod.answer(state)
     st = {**state, "goal_answer": answer, "decisions": list(state.get("decisions") or [])}
     df = pd.read_pickle(_wd(state) / "clean.pkl")
-    st["summary_facts"] = summary.pick(llm, st, summary.ranking_facts(st, df))      # group rankings from the data; which finding answers which question
+    with llmmod.capture() as cap_pick:
+        st["summary_facts"] = summary.pick(llm, st, summary.ranking_facts(st, df))      # group rankings from the data; which finding answers which question
+    st["data_gaps"] = summary.covered_gaps(st["summary_facts"], list(st.get("data_gaps") or []))
     view = tiering.build_view(st, df)
     st["report_view"] = view
-    md, mode = reporter.write_report(st, llm)
-    (_wd(state) / "report.md").write_text(md, encoding="utf-8")
-    emit(rid, "Reporter", f"Report written ({ {'llm': 'summary by LLM, numbers from the analysis tools', 'mixed': 'LLM summary with unverified sentences dropped'}.get(mode, 'rule-based summary') }).")
+    with llmmod.capture() as cap_sum:
+        md, mode = reporter.write_report(st, llm)
     sources = {**(state.get("stage_sources") or {}), "report": mode}
-    return {"report_md": md, "report_view": view, "goal_answer": answer, "summary_facts": st["summary_facts"], "stage_sources": sources, "run_mode": derive_mode(sources), "decisions": st["decisions"]}
+    out = {"report_md": md, "report_view": view, "goal_answer": answer, "summary_facts": st["summary_facts"], "data_gaps": st["data_gaps"], "stage_sources": sources,
+           "decisions": st["decisions"]}
+    src = st["summary_facts"].get("source")
+    if llm is not None and cap_pick.calls:
+        out["stage_sources"] = {**sources, "summary_pick": src if src == "llm" and not cap_pick.reasons else "fallback"}
+    out = _ai_failed(state, out, "the answer-to-question links", llm, cap_pick)
+    out = _ai_failed(state, out, "the report summary", llm, cap_sum)
+    out["run_mode"] = derive_mode(out["stage_sources"])
+    out["report_md"] = reporter.with_notices(md.replace(f"**Mode:** {derive_mode(sources)}", f"**Mode:** {out['run_mode']}", 1),
+                                              [*out.get("ai_notes", state.get("ai_notes") or []), *(state.get("warnings") or [])])
+    (_wd(state) / "report.md").write_text(out["report_md"], encoding="utf-8")
+    emit(rid, "Reporter", f"Report written ({ {'llm': 'summary by LLM, numbers from the analysis tools', 'mixed': 'LLM summary with unverified sentences dropped'}.get(mode, 'rule-based summary') }).")
+    return out
 
 
+def _report_minimal(state: RunState) -> dict:
+    """What a report stage that failed twice leaves: the findings as a plain list, so the run still has a report file."""
+    lines = ["# Analysis report", "", f"**Mode:** {derive_mode(state.get('stage_sources'))}", "", "The report could not be fully written. The analysis results are listed below.", ""]
+    lines += [f"- {f.get('title', f.get('id'))}: {str(f.get('text', '')).replace('**', '')}" for f in state.get("findings") or []]
+    md = reporter.with_notices("\n".join(lines), [*(state.get("ai_notes") or []), *(state.get("warnings") or [])])
+    (_wd(state) / "report.md").write_text(md, encoding="utf-8")
+    return {"report_md": md, "report_view": {}}
+
+
+@isolated("report", rules=lambda st: _report(st, None), empty=_report_minimal)
+def report_node(state: RunState) -> dict:
+    return _report(state, get_llm()[0])
+
+
+@isolated("powerbi", empty={"powerbi": {}})
 def powerbi_node(state: RunState) -> dict:
     rid = state["run_id"]
     emit(rid, "Power BI", "Packaging cleaned data, DAX measures and visual specs for Power BI…")

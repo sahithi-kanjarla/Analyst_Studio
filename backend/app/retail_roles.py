@@ -10,6 +10,7 @@ import pandas as pd
 
 from . import directives as dv
 from .measures import measure_kind
+from .profiler import id_like
 
 MIN_ROWS = 30
 MAX_COUNT_DISTINCT = 30
@@ -17,14 +18,17 @@ MIN_RATE_DISTINCT = 15
 PER_UNIT_RATIO = 1.25        # rate of multi-unit lines over rate of single-unit lines: below this the rate does not grow with the count
 PRICE_MAGNITUDE = 0.2        # a rate candidate whose median is under this share of the largest median is a percentage, not a price
 LINE_TOTAL_TOLERANCE = 0.25 # ... and within this of the average count it grows with it, so it is a line total
+MIN_RULE_MEAN_COUNT = 1.05   # the value-based rule skips a count column whose mean is below this: nearly every line is one unit, so a product adds nothing
 
 
 def _round(x, nd=4):
     return None if x is None or (isinstance(x, float) and not np.isfinite(x)) else round(float(x), nd)
 
 
-def _number_columns(df: pd.DataFrame, cols: dict) -> dict[str, pd.Series]:
-    return {n: df[n] for n, c in cols.items() if n in df.columns and c["role"] in ("numeric", "categorical") and pd.api.types.is_numeric_dtype(df[n]) and not pd.api.types.is_bool_dtype(df[n])}
+def _number_columns(df: pd.DataFrame, cols: dict, kinds: dict | None = None, brief_roles: dict | None = None) -> dict[str, pd.Series]:
+    """Numeric columns that measure something: never an id or a code (brief role, profiler role, name, or sparse whole-number values)."""
+    return {n: df[n] for n, c in cols.items() if n in df.columns and c["role"] in ("numeric", "categorical") and pd.api.types.is_numeric_dtype(df[n]) and not pd.api.types.is_bool_dtype(df[n])
+            and not id_like(n, df[n], c["role"], (brief_roles or {}).get(n), measure_kind(n, None, kinds))}
 
 
 def is_count_like(x: pd.Series) -> bool:
@@ -79,15 +83,52 @@ def _rate_basis(q: pd.Series, p: pd.Series) -> tuple[str, dict]:
     return ("total" if abs(ratio - mean_q) / mean_q <= LINE_TOTAL_TOLERANCE else "unclear"), facts
 
 
-def derive_product_measure(df: pd.DataFrame, cols: dict, kinds: dict | None = None) -> dict | None:
+def _already_holds(nums: dict, skip: tuple, prod: pd.Series) -> bool:
+    for n, x in nums.items():
+        if n in skip:
+            continue
+        ok = prod.notna() & x.notna()
+        if ok.sum() >= MIN_ROWS and ((x[ok] - prod[ok]).abs() <= 0.01 * prod[ok].abs() + 1e-9).mean() >= 0.9:
+            return True
+    return False
+
+
+def _ai_product(df: pd.DataFrame, nums: dict, plan: dict) -> dict | None:
+    """The product the brief proposed and the code accepted (the first multiplication), with how sure the data is about it. A low-confidence proposal, or one the values
+    cannot settle between a per-unit price and a line total, is asked about with no derivation as the default."""
+    props = [p for p in plan.get("accepted") or [] if p["op"] == "mul" and p["left"] in nums and p["right"] in nums]
+    if not props:
+        return None
+    p = props[0]
+    q, rate = p["left"], p["right"]
+    if is_count_like(nums[rate]) and not is_count_like(nums[q]):
+        q, rate = rate, q
+    prod = nums[q] * nums[rate]
+    if _already_holds(nums, (q, rate), prod):
+        return None
+    basis, facts = _rate_basis(nums[q], nums[rate])
+    ask = p.get("confidence") != "high" or basis in ("unknown", "unclear")
+    if basis == "total":
+        ask = False
+    return {"count": q, "rate": rate, "basis": "unclear" if ask else basis, "others": [], "rows": int(prod.notna().sum()), "name": p["name"], "default": "total" if ask else None, **facts}
+
+
+def derive_product_measure(df: pd.DataFrame, cols: dict, kinds: dict | None = None, brief: dict | None = None) -> dict | None:
     """{count, rate, basis, others, rows, ...} for a count-like and a rate-like column when the data has no column that already holds their product, else None.
-    With several rates the one that is at most every other in 95% of rows (the amount actually charged) is used; if none is, or several counts remain, nothing is derived."""
-    nums = _number_columns(df, cols)
+    When the brief answered with derived measures, only the ones the code accepted are used. Otherwise (no model, or its answer unusable) the value rule runs: with several
+    rates the one that is at most every other in 95% of rows (the amount actually charged) is used; if none is, several counts remain, or the count's mean is below
+    MIN_RULE_MEAN_COUNT, nothing is derived. Ids and codes are never a count or a rate."""
+    plan = (brief or {}).get("derived")
+    nums = _number_columns(df, cols, kinds, (brief or {}).get("roles"))
+    if plan and plan.get("answered"):
+        return _ai_product(df, nums, plan)
     qs = [n for n, x in nums.items() if is_count_like(x) and (kinds or {}).get(n, "additive") == "additive"]
     qs = _prefer_additive(qs, kinds)
     if len(qs) != 1:
         return None
     q = qs[0]
+    if nums[q].mean() < MIN_RULE_MEAN_COUNT:
+        return None
     ps = [n for n, x in nums.items() if n != q and is_rate_like(x) and (kinds or {}).get(n) != "additive"]
     if len(ps) > 1:      # percentage-sized columns (0-100 with decimals) sit far below the real price: keep the largest typical magnitude
         top = max(float(nums[n].median()) for n in ps)
@@ -102,12 +143,8 @@ def derive_product_measure(df: pd.DataFrame, cols: dict, kinds: dict | None = No
     else:
         rate = ps[0]
     prod = nums[q] * nums[rate]
-    for n, x in nums.items():
-        if n in (q, rate):
-            continue
-        ok = prod.notna() & x.notna()
-        if ok.sum() >= MIN_ROWS and ((x[ok] - prod[ok]).abs() <= 0.01 * prod[ok].abs() + 1e-9).mean() >= 0.9:
-            return None          # a column already holds count x rate
+    if _already_holds(nums, (q, rate), prod):
+        return None          # a column already holds count x rate
     basis, facts = _rate_basis(nums[q], nums[rate])
     if basis == "unknown":
         return None
@@ -119,13 +156,13 @@ def product_question(sig: dict, taken: set[str]) -> dict:
     Written by code, never by a model: the default builds a column, which no generic question validator would accept as a default."""
     ev = sig["evidence"]
     q, p = ev["count"], ev["rate"]
-    name = dv.clean_name("revenue", taken)
+    name = dv.clean_name(ev.get("name") or "revenue", taken)
     derive = {"type": "define_derived_metric", "kind": "product", "a": q, "b": p, "name": name, "use_as_main": True}
     others = ev.get("others") or []
     left = f" {', '.join(others)} stays a separate column." if others else ""
     opts = [{"value": "unit", "label": f"{p} is the price of one unit: revenue = {q} x {p}", "action": derive},
             {"value": "total", "label": f"{p} is already the total of the line: use it as revenue", "action": {"type": "set_measures", "columns": [p], "pin_main": True}}]
-    base = {"id": sig["id"], "kind": "product_basis", "options": opts, "default": "unit", "columns": [q, p], "signal": sig["id"], "strong": True}
+    base = {"id": sig["id"], "kind": "product_basis", "options": opts, "default": ev.get("default") or "unit", "columns": [q, p], "signal": sig["id"], "strong": True}
     if ev["basis"] == "unit":
         return {**base, "auto": "data", "text": f"Revenue is {q} x {p}",
                 "why": f"No column holds revenue. {p} does not grow with {q} (a line of several units costs {ev['ratio']:.2f}x a single unit), so it is a per-unit price.{left}"}

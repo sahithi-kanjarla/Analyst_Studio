@@ -8,7 +8,7 @@ import re
 from . import context as ctxmod, summary as summary_mod, tiering, wording
 from .clarify import named_in_goal
 from .insights import allowed_numbers, unverified_numbers
-from .llm import ask_json
+from .llm import ask_json, capture
 from .propose import derive_mode
 
 
@@ -45,23 +45,47 @@ def _sentences(text: str) -> list[str]:
     return [s for s in re.split(r"(?<=[.!?])\s+|\n+", text) if s.strip()]
 
 
+FACTS_MAX, GROUPS_MAX = 12, 10        # the prompt never grows with the data (a growth fact lists every group)
+
+
+def _trim_rankings(rankings: list[dict], state: dict) -> list[dict]:
+    """At most FACTS_MAX ranking facts of at most GROUPS_MAX groups each (the biggest risers and fallers); logs what was cut."""
+    kept = sorted(rankings, key=lambda r: r.get("focus") is False)[:FACTS_MAX]
+    out, shortened = [], 0
+    for r in kept:
+        groups = r.get("groups") or []
+        if len(groups) > GROUPS_MAX and r.get("text_head"):
+            half = GROUPS_MAX // 2
+            lines = [g["line"] for g in groups[:half]] + [g["line"] for g in groups[-half:]]
+            r = {**r, "text": r["text_head"] + "; ".join(lines) + f" ({len(groups) - GROUPS_MAX} groups in between left out)" + r.get("text_tail", "")}
+            shortened += 1
+        out.append(r)
+    if len(kept) < len(rankings) or shortened:
+        state.setdefault("decisions", []).append({"decision": "report_summary prompt trimmed", "source": "rules", "chosen": f"sent {len(kept)} of {len(rankings)} ranking facts",
+                                                  "why": f"the prompt is capped at {FACTS_MAX} ranking facts of {GROUPS_MAX} groups each",
+                                                  "errors": [f"{len(rankings) - len(kept)} facts not sent", f"{shortened} facts shortened to {GROUPS_MAX} groups"], "raw_output": ""})
+    return out
+
+
 def llm_summary(llm, state: dict) -> tuple[str, list[str], bool] | None:
     """(summary, recommendations, partial). Sentences/recommendations with numbers not in the findings are dropped; None only if nothing is left."""
     ctx_txt = ctxmod.context_text(state.get("context"))
     c = wording.counts(state["findings"])
-    rankings = (state.get("summary_facts") or {}).get("rankings") or []
+    rankings = _trim_rankings((state.get("summary_facts") or {}).get("rankings") or [], state)
     payload = [{"headline": f["insight"]["headline"], "facts": f["text"].replace("**", ""), "confidence": f["insight"]["confidence"]["label"],
                 "survives_correction": f["stats"].get("survives_correction")} for f in _rank(state["findings"])[:12]] + [{"headline": r["text"], "facts": r["text"], "confidence": "computed from the data", "survives_correction": None} for r in rankings]
-    out = ask_json(
-        llm,
-        "You are a senior data analyst writing for a business reader. Use ONLY the facts and numbers in the findings provided; do not invent numbers. "
-        "Be plain and concise, distinguish association from causation, and respect the caveats. If company context is given, use its vocabulary. "
-        "Return JSON: {\"summary\": \"3-5 sentence executive summary answering the goal\", \"recommendations\": [3-5 concrete, prioritized actions tied to specific findings]}",
-        (f"COMPANY CONTEXT (user-written, unverified):\n{ctx_txt}\n" if ctx_txt else "") +
-        f"GOAL: {state['goal']}\nCOUNTS (quote these exactly, never recount): {json.dumps(c, ensure_ascii=False)}\nCAVEATS: {json.dumps([i['text'] for i in state['critique']['issues']][:8], ensure_ascii=False)}\nFINDINGS: {json.dumps(payload, default=str, ensure_ascii=False)}",
-    )
+    with capture() as cap:
+        out = ask_json(
+            llm,
+            "You are a senior data analyst writing for a business reader. Use ONLY the facts and numbers in the findings provided; do not invent numbers. "
+            "Be plain and concise, distinguish association from causation, and respect the caveats. If company context is given, use its vocabulary. "
+            "Return JSON: {\"summary\": \"3-5 sentence executive summary answering the goal\", \"recommendations\": [3-5 concrete, prioritized actions tied to specific findings]}",
+            (f"COMPANY CONTEXT (user-written, unverified):\n{ctx_txt}\n" if ctx_txt else "") +
+            f"GOAL: {state['goal']}\nCOUNTS (quote these exactly, never recount): {json.dumps(c, ensure_ascii=False)}\nCAVEATS: {json.dumps([i['text'] for i in state['critique']['issues']][:8], ensure_ascii=False)}\nFINDINGS: {json.dumps(payload, default=str, ensure_ascii=False)}",
+        )
+    why = cap.reason
     if not out:
-        _log(state, "bad JSON: the model returned nothing parseable", [], out)
+        _log(state, why or "bad JSON: the model returned nothing parseable", [], out)
         return None
     if not (isinstance(out.get("summary"), str) and isinstance(out.get("recommendations"), list) and out["recommendations"]):
         _log(state, "missing fields: need a string 'summary' and a non-empty 'recommendations' list", [], json.dumps(out, default=str))
@@ -287,6 +311,17 @@ def _setup_section(state: dict) -> list[str]:
     return L + ([f"- **{s['step']}**: {s['detail']}" for s in state["cleaning_log"]] or ["- No cleaning changes were needed."])
 
 
+def with_notices(md: str, lines: list[str]) -> str:
+    """Puts warnings (stage failed: ..., AI unavailable for ...) right under the Mode line of the report header. A line already in the report is not repeated."""
+    new = [x for x in dict.fromkeys(lines) if x and x not in md]
+    if not new:
+        return md
+    block = [f"- ⚠ {x}" for x in new]
+    rows = md.split("\n")
+    at = next((i for i, r in enumerate(rows) if r.startswith("**Mode:**")), 0)
+    return "\n".join(rows[:at + 1] + [""] + block + rows[at + 1:])
+
+
 def build_report(state: dict, summary: str, recs: list[str], run_mode: str = "", view: dict | None = None) -> str:
     ctx = state.get("context") or {}
     view = view or state.get("report_view") or tiering.build_view(state)
@@ -302,6 +337,10 @@ def build_report(state: dict, summary: str, recs: list[str], run_mode: str = "",
 
     for r in (x for x in view.get("rankings") or [] if x.get("kind") == "growth"):      # every group, not only the significant ones
         L += ["", f"## Growth in {r['measure']} by {r['group']}, {r['periods'][0]} vs {r['periods'][1]}", ""] + [f"- {g['line']}" for g in r["groups"]]
+
+    outside = [x for x in view.get("rankings") or [] if x.get("kind") == "outside_rate"]
+    if outside:       # a category column where one value holds most rows: how much sits outside that value
+        L += ["", "## Rate outside the main value", ""] + [f"- {x['text']}" for x in outside]
 
     other = [x for x in view.get("rankings") or [] if x.get("kind") != "growth" and x.get("basis") == "total" and x.get("focus") is False]
     if other:       # the main KPI by every other category column: the top and bottom group, even when the goal did not name the column

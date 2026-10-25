@@ -9,7 +9,24 @@ import numpy as np
 import pandas as pd
 
 NA_TOKENS = {"", "na", "n/a", "nan", "null", "none", "-", "--", "?", "missing", "undefined", "#n/a"}
-ID_NAME = re.compile(r"(^|[_\s\-])(id|uuid|guid|index)$|^(id|uuid)[_\s\-]|[a-z]Id$", re.I)
+ID_NAME = re.compile(r"(?i:(^|[_\s\-])(id|uuid|guid|index)$|^(id|uuid)[_\s\-])|[a-z]Id$")      # the camelCase form is case-sensitive: customerId yes, Paid / Void / Android no
+CODE_SHARE = 0.05      # an integer column with at least this many distinct values per row, and no declared kind, is a code
+CODE_MIN_UNIQUE = 50
+CODE_FILL = 0.5      # share of the min..max range the distinct values occupy; below it the integers are labels, not quantities
+
+
+def id_like(name: str, s: pd.Series, rule_role: str | None = None, brief_role: str | None = None, kind: str = "other") -> bool:
+    """A column that labels rows rather than measures anything: the brief or the rules called it an id, its name says so, or (when no kind was declared for it)
+    its values are sparse whole-number codes."""
+    return brief_role == "id" or rule_role == "id" or bool(ID_NAME.search(name)) or (kind == "other" and integer_code_like(s))
+
+
+def integer_code_like(s: pd.Series) -> bool:
+    """Whole numbers with many distinct values that sit sparsely in their range (postal codes, phone numbers): labels, so a total or a product of them means nothing."""
+    nn = pd.to_numeric(s, errors="coerce").dropna()
+    if not len(nn) or nn.nunique() < max(CODE_MIN_UNIQUE, CODE_SHARE * len(s)):
+        return False
+    return bool((nn % 1 == 0).all()) and nn.nunique() < CODE_FILL * (nn.max() - nn.min() + 1)      # tenure or age fills its range
 
 
 def _tidy_headers(df: pd.DataFrame) -> pd.DataFrame:
@@ -59,8 +76,9 @@ def load_tables(path: str | Path) -> dict[str, pd.DataFrame]:
     return {p.stem: load_table(p)}
 
 
-def normalize_strings(df: pd.DataFrame) -> tuple[pd.DataFrame, int]:
-    """Strip whitespace and turn NA-like tokens into real NaN. Returns (df, number of cells turned to NaN)."""
+def normalize_strings(df: pd.DataFrame, log: list[dict] | None = None) -> tuple[pd.DataFrame, int]:
+    """Strip whitespace and turn blanks into real NaN. NA-like tokens ('none', '-', '?') become NaN only in a column that is otherwise numeric or date
+    (where that lets it parse); in a text column they are real labels and stay, logged to `log`. Returns (df, number of cells turned to NaN)."""
     df = df.copy()
     changed = 0
     for c in df.columns:
@@ -68,9 +86,17 @@ def normalize_strings(df: pd.DataFrame) -> tuple[pd.DataFrame, int]:
         if pd.api.types.is_numeric_dtype(s) or pd.api.types.is_datetime64_any_dtype(s) or pd.api.types.is_bool_dtype(s):
             continue
         obj = s.astype("object").map(lambda v: v.strip() if isinstance(v, str) else v)
-        mask = obj.map(lambda v: isinstance(v, str) and v.lower() in NA_TOKENS)
-        changed += int((mask & s.notna()).sum())
-        df[c] = obj.mask(mask, np.nan)
+        blank = obj.map(lambda v: isinstance(v, str) and v == "")
+        tok = obj.map(lambda v: isinstance(v, str) and v != "" and v.lower() in NA_TOKENS)
+        if tok.any():
+            masked = obj.mask(blank | tok, np.nan)
+            if try_numeric(masked) is not None or try_datetime(masked) is not None:
+                blank = blank | tok
+            elif log is not None:
+                for t, n in obj[tok].value_counts().items():
+                    log.append({"step": "Kept placeholder as label", "detail": f"kept '{t}' as a label in {c} ({int(n):,} rows)", "count": int(n)})
+        changed += int((blank & s.notna()).sum())
+        df[c] = obj.mask(blank, np.nan)
     return df, changed
 
 

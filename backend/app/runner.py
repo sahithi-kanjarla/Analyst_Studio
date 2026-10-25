@@ -10,6 +10,7 @@ import uuid
 from pathlib import Path
 
 from .config import RUNS_DIR
+from . import reporter
 from .events import emit, set_quiet
 
 RUN_ID_RE = r"^[a-f0-9]{12}$"
@@ -99,12 +100,16 @@ def _execute(run_id: str) -> None:
             write_status(run_id, "needs_input")
             return
         keys = ("goal", "profile", "plan", "cleaning_log", "findings", "critique", "report_md", "report_view", "powerbi", "llm_mode", "data_model",
-                "context", "strategies", "strategy_summary", "data_gaps", "key_metrics", "applied_definitions", "ignored_definitions", "definitions", "derived_metrics", "goal_answer", "summary_facts", "decisions", "run_mode", "stage_sources", "brief")
+                "context", "strategies", "strategy_summary", "data_gaps", "key_metrics", "applied_definitions", "ignored_definitions", "definitions", "derived_metrics", "goal_answer", "summary_facts", "decisions", "run_mode", "stage_sources", "brief", "warnings", "ai_notes")
         result = {k: final.get(k) for k in keys}
         result["run_id"] = run_id
+        notices = [*(result.get("ai_notes") or []), *(result.get("warnings") or [])]
+        if result.get("report_md") and notices:       # a stage after the report (Power BI) may have failed, or the report may have been written before the notes were known
+            result["report_md"] = reporter.with_notices(result["report_md"], notices)
+            (wd / "report.md").write_text(result["report_md"], encoding="utf-8")
         (wd / "result.json").write_text(json.dumps(result, default=str))
-        emit(run_id, "System", "Done.")
-        write_status(run_id, "done")
+        emit(run_id, "System", "Done" + (f", with {len(result.get('warnings') or [])} stage warning(s)." if result.get("warnings") else "."))
+        write_status(run_id, "done", warnings=result.get("warnings") or [], ai_notes=result.get("ai_notes") or [])
     except Exception as e:
         set_quiet(run_id, False)
         emit(run_id, "System", f"The run failed: {type(e).__name__}: {e}")

@@ -9,7 +9,8 @@ import re
 
 import pandas as pd
 
-from . import context as ctxmod, derived
+from . import context as ctxmod, derived, derived_check
+from .cleaner import coerce_types
 from .llm import deterministic, last_error
 from .context import INDUSTRIES
 from .measures import KINDS
@@ -28,12 +29,16 @@ kind, only for measures: additive (totals make sense: revenue, units, cost), rat
 kpis: for each KPI name given, the single numeric measure column that holds it, or null when no column does.
 ratios: for each KPI name given that is one measure divided by another (a margin, a rate, a share), its numerator column and its denominator column, both numeric measure columns. Leave out KPIs that are not ratios.
 hierarchy: pairs of category columns where each child value belongs to exactly one parent value (a broad category and its sub-category, a country and its city). Empty list when there are none.
+derived_measures: calculations the data needs because no column holds them, each {name, op, left, right, meaning, confidence, reason}. op is mul, div, sub or add; left and right are numeric measure columns
+(never an id or a code); confidence is high, medium or low. Typical use: a count of units times the price of one unit gives the line total. Propose one only when it makes business sense for the KPIs named; an empty list when no calculation is needed.
+already_total: the numeric column that already holds the total for each line (the amount for the main KPI), or null when none does. Never propose multiplying that column.
 intent: what the goal is after. change (growth, decline, trend over time), compare (groups or segments against each other), drivers (what explains or influences an outcome), summary (an overview or description).
 industry: the one that best fits the business, one of: """ + ", ".join(INDUSTRIES) + """ (general when none fits or it is unclear).
 Use only the column names, KPI names and words given, exactly as written. Never write a number.
 Return JSON: {"columns": {"<column>": {"role": "id|measure|dimension|date|text", "kind": "additive|rate|other"}}, "kpis": {"<kpi name>": "<column>" | null},
 "ratios": {"<kpi name>": {"numerator": "<column>", "denominator": "<column>"}},
-"hierarchy": [{"parent": "<column>", "child": "<column>"}], "intent": "change|compare|drivers|summary", "industry": "<industry>", "why": "one short sentence"}"""
+"hierarchy": [{"parent": "<column>", "child": "<column>"}],
+"derived_measures": [{"name": "<new column name>", "op": "mul|div|sub|add", "left": "<column>", "right": "<column>", "meaning": "<what it is>", "confidence": "high|medium|low", "reason": "<why>"}], "already_total": "<column>" | null, "intent": "change|compare|drivers|summary", "industry": "<industry>", "why": "one short sentence"}"""
 
 
 def _sample(s: pd.Series) -> list[str]:
@@ -79,7 +84,7 @@ def _make_validator(profile: dict, kpis: list[str], df: pd.DataFrame):
         cols, kp = obj.get("columns"), obj.get("kpis")
         if not isinstance(cols, dict) and not isinstance(kp, dict):
             return None, ["the reply needs a 'columns' object and a 'kpis' object"]
-        out = {"roles": {}, "kinds": {}, "kpis": {}, "ratios": {}, "hierarchy": [], "intent": None, "industry": None, "answered": [], "dropped": []}
+        out = {"roles": {}, "kinds": {}, "kpis": {}, "ratios": {}, "hierarchy": [], "intent": None, "industry": None, "answered": [], "dropped": [], "derived_raw": [], "already_total": None}
         for col, spec in (cols if isinstance(cols, dict) else {}).items():
             if col not in rule:
                 out["dropped"].append(f"column '{col}' does not exist")
@@ -138,6 +143,12 @@ def _make_validator(profile: dict, kpis: list[str], df: pd.DataFrame):
                     out["dropped"].append(f"hierarchy '{p}' > '{c}' dropped: {why}")
                 elif {"parent": p, "child": c} not in out["hierarchy"]:
                     out["hierarchy"].append({"parent": p, "child": c})
+        if "derived_measures" in obj:
+            out["answered"].append("derived")
+            out["derived_raw"], problems = derived_check.parse(obj["derived_measures"])
+            out["dropped"] += [f"derived measures: {p}" for p in problems]
+            at = obj.get("already_total")
+            out["already_total"] = at if isinstance(at, str) and at in rule else None
         for key, allowed, label in (("intent", INTENTS, "intent"), ("industry", INDUSTRIES, "industry")):
             if key in obj:
                 if obj[key] in allowed:
@@ -151,7 +162,7 @@ def _make_validator(profile: dict, kpis: list[str], df: pd.DataFrame):
 
 
 def _empty() -> dict:
-    return {"roles": {}, "kinds": {}, "kpis": {}, "ratios": {}, "hierarchy": [], "intent": None, "industry": None, "answered": [], "dropped": []}
+    return {"roles": {}, "kinds": {}, "kpis": {}, "ratios": {}, "hierarchy": [], "intent": None, "industry": None, "answered": [], "dropped": [], "derived_raw": [], "already_total": None}
 
 
 def _numeric_measures(profile: dict, roles: dict) -> list[str]:
@@ -195,9 +206,31 @@ def resolve(llm, df: pd.DataFrame, profile: dict, goal: str, ctx: dict | None, s
                                            "chosen": f"{m['numerator']} / {m['denominator']} (path: {m['path']})" if m else "no ratio: no numerator and denominator found in the data",
                                            "why": "The user named this KPI and it is a ratio of two measures." + (f" LLM problem: {last_error()}" if llm is not None and not ai(res) and last_error() else ""),
                                            "errors": []})
+    out["derived"] = _judge_derived(out, df, profile, ctx) if out["source"] in ("llm", "repaired") and "derived" in out["answered"] else None
     if state is not None:
         _log_parts(state, out, res, ctx)
+        _log_derived(state, out["derived"])
+    out.pop("derived_raw", None)
+    out.pop("already_total", None)
     return out
+
+
+def _judge_derived(out: dict, df: pd.DataFrame, profile: dict, ctx: dict | None) -> dict:
+    """The model's derived-measure proposals checked against the data. Only what the code accepts is ever built."""
+    typed, _ = coerce_types(df, profile)
+    rule_roles = {c["name"]: c["role"] for c in profile["columns"]}
+    return derived_check.judge(out["derived_raw"], out["already_total"], typed, rule_roles, out["roles"], out["kinds"], list((ctx or {}).get("kpis") or []), out["kpis"])
+
+
+def _log_derived(state: dict, plan: dict | None) -> None:
+    """One decision-log line per proposal. Without a usable answer the value-based rule decides and there is nothing to log here."""
+    if plan is None:
+        return
+    for p in [*plan["accepted"], *plan["rejected"]]:
+        state["decisions"].append({"decision": f"derived measure '{p['name']}' = {p['left']} {derived_check.OPS[p['op']]} {p['right']}", "source": "llm", "chosen": "accepted" if p in plan["accepted"] else "rejected",
+                                   "why": p["verdict"], "errors": []})
+    if not plan["accepted"] and not plan["rejected"]:
+        state["decisions"].append({"decision": "derived measures", "source": "llm", "chosen": "none proposed", "why": "The model proposed no calculation" + (f"; '{plan['already_total']}' already holds the line total." if plan["already_total"] else "."), "errors": []})
 
 
 def _log_parts(state: dict, out: dict, res: dict, ctx: dict | None) -> None:

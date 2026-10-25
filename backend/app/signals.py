@@ -17,7 +17,7 @@ import itertools
 import numpy as np
 import pandas as pd
 
-from .retail_roles import derive_product_measure
+from .retail_roles import derive_product_measure, is_quantity as is_count_column
 from .profiler import _DMY_FULL, infer_date_order, parse_dates
 
 SAMPLE_ROWS = 5000
@@ -159,14 +159,14 @@ def near_sum(df, cols) -> list[dict]:
     return out[:3]
 
 
-def rare_labels(df, cols) -> list[dict]:
+def rare_labels(df, cols, brief=None) -> list[dict]:
     out = []
     n_rows = len(df)
     if n_rows < 100:
         return out
     for n, c in cols.items():
-        if c["role"] != "categorical" or n not in df.columns or not 3 <= c["unique"] <= 80:
-            continue
+        if c["role"] != "categorical" or n not in df.columns or not 3 <= c["unique"] <= 80 or is_count_column(df[n], ((brief or {}).get("roles") or {}).get(n)):
+            continue      # a count of units is never a label with rare values
         vc = df[n].dropna().astype(str).value_counts()
         rare = vc[vc <= max(2, 0.003 * n_rows)]
         if len(rare) >= 2 and (vc >= 0.05 * n_rows).any():
@@ -211,16 +211,17 @@ def flag_values(s: pd.Series):
     return pos_v, float((s == pos[0]).sum() / s.notna().sum())
 
 
-def product_basis(df, cols, kinds=None) -> list[dict]:
-    pm = derive_product_measure(df, cols, kinds)
+def product_basis(df, cols, kinds=None, brief=None) -> list[dict]:
+    pm = derive_product_measure(df, cols, kinds, brief)
     if pm is None or pm["basis"] == "total":
         return []
-    return [_sig("product_basis", [pm["count"], pm["rate"]], {k: pm.get(k) for k in ("count", "rate", "basis", "others", "rows", "ratio", "mean_count")}, strong=True)]
+    return [_sig("product_basis", [pm["count"], pm["rate"]], {k: pm.get(k) for k in ("count", "rate", "basis", "others", "rows", "ratio", "mean_count", "name", "default")}, strong=True)]
 
 
-def blank_values(df, cols, kinds=None) -> list[dict]:
-    pm = derive_product_measure(df, cols, kinds)
-    if pm is None:
+def blank_values(df, cols, kinds=None, brief=None) -> list[dict]:
+    """Blank counts only matter when a count x rate column is built, so the question is asked only when the data settled that the rate is per unit."""
+    pm = derive_product_measure(df, cols, kinds, brief)
+    if pm is None or pm["basis"] != "unit":
         return []
     n = int(df[pm["count"]].isna().sum())
     if n < 3 or n > 0.4 * len(df):
@@ -228,9 +229,9 @@ def blank_values(df, cols, kinds=None) -> list[dict]:
     return [_sig("blank_values", [pm["count"]], {"count": n, "share": _round(n / len(df)), "rate": pm["rate"]}, strong=True)]
 
 
-def flag_rows(df, cols, kinds=None) -> list[dict]:
+def flag_rows(df, cols, kinds=None, brief=None) -> list[dict]:
     """A yes/no column is only worth a question when an amount can be built from the rows (retail_roles reports both roles): that is where flagged rows move the totals."""
-    if derive_product_measure(df, cols, kinds) is None:
+    if derive_product_measure(df, cols, kinds, brief) is None:
         return []
     out = []
     for n, c in cols.items():
@@ -263,14 +264,14 @@ def date_order_signals(raw: pd.DataFrame, profile: dict) -> list[dict]:
     return out
 
 
-def compute_signals(df: pd.DataFrame, profile: dict, raw: pd.DataFrame | None = None, raw_profile: dict | None = None, kinds: dict | None = None) -> list[dict]:
+def compute_signals(df: pd.DataFrame, profile: dict, raw: pd.DataFrame | None = None, raw_profile: dict | None = None, kinds: dict | None = None, brief: dict | None = None) -> list[dict]:
     """Strong signals first. `df` should already have its types fixed (numbers as numbers, dates as dates). `raw` and `raw_profile` (the data as loaded and its profile)
-    are only needed to see which text dates cannot be told apart; `kinds` are the brief's {column: additive|rate|other}."""
+    are only needed to see which text dates cannot be told apart; `kinds` are the brief's {column: additive|rate|other}; `brief` carries its roles and the derived measures the code accepted."""
     cols = _roles(profile)
     sigs: list[dict] = []
     jobs = [lambda: multi_date(df, cols), lambda: negatives(df, cols), lambda: sentinels(df, cols), lambda: multi_measure(df, cols), lambda: near_sum(df, cols),
-            lambda: duplicate_columns(df, cols), lambda: rare_labels(df, cols), lambda: high_missing(df, cols), lambda: product_basis(df, cols, kinds),
-            lambda: blank_values(df, cols, kinds), lambda: flag_rows(df, cols, kinds)]
+            lambda: duplicate_columns(df, cols), lambda: rare_labels(df, cols, brief), lambda: high_missing(df, cols), lambda: product_basis(df, cols, kinds, brief),
+            lambda: blank_values(df, cols, kinds, brief), lambda: flag_rows(df, cols, kinds, brief)]
     if raw is not None and raw_profile is not None:
         jobs.append(lambda: date_order_signals(raw, raw_profile))
     for job in jobs:

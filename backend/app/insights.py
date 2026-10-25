@@ -467,10 +467,17 @@ def key_metrics(state: dict, df: pd.DataFrame) -> list[dict]:
 
 
 # ------------------------------------------------------------------ data gaps
+def mapped_roles(brief: dict | None) -> str:
+    """Words for every role the brief already has a column for: the roles of its columns (date, measure...) and the KPI names it found a column for."""
+    b = brief or {}
+    return " ".join([r for r in (b.get("roles") or {}).values() if r not in ("id", "text")] + [k for k, c in (b.get("kpis") or {}).items() if c]).lower()
+
+
 def data_gaps(state: dict) -> list[dict]:
     ctx, plan, prof = state.get("context") or {}, state["plan"], state["profile"]
     names = [c["name"] for c in prof["columns"]]
     blob = " ".join(names).lower()
+    have = mapped_roles(state.get("brief"))      # a kind of data the brief's role map has a column for is never reported missing
     gaps: list[dict] = []
     for k in ctx.get("kpis", []):
         if kpi_found(state.get("brief"), k) or any(d.get("kpi") == k for d in (state.get("derived_metrics") or {}).get("created", [])):
@@ -480,7 +487,7 @@ def data_gaps(state: dict) -> list[dict]:
             gaps.append({"severity": "warn", "title": f"KPI '{k}' was not found in the data",
                          "detail": "You named it as important, but no column looks like it, so nothing here measures it directly.",
                          "suggestion": f"Add a column or file that contains {k}."})
-    if not plan.get("date_col"):
+    if not plan.get("date_col") and "date" not in have:
         gaps.append({"severity": "info", "title": "No date column", "detail": "Without dates, trends, seasonality and before/after effects cannot be measured.",
                      "suggestion": "Add a date or period column (order date, signup date, month)."})
     if prof["rows"] < 200:
@@ -498,12 +505,14 @@ def data_gaps(state: dict) -> list[dict]:
         gaps.append({"severity": "info", "title": "No segment columns used", "detail": "Without categories (region, product, plan...) results cannot be broken down by segment.",
                      "suggestion": "Add descriptive columns such as segment, region, channel or product."})
     derived_names = " ".join(f"{d['name']} {d['a']} {d['b']}" for d in plan.get("derived") or []).lower()
-    no_cost = not wording.has_profit_measure(state) and bool(plan.get("target")) and is_money(plan["target"])
+    no_cost = not wording.has_profit_measure(state) and not wording.FINANCIAL.search(have) and bool(plan.get("target")) and is_money(plan["target"])
     if no_cost:      # a money measure to report, and nothing that says what it cost: said once, in these words, instead of the industry's own "no cost data" line
         gaps.append({"severity": "info", "title": "Margin: not computable, no cost column", "detail": "Nothing in the data records what the sales cost, so only figures on the revenue side are reported.",
                      "suggestion": "Add a cost column (cost per unit or per line) to the data."})
     for rx, what in ctxmod.lens(ctx)["data_wants"]:
         if no_cost and re.search(r"margin|cost", rx):
+            continue
+        if re.search(rx, have):
             continue
         # a profit or margin measure (a column, or a ratio the analysis derived) answers a want for cost or margin data, and the other way round
         if re.search(rx, blob + " " + derived_names) or (re.search(r"margin|cost", rx) and FINANCIAL.search(blob + " " + derived_names)):

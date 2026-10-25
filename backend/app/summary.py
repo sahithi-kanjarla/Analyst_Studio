@@ -20,7 +20,7 @@ from scipy import stats
 from . import derived, wording
 from .brief import hierarchy_pairs, kinds
 from .clarify import named_in_goal
-from .llm import ask_json
+from .llm import ask_json, capture, note_failure
 from .measures import is_money, measure_kind
 from .retail_roles import is_quantity
 from .tools import _fmt
@@ -29,6 +29,11 @@ HEADLINES_MAX = 5
 MIN_GROUP_ROWS = 5            # a group with fewer rows is too small to be called the top or the bottom
 MAX_GROUPS = 50
 MAX_ALL_GROUPS = 30           # the main KPI is ranked by every category column up to this many groups, not only the ones the goal names
+MAX_RANK_GROUPS = 500         # ... and up to this many, with only the top few groups written out
+TOP_SHOWN = 5
+DOMINANT_VALUE_SHARE = 0.8    # a category column whose main value holds at least this share of the rows gets a "rate outside the main value" fact
+OUTSIDE_SHOWN = 3
+MAX_OUTSIDE_COLUMNS = 3
 DOMINANT_SHARE = 0.4          # a group holding more of the total than this is called dominant
 MAX_ADDITIVE = 8
 MIN_SUB_PERIODS = 3           # a change between two periods is only tested when each period holds this many sub-periods (months, weeks)
@@ -37,6 +42,14 @@ PICKS_MAX = 2
 NOT_A_FINDING = ("robust_compare", "summary_table", "group_table", "distribution", "outliers", "category_share")
 TIME_TOOLS = ("trend", "segment_trend", "seasonality")
 GROUP_PARAMS = ("group", "group_a", "group_b", "by")
+TIME_Q = re.compile(r"\b(?:month|year|week|quarter|day|time|trend|season)\w*", re.I)
+ACTION_Q = re.compile(r"what (?:should|next|to do|do we do)|should we|next steps?|recommend|\bactions?\b|do next", re.I)
+MAX_NAMED = 4                 # a question names at most this many columns
+MAIN_PICKS = 3                # a question naming several columns is answered with the top few groups of each ranking
+VALUES_MAX = 30
+MIN_VALUE_LEN = 4
+TRIVIAL_GROUPS = 3            # a column with this many groups or fewer, whose top group holds more than TRIVIAL_SHARE, is not a headline unless the goal names it
+TRIVIAL_SHARE = 0.9
 GENERIC = {"the", "and", "for", "which", "what", "how", "most", "are", "our", "does", "with", "that", "this", "from", "have", "has", "its", "each", "all", "best", "worst", "top", "generate", "generates", "earn", "earns"}
 
 
@@ -55,6 +68,21 @@ def mentions(col: str, text: str) -> bool:
     """All of the column's words (singular or plural) appear in the text."""
     ws = tokens(col)
     return bool(ws) and ws <= tokens(text)
+
+
+def _same(a: str, b: str) -> bool:
+    """Two stemmed words are the same word: equal, or sharing their first five letters (return/returned, cancel/cancelled)."""
+    return a == b or (min(len(a), len(b)) >= 5 and a[:5] == b[:5])
+
+
+def names(col: str, text: str) -> int:
+    """2: every word of the column appears in the text (plural or singular); 1: the column's last word does ('states' for ship-state); 0: neither."""
+    ws = [_stem(w) for w in re.findall(r"[a-z0-9]+", wording.human(col)) if len(w) > 2 and w not in GENERIC]
+    qt = tokens(text)
+    if not ws:
+        return 0
+    hit = [any(_same(w, t) for t in qt) for w in ws]
+    return 2 if all(hit) else 1 if hit[-1] else 0
 
 
 def full(x: float, cur: str = "") -> str:
@@ -90,12 +118,28 @@ def _cur(col: str, state: dict) -> str:
     return (state.get("context") or {}).get("currency", "") if is_money(col, narrow=True) else ""
 
 
+# ------------------------------------------------------------------ the question list
+def goal_questions(goal: str) -> list[str]:
+    """The explicit questions in the goal text, verbatim (list markers removed), in order. Empty when the goal asks none."""
+    out: list[str] = []
+    for part in re.split(r"(?<=[.!?:;])\s+|\n+", goal or ""):
+        part = re.sub(r"^\s*(?:\d+[.)]|[-*\u2022])\s*", "", part).strip()
+        if part.endswith("?") and re.search(r"[A-Za-z]", part) and part not in out:
+            out.append(part)
+    return out
+
+
+def questions(state: dict) -> list[str]:
+    """The questions the summary answers: those written in the goal, else the planner's."""
+    return goal_questions(state.get("goal", "")) or list((state.get("plan") or {}).get("questions") or [])
+
+
 # ------------------------------------------------------------------ ranking facts
 def group_columns(state: dict, df, every: bool = False) -> list[str]:
-    """Category columns the goal or a question names, and both levels of every verified hierarchy. every=True: every category column with 2-MAX_ALL_GROUPS groups.
+    """Category columns the goal or a question names, and both levels of every verified hierarchy. every=True: every category column with 2-MAX_RANK_GROUPS groups.
     A column judged to be a quantity is never a group."""
     prof = {c["name"]: c for c in (state.get("profile") or {}).get("columns", [])}
-    asked = " ".join([state.get("goal", "")] + list((state.get("plan") or {}).get("questions") or []))
+    asked = " ".join([state.get("goal", "")] + questions(state))
     hier = [c for pair in hierarchy_pairs(state.get("brief")) for c in pair]
     brief_roles = (state.get("brief") or {}).get("roles") or {}
     out: list[str] = []
@@ -104,7 +148,7 @@ def group_columns(state: dict, df, every: bool = False) -> list[str]:
             continue
         n = c.get("unique") or 0
         named = name in hier or named_in_goal(name, asked) or mentions(name, asked)
-        if (2 <= n <= MAX_ALL_GROUPS) if every else (2 <= n <= MAX_GROUPS and named):
+        if (2 <= n <= MAX_RANK_GROUPS) if every else (2 <= n <= MAX_GROUPS and named):
             out.append(name)
     return out
 
@@ -131,10 +175,19 @@ def _rank_additive(df, state: dict, group: str, measure: str, n: int) -> dict | 
     if dominant:
         share = share[:-1] + ", dominant)" if share.endswith(")") else share
     text = (f"By total {measure}, {wording.entity(group, top)} is highest at {full(s['sum'].iloc[0], cur)}{share} and {wording.entity(group, bot)} is lowest at {full(s['sum'].iloc[-1], cur)}.")
+    if len(s) > MAX_ALL_GROUPS:      # too many groups to list: the top few with their shares, and how many are left
+        rest = s.iloc[TOP_SHOWN:]
+        pct = lambda v: f" ({v / total:.1%})" if total > 0 else ""
+        text = (f"By total {measure} across {len(s)} {group} groups, the top {TOP_SHOWN} are "
+                + ", ".join(f"{wording.entity(group, g)} {full(v, cur)}{pct(v)}" for g, v in s["sum"].head(TOP_SHOWN).items())
+                + f"; the other {len(rest)} groups hold {full(float(rest['sum'].sum()), cur)}{pct(float(rest['sum'].sum()))}, and {wording.entity(group, bot)} is lowest at {full(s['sum'].iloc[-1], cur)}.")
     loss = [g for g, v in s["sum"].items() if v < 0]
     if loss:
         text += " Loss-making (negative total): " + ", ".join(f"{wording.entity(group, g)} ({full(s.loc[g, 'sum'], cur)})" for g in loss[:5]) + "."
-    return {"id": f"r{n}", "tool": "ranking", "basis": "total", "group": group, "measure": measure, "top": top, "bottom": bot, "dominant": top if dominant else None, "text": text}
+    pct3 = lambda v: f" ({v / total:.1%})" if total > 0 else ""
+    lead = f"Top {min(MAIN_PICKS, len(s))} {group} by total {measure}: " + ", ".join(f"{wording.entity(group, g)} {full(v, cur)}{pct3(v)}" for g, v in s["sum"].head(MAIN_PICKS).items())
+    return {"id": f"r{n}", "tool": "ranking", "basis": "total", "group": group, "measure": measure, "top": top, "bottom": bot, "dominant": top if dominant else None, "groups_total": len(s),
+            "top_share": frac, "lead": lead, "text": text}
 
 
 def _rank_ratio(df, spec: dict, group: str, measure: str, n: int) -> dict | None:
@@ -153,6 +206,59 @@ def _rank_ratio(df, spec: dict, group: str, measure: str, n: int) -> dict | None
     return {"id": f"r{n}", "tool": "ranking", "basis": "ratio", "group": group, "measure": measure, "top": str(r.index[0]), "bottom": str(r.index[-1]), "text": text}
 
 
+# ------------------------------------------------------------------ rate outside the main value
+def _outside_rate(df, state: dict, col: str, main: str, measure: str | None, focus: list[str], n: int) -> dict:
+    """How much of the main additive KPI (or, with none, how many rows) sits outside the one value that holds most rows of `col`, overall and by each goal-named group column."""
+    g = _clean_groups(df, col)
+    valid = g.notna()
+    out = valid & (g != main)
+    y = pd.to_numeric(df[measure], errors="coerce").fillna(0.0) if measure else pd.Series(1.0, index=df.index)
+    label, cur = measure or "rows", _cur(measure, state) if measure else ""
+    total, amt = float(y[valid].sum()), float(y[out].sum())
+    rows_out = int(out.sum())
+    rate = f" ({amt / total:.1%} of all {label})" if total > 0 else ""
+    text = (f"{label} outside {main}: {full(amt, cur)}{rate}; {rows_out:,} of {int(valid.sum()):,} rows ({rows_out / valid.sum():.1%}) are outside {main}, "
+            f"which holds {1 - rows_out / valid.sum():.1%} of the rows in {col}.")
+    by = []
+    for grp in focus:
+        if grp == col:
+            continue
+        d = pd.DataFrame({"g": _clean_groups(df, grp), "y": y, "out": out}).dropna(subset=["g"])
+        d["o"] = d["y"].where(d["out"], 0.0)
+        s = d.groupby("g").agg(total=("y", "sum"), outside=("o", "sum"), rows=("y", "size"))
+        s = s[(s["rows"] >= MIN_GROUP_ROWS) & (s["total"] > 0)]
+        if len(s) < 2:
+            continue
+        s["rate"] = s["outside"] / s["total"]
+        s = s.sort_values("rate", ascending=False)
+        top, bottom = s.head(OUTSIDE_SHOWN), s.tail(OUTSIDE_SHOWN)
+        bottom = bottom[~bottom.index.isin(top.index)].iloc[::-1]
+        fmt = lambda t: ", ".join(f"{wording.entity(grp, k)} {full(r['outside'], cur)} ({r['rate']:.1%})" for k, r in t.iterrows())
+        text += f" By {grp}, the highest rate outside {main}: {fmt(top)}" + (f"; the lowest: {fmt(bottom)}" if len(bottom) else "") + "."
+        by.append({"group": grp, "highest": [str(k) for k in top.index], "lowest": [str(k) for k in bottom.index]})
+    values = [str(v) for v in g.value_counts().index if str(v) != main][:VALUES_MAX]
+    return {"id": f"r{n}", "tool": "ranking", "kind": "outside_rate", "basis": "ratio", "group": col, "measure": label, "top": main, "bottom": main, "outside": amt, "by": by, "values": values, "text": text}
+
+
+def outside_facts(state: dict, df, start: int) -> list[dict]:
+    """One fact per category column (at most MAX_OUTSIDE_COLUMNS) in which a single value holds DOMINANT_VALUE_SHARE of the rows or more."""
+    cols, _ = kpi_measures(state, df)
+    prof = {c["name"]: c for c in (state.get("profile") or {}).get("columns", [])}
+    brief_roles = (state.get("brief") or {}).get("roles") or {}
+    focus = group_columns(state, df)
+    out: list[dict] = []
+    for name, c in prof.items():
+        if len(out) >= MAX_OUTSIDE_COLUMNS:
+            break
+        if name not in df.columns or c.get("role") not in ("categorical", "binary") or is_quantity(df[name], brief_roles.get(name)):
+            continue
+        counts = _clean_groups(df, name).value_counts()
+        if len(counts) < 2 or counts.iloc[0] / counts.sum() < DOMINANT_VALUE_SHARE:
+            continue
+        out.append(_outside_rate(df, state, name, str(counts.index[0]), cols[0] if cols else None, focus, start + len(out)))
+    return out
+
+
 # ------------------------------------------------------------------ growth facts
 def _full_periods(t: pd.Series, freq: str) -> list:
     """Periods of `freq` that the dates cover from start to end (give or take a twelfth of the period), in order."""
@@ -167,7 +273,7 @@ def _full_periods(t: pd.Series, freq: str) -> list:
 
 
 def _asked_text(state: dict) -> str:
-    return " ".join([state.get("goal", "")] + list((state.get("plan") or {}).get("questions") or []))
+    return " ".join([state.get("goal", "")] + questions(state))
 
 
 def _growth_fact(df, state: dict, group: str, measure: str, date: str, n: int) -> dict | None:
@@ -210,10 +316,11 @@ def _growth_fact(df, state: dict, group: str, measure: str, date: str, n: int) -
               else f"{'+' if x['change'] >= 0 else '-'}{full(abs(x['change']), cur)} ({move}; no % because the start is zero, negative or near zero)")
         x["line"] = f"{wording.entity(group, x['group'])} {ch}, {'statistically reliable' if x['reliable'] else 'not statistically reliable'}"
         parts.append(x["line"])
-    text = (f"Growth in total {measure} by {group}, {first} vs {last} (first and last full periods): " + "; ".join(parts)
-            + f". Reliability is a Welch test on {sub_word}ly totals, corrected for {k} groups.")
+    head = f"Growth in total {measure} by {group}, {first} vs {last} (first and last full periods): "
+    tail = f". Reliability is a Welch test on {sub_word}ly totals, corrected for {k} groups."
+    text = head + "; ".join(parts) + tail
     return {"id": f"r{n}", "tool": "ranking", "kind": "growth", "basis": "total", "group": group, "measure": measure, "date": date, "periods": [str(first), str(last)],
-            "top": rows[0]["group"], "bottom": rows[-1]["group"], "groups": rows, "text": text}
+            "top": rows[0]["group"], "bottom": rows[-1]["group"], "groups": rows, "text": text, "text_head": head, "text_tail": tail}
 
 
 def ranking_facts(state: dict, df) -> list[dict]:
@@ -228,12 +335,12 @@ def ranking_facts(state: dict, df) -> list[dict]:
         for m in (cols if group in focus else cols[:1]):       # the main additive KPI, and its growth, by every category column; the other KPIs and ratios only by the focus columns
             if m != group and (fact := _rank_additive(df, state, group, m, len(out) + 1)):
                 out.append({**fact, "focus": group in focus})
-            if date in df.columns and m != group and (fact := _growth_fact(df, state, group, m, date, len(out) + 1)):
+            if date in df.columns and m != group and _clean_groups(df, group).nunique() <= MAX_GROUPS and (fact := _growth_fact(df, state, group, m, date, len(out) + 1)):
                 out.append(fact)
         for name, spec in (ratios.items() if group in focus else ()):
             if name != group and (fact := _rank_ratio(df, spec, group, name, len(out) + 1)):
                 out.append(fact)
-    return out
+    return out + outside_facts(state, df, len(out) + 1)
 
 
 # ------------------------------------------------------------------ the closed list of ids
@@ -291,7 +398,9 @@ def _fit(q: str, item: dict) -> tuple[float, bool] | None:
     return (frac, False) if (qt & tokens(item["text"])) - mt else None
 
 
-def rules_pick(q: str, items: list[dict]) -> list[str]:
+def rules_pick(q: str, items: list[dict], main: str = "") -> list[str]:
+    if main and not any(tokens(it["measure"]) & tokens(q) for it in items if it["measure"]):
+        q = f"{q} {main}"       # the question names no measure: it is about the main KPI
     scored = []
     for k, it in enumerate(items):
         fit = _fit(q, it)
@@ -310,21 +419,42 @@ def rules_pick(q: str, items: list[dict]) -> list[str]:
 
 
 # ------------------------------------------------------------------ LLM: ids from the closed list
+ITEMS_MAX, ITEM_CHARS_MAX = 40, 160       # the prompt never grows with the data: a free-tier per-minute limit fails a call that is too large
+
+
+def _trim_items(questions: list[str], items: list[dict], state: dict) -> list[dict]:
+    """At most ITEMS_MAX items, those a question's words fit first; the rest are matched by the rules only. Says in the decision log what was cut."""
+    cut = sum(len(it["text"]) > ITEM_CHARS_MAX for it in items)
+    kept = items
+    if len(items) > ITEMS_MAX:
+        kept = sorted(items, key=lambda it: not any(_fit(q, it) for q in questions))[:ITEMS_MAX]       # sorted() is stable
+    if len(kept) < len(items) or cut:
+        state.setdefault("decisions", []).append({"decision": "summary_answers prompt trimmed", "source": "rules", "chosen": f"sent {len(kept)} of {len(items)} results",
+                                                  "why": f"the prompt is capped at {ITEMS_MAX} results of {ITEM_CHARS_MAX} characters",
+                                                  "errors": [f"{len(items) - len(kept)} results not sent (rules match those)", f"{cut} texts shortened"], "raw_output": ""})
+    return kept
+
+
 def llm_pick(llm, questions: list[str], items: list[dict], state: dict) -> dict[int, list[str]] | None:
     """{question index: ids} with ids outside the list removed; None when the model gave nothing usable. A question mapped to 'none' maps to []."""
     if not llm or not questions or not items:
         return None
+    items = _trim_items(questions, items, state)
     valid = {it["id"] for it in items}
-    out = ask_json(
-        llm,
-        "You match business questions to analysis results. For each question return the ids of the results that directly answer it, or [\"none\"] when no result does. "
-        "A result answers a question only if it is about the measure and the grouping the question asks about. Use only ids from the list; never invent one. "
-        "Return JSON: {\"answers\": [{\"question\": <index>, \"ids\": [\"<id>\", ...]}]}",
-        f"QUESTIONS: {json.dumps(list(enumerate(questions)), ensure_ascii=False)}\nRESULTS: "
-        + json.dumps([{k: it[k] for k in ("id", "text", "column", "measure")} for it in items], ensure_ascii=False))
+    with capture() as cap:
+        out = ask_json(
+            llm,
+            "You match business questions to analysis results. For each question return the ids of the results that directly answer it, or [\"none\"] when no result does. "
+            "A result answers a question only if it is about the measure and the grouping the question asks about. Use only ids from the list; never invent one. "
+            "Return JSON: {\"answers\": [{\"question\": <index>, \"ids\": [\"<id>\", ...]}]}",
+            f"QUESTIONS: {json.dumps(list(enumerate(questions)), ensure_ascii=False)}\nRESULTS: "
+            + json.dumps([{**{k: it[k] for k in ("id", "column", "measure")}, "text": it["text"][:ITEM_CHARS_MAX]} for it in items], ensure_ascii=False))
+    why = cap.reason
     rows = out.get("answers") if isinstance(out, dict) else None
     if not isinstance(rows, list):
-        state.setdefault("decisions", []).append({"decision": "summary_answers", "source": "fallback", "chosen": "rules matching", "why": "the model's answer had no usable 'answers' list", "errors": [], "raw_output": str(out)[:500]})
+        if not why:
+            note_failure("validation (the model's answer had no usable 'answers' list)")
+        state.setdefault("decisions", []).append({"decision": "summary_answers", "source": "fallback", "chosen": "rules matching", "why": why or "validation (the model's answer had no usable 'answers' list)", "errors": [why] if why else [], "raw_output": str(out)[:500]})
         return None
     picks: dict[int, list[str]] = {}
     rejected: list[str] = []
@@ -342,31 +472,67 @@ def llm_pick(llm, questions: list[str], items: list[dict], state: dict) -> dict[
     return picks
 
 
+def main_measure(state: dict, rankings: list[dict]) -> str:
+    """The additive KPI a question without a measure is about: a KPI the goal names (through the brief's KPI map), the plan's target, any mapped KPI, else the first ranked one."""
+    ranked = [r["measure"] for r in rankings if r.get("basis") == "total" and r.get("kind") not in ("growth", "outside_rate")]
+    kpis = (state.get("brief") or {}).get("kpis") or {}
+    named = [c for k, c in kpis.items() if c and mentions(k, state.get("goal", ""))]
+    return next((c for c in named + [(state.get("plan") or {}).get("target")] + [c for c in kpis.values() if c] if c in ranked), ranked[0] if ranked else "")
+
+
+def goal_pick(q: str, state: dict, items: list[dict], rankings: list[dict]) -> list[str]:
+    """Rules that link a question to the facts that answer it: action questions to the recommendations, words that are values of a status-like column to its
+    rate-outside-the-main-value fact, column names (stemmed) to the rankings of the question's measure, time words to the main KPI's trend. [] when none applies."""
+    main, qt = main_measure(state, rankings), tokens(q)
+    if ACTION_Q.search(q):
+        from .tiering import merge_strategies
+        ids = [s["id"] for s in merge_strategies(state)["strategies"][:MAIN_PICKS]]
+        if ids:
+            return ids
+    for r in rankings:
+        if r.get("kind") == "outside_rate" and any(len(v) >= MIN_VALUE_LEN and any(_same(w, t) for w in tokens(v) for t in qt) for v in r.get("values") or []):
+            return [r["id"]]
+    totals = [r for r in rankings if r.get("basis") == "total" and r.get("kind") not in ("growth", "outside_rate")]
+    measure = next((m for m in dict.fromkeys(r["measure"] for r in totals) if tokens(m) & qt), main)
+    scored = [(names(r["group"], q), r) for r in totals if r["measure"] == measure]
+    cols = [r for n, r in sorted(scored, key=lambda t: -t[0]) if n][:MAX_NAMED]
+    if len(cols) > 1:
+        return [r["id"] for r in cols]
+    if cols and not TIME_Q.search(q):
+        return rules_pick(q, items, main) or [cols[0]["id"]]
+    if TIME_Q.search(q):
+        trends = [f for f in state.get("findings") or [] if f["tool"] == "trend"]
+        t = next((f for f in trends if _measure_of(f) == measure), trends[0] if trends else None)
+        if t:
+            return [t["id"]]
+    return []
+
+
 def pick(llm, state: dict, rankings: list[dict]) -> dict:
     """{"rankings", "picks": {question: [ids]}, "source"} for every planned question."""
-    questions = list((state.get("plan") or {}).get("questions") or [])
+    asked = questions(state)
     items = catalog(state, rankings)
-    chosen = llm_pick(llm, questions, items, state) or {}
+    chosen = llm_pick(llm, asked, items, state) or {}
     picks, used_llm = {}, False
-    for i, q in enumerate(questions):
-        if i in chosen:
+    for i, q in enumerate(asked):
+        if chosen.get(i):
             picks[q], used_llm = chosen[i], True
         else:
-            picks[q] = rules_pick(q, items)
+            picks[q] = goal_pick(q, state, items, rankings) or rules_pick(q, items, main_measure(state, rankings))
     return {"rankings": rankings, "picks": picks, "source": "llm" if used_llm else "rules"}
 
 
 # ------------------------------------------------------------------ answers and headlines
-def _text_of(i: str, by_id: dict, facts: dict) -> str:
+def _text_of(i: str, by_id: dict, facts: dict, detail: bool = False) -> str:
     if i in facts:
         return facts[i]["text"]
     f = by_id[i]
+    if detail and f.get("text"):       # the tool's own sentence: the trend with its best and worst period
+        return f["text"].replace("**", "")
     return (f.get("insight") or {}).get("headline") or f.get("title", "")
 
 
 def not_answered_reason(q: str, items: list[dict]) -> str:
-    if not any(tokens(it["measure"]) & tokens(q) for it in items if it["measure"]):
-        return "no measure named in the question was analysed"
     return "no analysis in this run splits that measure by what the question asks about"
 
 
@@ -379,11 +545,20 @@ def answers(state: dict, facts: dict | None) -> list[dict]:
     by_id = {f["id"]: f for f in state.get("findings") or []}
     r_by_id = {r["id"]: r for r in rankings}
     items = catalog(state, rankings)
+    strat: dict[str, dict] = {}
+    if any(i not in by_id and i not in r_by_id for ids in facts["picks"].values() for i in ids):
+        from .tiering import merge_strategies
+        strat = {s["id"]: s for s in merge_strategies(state)["strategies"]}
     out = []
-    for q in (state.get("plan") or {}).get("questions") or []:
-        ids = [i for i in facts["picks"].get(q, []) if i in by_id or i in r_by_id]
+    for q in questions(state):
+        ids = [i for i in facts["picks"].get(q, []) if i in by_id or i in r_by_id or i in strat]
         ids.sort(key=lambda i: i not in r_by_id)
-        line = " ".join(t.rstrip(".") + "." for t in (_text_of(i, by_id, r_by_id) for i in ids)) or f"Not answered: {not_answered_reason(q, items)}."
+        if ids and all(i in strat for i in ids):
+            line = "Recommended: " + "; ".join(strat[i]["title"].rstrip(".") for i in ids) + "."
+        else:
+            lead = sum(1 for i in ids if "lead" in r_by_id.get(i, {})) > 1       # several columns named: the top few groups of each
+            texts = (r_by_id[i]["lead"] if lead and "lead" in r_by_id.get(i, {}) else _text_of(i, by_id, r_by_id, bool(TIME_Q.search(q))) for i in ids if i not in strat)
+            line = " ".join(t.rstrip(".") + "." for t in texts) or f"Not answered: {not_answered_reason(q, items)}."
         out.append({"question": q, "answer": line, "ids": ids})
     return out
 
@@ -402,14 +577,22 @@ def headlines(state: dict, facts: dict | None, answered: list[dict]) -> list[dic
             return
         seen.add(i)
         out.append({"id": i, "members": [i], "text": _text_of(i, by_id, rankings).rstrip(".")})
+    asked = _asked_text(state)
     for a in answered:
         for i in a["ids"]:
+            if i not in by_id and i not in rankings:
+                continue
             f = by_id.get(i)
             superseded = f is not None and basis(f) == "average" and ((f.get("params") or {}).get("group"), _measure_of(f)) in ranked_cells
             if not superseded:
                 add(i)
-    for r in rankings.values():       # a group holding more than DOMINANT_SHARE of the main KPI is always worth a headline
-        if r.get("dominant"):
+    main = main_measure(state, list(rankings.values()))
+    trend = next((f for f in state.get("findings") or [] if f["tool"] == "trend" and _measure_of(f) == main), None)
+    if trend:       # the main KPI's overall trend is always among the headlines
+        add(trend["id"])
+    for r in rankings.values():       # a group holding more than DOMINANT_SHARE of the main KPI is worth a headline, unless its column has 2-3 groups, one holds nearly all and the goal does not name it
+        trivial = r.get("groups_total", 99) <= TRIVIAL_GROUPS and (r.get("top_share") or 0) > TRIVIAL_SHARE and names(r["group"], asked) != 2
+        if r.get("dominant") and not trivial:
             add(r["id"])
     size = {"large": 0, "medium": 1}
     strong = [f for f in state.get("findings") or [] if f["tool"] not in NOT_A_FINDING and reliable(f) and effect_label(f.get("stats") or {}) in size]
@@ -432,3 +615,14 @@ def difference_lines(state: dict) -> list[str]:
         if group and (named_in_goal(group, asked) or mentions(group, asked)) and line not in out:
             out.append(line)
     return out
+
+
+# ------------------------------------------------------------------ data gaps already answered
+def covered_gaps(facts: dict | None, gaps: list[dict]) -> list[dict]:
+    """The gaps, without a 'No <kind> data' line whose words a goal question shares while a rate-outside-the-main-value fact answers that question."""
+    picks, r_by_id = (facts or {}).get("picks") or {}, {r["id"]: r for r in (facts or {}).get("rankings") or []}
+    qs = [q for q, ids in picks.items() if any(r_by_id.get(i, {}).get("kind") == "outside_rate" for i in ids)]
+    if not qs:
+        return gaps
+    qt = set().union(*(tokens(q) for q in qs))
+    return [g for g in gaps if not (g["title"].startswith("No ") and g["title"].endswith(" data") and any(_same(w, t) for w in tokens(g["title"][3:-5]) for t in qt))]

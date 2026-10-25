@@ -62,6 +62,7 @@ def test_growth_fact_lists_every_group_with_absolute_and_percent_change_and_mark
 def test_growth_question_is_answered_by_the_growth_fact_and_a_ranking_question_is_not():
     q_growth, q_rank = "Which tier is growing fastest in revenue?", "Which tier earns the most revenue?"
     state = growth_state([q_growth, q_rank])
+    state["goal"] = "Understand revenue by tier"                                                 # a goal that holds no question: the planner's questions are the ones answered
     state["summary_facts"] = summary.pick(None, state, summary.ranking_facts(state, growth_df()))
     by_q = {a["question"]: a for a in summary.answers(state, state["summary_facts"])}
     assert "Growth in total revenue by tier" in by_q[q_growth]["answer"]

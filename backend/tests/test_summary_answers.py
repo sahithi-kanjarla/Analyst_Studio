@@ -35,7 +35,7 @@ def make_state():
     fs[0]["stats"]["kind"] = "numeric"
     cols = [{"name": "category", "role": "categorical", "unique": 3}, {"name": "weekday", "role": "categorical", "unique": 3},
             {"name": "profit", "role": "numeric", "unique": 90}, {"name": "sales", "role": "numeric", "unique": 90}]
-    return {"goal": "Which categories generate the most profit?", "findings": fs, "decisions": [], "context": {}, "brief": None, "key_metrics": [], "strategies": [], "critique": {"issues": []},
+    return {"goal": f"{Q_CAT} {Q_NONE}", "findings": fs, "decisions": [], "context": {}, "brief": None, "key_metrics": [], "strategies": [], "critique": {"issues": []},
             "profile": {"rows": 90, "cols": 4, "columns": cols},
             "plan": {"target": "sales", "date_col": None, "questions": [Q_CAT, Q_NONE], "objective": "o", "relevant_columns": ["profit", "sales"], "analyses": [], "explore": False,
                      "derived": [{"name": "margin", "a": "profit", "b": "sales", "kind": "ratio_of_sums"}]}}

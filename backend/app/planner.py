@@ -19,7 +19,7 @@ from . import directives as dv
 from . import goal as goalmod
 from . import polarity as polmod
 from .clarify import named_in_goal
-from .profiler import compact_profile
+from .profiler import compact_profile, integer_code_like
 from .measures import has_sum_word, measure_kind
 from .propose import AI_SOURCES, propose
 from .retail_roles import demote_quantities
@@ -107,11 +107,6 @@ def measure_extras(df: pd.DataFrame, roles: dict, uniques: dict, measures: list[
     return out
 
 
-ID_LIKE_SHARE = 0.05      # an integer column with at least this many distinct values per row, and no declared kind, is a code
-ID_LIKE_MIN_UNIQUE = 50
-ID_LIKE_FILL = 0.5      # share of the min..max range the distinct values occupy; below it the integers are labels, not quantities
-
-
 def id_like_columns(df: pd.DataFrame, roles: dict, uniques: dict, ov: dict) -> list[str]:
     """Numeric columns that label rows rather than measure anything: the brief called them an id or a code, the rules saw an id, or they are integers with
     many distinct values whose kind (additive or rate) nobody declared, so a total or an average of them means nothing (postal codes, phone numbers)."""
@@ -123,14 +118,9 @@ def id_like_columns(df: pd.DataFrame, roles: dict, uniques: dict, ov: dict) -> l
             continue
         if brief.get(c) == "id" or r == "id":
             out.append(c)
-        elif r == "numeric" and measure_kind(c, None, kinds) == "other" and uniques.get(c, 0) >= max(ID_LIKE_MIN_UNIQUE, ID_LIKE_SHARE * len(df)) and _integer_valued(df[c]):
+        elif r == "numeric" and measure_kind(c, None, kinds) == "other" and integer_code_like(df[c]):
             out.append(c)
     return out
-
-
-def _integer_valued(s: pd.Series) -> bool:
-    nn = pd.to_numeric(s, errors="coerce").dropna()
-    return bool(len(nn)) and bool((nn % 1 == 0).all()) and nn.nunique() < ID_LIKE_FILL * (nn.max() - nn.min() + 1)      # a code is sparse in its range; tenure or age fills it
 
 
 CORR_COLS_MAX = 12      # the correlation tool reads at most this many columns
@@ -504,9 +494,13 @@ def propose_plan(llm, df: pd.DataFrame, profile: dict, goal: str, context: dict 
     res = propose(llm, "analysis plan", plan_system(cap), plan_view(profile, goal, context, explore, ov), plan_validator(demote_quantities(df, _apply_exclusions(roles, ov), ov.get("brief_roles")), uniques, ids, cap), lambda: None)
     ai = res["source"] in AI_SOURCES
     plan, notes = finalize_plan(res["value"] if ai else None, df, profile, goal, context, explore, ov)
-    plan["source"] = "llm" if res["source"] == "llm" else "repaired" if ai else "rules"
+    replaced = ai and plan["source"] == "rules"       # finalize_plan threw the AI plan away because an override named another main number
+    plan["source"] = "rules" if replaced else "llm" if res["source"] == "llm" else "repaired" if ai else "rules"
     by = sum(a.get("origin") == "ai" for a in plan["analyses"])
-    if state is not None:
+    if state is not None and replaced:
+        state.setdefault("decisions", []).append({"decision": "analysis plan", "source": "rules", "chosen": "rule-built plan around the overriding main number",
+                                                  "why": notes[-1] if notes else "The AI plan was replaced by the rules plan.", "errors": res["errors"]})
+    elif state is not None:
         state.setdefault("decisions", []).append({
             "decision": "analysis plan", "source": res["source"], "chosen": {"analyses chosen by the AI": by, "analyses added by code": len(plan["analyses"]) - by if ai else 0},
             "why": res["why"] if ai else "The rule-based plan was used." if res["source"] != "fallback" else "The model's plan was not usable after one repair, so the rule-based plan was used.", "errors": res["errors"]})
@@ -518,6 +512,7 @@ def finalize_plan(raw: dict | None, df: pd.DataFrame, profile: dict, goal: str, 
     """Validate an LLM plan against reality, then top up from the rules planner if it is too thin.
     `overrides` are the user's confirmed answers: they always win over what the model proposed."""
     notes: list[str] = []
+    replaced = False
     ov = overrides or {}
     roles, uniques = roles_and_uniques(profile)
     roles = demote_quantities(df, _apply_exclusions(roles, ov), ov.get("brief_roles"))
@@ -544,8 +539,9 @@ def finalize_plan(raw: dict | None, df: pd.DataFrame, profile: dict, goal: str, 
     target = raw.get("target") if raw.get("target") in roles and roles[raw["target"]] in ("numeric", "binary") else fallback["target"]
     date = raw.get("date_col") if raw.get("date_col") in roles and roles[raw["date_col"]] == "date" else fallback["date_col"]
     if ov.get("target") and target != fallback["target"]:
-        notes.append(f"The main number you chose ({fallback['target']}) replaced the model's choice ({target}); analyses were rebuilt around it.")
-        target, analyses = fallback["target"], [_code(a, a["why"]) for a in fallback["analyses"]]
+        src = ov.get("target_source") or "an answer to a clarifying question"
+        notes.append(f"The main number from {src} ({fallback['target']}) replaced the model's choice ({target}); the whole plan was rebuilt by rules around it.")
+        target, analyses, replaced = fallback["target"], [_code(a, a["why"]) for a in fallback["analyses"]], True
     if ov.get("date_col") and date != fallback["date_col"]:
         notes.append(f"Time analysis uses {fallback['date_col']}, the date column you chose.")
         date = fallback["date_col"]
@@ -569,4 +565,4 @@ def finalize_plan(raw: dict | None, df: pd.DataFrame, profile: dict, goal: str, 
     skipped = [s for s in (raw.get("skipped") or []) if isinstance(s, dict) and s.get("column") in roles][:10]
     objective = fallback["objective"] if explore else str(raw.get("objective") or goal)
     return {"objective": objective, "questions": questions, "target": target, "date_col": date,
-            "relevant_columns": relevant, "analyses": analyses, "skipped": skipped, "source": "llm", "explore": bool(explore), "derived": list(ov.get("derived") or [])}, notes
+            "relevant_columns": relevant, "analyses": analyses, "skipped": skipped, "source": "rules" if replaced else "llm", "explore": bool(explore), "derived": list(ov.get("derived") or [])}, notes

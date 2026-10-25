@@ -37,7 +37,7 @@ def coerce_types(df: pd.DataFrame, profile: dict, date_order: dict | None = None
     log: list[dict] = []
     df = df.copy()
     df.columns = [str(c).strip() for c in df.columns]
-    df, n_na = normalize_strings(df)
+    df, n_na = normalize_strings(df, log)
     if n_na:
         log.append({"step": "Standardise missing values", "detail": "Trimmed whitespace and converted placeholders like 'N/A', 'null', '-' to real missing values", "count": n_na})
     for col in profile["columns"]:
@@ -80,13 +80,26 @@ def coerce_types(df: pd.DataFrame, profile: dict, date_order: dict | None = None
     return df, log
 
 
-def scoped_clean(df: pd.DataFrame, profile: dict, plan: dict) -> tuple[pd.DataFrame, list[dict]]:
-    """Cleaning limited to the columns the plan actually needs."""
+def counted_columns(plan: dict, brief: dict | None, columns) -> set[str]:
+    """Columns whose blanks must stay blank because totals and ratios are built from them: the target, the brief's KPI columns, both sides of a derived ratio, and every additive-kind column."""
+    from .brief import kinds
+    from .measures import measure_kind
+    k = kinds(brief)
+    keep = {c for c in (brief or {}).get("kpis", {}).values() if c} | {plan.get("target")}
+    for d in plan.get("derived") or []:
+        keep |= {d.get("a"), d.get("b")}
+    keep |= {c for c in columns if measure_kind(c, overrides=k) == "additive"}
+    return keep - {None}
+
+
+def scoped_clean(df: pd.DataFrame, profile: dict, plan: dict, brief: dict | None = None) -> tuple[pd.DataFrame, list[dict]]:
+    """Cleaning limited to the columns the plan actually needs. Columns that feed totals or ratios keep their blanks (sums skip them)."""
     log: list[dict] = []
     df = df.copy()
     roles = {c["name"]: c["role"] for c in profile["columns"]}
     relevant = [c for c in plan.get("relevant_columns", []) if c in df.columns]
     target = plan.get("target")
+    counted = counted_columns(plan, brief, relevant)
 
     unused = [c for c in df.columns if c not in relevant]
     if unused:
@@ -100,11 +113,14 @@ def scoped_clean(df: pd.DataFrame, profile: dict, plan: dict) -> tuple[pd.DataFr
         role = roles.get(c)
         if c == target:
             log.append({"step": "Missing target values", "detail": f"'{c}' is the target; {miss:.1%} missing rows were NOT imputed and are ignored in calculations", "count": int(s.isna().sum())})
+        elif c in counted and pd.api.types.is_numeric_dtype(s):
+            n_blank = int(s.isna().sum())
+            log.append({"step": "Blanks left blank", "detail": f"{n_blank:,} blank values in {c} left blank, not counted in totals", "count": n_blank})
         elif role == "numeric" and pd.api.types.is_numeric_dtype(s):
             if miss <= 0.30:
                 med = float(s.median())
                 df[c] = s.fillna(med)
-                log.append({"step": "Impute numeric", "detail": f"'{c}': {miss:.1%} missing filled with the median ({med:.4g})", "count": int(s.isna().sum())})
+                log.append({"step": "Impute numeric", "detail": f"'{c}': {int(s.isna().sum()):,} blank values ({miss:.1%}) filled with the median ({med:.4g})", "count": int(s.isna().sum())})
             else:
                 log.append({"step": "Too much missing", "detail": f"'{c}' is {miss:.0%} missing; left as-is (not imputed) and used with caution", "count": int(s.isna().sum())})
         elif role in ("categorical", "binary") and not pd.api.types.is_numeric_dtype(s):

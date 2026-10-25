@@ -51,7 +51,7 @@ def make_state():
     ranking = {"id": "r1", "tool": "ranking", "basis": "total", "group": "segment", "measure": "revenue", "top": "a", "bottom": "b",
                "text": "By total revenue, segment a is highest at 5,000 (62.5% of all revenue) and segment b is lowest at 3,000."}
     facts = {"rankings": [ranking], "picks": {questions[0]: ["r1"], questions[1]: ["f105"]}, "source": "rules"}       # the ranking answers the first question, so it must lead
-    return {"goal": "Which segment earns the most revenue, and is it growing?", "findings": fs, "summary_facts": facts, "strategies": strategies, "strategy_summary": "", "critique": {"issues": []}, "cleaning_log": [],
+    return {"goal": " ".join(questions), "findings": fs, "summary_facts": facts, "strategies": strategies, "strategy_summary": "", "critique": {"issues": []}, "cleaning_log": [],
             "data_gaps": [], "key_metrics": [], "context": {}, "profile": {"rows": 200, "cols": 6, "columns": cols}, "decisions": [],
             "plan": {"target": "revenue", "date_col": "when", "questions": questions, "objective": "o", "relevant_columns": ["revenue", "profit"], "explore": False, "analyses": [],
                      "derived": [{"name": "margin", "a": "revenue", "b": "cost", "kind": "ratio_of_sums"}]}}
