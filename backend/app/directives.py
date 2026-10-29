@@ -13,6 +13,8 @@ containing only the whitelisted parameters (or None and a reason). `cleaner.appl
     merge_columns           {columns[], name, how: first_non_null|sum}
     fill_missing            {column, value}                          blank cells of a numeric column get this number
     set_date_order          {column, dayfirst}                       how the day and month of d/m/y dates are read
+    swap_day_month          {column}                                 the day and month of every date that can be swapped (day 12 or less) trade places
+    merge_labels            {column, mapping{label: label}}          rare labels are renamed to the common label they abbreviate
     note_only               {}                                       recorded as context for the LLM, the data is not touched
 """
 from __future__ import annotations
@@ -24,13 +26,13 @@ DERIVED_KINDS = ("ratio_of_sums", "difference", "product")
 NEG_MODES = ("keep", "exclude", "net_against_column")
 MERGE_HOW = ("first_non_null", "sum")
 ACTION_TYPES = ("set_date_column", "set_measures", "define_derived_metric", "filter_rows", "treat_value_as_missing",
-                "handle_negatives", "drop_column", "merge_columns", "fill_missing", "set_date_order", "note_only")
+                "handle_negatives", "drop_column", "merge_columns", "fill_missing", "set_date_order", "swap_day_month", "merge_labels", "note_only")
 MAX_LIST = 20
 
 # A default answer must leave the data exactly as it is, so that "Skip, use defaults" never changes a number.
 def is_harmless(action: dict) -> bool:
     t = action.get("type")
-    return t in ("note_only", "set_date_column", "set_measures") or (t == "handle_negatives" and action.get("mode") == "keep") or (t == "set_date_order" and action.get("dayfirst") is True)
+    return t in ("note_only", "set_date_column", "set_measures", "merge_labels") or (t == "handle_negatives" and action.get("mode") == "keep") or (t == "set_date_order" and action.get("dayfirst") is True)
 
 
 def changes_meaning(action: dict) -> bool:
@@ -39,7 +41,7 @@ def changes_meaning(action: dict) -> bool:
     t = action.get("type")
     if t == "set_date_column":
         return True
-    return t not in ("note_only", "set_measures") and not is_harmless(action)
+    return t not in ("note_only", "set_measures") and (t == "merge_labels" or not is_harmless(action))
 
 
 def _scalar(v):
@@ -140,6 +142,15 @@ def validate_action(action, roles: dict[str, str], taken_names: set[str] | None 
         if not c or not isinstance(action.get("dayfirst"), bool):
             return None, "set_date_order needs an existing date column and dayfirst true or false"
         return {"type": t, "column": c, "dayfirst": action["dayfirst"]}, ""
+    if t == "swap_day_month":
+        c = col("column", "date")
+        return ({"type": t, "column": c}, "") if c else (None, "swap_day_month needs an existing date column")
+    if t == "merge_labels":
+        c, m = col("column"), action.get("mapping")
+        pairs = {str(k): _scalar(v) for k, v in m.items()} if isinstance(m, dict) else None
+        if not c or not pairs or len(pairs) > MAX_LIST or any(v is None for v in pairs.values()):
+            return None, "merge_labels needs an existing column and a short mapping of label to label"
+        return {"type": t, "column": c, "mapping": pairs}, ""
     if t == "merge_columns":
         cs = col_list("columns")
         how = action.get("how") or "first_non_null"

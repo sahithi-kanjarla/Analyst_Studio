@@ -85,6 +85,13 @@ def test_a_rare_label_that_is_not_a_prefix_does_not_ask_for_a_merge():
     assert not any(q["kind"] == "label_merge" for q in build(df)[0])
 
 
+def test_a_code_like_column_with_many_distinct_values_does_not_ask_for_a_merge():
+    rng = np.random.default_rng(5)
+    codes = [f"C{i}" for i in range(80)]
+    df = pd.DataFrame({"code": rng.choice(codes, 400), "amt": rng.normal(50, 5, 400)})
+    assert not any(q["kind"] == "label_merge" for q in build(df)[0])
+
+
 # ---------------------------------------------------------------- 3. date sanity
 
 def date_df(days):

@@ -160,6 +160,7 @@ def near_sum(df, cols) -> list[dict]:
 
 
 RARE_SHARE = 0.01        # a label under this share of the rows is rare enough to be a spelling of a common one
+MAX_LABEL_VARIETY = 0.1  # a column with more distinct values than this share of its rows is not a set of labels
 
 
 def label_merges(df, cols, brief=None) -> list[dict]:
@@ -167,9 +168,11 @@ def label_merges(df, cols, brief=None) -> list[dict]:
     out = []
     for n, c in cols.items():
         if c["role"] != "categorical" or n not in df.columns or is_count_column(df[n], ((brief or {}).get("roles") or {}).get(n)):
-            continue
+            continue      # ids carry another role, so only categorical columns get here
         vc = df[n].dropna().astype(str).value_counts()
         total = int(vc.sum())
+        if len(vc) > MAX_LABEL_VARIETY * total:
+            continue      # a code-like column with many distinct values: one value starting another is chance, not a spelling
         common = vc[vc >= RARE_SHARE * total]
         pairs = {}
         for label, k in vc[vc < RARE_SHARE * total].items():

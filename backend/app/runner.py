@@ -100,7 +100,7 @@ def _execute(run_id: str) -> None:
             write_status(run_id, "needs_input")
             return
         keys = ("goal", "profile", "plan", "cleaning_log", "findings", "critique", "report_md", "report_view", "powerbi", "llm_mode", "data_model",
-                "context", "strategies", "strategy_summary", "data_gaps", "key_metrics", "applied_definitions", "ignored_definitions", "definitions", "derived_metrics", "goal_answer", "summary_facts", "decisions", "run_mode", "stage_sources", "brief", "warnings", "ai_notes")
+                "context", "strategies", "strategy_summary", "data_gaps", "key_metrics", "applied_definitions", "ignored_definitions", "definitions", "derived_metrics", "goal_answer", "summary_facts", "decisions", "run_mode", "stage_sources", "brief", "warnings", "ai_notes", "concerns")
         result = {k: final.get(k) for k in keys}
         result["run_id"] = run_id
         notices = [*(result.get("ai_notes") or []), *(result.get("warnings") or [])]

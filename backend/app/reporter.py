@@ -266,8 +266,38 @@ def _profile_section(view: dict) -> list[str]:
     return _details(f"Data profile ({sum(len(p[k]) for k in ('distributions', 'outliers', 'composition'))} lines)", body) if body else []
 
 
+GROWTH_LINES = 8        # growth lines per section in the main report; the rest are in the appendix
+
+
+def _growth_title(r: dict) -> str:
+    return f"Growth in {r['measure']} by {r['group']}, {r['periods'][0]} vs {r['periods'][1]}"
+
+
+def _growth_split(view: dict) -> tuple[list[tuple[dict, list[dict], int]], list[tuple[dict, list[dict]]]]:
+    """(main sections as (fact, lines shown, lines moved), appendix sections as (fact, lines)). Only a group column the goal names stays in the main report,
+    largest absolute changes first."""
+    main, later = [], []
+    for r in (x for x in view.get("rankings") or [] if x.get("kind") == "growth"):
+        rows = sorted(r["groups"], key=lambda g: -abs(g["change"]))
+        if r.get("focus"):
+            main.append((r, rows[:GROWTH_LINES], max(0, len(rows) - GROWTH_LINES)))
+        else:
+            later.append((r, rows))
+    return main, later
+
+
+def _growth_rest(r: dict) -> list[dict]:
+    return sorted(r["groups"], key=lambda g: -abs(g["change"]))[GROWTH_LINES:]
+
+
 def _appendix_section(view: dict) -> list[str]:
     L = ["## Appendix", ""]
+    main, later = _growth_split(view)
+    for r, _, n in main:
+        if n:
+            L += _details(_growth_title(r) + " (remaining groups)", [f"- {g['line']}" for g in _growth_rest(r)])
+    for r, rows in later:
+        L += _details(_growth_title(r), [f"- {g['line']}" for g in rows])
     if view["appendix"]:
         body: list[str] = []
         for c in view["appendix"]:
@@ -303,12 +333,16 @@ def _setup_section(state: dict) -> list[str]:
             mark = {"used": "✅", "skipped": "⏭️", "rejected": "🚫"}.get(r["status"], "•")
             L.append(f"- {mark} `{r['child_table']}.{r['child_col']}` → `{r['parent_table']}.{r['parent_col']}` ({r['cardinality']}, {r['child_row_match']:.0%} of rows match)" + (f": {r['reason']}" if r.get("reason") else ""))
         L += [""] + [f"- {s['detail']}" for s in dm["steps"]]
-        if not dm["relationships"]:
+        ignored = dm.get("ignored_tables") or []
+        if ignored:
+            L.append("- Ignored (not used in the analysis of **" + dm["base_table"] + "**): " + ", ".join(f"**{t['name']}** ({t['rows']:,} rows)" for t in ignored) + ".")
+        elif not dm["relationships"]:
             L.append("- No key links were found between the tables.")
 
     L += ["", "### Data and cleaning", "",
           f"{prof['rows']:,} rows × {prof['cols']} columns. Columns used: {', '.join(f'`{c}`' for c in plan['relevant_columns']) or 'n/a'}.", ""]
-    return L + ([f"- **{s['step']}**: {s['detail']}" for s in state["cleaning_log"]] or ["- No cleaning changes were needed."])
+    L += [f"- **{s['step']}**: {s['detail']}" for s in state["cleaning_log"]] or ["- No cleaning changes were needed."]
+    return L + [f"- {r}" for r in (state.get("concerns") or {}).get("rejected") or []]
 
 
 def with_notices(md: str, lines: list[str]) -> str:
@@ -326,7 +360,13 @@ def build_report(state: dict, summary: str, recs: list[str], run_mode: str = "",
     ctx = state.get("context") or {}
     view = view or state.get("report_view") or tiering.build_view(state)
     title = "# Analysis report" + (f": {ctx['company']}" if ctx.get("company") else "")
-    L = [title, "", f"**Mode:** {run_mode or derive_mode(state.get('stage_sources'))}", "", "## Executive summary", "", summary, ""]
+    L = [title, "", f"**Mode:** {run_mode or derive_mode(state.get('stage_sources'))}"]
+    cn = state.get("concerns") or {}
+    if cn.get("path") == "ai":
+        L.append(f"**Data concerns:** proposed by the AI, verified by code ({len(cn.get('accepted') or [])} accepted, {len(cn.get('rejected') or [])} not applied).")
+    elif cn.get("path") == "rules":
+        L.append("**Data concerns:** found by rule checks (" + (f"AI unavailable: {cn['why_not']}" if cn.get("why_not") and cn["why_not"] != "no AI configured" else "no AI configured") + ").")
+    L += ["", "## Executive summary", "", summary, ""]
     if view["headlines"]:
         L += ["**Headline findings**", ""] + [f"- {h['text']} ({h['id']})" for h in view["headlines"]] + [""]
     L += ["**Top recommendations**", ""] + [f"- {r}" for r in recs[:tiering.ACTIONS_MAX]]
@@ -335,8 +375,8 @@ def build_report(state: dict, summary: str, recs: list[str], run_mode: str = "",
     if km:
         L += ["", "## Key numbers", ""] + [f"- **{m['label']}:** {m['value']}" + (f" ({m['note']})" if m.get("note") else "") for m in km]
 
-    for r in (x for x in view.get("rankings") or [] if x.get("kind") == "growth"):      # every group, not only the significant ones
-        L += ["", f"## Growth in {r['measure']} by {r['group']}, {r['periods'][0]} vs {r['periods'][1]}", ""] + [f"- {g['line']}" for g in r["groups"]]
+    for r, rows, n in _growth_split(view)[0]:
+        L += ["", f"## {_growth_title(r)}", ""] + [f"- {g['line']}" for g in rows] + ([f"- and {n} more in the appendix"] if n else [])
 
     outside = [x for x in view.get("rankings") or [] if x.get("kind") == "outside_rate"]
     if outside:       # a category column where one value holds most rows: how much sits outside that value

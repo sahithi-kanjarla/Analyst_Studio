@@ -210,8 +210,9 @@ def test_unrelated_files_are_flagged_not_forced():
     b = pd.DataFrame({"employee": [f"E{i}" for i in range(80)], "salary": rng.normal(50, 9, 80)})
     rid, res = run_files({"stock.csv": csv_bytes(a), "staff.csv": csv_bytes(b)}, "What is in these files?")
     assert res["data_model"]["relationships"] == []
-    assert any("No reliable key links" in w["text"] for w in res["data_model"]["warnings"])
-    assert "No reliable key links" in res["report_md"] or "Data connection" in res["report_md"]
+    # changed: with only one table analysed the "no reliable key links" warning is no longer printed; the other table is listed as ignored instead
+    assert not any("no reliable key link" in w["text"].lower() for w in res["data_model"]["warnings"])
+    assert [t["name"] for t in res["data_model"]["ignored_tables"]] and "Ignored (" in res["report_md"] and "no reliable key link" not in res["report_md"].lower()
 
 
 def test_excel_workbook_sheets_become_tables():

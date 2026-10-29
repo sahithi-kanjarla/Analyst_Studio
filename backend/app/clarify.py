@@ -22,6 +22,7 @@ import time
 
 import pandas as pd
 
+from . import concerns as concernmod
 from . import context as ctxmod
 from . import directives as dv
 from .llm import note_failure, ask_json
@@ -32,15 +33,16 @@ from .signals import compute_signals
 MAX_QUESTIONS = 3        # at most this many questions are asked, in the LLM and the rules path alike
 MAX_CANDIDATES = 12      # valid questions considered before the cap picks the ones that matter most
 # How much an answer changes the analysis, most first: a placeholder or a repeated value moves every total and average; a date choice moves every trend; and so on.
-IMPACT = ("placeholder", "sentinel", "product_basis", "date_order", "multi_date", "flag_rows", "blank_values", "negatives", "near_sum", "duplicate_columns", "rare_labels", "high_missing")
+IMPACT = ("placeholder", "sentinel", "product_basis", "date_order", "multi_date", "flag_rows", "blank_values", "negatives", "near_sum", "duplicate_columns", "label_merge", "date_swap", "rare_labels", "high_missing")
 MAX_OPTIONS = 6
 UNASKED = {"multi_measure"}      # signals that feed the planner instead of the user
-CODE_OWNED = {"product_basis", "flag_rows", "blank_values", "date_order"}      # questions code always writes itself: the answer decides how a number is built, so the wording is not left to a model
+CODE_OWNED = {"product_basis", "flag_rows", "blank_values", "date_order", "label_merge", "date_swap"}      # questions code always writes itself: the answer decides how a number is built, so the wording is not left to a model
 # What an answer may do about each kind of ambiguity. A question that borrows a real signal id but offers other actions is not about that signal.
 SIGNAL_ACTIONS = {"multi_date": {"set_date_column"}, "negatives": {"handle_negatives", "filter_rows", "note_only"},
                   "sentinel": {"treat_value_as_missing", "filter_rows", "note_only"}, "near_sum": {"drop_column", "define_derived_metric", "merge_columns", "note_only"},
                   "rare_labels": {"filter_rows", "note_only"}, "high_missing": {"drop_column", "note_only"}, "duplicate_columns": {"drop_column", "merge_columns", "note_only"},
-                  "flag_rows": {"filter_rows", "note_only"}, "blank_values": {"fill_missing", "filter_rows", "note_only"}, "date_order": {"set_date_order"}}
+                  "flag_rows": {"filter_rows", "note_only"}, "blank_values": {"fill_missing", "filter_rows", "note_only"}, "date_order": {"set_date_order"},
+                  "label_merge": {"merge_labels", "note_only"}, "date_swap": {"swap_day_month", "note_only"}}
 DATE_FILLER = {"date", "time", "at", "on", "dt", "ts", "timestamp", "day"}
 
 
@@ -217,6 +219,18 @@ def _template(sig: dict, goal: str, ctx: dict, explore: bool) -> dict | None:
                 "options": [_o("valid", "Yes, they are valid labels", type="note_only"),
                             _o("exclude", "No, they are noise: exclude those rows", type="filter_rows", column=n, operator="not_in", value=rare[:dv.MAX_LIST])],
                 "why": f"Out of {ev['n_labels']} labels in {n}, {ev['n_rare']} appear only a handful of times each; they may be typos."}
+    if t == "label_merge":
+        n, mp = c[0], ev["merge"]
+        shown = ", ".join(f"'{k}' and '{v}'" for k, v in list(mp.items())[:2])
+        return {**base, "text": f"{n} has labels that look like short forms of others ({shown}). Are they the same?", "default": "merge",
+                "options": [_o("merge", "Yes, merge them into the common label", type="merge_labels", column=n, mapping=mp),
+                            _o("separate", "No, keep them as separate labels", type="note_only")],
+                "why": f"{ev['n_merge']} rare label(s) in {n} ({ev['rows']:,} rows) start the same way as a common one; counted apart they split one group in two."}
+    if t == "date_swap":
+        n = c[0]
+        return {**base, "text": "Dates look like day and month may be swapped. Swap them?", "default": "keep",
+                "options": [_o("keep", "No, leave the dates as they are", type="note_only"), _o("swap", f"Yes, swap day and month in {n}", type="swap_day_month", column=n)],
+                "why": f"{n} has {ev['days']} different day(s) of the month over {ev['spans_months']} months and {ev['months']} different month(s) over {ev['spans_years']} year(s)."}
     if t == "flag_rows":
         n, pos = c[0], ev["positive"]
         return {**base, "text": f"{ev['count']:,} rows ({_pct(ev['share'])}) are flagged '{pos}' in {n}. If they are reversed or voided rows, should they be taken out of the totals (net) or counted as they are (gross)?",
@@ -318,7 +332,9 @@ def _impact(q: dict) -> tuple:
     """Sort key, most important first: strong before weak, then by kind of ambiguity, then by the rows the default answer touches (when known)."""
     kind = IMPACT.index(q["kind"]) if q.get("kind") in IMPACT else len(IMPACT)
     rows = max([o.get("rows") or 0 for o in q["options"]] or [0])
-    return (not q.get("strong"), kind, -rows)
+    if q.get("ai"):        # AI concerns rank among themselves by relevance to the goal, then by rows affected
+        return (not q.get("strong"), IMPACT.index("label_merge"), not q.get("relevant"), -rows)
+    return (not q.get("strong"), kind, False, -rows)
 
 
 def cap_questions(questions: list[dict], limit: int = MAX_QUESTIONS) -> tuple[list[dict], list[dict]]:
@@ -328,22 +344,31 @@ def cap_questions(questions: list[dict], limit: int = MAX_QUESTIONS) -> tuple[li
     asked = sorted((q for q in questions if not q.get("auto")), key=_impact)        # sorted() is stable: equal impact keeps the original order
     keep, drop = asked[:limit], asked[limit:]
     dropped = [{"id": q["id"], "question": q["text"], "default": option_for(q, None)["label"]} for q in drop]
-    runs = {q["id"] for q in drop if not dv.is_harmless(option_for(q, None)["action"])}
+    runs = {q["id"] for q in drop if not dv.is_harmless(option_for(q, None)["action"]) or option_for(q, None)["action"]["type"] == "merge_labels"}      # a merge is the default and runs even when not asked
     kept = keep + [{**q, "auto": "capped"} for q in drop if q["id"] in runs] + [q for q in questions if q.get("auto")]
     return kept, dropped
 
 
 def build_questions_and_ignored(df: pd.DataFrame, profile: dict, goal: str, ctx: dict | None, explore: bool, llm, saved: dict | None = None,
                                 skip_columns: set | None = None, dropped: list | None = None, raw: pd.DataFrame | None = None, raw_profile: dict | None = None,
-                                kinds: dict | None = None, brief: dict | None = None) -> tuple[list[dict], list[dict]]:
+                                kinds: dict | None = None, brief: dict | None = None, concerns_out: dict | None = None) -> tuple[list[dict], list[dict]]:
     """(questions, saved glossary answers that were ignored). The model writes the questions when there is one; otherwise (or if its answer is unusable) the templates do.
     Weak signals alone never pause a run: they are only included when something stronger already needs an answer.
     A saved answer is ignored when its ambiguity is in this data but the question was dropped as no longer valid, or the saved option no longer exists.
     At most MAX_QUESTIONS are asked; the others are appended to `dropped` (when given) with the default that was used.
-    `skip_columns` are columns whose placeholder values were already asked about on the source tables, so no second "is this a placeholder" question is raised for them."""
+    `skip_columns` are columns whose placeholder values were already asked about on the source tables, so no second "is this a placeholder" question is raised for them.
+    With a model, the AI proposes data concerns and code verifies them (concerns.py); their questions replace the rule questions for label variants, swapped dates and
+    rare labels, and for a placeholder on the same column. The rule signals only run when the AI part is unavailable or failed. `concerns_out` receives what happened."""
     skip = skip_columns or set()
+    ai = concernmod.run(llm, df, profile, goal) if llm is not None else {"worked": False, "why_not": "no AI configured", "proposed": [], "accepted": [], "questions": [], "gaps": [], "rejected": []}
+    ai_cols = {a["column"] for a in ai["accepted"] if a["concern_type"] == "missing_code"}
     signals = [sg for sg in compute_signals(df, profile, raw, raw_profile, kinds, brief) if sg["type"] not in UNASKED and not (sg["type"] == "sentinel" and set(sg["columns"]) <= skip)]
-    if not signals:
+    if ai["worked"]:
+        signals = [sg for sg in signals if sg["type"] not in concernmod.RULE_SIGNALS and not (sg["type"] == "sentinel" and set(sg["columns"]) <= ai_cols)]
+    if concerns_out is not None:
+        concerns_out.update(path="ai" if ai["worked"] else "rules", why_not=ai["why_not"], proposed=ai["proposed"], accepted=ai["accepted"], rejected=[r["line"] for r in ai["rejected"]],
+                            rejected_detail=ai["rejected"], gaps=ai["gaps"], sheet_chars=ai.get("sheet_chars", 0))
+    if not signals and not ai["questions"]:
         return [], []
     owned = [sg for sg in signals if sg["type"] in CODE_OWNED]
     open_ = [sg for sg in signals if sg["type"] not in CODE_OWNED]
@@ -354,6 +379,8 @@ def build_questions_and_ignored(df: pd.DataFrame, profile: dict, goal: str, ctx:
             qs = template_questions(open_, profile, goal, ctx, explore)
     taken = set(df.columns)
     qs = qs + [product_question(sg, taken) for sg in owned if sg["type"] == "product_basis"] + template_questions([sg for sg in owned if sg["type"] != "product_basis"], profile, goal, ctx, explore)
+    have = {q["id"] for q in ai["questions"]}
+    qs = ai["questions"] + [q for q in qs if q["id"] not in have]
     if not any(q.get("strong") and not q.get("auto") for q in qs):
         qs = [q for q in qs if q.get("strong")]
     qs, over = cap_questions(qs)

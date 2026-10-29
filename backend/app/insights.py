@@ -22,6 +22,7 @@ import numpy as np
 import pandas as pd
 
 from . import context as ctxmod
+from .clarify import option_for
 from . import polarity as polmod, wording
 from .llm import ask_json
 from .brief import kinds, kpi_columns, kpi_found
@@ -490,6 +491,12 @@ def data_gaps(state: dict) -> list[dict]:
     if not plan.get("date_col") and "date" not in have:
         gaps.append({"severity": "info", "title": "No date column", "detail": "Without dates, trends, seasonality and before/after effects cannot be measured.",
                      "suggestion": "Add a date or period column (order date, signup date, month)."})
+    for q in state.get("questions") or []:
+        if q.get("kind") == "date_swap" and option_for(q, (state.get("answers") or {}).get(q["id"]))["action"]["type"] == "note_only":
+            gaps.append({"severity": "warn", "title": "Dates may have day and month swapped", "detail": f"The dates in {', '.join(q['columns'])} take very few different days or months over a long period, and they were used as they are, so trends and seasonality may be wrong.",
+                         "suggestion": "Check how the dates are written in the source and re-run with day and month swapped if needed."})
+    for g in (state.get("concerns") or {}).get("gaps") or []:        # concerns the AI raised that no action can fix yet
+        gaps.append({k: g[k] for k in ("severity", "title", "detail", "suggestion")})
     if prof["rows"] < 200:
         gaps.append({"severity": "warn", "title": f"Small dataset ({prof['rows']:,} rows)", "detail": "With few rows only large differences can be detected reliably.",
                      "suggestion": "Add more history or more records before making expensive decisions."})

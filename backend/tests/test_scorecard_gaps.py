@@ -55,7 +55,7 @@ def test_growth_fact_lists_every_group_with_absolute_and_percent_change_and_mark
     assert by["D"]["change"] > 0 and by["C"]["change"] > 0
     assert f"tier A {by['A']['pct']:+.1%}" in g["text"] and "statistically reliable" in g["text"] and "not statistically reliable" in g["text"]
     for k in "CD":
-        assert f"tier {k} +" in g["text"] and "no % because the start" in g["text"]
+        assert f"tier {k} +" in g["text"] and "no % because" not in g["text"]
     assert [r["measure"] for r in facts if r.get("kind") != "growth"] == ["revenue"]              # the plain ranking is still there
 
 

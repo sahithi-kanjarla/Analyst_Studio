@@ -79,6 +79,7 @@ class RunState(TypedDict, total=False):
     placeholder_questions: list
     warnings: list
     ai_notes: list
+    concerns: dict
 
 
 def _wd(state) -> Path:
@@ -243,8 +244,7 @@ def relate_node(state: RunState) -> dict:
 
     def build(tt, pp):
         if not edges:
-            return {"df": tt[base], "steps": [], "origin": {c: base for c in tt[base].columns}, "status": {}, "unused_tables": [t for t in tt if t != base],
-                    "warnings": [{"severity": "warn", "text": "No reliable key links were found between the uploaded tables, so only '" + base + "' is analysed. Check that the files share an ID column (e.g. customer_id)."}]}
+            return {"df": tt[base], "steps": [], "origin": {c: base for c in tt[base].columns}, "status": {}, "unused_tables": [t for t in tt if t != base], "warnings": []}
         return relations.build_model(tt, pp, edges, base)
 
     model = build(typed, profiles)
@@ -253,6 +253,8 @@ def relate_node(state: RunState) -> dict:
         typed = placeholders.mask_values(typed, pq["masked"])
         profiles = {n: (profile_df(typed[n]) if typed[n] is not t0 else profiles[n]) for n, t0 in pq["before"].items()}
         model = build(typed, profiles)
+    if len(typed) - len(model["unused_tables"]) == 1:      # one table is analysed: the others are listed as ignored, there is no join to warn about
+        model["warnings"] = [w for w in model["warnings"] if "no reliable key link" not in w["text"]]
     for s in model["steps"]:
         emit(rid, "Joiner", s["detail"])
     for w in model["warnings"]:
@@ -269,7 +271,8 @@ def relate_node(state: RunState) -> dict:
         rels.append({**{k: e[k] for k in ("child_table", "child_col", "parent_table", "parent_col", "cardinality", "score", "child_row_match")}, **st})
     tcols = {m["name"]: [{"name": c["name"], "role": c["role"]} for c in profiles[m["name"]]["columns"]] for m in state["tables"]}
     data_model = {"tables": [{**m, "columns": tcols.get(m["name"], [])} for m in state["tables"]], "base_table": base, "base_reason": why, "relationships": rels, "steps": model["steps"],
-                  "warnings": model["warnings"], "unused_tables": model["unused_tables"], "origin": model["origin"]}
+                  "warnings": model["warnings"], "unused_tables": model["unused_tables"], "origin": model["origin"],
+                  "ignored_tables": [m for m in state["tables"] if m["name"] in model["unused_tables"]]}
     return {"profile": prof, "data_model": data_model, "pre_clean_log": pre_log, "placeholder_questions": pq["questions"]}
 
 
@@ -327,10 +330,12 @@ def clarify_node(state: RunState) -> dict:
     given = json.loads(afile.read_text(encoding="utf-8")) if afile.exists() else None
     ignored: list = []
     dropped: list = []
+    concerns: dict = {}
     ai: dict = {}       # what the AI part of this stage did: {"ai_notes", "decisions", "stage_sources"} (kept with the frozen questions)
     if qfile.exists():
         stored = json.loads(qfile.read_text(encoding="utf-8"))
-        questions, ignored, dropped, ai = stored["questions"], stored.get("ignored") or [], stored.get("dropped") or [], stored.get("ai") or {}  # the same questions as before the pause (the LLM part is not deterministic)
+        questions, ignored, dropped, ai = stored["questions"], stored.get("ignored") or [], stored.get("dropped") or [], stored.get("ai") or {}
+        concerns = stored.get("concerns") or {}  # the same questions as before the pause (the LLM part is not deterministic)
     else:
         llm, _ = get_llm()
         raw = pd.read_pickle(wd / "raw.pkl")
@@ -341,7 +346,7 @@ def clarify_node(state: RunState) -> dict:
         skip = {c for q in pq for c in (q["columns"][0], f"{q['table']}_{q['columns'][0]}")}
         with llmmod.capture() as cap:
             questions, ignored = clarify.build_questions_and_ignored(typed, typed_profile, state["goal"], ctx, bool(state.get("explore")), llm, ws, skip, dropped,
-                                                                     raw=raw, raw_profile=state["profile"], kinds=briefmod.kinds(state.get("brief")), brief=state.get("brief"))
+                                                                     raw=raw, raw_profile=state["profile"], kinds=briefmod.kinds(state.get("brief")), brief=state.get("brief"), concerns_out=concerns)
         res = _ai_failed({**state, "decisions": []}, {}, "clarifying questions", llm, cap, "clarifier")
         ai = {k: res[k] for k in ("ai_notes", "decisions", "stage_sources") if k in res}
         questions, over = clarify.cap_questions(pq + questions)        # placeholder questions and the others share one cap of MAX_QUESTIONS
@@ -350,13 +355,13 @@ def clarify_node(state: RunState) -> dict:
             saved = (ws["answers"].get(q["id"]) or {}).get("value")
             q["prefill"], q["prefill_source"] = (saved, "glossary") if saved in clarify.option_values(q) else (q["default"], "default")
         if any(not q.get("auto") for q in questions):       # only a run that may pause needs its questions frozen
-            qfile.write_text(json.dumps({"workspace": glossary.workspace_key(ctx), "questions": questions, "ignored": ignored, "dropped": dropped, "ai": ai}), encoding="utf-8")
+            qfile.write_text(json.dumps({"workspace": glossary.workspace_key(ctx), "questions": questions, "ignored": ignored, "dropped": dropped, "ai": ai, "concerns": concerns}), encoding="utf-8")
     asked = [q for q in questions if not q.get("auto")]
     final, sources = clarify.resolve(questions, (given or {}).get("answers"), ws["answers"], skip=bool((given or {}).get("skip")))
     covered = all(sources[q["id"]] == "glossary" for q in asked)
     waiting = bool(asked) and given is None and not covered
 
-    out: dict = {"ai_notes": list(dict.fromkeys([*(state.get("ai_notes") or []), *(ai.get("ai_notes") or [])])),
+    out: dict = {"concerns": concerns, "ai_notes": list(dict.fromkeys([*(state.get("ai_notes") or []), *(ai.get("ai_notes") or [])])),
                  "decisions": [*(state.get("decisions") or []), *(ai.get("decisions") or [])],
                  "stage_sources": {**(state.get("stage_sources") or {}), **(ai.get("stage_sources") or {})},
                  "questions": questions, "answers": final, "ignored_definitions": ignored, "workspace": glossary.workspace_key(ctx), "answer_sources": sources, "awaiting_input": waiting,

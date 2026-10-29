@@ -202,7 +202,7 @@ def apply_directives(df: pd.DataFrame, questions: list[dict], answers: dict) -> 
     effects: dict[str, dict] = {}
     added: list[str] = []
     todo = list(chosen(questions, answers))
-    phases = {"treat_value_as_missing": 0, "filter_rows": 1, "handle_negatives": 1, "merge_columns": 2, "define_derived_metric": 2, "drop_column": 3, "fill_missing": 0, "set_date_order": 0}
+    phases = {"treat_value_as_missing": 0, "filter_rows": 1, "handle_negatives": 1, "merge_columns": 2, "define_derived_metric": 2, "drop_column": 3, "fill_missing": 0, "set_date_order": 0, "swap_day_month": 0, "merge_labels": 0}
 
     def note(q, effect, rows=None, detail=None, count=None):
         effects[q["id"]] = {"rows": rows, "effect": effect}
@@ -297,6 +297,25 @@ def apply_directives(df: pd.DataFrame, questions: list[dict], answers: dict) -> 
         elif t == "set_date_order":
             if not gone(q, [a["column"]]):       # the dates were already read in this order when the types were fixed
                 note(q, f"Day and month of the dates in {a['column']} are read {'day' if a['dayfirst'] else 'month'}-first.", None)
+        elif t == "swap_day_month":
+            if gone(q, [a["column"]]):
+                continue
+            d = pd.to_datetime(df[a["column"]], errors="coerce")
+            ok = d.notna() & (d.dt.day <= 12)
+            swapped = pd.to_datetime(pd.DataFrame({"year": d.dt.year, "month": d.dt.day, "day": d.dt.month}), errors="coerce")
+            df[a["column"]] = d.where(~ok, swapped)
+            n = int(ok.sum())
+            note(q, f"Day and month were swapped in {n:,} dates of {a['column']} (dates with a day above 12 cannot be swapped and stay as they are).", n,
+                 detail=f"swapped day and month in {n:,} dates of {a['column']}", count=n)
+        elif t == "merge_labels":
+            if gone(q, [a["column"]]):
+                continue
+            col, mp = a["column"], a["mapping"]
+            hit = df[col].astype(str).isin(list(mp)) & df[col].notna()
+            n = int(hit.sum())
+            df[col] = df[col].astype(object).where(~hit, df[col].astype(str).map(mp))
+            shown = "; ".join(f"{k!r} → {v!r}" for k, v in list(mp.items())[:3])
+            note(q, f"{n:,} values in {col} were relabelled ({shown}).", n, detail=f"merged {len(mp)} rare labels of {col} into the common label they abbreviate ({shown}); {n:,} values relabelled ({'default' if o['value'] == q['default'] else 'your answer'})", count=n)
         elif t == "merge_columns":
             if gone(q, a["columns"]):
                 continue

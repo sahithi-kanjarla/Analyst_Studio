@@ -313,7 +313,7 @@ def _growth_fact(df, state: dict, group: str, measure: str, date: str, n: int) -
     for x in rows:
         move = f"from {full(x['first'], cur)} to {full(x['last'], cur)}"
         ch = (f"{x['pct']:+.1%} ({move})" if x["pct"] is not None
-              else f"{'+' if x['change'] >= 0 else '-'}{full(abs(x['change']), cur)} ({move}; no % because the start is zero, negative or near zero)")
+              else f"{'+' if x['change'] >= 0 else '-'}{full(abs(x['change']), cur)} ({move})")
         x["line"] = f"{wording.entity(group, x['group'])} {ch}, {'statistically reliable' if x['reliable'] else 'not statistically reliable'}"
         parts.append(x["line"])
     head = f"Growth in total {measure} by {group}, {first} vs {last} (first and last full periods): "
@@ -336,7 +336,7 @@ def ranking_facts(state: dict, df) -> list[dict]:
             if m != group and (fact := _rank_additive(df, state, group, m, len(out) + 1)):
                 out.append({**fact, "focus": group in focus})
             if date in df.columns and m != group and _clean_groups(df, group).nunique() <= MAX_GROUPS and (fact := _growth_fact(df, state, group, m, date, len(out) + 1)):
-                out.append(fact)
+                out.append({**fact, "focus": group in focus})
         for name, spec in (ratios.items() if group in focus else ()):
             if name != group and (fact := _rank_ratio(df, spec, group, name, len(out) + 1)):
                 out.append(fact)
