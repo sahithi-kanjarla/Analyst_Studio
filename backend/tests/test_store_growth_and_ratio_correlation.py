@@ -34,3 +34,14 @@ def test_ratio_kpi_correlation_is_not_crowded_out():
     out = planner.ensure_required(df, roles, uniques, GOAL, False, OV, "amount", "order_date", [crowded])
     cors = [a["params"]["cols"] for a in out if a["tool"] == "correlation"]
     assert any("margin_ratio" in c and "discount_pct" in c for c in cors)
+
+
+def test_ratio_only_correlation_is_filled_with_the_numeric_drivers(tmp_path):
+    """Runs ef2ae20a51f8 / e42983b964bd: the model planned a correlation over the ratio KPI alone, which the tool cannot compute (needs two columns), so no correlation finding existed."""
+    df = data()
+    roles, uniques = planner.roles_and_uniques(profile_df(df))
+    out = planner.ensure_required(df, roles, uniques, GOAL, False, OV, "amount", "order_date", [spec("correlation", cols=["margin_ratio"])])
+    cols = next(a["params"]["cols"] for a in out if a["tool"] == "correlation")
+    assert cols[0] == "margin_ratio" and len(cols) >= 2 and "discount_pct" in cols
+    from app import tools
+    assert tools.correlation(df, {"derived": {"margin_ratio": {}}, "charts_dir": str(tmp_path)}, cols=cols)["stats"]["top_pairs"]

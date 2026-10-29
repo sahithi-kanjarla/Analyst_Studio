@@ -279,8 +279,11 @@ def ensure_required(df: pd.DataFrame, roles: dict, uniques: dict, goal: str, exp
         cols = candidate_measures(df, roles, uniques, ov)
         if len(cols) >= 2:
             add({"tool": "correlation", "params": {"cols": cols}}, f"{ratio_kpis[0]} is a ratio KPI, so how it moves with the numeric drivers is always checked.")
-    elif ratio_kpis and not set(ratio_kpis) <= set(have_corr["params"].get("cols") or []):      # the plan's own correlation never leaves a ratio KPI out: its columns go first, so a column cap cannot crowd them out
-        have_corr["params"]["cols"] = (ratio_kpis + [c for c in have_corr["params"].get("cols") or [] if c not in ratio_kpis])[:CORR_COLS_MAX]
+    elif ratio_kpis and (not set(ratio_kpis) <= set(have_corr["params"].get("cols") or []) or len(have_corr["params"].get("cols") or []) < 2):      # the plan's own correlation never leaves a ratio KPI out: its columns go first, so a column cap cannot crowd them out; a list with only the ratio KPI has nothing to pair with (the tool needs two columns), so the numeric drivers fill it
+        planned = ratio_kpis + [c for c in have_corr["params"].get("cols") or [] if c not in ratio_kpis]
+        if len(planned) < 2:
+            planned += [c for c in candidate_measures(df, roles, uniques, ov) if c not in planned]
+        have_corr["params"]["cols"] = planned[:CORR_COLS_MAX]
     if date and date in df.columns:
         if _span_months(df[date]) >= MIN_YEAR_MONTHS:      # a year or more of dates: the month-of-year pattern of the main total and of each ratio KPI (ratio of sums per month) is always checked
             for m in adds[:1] + ratio_kpis:
