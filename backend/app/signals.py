@@ -6,7 +6,7 @@ glossary answer matches the same ambiguity on the next run.
 
 multi_measure is never asked about: the planner analyses every such column (totals, averages per record).
 
-Types: multi_date, multi_measure, negatives, sentinel, near_sum, rare_labels, high_missing, duplicate_columns, and four that need no word list either:
+Types: multi_date, multi_measure, negatives, sentinel, near_sum, label_merge (a rare label that is the start of a common one), rare_labels, date_swap (day and month look swapped), high_missing, duplicate_columns, and four that need no word list either:
 product_basis (two columns whose product no column already holds, found by retail_roles), flag_rows (a yes/no column), blank_values (blanks in the
 count-like column) and date_order (d/m/y dates whose day and month cannot be told apart)."""
 from __future__ import annotations
@@ -159,18 +159,58 @@ def near_sum(df, cols) -> list[dict]:
     return out[:3]
 
 
+RARE_SHARE = 0.01        # a label under this share of the rows is rare enough to be a spelling of a common one
+
+
+def label_merges(df, cols, brief=None) -> list[dict]:
+    """A rare label that is a prefix (or the initial) of a more common label of the same column: the same thing written short. {rare label: common label}."""
+    out = []
+    for n, c in cols.items():
+        if c["role"] != "categorical" or n not in df.columns or is_count_column(df[n], ((brief or {}).get("roles") or {}).get(n)):
+            continue
+        vc = df[n].dropna().astype(str).value_counts()
+        total = int(vc.sum())
+        common = vc[vc >= RARE_SHARE * total]
+        pairs = {}
+        for label, k in vc[vc < RARE_SHARE * total].items():
+            low = label.strip().lower()
+            into = [m for m, km in common.items() if km > k and len(m) > len(label) and low and m.strip().lower().startswith(low)]
+            if into:
+                pairs[label] = into[0]      # value_counts is sorted, so the most common one
+        if pairs:
+            out.append(_sig("label_merge", [n], {"merge": dict(list(pairs.items())[:8]), "n_merge": len(pairs), "rows": int(sum(vc[k] for k in pairs))}, strong=True))
+    return out[:2]
+
+
 def rare_labels(df, cols, brief=None) -> list[dict]:
     out = []
     n_rows = len(df)
     if n_rows < 100:
         return out
+    merged = {n: {k for k in s["evidence"]["merge"]} for s in label_merges(df, cols, brief) for n in s["columns"]}
     for n, c in cols.items():
         if c["role"] != "categorical" or n not in df.columns or not 3 <= c["unique"] <= 80 or is_count_column(df[n], ((brief or {}).get("roles") or {}).get(n)):
             continue      # a count of units is never a label with rare values
         vc = df[n].dropna().astype(str).value_counts()
-        rare = vc[vc <= max(2, 0.003 * n_rows)]
+        rare = vc[(vc <= max(2, 0.003 * n_rows)) & ~vc.index.isin(merged.get(n, ()))]
         if len(rare) >= 2 and (vc >= 0.05 * n_rows).any():
             out.append(_sig("rare_labels", [n], {"rare": {k: int(v) for k, v in rare.head(8).items()}, "n_rare": int(len(rare)), "n_labels": int(len(vc))}))
+    return out[:2]
+
+
+def date_swap(df, cols) -> list[dict]:
+    """Day and month that look swapped: the day of the month takes 2 to 4 values over 6 or more months, or the month takes 2 to 4 values over 6 or more years. A single repeated value (every date on the 1st) is not a swap."""
+    out = []
+    for n, c in cols.items():
+        if c["role"] != "date" or n not in df.columns:
+            continue
+        d = pd.to_datetime(df[n], errors="coerce").dropna()
+        if d.empty:
+            continue
+        days, months = int(d.dt.day.nunique()), int(d.dt.month.nunique())
+        spans_months, spans_years = int(d.dt.to_period("M").nunique()), int(d.dt.year.nunique())
+        if (2 <= days <= 4 and spans_months >= 6) or (2 <= months <= 4 and spans_years >= 6):
+            out.append(_sig("date_swap", [n], {"days": days, "months": months, "spans_months": spans_months, "spans_years": spans_years}, strong=True))
     return out[:2]
 
 
@@ -270,7 +310,7 @@ def compute_signals(df: pd.DataFrame, profile: dict, raw: pd.DataFrame | None = 
     cols = _roles(profile)
     sigs: list[dict] = []
     jobs = [lambda: multi_date(df, cols), lambda: negatives(df, cols), lambda: sentinels(df, cols), lambda: multi_measure(df, cols), lambda: near_sum(df, cols),
-            lambda: duplicate_columns(df, cols), lambda: rare_labels(df, cols, brief), lambda: high_missing(df, cols), lambda: product_basis(df, cols, kinds, brief),
+            lambda: duplicate_columns(df, cols), lambda: label_merges(df, cols, brief), lambda: rare_labels(df, cols, brief), lambda: date_swap(df, cols), lambda: high_missing(df, cols), lambda: product_basis(df, cols, kinds, brief),
             lambda: blank_values(df, cols, kinds, brief), lambda: flag_rows(df, cols, kinds, brief)]
     if raw is not None and raw_profile is not None:
         jobs.append(lambda: date_order_signals(raw, raw_profile))
@@ -279,5 +319,7 @@ def compute_signals(df: pd.DataFrame, profile: dict, raw: pd.DataFrame | None = 
             sigs += job()
         except Exception:      # a signal is advice, never a reason to fail a run
             continue
+    ordered = {c for s in sigs if s["type"] == "date_order" for c in s["columns"]}
+    sigs = [s for s in sigs if not (s["type"] == "date_swap" and set(s["columns"]) <= ordered)]      # the order question already covers that column
     sigs.sort(key=lambda s: not s["strong"])
     return sigs[:MAX_SIGNALS]
