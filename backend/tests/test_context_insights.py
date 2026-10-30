@@ -206,7 +206,7 @@ def test_strategy_refinement_accepts_rupee_amount_from_stats(churn_run):
     state["findings"][0]["text"] = "No amount here."
     class L:
         def invoke(self, m):
-            return Msg(json.dumps({"strategies": [{"id": s["id"], "title": "Protect accounts averaging ₹8,216 each", "objective": "x" * 20, "actions": [], "risks": [], "kpis": []}]}, ensure_ascii=False))
+            return Msg(json.dumps({"strategies": [{"id": s["id"], "title": f"Protect churn accounts averaging ₹8,216 [{s['evidence'][0]}] each", "objective": "x" * 20, "actions": [], "risks": [], "kpis": []}]}, ensure_ascii=False))
     assert strategy.refine_with_llm(L(), state, strategies) == 1 and "8,216" in s["title"]
 
 

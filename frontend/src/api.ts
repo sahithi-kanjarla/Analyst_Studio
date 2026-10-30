@@ -332,7 +332,7 @@ export interface DashData {
   date: string | null;
   date_label: string | null;
   measures: DashMeasure[];
-  dims: { col: string; unique: number; score: number }[];
+  dims: { col: string; unique: number; score: number; top?: number }[];
   columns: string[];
   rows: (string | number | null)[][];
   total_rows: number;

@@ -1,0 +1,209 @@
+"""The data understanding record: one AI call that says, for every column, what it means, which role it plays and which goal terms it answers, and maps each term of
+the goal to column(s). Every step reads this one record instead of guessing from column names. Nothing here knows a column name or a domain word.
+
+    fact_sheet(df, profile, goal) --> ask(llm, sheet, goal, description) --> validate(obj, columns) --> record
+                                           ^------ errors sent back, at most MAX_RETRIES times ------'
+
+The structure test is code: every column appears exactly once, every role is from ROLES, every mapped column exists. When it still fails after the retries, `resolve`
+returns a record with source "fallback" and empty maps, and every consumer keeps its existing word-matching rules.
+"""
+from __future__ import annotations
+
+import json
+import re
+
+import pandas as pd
+
+from . import context as ctxmod
+from .concerns import fact_sheet
+from .llm import ask_json_ex
+
+ROLES = ("measure", "category", "date", "id", "flag", "free_text", "other")
+MAX_RETRIES = 2
+MAX_COLUMNS = 120          # a wider table is not sent: the reply would not fit
+MAX_TERMS = 20
+REASON_CHARS = 110
+NONE = "none"
+
+SYSTEM = """You are a data analyst reading a FACT SHEET about each column of a table (type, distinct and missing counts, the most and least common values, quartiles, date range), the user's GOAL and a short business description. You never see raw rows.
+Write the data understanding record that every later step will read.
+
+columns: one entry for EVERY column of the table, each exactly once (the sheet's "omitted" columns too), as {"column": <name exactly as written>, "meaning": <one short line: what a value of this column is>,
+"role": one of measure|category|date|id|flag|free_text|other, "goal_terms": [the words of the goal this column answers, or an empty list], "expected": <optional one line, only when something odd is normal, for example many blanks that are expected>}.
+role: measure (a quantity you can add or average), category (a group to split by), date, id (labels a row or an entity, including codes), flag (yes/no), free_text, other.
+goal_columns: every noun or term in the goal that points at data, mapped to the column(s) holding it, as {"<term as written in the goal>": ["<column>", ...] or "none"}. A plural or a different wording still maps (a goal word "states" can be a column called ship-state).
+Use "none" only when no column holds that term. Do not list verbs or filler words.
+Use only the column names given, exactly as written. Never write a number.
+Return JSON: {"columns": [{"column": str, "meaning": str, "role": str, "goal_terms": [str], "expected": str}], "goal_columns": {"<term>": [str] | "none"}}"""
+
+
+def build_view(sheet: dict, goal: str, ctx: dict | None) -> str:
+    hint = ctxmod.description_hint(ctx)
+    about = f"BUSINESS DESCRIPTION (user-written, unverified): {hint}\n\n" if hint else ""
+    return f"GOAL: {goal or 'none given (exploratory)'}\n\n{about}FACT SHEET ({sheet['rows']} rows):\n{json.dumps(sheet, ensure_ascii=False, default=str)}"
+
+
+def _short(text: str) -> str:
+    text = " ".join(str(text).split())
+    return text if len(text) <= REASON_CHARS else text[:REASON_CHARS - 1].rstrip() + "…"
+
+
+def validate(obj, columns: list[str]) -> tuple[dict | None, list[str]]:
+    """(record parts, []) when the structure is right, else (None, every problem found). The structure test is code, not trust."""
+    if not isinstance(obj, dict):
+        return None, ["the reply must be a JSON object with 'columns' and 'goal_columns'"]
+    rows, gc = obj.get("columns"), obj.get("goal_columns")
+    errors: list[str] = []
+    if not isinstance(rows, list):
+        errors.append("'columns' must be a list with one entry per column")
+        rows = []
+    if not isinstance(gc, dict):
+        errors.append("'goal_columns' must be an object mapping each goal term to a list of columns or \"none\"")
+        gc = {}
+    known, seen, cols = set(columns), {}, {}
+    for i, row in enumerate(rows, 1):
+        if not isinstance(row, dict) or not isinstance(row.get("column"), str):
+            errors.append(f"columns entry {i} needs a 'column' name")
+            continue
+        name = row["column"]
+        if name not in known:
+            errors.append(f"column '{name}' does not exist")
+            continue
+        seen[name] = seen.get(name, 0) + 1
+        if row.get("role") not in ROLES:
+            errors.append(f"column '{name}' has role {row.get('role')!r}; the role must be one of {', '.join(ROLES)}")
+        meaning = row.get("meaning")
+        if not isinstance(meaning, str) or not meaning.strip():
+            errors.append(f"column '{name}' needs a one-line meaning")
+        terms = row.get("goal_terms") or []
+        if not isinstance(terms, list) or any(not isinstance(t, str) for t in terms):
+            errors.append(f"column '{name}': goal_terms must be a list of words")
+            terms = []
+        exp = row.get("expected")
+        cols[name] = {"meaning": " ".join(str(meaning or "").split())[:200], "role": row.get("role"), "goal_terms": [t.strip() for t in terms if t.strip()][:MAX_TERMS],
+                      **({"expected": " ".join(exp.split())[:200]} if isinstance(exp, str) and exp.strip() else {})}
+    missing = [c for c in columns if c not in seen]
+    if missing:
+        errors.append("these columns are missing from 'columns': " + ", ".join(f"'{c}'" for c in missing[:15]) + (f" and {len(missing) - 15} more" if len(missing) > 15 else ""))
+    errors += [f"column '{c}' appears {n} times; list each column exactly once" for c, n in seen.items() if n > 1]
+    goal_columns: dict[str, list[str]] = {}
+    for term, v in gc.items():
+        if not isinstance(term, str) or not term.strip():
+            continue
+        if v == NONE or (isinstance(v, list) and [str(x).lower() for x in v] in ([], [NONE])):
+            goal_columns[term.strip()] = []
+        elif isinstance(v, list) and all(isinstance(x, str) for x in v):
+            bad = [x for x in v if x not in known]
+            if bad:
+                errors.append(f"goal term '{term}' maps to {', '.join(repr(b) for b in bad)}, which does not exist")
+            else:
+                goal_columns[term.strip()] = list(dict.fromkeys(v))
+        else:
+            errors.append(f"goal term '{term}' must map to a list of columns or \"none\"")
+    if len(goal_columns) > MAX_TERMS:
+        goal_columns = dict(list(goal_columns.items())[:MAX_TERMS])
+    return ({"columns": cols, "goal_columns": goal_columns}, []) if not errors else (None, errors)
+
+
+def _record(source: str, parts: dict | None = None, retries: int = 0, error: str = "") -> dict:
+    parts = parts or {"columns": {}, "goal_columns": {}}
+    return {"source": source, "columns": parts["columns"], "goal_columns": parts["goal_columns"],
+            "unmapped": [t for t, c in parts["goal_columns"].items() if not c], "retries": retries, "error": error}
+
+
+def resolve(llm, df: pd.DataFrame, profile: dict, goal: str, ctx: dict | None, state: dict | None = None) -> dict:
+    """The record. source "llm" (valid at the first try or after retries) or "fallback" (no usable answer: `error` says why in one short line; the consumers use their rules).
+    With no LLM configured the source is "rules-only" and there is no error to report."""
+    if llm is None:
+        return _record("rules-only")
+    columns = [c for c in df.columns if c in {p["name"] for p in profile["columns"]}]
+    if len(columns) > MAX_COLUMNS:
+        return _fallback(state, f"the table has {len(columns)} columns, more than the {MAX_COLUMNS} it can describe", 0, [])
+    view = build_view(fact_sheet(df, profile, goal), goal, ctx)
+    ask, retries, errors = view, 0, []
+    for attempt in range(MAX_RETRIES + 1):
+        obj, why = ask_json_ex(llm, SYSTEM, ask)
+        if obj is None:
+            return _fallback(state, why or "no usable reply", retries, errors)       # the call itself failed (rate limit, timeout, bad JSON): the retries were already spent inside it
+        parts, errors = validate(obj, columns)
+        if not errors:
+            if state is not None:
+                state.setdefault("decisions", []).append({"decision": "data understanding", "source": "llm" if not retries else "repaired",
+                                                          "chosen": f"{len(parts['columns'])} columns described; {len(parts['goal_columns'])} goal terms mapped ({sum(not c for c in parts['goal_columns'].values())} without a column)",
+                                                          "why": f"structure test passed after {retries} retr{'y' if retries == 1 else 'ies'}", "errors": [], "raw_output": ""})
+            return _record("llm", parts, retries)
+        if attempt < MAX_RETRIES:
+            retries += 1
+            ask = view + "\n\nYour previous answer failed the structure test:\n" + json.dumps(obj, ensure_ascii=False, default=str)[:3000] + "\nProblems:\n" + "\n".join(f"- {e}" for e in errors[:20]) \
+                + "\nAnswer again with the complete corrected JSON. List every column exactly once and use only existing column names."
+    return _fallback(state, errors[0] if errors else "the structure test failed", retries, errors)
+
+
+def _fallback(state: dict | None, why: str, retries: int, errors: list[str]) -> dict:
+    if state is not None:
+        state.setdefault("decisions", []).append({"decision": "data understanding", "source": "fallback", "chosen": "the existing word-matching rules", "why": _short(why),
+                                                  "errors": errors[:10] or [why], "raw_output": ""})
+    return _record("fallback", None, retries, _short(why))
+
+
+def notice(rec: dict | None) -> str:
+    """The report-header line when the AI part did not work, else ''."""
+    return f"AI unavailable for data understanding: {rec['error']}" if rec and rec.get("source") == "fallback" and rec.get("error") else ""
+
+
+# ---------------------------------------------------------------- what the consumers read
+
+def usable(rec: dict | None) -> bool:
+    return bool(rec) and rec.get("source") == "llm"
+
+
+def goal_columns(rec: dict | None) -> list[str]:
+    """Every column some goal term maps to, in the order of the terms."""
+    return list(dict.fromkeys(c for cs in ((rec or {}).get("goal_columns") or {}).values() for c in cs)) if usable(rec) else []
+
+
+def measure_columns(rec: dict | None) -> set[str]:
+    """Columns the record calls a measure: never used as a grouping category."""
+    return {c for c, v in ((rec or {}).get("columns") or {}).items() if v.get("role") == "measure"} if usable(rec) else set()
+
+
+def categories(rec: dict | None) -> set[str]:
+    """Columns the record calls a category or a flag."""
+    return {c for c, v in ((rec or {}).get("columns") or {}).items() if v.get("role") in ("category", "flag")} if usable(rec) else set()
+
+
+def _stem(w: str) -> str:
+    return w[:-3] + "y" if len(w) > 4 and w.endswith("ies") else w[:-1] if len(w) > 3 and w.endswith("s") and not w.endswith("ss") else w
+
+
+def _words(text: str) -> set[str]:
+    return {_stem(w) for w in re.findall(r"[a-z0-9]+", str(text).lower()) if len(w) > 2}
+
+
+def columns_for_text(rec: dict | None, text: str) -> list[str]:
+    """The columns mapped from the goal terms that the text (a goal question) uses: every word of the term appears in it, plural or singular."""
+    if not usable(rec):
+        return []
+    tw = _words(text)
+    return list(dict.fromkeys(c for term, cs in rec["goal_columns"].items() if (w := _words(term)) and w <= tw for c in cs))
+
+
+def unmapped_lines(rec: dict | None) -> list[str]:
+    return [f"Your goal mentions {t}, but no column matches." for t in (rec or {}).get("unmapped") or []] if usable(rec) else []
+
+
+def setup_lines(rec: dict | None) -> list[str]:
+    """A short version of the record for 'How the data was set up': roles in one line each, the goal terms and what they map to."""
+    if not usable(rec):
+        return []
+    by_role: dict[str, list[str]] = {}
+    for c, v in rec["columns"].items():
+        by_role.setdefault(v["role"], []).append(c)
+    L = ["", "### What each column is (the data understanding record)", ""]
+    L += [f"- **{role}**: {', '.join(f'`{c}`' for c in cs[:12])}{f' and {len(cs) - 12} more' if len(cs) > 12 else ''}" for role in ROLES if (cs := by_role.get(role))]
+    expected = [f"`{c}`: {v['expected']}" for c, v in rec["columns"].items() if v.get("expected")]
+    if expected:
+        L += ["- **Odd but expected**: " + "; ".join(expected[:6])]
+    if rec["goal_columns"]:
+        L += ["- **Your goal's words**: " + "; ".join(f"“{t}” → {', '.join(f'`{c}`' for c in cs) if cs else 'no column'}" for t, cs in rec["goal_columns"].items())]
+    return L

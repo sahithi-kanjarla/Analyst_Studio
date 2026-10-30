@@ -11,7 +11,7 @@ import re
 
 from . import summary, wording
 from .clarify import named_in_goal
-from .insights import effect_label
+from .insights import DATE_TAG, dates_unconfirmed, effect_label
 from .tools import _fmt
 
 HEADLINES_MAX, EVIDENCE_MAX, ACTIONS_MAX, STRATEGIES_MAX, BULLETS_MAX = 5, 8, 3, 4, 2
@@ -313,6 +313,17 @@ def build_view(state: dict, df=None) -> dict:
     facts = state.get("summary_facts") or ({"rankings": summary.ranking_facts(state, df)} if df is not None else None)
     answered = summary.answers(state, facts)
     heads = summary.headlines(state, facts, answered)
+    if dates_unconfirmed(state):      # trend, best/worst month and growth rest on dates that may be swapped
+        rank_by_id = {r["id"]: r for r in (facts or {}).get("rankings") or []}
+        timed = {f["id"] for f in state.get("findings") or [] if f["tool"] in summary.TIME_TOOLS} | {i for i, r in rank_by_id.items() if r.get("kind") == "growth"}
+        for c in evidence + appendix + built["checked"]:
+            c["date_dependent"] = c["tool"] in summary.TIME_TOOLS
+        for r in rank_by_id.values():
+            r["date_dependent"] = r["id"] in timed
+        for h in heads:
+            h["text"] += f" [{DATE_TAG}]" if timed & set(h["members"]) else ""
+        for a in answered:
+            a["answer"] += f" [{DATE_TAG}]" if timed & set(a["ids"]) else ""
     actions = [{"text": f"{s['title']}: {s['objective']}", "evidence": s["evidence"]} for s in strat["strategies"][:ACTIONS_MAX]]
     return {
         "answers": answered,

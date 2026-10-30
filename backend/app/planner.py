@@ -46,10 +46,18 @@ def roles_and_uniques(profile: dict) -> tuple[dict, dict]:
 def _apply_exclusions(roles: dict, ov: dict) -> dict:
     """Columns the user chose to ignore (or folded into a net amount) are not offered to the planner, unless they are the confirmed target/date."""
     keep = {ov.get("target"), ov.get("date_col")}
-    return {c: r for c, r in roles.items() if c not in set(ov.get("exclude") or []) or c in keep}
+    measures = set(ov.get("record_measures") or [])     # the data understanding record calls these quantities: never a grouping category
+    return {c: ("numeric" if c in measures and r == "categorical" else r) for c, r in roles.items() if c not in set(ov.get("exclude") or []) or c in keep}
 
 
 SKIP_REASON = {"id": "identifier: it labels rows and carries no business meaning", "text": "free text: not analysed as a measure or a segment", "empty": "no values to analyse"}
+
+
+def goal_groups(roles: dict, uniques: dict, goal: str, relevant: list[str], mapped: list[str] | None = None) -> list[str]:
+    """`relevant` plus every category column the goal names, so a column the user asked about is never left out as 'not needed for this goal'.
+    `mapped` are the columns the data understanding record maps the goal's words to: they are kept whatever their name or number of values."""
+    rest = [c for c in (mapped or []) if c in roles and c not in relevant]
+    return relevant + rest + [c for c, r in roles.items() if r in ("categorical", "binary") and c not in relevant and c not in rest and 2 <= uniques.get(c, 0) <= 50 and named_in_goal(c, goal)]
 
 
 def rule_skipped(profile: dict, relevant: list[str], ov: dict) -> list[dict]:
@@ -417,6 +425,7 @@ def heuristic_plan(df: pd.DataFrame, profile: dict, goal: str, context: dict | N
                                   + [c for a in extras for v in a["params"].values() for c in (v if isinstance(v, list) else [v]) if c in roles]
                                   + [c for s, _ in flag_rate_specs(df, roles, goal, explore, target) for c in s["params"].values()]))
     relevant += plausible_dimensions(df, roles, uniques, target, relevant)
+    relevant = goal_groups(roles, uniques, goal, relevant, ov.get("goal_columns"))
     questions = [f"What explains differences or changes in {target}?" if target else "What does this dataset contain?"]
     if target and groups:
         questions.append(f"Which segments ({', '.join(groups[:3])}) perform best and worst on {target}?")
@@ -565,8 +574,9 @@ def finalize_plan(raw: dict | None, df: pd.DataFrame, profile: dict, goal: str, 
     relevant = list(dict.fromkeys([c for c in (raw.get("relevant_columns") or []) if c in roles] + [c for c in used if c in roles] + ([target] if target else []) + ([date] if date else [])
                                   + [c for c in ov.get("include") or [] if c in roles]))
     relevant += plausible_dimensions(df, roles, uniques, target, relevant)
+    relevant = goal_groups(roles, uniques, goal, relevant, ov.get("goal_columns"))
     questions = [str(q) for q in (raw.get("questions") or [])][:4] or fallback["questions"]
-    skipped = [s for s in (raw.get("skipped") or []) if isinstance(s, dict) and s.get("column") in roles][:10]
+    skipped = [s for s in (raw.get("skipped") or []) if isinstance(s, dict) and s.get("column") in roles and s["column"] not in relevant][:10]
     objective = fallback["objective"] if explore else str(raw.get("objective") or goal)
     return {"objective": objective, "questions": questions, "target": target, "date_col": date,
             "relevant_columns": relevant, "analyses": analyses, "skipped": skipped, "source": "rules" if replaced else "llm", "explore": bool(explore), "derived": list(ov.get("derived") or [])}, notes

@@ -12,12 +12,15 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from . import understanding as und
 from .measures import is_money, measure_kind
 from .tools import to_binary
 
 MAX_ROWS = 50_000
 MAX_DIMS = 4
 MAX_MEASURES = 3
+GOAL_TOP = 10      # a column the goal names shows its top values as bars, however many values it has
+MAX_DIM_VALUES = 40
 
 
 def _eta_squared(y: pd.Series, g: pd.Series) -> float:
@@ -74,18 +77,26 @@ def build_dashboard(wd: Path, result: dict) -> dict:
     if date and not (pd.api.types.is_datetime64_any_dtype(df[date]) and df[date].notna().sum() > 1):
         date = None
 
-    # --- dimensions: only categories that help explain the outcome, best first
+    # --- dimensions: only categories that help explain the outcome, best first. A column the goal names (per the data understanding record) always gets a chart
+    # (its top GOAL_TOP values when it has many); a column the record calls a measure is never a grouping.
+    rec = result.get("understanding")
+    quantities, asked = und.measure_columns(rec), und.goal_columns(rec)
+    cats = und.categories(rec)
     dims = []
-    for c in relevant:
-        if c == target or roles.get(c) not in ("categorical", "binary"):
+    for c in dict.fromkeys(relevant + [a for a in asked if a in df.columns]):
+        if c == target or c in quantities or c not in df.columns:
+            continue
+        goal = c in asked and (roles.get(c) in ("categorical", "binary") or c in cats)
+        if not goal and roles.get(c) not in ("categorical", "binary"):
             continue
         n = int(df[c].nunique(dropna=True))
-        if n < 2 or n > 40:
+        if n < 2 or (n > MAX_DIM_VALUES and not goal):
             continue
         eta = _eta_squared(cols[measures[0]["col"]], df[c].astype(str)) if measures else 0.0
-        dims.append({"col": c, "unique": n, "score": eta})
+        dims.append({"col": c, "unique": n, "score": eta, **({"top": GOAL_TOP, "goal": True} if goal else {})})
     dims.sort(key=lambda d: (-d["score"], d["unique"]))
-    keep = [d for d in dims if d["score"] >= 0.02][:MAX_DIMS]
+    keep = [d for d in dims if d.get("goal")][:MAX_DIMS]
+    keep += [d for d in dims if not d.get("goal") and d["score"] >= 0.02][:MAX_DIMS - len(keep)]
     for d in dims:  # always show at least two so there is something to slice by
         if len(keep) >= min(2, len(dims)):
             break
@@ -112,7 +123,7 @@ def build_dashboard(wd: Path, result: dict) -> dict:
 
     return {"title": (result.get("context") or {}).get("company") or "", "objective": plan.get("objective", ""),
             "currency": currency, "date": "__date" if date else None, "date_label": date,
-            "measures": [{k: v for k, v in m.items() if k != "den_col"} for m in measures], "dims": [{"col": d["col"], "unique": d["unique"], "score": round(d["score"], 3)} for d in dims],
+            "measures": [{k: v for k, v in m.items() if k != "den_col"} for m in measures], "dims": [{"col": d["col"], "unique": d["unique"], "score": round(d["score"], 3), **({"top": d["top"]} if d.get("top") else {})} for d in dims],
             "columns": columns, "rows": rows, "total_rows": total, "sampled": total > MAX_ROWS}
 
 

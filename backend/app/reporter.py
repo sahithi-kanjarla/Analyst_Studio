@@ -5,10 +5,11 @@ from __future__ import annotations
 import json
 import re
 
-from . import context as ctxmod, summary as summary_mod, tiering, wording
+from . import cited, context as ctxmod, summary as summary_mod, tiering, wording
+from . import understanding as und
 from .clarify import named_in_goal
-from .insights import allowed_numbers, unverified_numbers
 from .llm import ask_json, capture
+from .insights import DATE_CAUTION, DATE_TAG, dates_unconfirmed
 from .propose import derive_mode
 
 
@@ -72,13 +73,25 @@ def llm_summary(llm, state: dict) -> tuple[str, list[str], bool] | None:
     ctx_txt = ctxmod.context_text(state.get("context"))
     c = wording.counts(state["findings"])
     rankings = _trim_rankings((state.get("summary_facts") or {}).get("rankings") or [], state)
-    payload = [{"headline": f["insight"]["headline"], "facts": f["text"].replace("**", ""), "confidence": f["insight"]["confidence"]["label"],
-                "survives_correction": f["stats"].get("survives_correction")} for f in _rank(state["findings"])[:12]] + [{"headline": r["text"], "facts": r["text"], "confidence": "computed from the data", "survives_correction": None} for r in rankings]
+    ranked = _rank(state["findings"])[:12]
+    payload = [{"id": f["id"], "headline": f["insight"]["headline"], "facts": f["text"].replace("**", ""), "confidence": f["insight"]["confidence"]["label"],
+                "survives_correction": f["stats"].get("survives_correction")} for f in ranked] + [{"id": r["id"], "headline": r["text"], "facts": r["text"], "confidence": "computed from the data", "survives_correction": None} for r in rankings]
+    facts = {p["id"]: cited.make_fact(p["headline"] + " " + p["facts"], p["headline"] + " " + p["facts"]) for p in payload}
+    for r in rankings:
+        facts[r["id"]]["subject"] |= cited.tokens(f"{r['group']} {r['measure']} {r['top']} {r['bottom']} " + " ".join(r.get("values") or []))
+    for f in ranked:
+        facts[f["id"]]["subject"] |= cited.tokens(" ".join(str(v) for v in (f.get("params") or {}).values() if isinstance(v, str)) + " " + f.get("title", ""))
+    facts["counts"] = cited.make_fact(json.dumps(c, ensure_ascii=False), "")
+    facts["data"] = cited.make_fact(f"{state['profile']['rows']} {state['profile'].get('cols', '')}", "")
+    if ctx_txt:
+        facts["context"] = cited.make_fact(ctx_txt, "")
+    computed = cited.claims((state.get("summary_facts") or {}).get("rankings") or [])
     with capture() as cap:
         out = ask_json(
             llm,
             "You are a senior data analyst writing for a business reader. Use ONLY the facts and numbers in the findings provided; do not invent numbers. "
             "Be plain and concise, distinguish association from causation, and respect the caveats. If company context is given, use its vocabulary. "
+            + cited.CITE_RULE + "Use the id 'counts' for a number from COUNTS, 'data' for the row or column count and 'context' for a number from the company context. "
             "Return JSON: {\"summary\": \"3-5 sentence executive summary answering the goal\", \"recommendations\": [3-5 concrete, prioritized actions tied to specific findings]}",
             (f"COMPANY CONTEXT (user-written, unverified):\n{ctx_txt}\n" if ctx_txt else "") +
             f"GOAL: {state['goal']}\nCOUNTS (quote these exactly, never recount): {json.dumps(c, ensure_ascii=False)}\nCAVEATS: {json.dumps([i['text'] for i in state['critique']['issues']][:8], ensure_ascii=False)}\nFINDINGS: {json.dumps(payload, default=str, ensure_ascii=False)}",
@@ -90,33 +103,42 @@ def llm_summary(llm, state: dict) -> tuple[str, list[str], bool] | None:
     if not (isinstance(out.get("summary"), str) and isinstance(out.get("recommendations"), list) and out["recommendations"]):
         _log(state, "missing fields: need a string 'summary' and a non-empty 'recommendations' list", [], json.dumps(out, default=str))
         return None
-    allowed = allowed_numbers(json.dumps(payload, default=str, ensure_ascii=False), ctx_txt, str(state["profile"]["rows"]), json.dumps(c, ensure_ascii=False))
-    kept, dropped, rejected = [], [], []
-    for s in _sentences(out["summary"]):
-        bad = unverified_numbers(s, allowed)
-        if wording.unsupported_profit_claim(s, state):
-            dropped.append(f"summary sentence dropped (no cost or profit column in the data): {s}")
+    kept, dropped, rejected, used = [], [], [], []
+
+    def judge(text: str, what: str) -> tuple[str, bool, dict | None]:
+        """(text without ids, kept?, the computed fact it contradicts). A dropped text is recorded in `dropped` and `rejected`."""
+        clean, bad = cited.verify(text, facts)
+        wrong = None if bad else cited.contradicts(clean, computed)
+        if wording.unsupported_profit_claim(clean, state):
+            dropped.append(f"{what} dropped (no cost or profit column in the data): {clean}")
         elif bad:
-            dropped.append(f"summary sentence dropped: {s}")
-            rejected.extend(bad)
+            dropped.append(f"{what} dropped ({bad}): {clean}")
+            rejected.append(bad)
+        elif wrong:
+            dropped.append(f"{what} dropped (disagrees with computed fact {wrong['id']}): {clean}")
+            rejected.append(f"contradicts {wrong['id']}")
         else:
-            kept.append(s)
+            return clean, True, None
+        return clean, False, wrong
+
+    for sent in _sentences(out["summary"]):
+        clean, ok, wrong = judge(sent, "summary sentence")
+        if ok:
+            kept.append(clean)
+        elif wrong and wrong["id"] not in used:       # the computed fact takes the place of the contradicting sentence
+            used.append(wrong["id"])
+            kept.append(wrong["text"].rstrip(".") + ".")
     recs = []
     for r in (str(r) for r in out["recommendations"]):
-        bad = unverified_numbers(r, allowed)
-        if wording.unsupported_profit_claim(r, state):
-            dropped.append(f"recommendation dropped (no cost or profit column in the data): {r}")
-        elif bad:
-            dropped.append(f"recommendation dropped: {r}")
-            rejected.extend(bad)
-        else:
-            recs.append(r)
+        clean, ok, _ = judge(r, "recommendation")
+        if ok:
+            recs.append(clean)
     raw = json.dumps(out, default=str)
     if not kept:
         _log(state, "numbers_ok: no summary sentence survived verification", rejected, raw, None)
         return None
     if dropped:
-        _log(state, "numbers_ok: some sentences/recommendations had numbers not in the findings and were dropped", rejected, raw, dropped)
+        _log(state, "numbers_ok: some sentences/recommendations had figures not tied to the fact they cite and were dropped", rejected, raw, dropped)
     return " ".join(kept), recs[:6], bool(dropped)
 
 
@@ -191,7 +213,7 @@ def _table_md(t: dict) -> list[str]:
 
 
 def _badge(c: dict) -> str:
-    return f" · confidence: **{c['confidence']['label']}**" + (" · your KPI" if c.get("kpi_related") else "") + f" · {', '.join(c['members'])}"
+    return f" · confidence: **{c['confidence']['label']}**" + (" · your KPI" if c.get("kpi_related") else "") + (f" · {DATE_TAG}" if c.get("date_dependent") else "") + f" · {', '.join(c['members'])}"
 
 
 def _card_md(c: dict, level: str = "###") -> list[str]:
@@ -230,7 +252,7 @@ def _checked_section(view: dict) -> list[str]:
     ch = view["checked"]
     if not ch:
         return []
-    return ["## Checked, nothing found", "", "Tested and not statistically significant: no reliable pattern.", ""] + [f"- {c['line']}" + (f" {c['check']}" if c.get("check") else "") + f" ({c['id']})" for c in ch] + [""]
+    return ["## Checked, nothing found", "", "Tested and not statistically significant: no reliable pattern.", ""] + [f"- {c['line']}" + (f" {c['check']}" if c.get("check") else "") + (f" [{DATE_TAG}]" if c.get("date_dependent") else "") + f" ({c['id']})" for c in ch] + [""]
 
 
 def _strategy_section(state: dict, view: dict) -> list[str]:
@@ -270,7 +292,7 @@ GROWTH_LINES = 8        # growth lines per section in the main report; the rest 
 
 
 def _growth_title(r: dict) -> str:
-    return f"Growth in {r['measure']} by {r['group']}, {r['periods'][0]} vs {r['periods'][1]}"
+    return f"Growth in {r['measure']} by {r['group']}, {r['periods'][0]} vs {r['periods'][1]}" + (f" [{DATE_TAG}]" if r.get("date_dependent") else "")
 
 
 def _growth_split(view: dict) -> tuple[list[tuple[dict, list[dict], int]], list[tuple[dict, list[dict]]]]:
@@ -342,6 +364,7 @@ def _setup_section(state: dict) -> list[str]:
     L += ["", "### Data and cleaning", "",
           f"{prof['rows']:,} rows × {prof['cols']} columns. Columns used: {', '.join(f'`{c}`' for c in plan['relevant_columns']) or 'n/a'}.", ""]
     L += [f"- **{s['step']}**: {s['detail']}" for s in state["cleaning_log"]] or ["- No cleaning changes were needed."]
+    L += und.setup_lines(state.get("understanding"))
     return L + [f"- {r}" for r in (state.get("concerns") or {}).get("rejected") or []]
 
 
@@ -360,7 +383,7 @@ def build_report(state: dict, summary: str, recs: list[str], run_mode: str = "",
     ctx = state.get("context") or {}
     view = view or state.get("report_view") or tiering.build_view(state)
     title = "# Analysis report" + (f": {ctx['company']}" if ctx.get("company") else "")
-    L = [title, "", f"**Mode:** {run_mode or derive_mode(state.get('stage_sources'))}"]
+    L = [title] + (["", f"> ⚠ {DATE_CAUTION}"] if dates_unconfirmed(state) else []) + ["", f"**Mode:** {run_mode or derive_mode(state.get('stage_sources'))}"]
     cn = state.get("concerns") or {}
     if cn.get("path") == "ai":
         L.append(f"**Data concerns:** proposed by the AI, verified by code ({len(cn.get('accepted') or [])} accepted, {len(cn.get('rejected') or [])} not applied).")
@@ -412,8 +435,10 @@ def write_report(state: dict, llm) -> tuple[str, str]:
         summary, recs = rule_summary(state)
     ans = state.get("goal_answer")
     view = state.get("report_view") or tiering.build_view(state)
-    if view["answers"]:       # every planned question gets one line (or "Not answered: <reason>"), whether or not an LLM wrote the rest
-        summary = "**What we set out to answer, in one line each**\n" + "\n".join(f"- **{a['question']}** {a['answer']}" for a in view["answers"]) + "\n\n" + summary
+    # a column the goal names that no answer uses is still answered, from the computed ranking
+    lines = [f"- **{a['question']}** {a['answer']}" for a in view["answers"]] + [f"- **By {r['group']}** (named in your goal). {r.get('lead') or r['text']}" for r in summary_mod.uncovered_groups(state, view)]         + [f"- {x}" for x in und.unmapped_lines(state.get("understanding"))]      # a word of the goal that no column holds is said, not silently dropped
+    if lines:       # every planned question gets one line (or "Not answered: <reason>"), whether or not an LLM wrote the rest
+        summary = "**What we set out to answer, in one line each**\n" + "\n".join(lines) + "\n\n" + summary
     diff = summary_mod.difference_lines(state)
     if diff:      # a ratio KPI that does not reliably differ across a group the goal names is said in the summary, one line each
         summary = "\n".join(diff) + "\n\n" + summary

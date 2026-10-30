@@ -276,7 +276,7 @@ export default function BIDashboard({ run }: { run: RunResult }) {
             </Card>
           )}
           {barDims.map((d) => {
-            const { items, more, shown, total } = dimItems(d.col, 8);
+            const { items, more, shown, total } = dimItems(d.col, d.top ?? 8);
             return (
               <Card key={d.col} title={`${m.label} by ${d.col}`} sub={more ? `showing top ${shown} of ${total} groups; totals and filters use all ${total}` : "highest first"}>
                 <HBar items={items} selected={f.dims[d.col] ?? []} onToggle={(k) => toggleDim(d.col, k)} fmt={fmt} />

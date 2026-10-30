@@ -21,7 +21,7 @@ def run(monkeypatch, out):
 
 
 def test_rounded_share_is_kept_and_invented_number_drops_only_its_sentence(monkeypatch):
-    res, state = run(monkeypatch, {"summary": "Month-to-month is 38% of customers. Churn would fall 52% if fixed. Contracts matter.", "recommendations": ["Review the month-to-month plan."]})
+    res, state = run(monkeypatch, {"summary": "Month-to-month is 38% of customers [f1]. Churn would fall 52% if fixed [f1]. Contracts matter.", "recommendations": ["Review the month-to-month plan."]})
     summary, recs, partial = res
     assert "38%" in summary and "Contracts matter." in summary and "52%" not in summary
     assert recs == ["Review the month-to-month plan."] and partial
@@ -30,17 +30,17 @@ def test_rounded_share_is_kept_and_invented_number_drops_only_its_sentence(monke
 
 
 def test_unverified_recommendation_is_dropped_but_the_rest_stays(monkeypatch):
-    res, _ = run(monkeypatch, {"summary": "Month-to-month is 38.5% of customers.", "recommendations": ["Cut churn by 83%.", "Pilot a discount."]})
+    res, _ = run(monkeypatch, {"summary": "Month-to-month is 38.5% of customers [f1].", "recommendations": ["Cut churn by 83% [f1].", "Pilot a discount."]})
     assert res[1] == ["Pilot a discount."] and res[2]
 
 
 def test_clean_summary_is_not_partial(monkeypatch):
-    res, state = run(monkeypatch, {"summary": "Month-to-month is 38.5% of customers.", "recommendations": ["Pilot a discount."]})
+    res, state = run(monkeypatch, {"summary": "Month-to-month is 38.5% of customers [f1].", "recommendations": ["Pilot a discount."]})
     assert res[2] is False and not state["decisions"]
 
 
 def test_empty_after_dropping_falls_back_and_logs_reason(monkeypatch):
-    res, state = run(monkeypatch, {"summary": "Churn is 52%.", "recommendations": ["Pilot a discount."]})
+    res, state = run(monkeypatch, {"summary": "Churn is 52% [f1].", "recommendations": ["Pilot a discount."]})
     assert res is None
     assert "numbers_ok" in state["decisions"][-1]["why"] and "52%" in state["decisions"][-1]["errors"][0]
 
@@ -72,6 +72,6 @@ def test_number_formats_and_no_free_small_integers():
 def test_currency_symbol_does_not_swallow_the_number(monkeypatch):
     state = make_state()
     state["findings"][0]["text"] = "Average **amount** is highest for Gold (\u20b98,216)."
-    monkeypatch.setattr(reporter, "ask_json", lambda *a, **k: {"summary": "Gold averages \u20b98,216.", "recommendations": ["Pilot a discount."]})
+    monkeypatch.setattr(reporter, "ask_json", lambda *a, **k: {"summary": "Gold averages \u20b98,216 [f1].", "recommendations": ["Pilot a discount."]})
     res = reporter.llm_summary(object(), state)
     assert res and res[2] is False and "8,216" in res[0]

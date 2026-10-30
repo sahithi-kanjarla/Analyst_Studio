@@ -18,6 +18,7 @@ import pandas as pd
 from scipy import stats
 
 from . import derived, wording
+from . import understanding as und
 from .brief import hierarchy_pairs, kinds
 from .clarify import named_in_goal
 from .llm import ask_json, capture, note_failure
@@ -143,11 +144,13 @@ def group_columns(state: dict, df, every: bool = False) -> list[str]:
     hier = [c for pair in hierarchy_pairs(state.get("brief")) for c in pair]
     brief_roles = (state.get("brief") or {}).get("roles") or {}
     out: list[str] = []
+    rec, measures = state.get("understanding"), und.measure_columns(state.get("understanding"))
+    mapped = set(und.goal_columns(rec))        # the data understanding record maps the goal's words to these columns, whatever their names
     for name, c in prof.items():
-        if name not in df.columns or c.get("role") not in ("categorical", "binary") or is_quantity(df[name], brief_roles.get(name)):
+        if name not in df.columns or c.get("role") not in ("categorical", "binary") or name in measures or is_quantity(df[name], brief_roles.get(name)):
             continue
         n = c.get("unique") or 0
-        named = name in hier or named_in_goal(name, asked) or mentions(name, asked)
+        named = name in hier or name in mapped or named_in_goal(name, asked) or mentions(name, asked)
         if (2 <= n <= MAX_RANK_GROUPS) if every else (2 <= n <= MAX_GROUPS and named):
             out.append(name)
     return out
@@ -237,7 +240,8 @@ def _outside_rate(df, state: dict, col: str, main: str, measure: str | None, foc
         text += f" By {grp}, the highest rate outside {main}: {fmt(top)}" + (f"; the lowest: {fmt(bottom)}" if len(bottom) else "") + "."
         by.append({"group": grp, "highest": [str(k) for k in top.index], "lowest": [str(k) for k in bottom.index]})
     values = [str(v) for v in g.value_counts().index if str(v) != main][:VALUES_MAX]
-    return {"id": f"r{n}", "tool": "ranking", "kind": "outside_rate", "basis": "ratio", "group": col, "measure": label, "top": main, "bottom": main, "outside": amt, "by": by, "values": values, "text": text}
+    return {"id": f"r{n}", "tool": "ranking", "kind": "outside_rate", "basis": "ratio", "group": col, "measure": label, "top": main, "bottom": main, "outside": amt, "by": by, "values": values, "text": text,
+            "rate_amount": amt / total if total > 0 else None, "rate_rows": rows_out / int(valid.sum())}
 
 
 def outside_facts(state: dict, df, start: int) -> list[dict]:
@@ -494,7 +498,8 @@ def goal_pick(q: str, state: dict, items: list[dict], rankings: list[dict]) -> l
             return [r["id"]]
     totals = [r for r in rankings if r.get("basis") == "total" and r.get("kind") not in ("growth", "outside_rate")]
     measure = next((m for m in dict.fromkeys(r["measure"] for r in totals) if tokens(m) & qt), main)
-    scored = [(names(r["group"], q), r) for r in totals if r["measure"] == measure]
+    from_record = set(und.columns_for_text(state.get("understanding"), q))
+    scored = [(3 if r["group"] in from_record else names(r["group"], q), r) for r in totals if r["measure"] == measure]
     cols = [r for n, r in sorted(scored, key=lambda t: -t[0]) if n][:MAX_NAMED]
     if len(cols) > 1:
         return [r["id"] for r in cols]
@@ -508,6 +513,18 @@ def goal_pick(q: str, state: dict, items: list[dict], rankings: list[dict]) -> l
     return []
 
 
+def _record_rankings(q: str, ids: list[str], state: dict, rankings: list[dict]) -> list[str]:
+    """Ids of the total rankings, for the measure the chosen ranking is about, of every column the data understanding record maps the question's goal words to and the
+    chosen ids leave out: the model cites at most PICKS_MAX results, a question naming three columns needs three."""
+    cols = und.columns_for_text(state.get("understanding"), q)
+    totals = [r for r in rankings if r.get("basis") == "total" and r.get("kind") not in ("growth", "outside_rate")]
+    if len(cols) < 2 or not any(r["id"] in ids for r in totals):
+        return []
+    measure = next(r["measure"] for r in totals if r["id"] in ids)
+    have = {r["group"] for r in totals if r["id"] in ids}
+    return [r["id"] for c in cols[:MAX_NAMED] if c not in have for r in totals if r["group"] == c and r["measure"] == measure][:MAX_NAMED]
+
+
 def pick(llm, state: dict, rankings: list[dict]) -> dict:
     """{"rankings", "picks": {question: [ids]}, "source"} for every planned question."""
     asked = questions(state)
@@ -516,7 +533,7 @@ def pick(llm, state: dict, rankings: list[dict]) -> dict:
     picks, used_llm = {}, False
     for i, q in enumerate(asked):
         if chosen.get(i):
-            picks[q], used_llm = chosen[i], True
+            picks[q], used_llm = chosen[i] + _record_rankings(q, chosen[i], state, rankings), True
         else:
             picks[q] = goal_pick(q, state, items, rankings) or rules_pick(q, items, main_measure(state, rankings))
     return {"rankings": rankings, "picks": picks, "source": "llm" if used_llm else "rules"}
@@ -619,10 +636,31 @@ def difference_lines(state: dict) -> list[str]:
 
 # ------------------------------------------------------------------ data gaps already answered
 def covered_gaps(facts: dict | None, gaps: list[dict]) -> list[dict]:
-    """The gaps, without a 'No <kind> data' line whose words a goal question shares while a rate-outside-the-main-value fact answers that question."""
-    picks, r_by_id = (facts or {}).get("picks") or {}, {r["id"]: r for r in (facts or {}).get("rankings") or []}
+    """The gaps, without a 'No <kind> data' line when a computed fact already answers it: a rate-outside-the-main-value fact whose column or labels share a word with
+    the kind (the loss facts for "returns"), or one that answers a goal question sharing a word with it."""
+    picks, rankings = (facts or {}).get("picks") or {}, (facts or {}).get("rankings") or []
+    r_by_id = {r["id"]: r for r in rankings}
+    outside = [r for r in rankings if r.get("kind") == "outside_rate"]
     qs = [q for q, ids in picks.items() if any(r_by_id.get(i, {}).get("kind") == "outside_rate" for i in ids)]
-    if not qs:
+    qt = set().union(*(tokens(q) for q in qs)) if qs else set()
+    answered = qt | set().union(*(tokens(" ".join([str(r["group"])] + [str(v) for v in r.get("values") or []])) for r in outside)) if outside else qt
+    if not answered:
         return gaps
-    qt = set().union(*(tokens(q) for q in qs))
-    return [g for g in gaps if not (g["title"].startswith("No ") and g["title"].endswith(" data") and any(_same(w, t) for w in tokens(g["title"][3:-5]) for t in qt))]
+    return [g for g in gaps if not (g["title"].startswith("No ") and g["title"].endswith(" data") and any(_same(w, t) for w in tokens(g["title"][3:-5]) for t in answered))]
+
+
+# ------------------------------------------------------------------ every column the goal names is answered
+def uncovered_groups(state: dict, view: dict) -> list[dict]:
+    """One ranking fact for every group column the goal names that no per-question answer in the summary uses (e.g. the goal names categories, channels and states and the answers cover two)."""
+    goal = state.get("goal", "")
+    rankings, by_id = view.get("rankings") or [], {f["id"]: f for f in state.get("findings") or []}
+    used = {i for a in view.get("answers") or [] for i in a["ids"]}
+    covered = {r["group"] for r in rankings if r["id"] in used} | {c for i in used if i in by_id for c in (by_id[i].get("params") or {}).values() if isinstance(c, str)}
+    out, seen = [], set()
+    for r in rankings:
+        if r.get("kind") in ("growth", "outside_rate") or r.get("basis") != "total" or r["group"] in covered | seen:
+            continue
+        if r["group"] in und.goal_columns(state.get("understanding")) or named_in_goal(r["group"], goal) or mentions(r["group"], goal):
+            out.append(r)
+            seen.add(r["group"])
+    return out

@@ -1,0 +1,120 @@
+"""Figures in AI-written prose must be tied to the fact they came from.
+The prompt makes the model write a fact id in square brackets after every figure ("Set is 49.6% of amount [r1]"). Code then checks, per figure:
+  1. a fact id is given and exists;
+  2. the figure equals a figure of that fact (same rounding rules as `insights.unverified_numbers`);
+  3. the words around the figure (6 either side) name the fact's subject.
+A sentence that fails any check is dropped by the caller, and the reason is recorded. `contradicts` separately catches a share that disagrees with a computed one."""
+from __future__ import annotations
+
+import re
+
+from .insights import NUM_RE, SUFFIX_RE, allowed_numbers, unverified_numbers
+from .summary import _same, tokens
+
+CITE_RE = re.compile(r"\s*\[\s*([A-Za-z]\w*(?:\s*[,;]\s*[A-Za-z]\w*)*)\s*\]")
+WINDOW = 6                  # words either side of a figure that must name the cited fact's subject
+CITE_RULE = ("Write the id of the fact a figure comes from in square brackets right after the figure, before any full stop, e.g. 'Set is 49.6% of amount [r1]'. "
+             "Every number you write needs an id. A figure may only cite the fact it appears in, and the words around it must be about that fact's subject. ")
+
+
+def make_fact(numbers_from: str, subject_from: str) -> dict:
+    return {"numbers": allowed_numbers(numbers_from), "subject": tokens(subject_from)}
+
+
+def split_cites(text: str) -> tuple[str, list[tuple[int, list[str]]]]:
+    """(text without the [id] markers, [(position in that text, ids)])."""
+    text = re.sub(r"([.!?])\s*(\[\s*[A-Za-z]\w*[^\]]*\])", r"\2\1", str(text))      # "... [r1]." and "... . [r1]" both mean the id belongs before the stop
+    clean, marks, last = [], [], 0
+    for m in CITE_RE.finditer(text):
+        clean.append(text[last:m.start()])
+        marks.append((sum(len(p) for p in clean), [x.strip() for x in re.split(r"[,;]", m.group(1))]))
+        last = m.end()
+    clean.append(text[last:])
+    return "".join(clean), marks
+
+
+def _end(m: re.Match) -> int:
+    """End of the figure itself: the number pattern also takes a full stop that closes the sentence."""
+    return m.start() + len(m.group(0).rstrip(".,"))
+
+
+def _figure_end(text: str, m: re.Match) -> int:
+    end = _end(m)
+    if suf := SUFFIX_RE.match(text, end):
+        end = suf.end()
+    return end + 1 if text[end:end + 1] == "%" else end
+
+
+def _window(text: str, m: re.Match) -> set[str]:
+    words = list(re.finditer(r"[A-Za-z][A-Za-z0-9]*", text))
+    before = [w.group(0) for w in words if w.end() <= m.start()][-WINDOW:]
+    after = [w.group(0) for w in words if w.start() >= _end(m)][:WINDOW]
+    return tokens(" ".join(before + after))
+
+
+def verify(text: str, facts: dict[str, dict]) -> tuple[str, str | None]:
+    """(text without the markers, None) when every figure is tied to a fact it matches, else (text without the markers, the reason)."""
+    clean, marks = split_cites(text)
+    for m in NUM_RE.finditer(clean):
+        piece = clean[m.start():_figure_end(clean, m)]
+        shown = piece.rstrip(".,")
+        cite = next((ids for pos, ids in marks if pos >= _end(m)), None)
+        if cite is None:
+            return clean, f"{shown}: no fact id given"
+        known = [i for i in cite if i in facts]
+        if not known:
+            return clean, f"{shown}: unknown fact id {', '.join(cite)}"
+        pool = [n for i in known for n in facts[i]["numbers"]]
+        if unverified_numbers(piece, pool):
+            return clean, f"{shown}: not a figure of fact {', '.join(known)}"
+        subject = set().union(*(facts[i]["subject"] for i in known))
+        win = _window(clean, m)
+        if subject and win and not any(_same(w, s) for w in win for s in subject):
+            return clean, f"{shown}: the words around it are not about the subject of fact {', '.join(known)}"
+    return clean, None
+
+
+# ------------------------------------------------------------------ a share that disagrees with a computed one
+LESS = re.compile(r"(?:less than|under|below|fewer than|at most|up to|no more than|<)\s*$", re.I)
+MORE = re.compile(r"(?:more than|over|above|at least|exceed\w*|>)\s*$", re.I)
+
+
+def claims(rankings: list[dict]) -> list[dict]:
+    """Computed shares with the words that name what they are the share of: [{names, also, values, id}]. Values are fractions."""
+    out = []
+    for r in rankings:
+        if r.get("kind") == "outside_rate":
+            vals = [v for v in (r.get("rate_amount"), r.get("rate_rows")) if v is not None]
+            if vals:
+                out.append({"id": r["id"], "names": tokens(" ".join([str(r["group"])] + [str(v) for v in r.get("values") or []])), "also": set(), "values": vals, "text": r["text"]})
+        elif r.get("top_share") is not None and r.get("kind") != "growth":
+            out.append({"id": r["id"], "names": tokens(str(r["top"])), "also": tokens(str(r["measure"])), "values": [r["top_share"]], "text": r.get("lead") or r["text"]})
+    return out
+
+
+def contradicts(clean: str, computed: list[dict]) -> dict | None:
+    """The computed claim a percent figure in `clean` disagrees with (same subject, different share), else None."""
+    sent = tokens(clean)
+    for m in NUM_RE.finditer(clean):
+        if clean[_end(m):_end(m) + 1] != "%":
+            continue
+        raw = m.group(0).replace(",", "").rstrip(".")
+        try:
+            v = float(raw) / 100
+        except ValueError:
+            continue
+        half = 0.5 * 10 ** -(len(raw.split(".")[1]) if "." in raw else 0) / 100 + 1e-9
+        win = _window(clean, m)
+        for c in computed:
+            if not any(_same(w, s) for w in win for s in c["names"]) or (c["also"] and not any(_same(w, s) for w in sent for s in c["also"])):
+                continue
+            before = clean[max(0, m.start() - 20):m.start()]
+            if LESS.search(before):
+                bad = min(c["values"]) >= v - 1e-9
+            elif MORE.search(before):
+                bad = max(c["values"]) <= v + 1e-9
+            else:
+                bad = all(abs(v - x) > half for x in c["values"])
+            if bad:
+                return c
+    return None

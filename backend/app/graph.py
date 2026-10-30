@@ -24,6 +24,7 @@ from . import brief as briefmod, clarify, derived, derived_check as derivedcheck
 from . import goal as goalmod
 from . import context as ctxmod
 from . import critic as critic_mod
+from . import understanding as undmod
 from . import insights, planner, polarity as polmod, powerbi, relations, reporter, signals, strategy, summary, tiering, tools
 from .cleaner import add_derived, apply_directives, coerce_types, scoped_clean
 from .config import MAX_ITERATIONS
@@ -80,6 +81,7 @@ class RunState(TypedDict, total=False):
     warnings: list
     ai_notes: list
     concerns: dict
+    understanding: dict
 
 
 def _wd(state) -> Path:
@@ -317,6 +319,37 @@ def brief_node(state: RunState) -> dict:
     return {**out_ctx, "brief": brief, "profile": new_prof, "decisions": decisions, "ai_notes": list(dict.fromkeys(brief_notes)), "stage_sources": {**(state.get("stage_sources") or {}), "brief": brief["source"]}}
 
 
+@isolated("understanding", empty={"understanding": {}})
+def understand_node(state: RunState) -> dict:
+    """One LLM call that writes the data understanding record (column meanings and roles, goal terms mapped to columns). Reused, not asked again, when a paused run restarts."""
+    rid, wd = state["run_id"], _wd(state)
+    ufile = wd / "understanding.json"
+    if ufile.exists():
+        stored = json.loads(ufile.read_text(encoding="utf-8"))
+        rec, decisions, notes = stored["record"], [*(state.get("decisions") or []), *stored.get("decisions", [])], [*(state.get("ai_notes") or []), *stored.get("ai_notes", [])]
+    else:
+        llm, _ = get_llm()
+        emit(rid, "Data understanding", "Writing down what each column means and which column each word of the goal points at…" if llm else "No LLM configured, so the name and data rules decide this.")
+        raw = pd.read_pickle(wd / "raw.pkl")
+        typed, _ = coerce_types(raw, state["profile"])
+        typed_profile = briefmod.apply_roles(profile_df(typed), (state.get("brief") or {}).get("roles") or {})
+        st: dict = {"decisions": []}
+        with llmmod.capture() as cap:
+            rec = undmod.resolve(llm, typed, typed_profile, state["goal"], state.get("context") or {}, st)
+        notes = list(state.get("ai_notes") or [])
+        if line := undmod.notice(rec):
+            notes.append(line)
+        decisions = [*(state.get("decisions") or []), *st["decisions"]]
+        ufile.write_text(json.dumps({"record": rec, "decisions": st["decisions"], "ai_notes": [line] if line else []}, default=str, indent=1), encoding="utf-8")
+    if rec["source"] == "llm":
+        emit(rid, "Data understanding", f"Described {len(rec['columns'])} columns" + (f" (after {rec['retries']} retr{'y' if rec['retries'] == 1 else 'ies'})" if rec["retries"] else "")
+             + "; goal words: " + ("; ".join(f"{t} -> {', '.join(c) or 'no column'}" for t, c in rec["goal_columns"].items()) or "none") + ".")
+    elif rec["source"] == "fallback":
+        emit(rid, "Data understanding", f"The AI answer was unusable ({rec['error']}), so the word-matching rules decide.")
+    return {"understanding": rec, "decisions": decisions, "ai_notes": list(dict.fromkeys(notes)),
+            "stage_sources": {**(state.get("stage_sources") or {}), "understanding": {"llm": "llm", "fallback": "fallback"}.get(rec["source"], "rules")}}
+
+
 SOURCE_WORDS = {"user": "your answers", "default": "defaults", "glossary": "the saved glossary", "goal": "your goal", "data": "the data itself"}
 
 
@@ -455,6 +488,9 @@ def plan_node(state: RunState) -> dict:
         prof = {**prof, "columns": prof["columns"] + [profile_df(typed[[c]])["columns"][0] for c in new_cols], "cols": prof["cols"] + len(new_cols)}
         extra["profile"] = prof
     ov = {**ov, "brief_roles": (state.get("brief") or {}).get("roles") or {}}
+    und = state.get("understanding")
+    ov["goal_columns"] = [c for c in undmod.goal_columns(und) if c in typed.columns]
+    ov["record_measures"] = [c for c in undmod.measure_columns(und) if c in typed.columns and pd.api.types.is_numeric_dtype(typed[c])]
     st: dict = {"decisions": list(state.get("decisions") or [])}
     id_roles, id_uniques = planner.roles_and_uniques(prof)
     for c in planner.id_like_columns(typed, id_roles, id_uniques, ov):
@@ -588,6 +624,8 @@ def _strategy(state: RunState, llm) -> dict:
     else:
         emit(rid, "Strategist", "The evidence is too thin for a data-backed strategy; recommending data foundations instead.")
     out = {"strategies": strategies, "strategy_summary": summary, "stage_sources": {**(state.get("stage_sources") or {}), "strategy": "llm" if improved else "rules"}}
+    if state.get("decisions"):      # wording the AI wrote that was not tied to a fact it matches is recorded there
+        out["decisions"] = state["decisions"]
     return _ai_failed(state, out, "strategies", llm, cap)
 
 
@@ -651,13 +689,14 @@ def powerbi_node(state: RunState) -> dict:
 
 def build_graph():
     g = StateGraph(RunState)
-    for name, fn in (("profile", profile_node), ("relate", relate_node), ("brief", brief_node), ("clarify", clarify_node), ("plan", plan_node), ("clean", clean_node), ("analyze", analyze_node),
+    for name, fn in (("profile", profile_node), ("relate", relate_node), ("brief", brief_node), ("understand", understand_node), ("clarify", clarify_node), ("plan", plan_node), ("clean", clean_node), ("analyze", analyze_node),
                      ("critic", critic_node), ("insights", insights_node), ("strategy", strategy_node), ("report", report_node), ("powerbi", powerbi_node)):
         g.add_node(name, fn)
     g.add_edge(START, "profile")
     g.add_edge("profile", "relate")
     g.add_edge("relate", "brief")
-    g.add_edge("brief", "clarify")
+    g.add_edge("brief", "understand")
+    g.add_edge("understand", "clarify")
     g.add_conditional_edges("clarify", route_after_clarify, {"plan": "plan", END: END})
     g.add_edge("plan", "clean")
     g.add_edge("clean", "analyze")

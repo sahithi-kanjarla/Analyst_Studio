@@ -468,6 +468,16 @@ def key_metrics(state: dict, df: pd.DataFrame) -> list[dict]:
 
 
 # ------------------------------------------------------------------ data gaps
+DATE_CAUTION = "Dates may be swapped, so trend and month findings below are unreliable until you answer this."
+DATE_TAG = "date-dependent"
+
+
+def dates_unconfirmed(state: dict) -> bool:
+    """True when a day/month swap question was asked and was not answered with the swap."""
+    answers = state.get("answers") or {}
+    return any(option_for(q, answers.get(q["id"]))["action"]["type"] != "swap_day_month" for q in state.get("questions") or [] if q.get("kind") == "date_swap")
+
+
 def mapped_roles(brief: dict | None) -> str:
     """Words for every role the brief already has a column for: the roles of its columns (date, measure...) and the KPI names it found a column for."""
     b = brief or {}

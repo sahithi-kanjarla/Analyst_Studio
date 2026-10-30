@@ -13,9 +13,9 @@ from __future__ import annotations
 import json
 import re
 
-from . import context as ctxmod, wording
+from . import cited, context as ctxmod, wording
 from .measures import measure_kind
-from .insights import allowed_numbers, effect_label, numbers_ok, polarity
+from .insights import allowed_numbers, effect_label, polarity
 from .llm import ask_json
 from .tools import _fmt
 
@@ -260,6 +260,7 @@ def prioritise(cands: list[dict]) -> list[dict]:
 REFINE_SYSTEM = """You are a senior strategy consultant adapting candidate strategies to a specific company.
 Rewrite wording so it fits the company's industry and vocabulary. You may change: title, objective, actions (3-5), risks (2-3), kpis, how_to_test.
 You may NOT add strategies, change ids, evidence, impact or effort, or introduce any number that is not already in the candidate or the facts.
+Write the id of the fact a figure comes from in square brackets right after the figure (e.g. "[f3]"); use "candidate" for a figure already in the candidate's own text. Every number needs an id, and the words around it must be about that fact's subject.
 Keep each action concrete and specific; do not claim cause and effect.
 Return JSON: {"strategies": [{"id": "...", "title": "...", "objective": "...", "actions": ["..."], "risks": ["..."], "kpis": ["..."], "how_to_test": "..."}]}"""
 
@@ -272,7 +273,7 @@ def refine_with_llm(llm, state: dict, strategies: list[dict]) -> int:
     if not cands:
         return 0
     payload = [{"id": s["id"], "title": s["title"], "objective": s["objective"], "actions": s["actions"], "risks": s["risks"], "kpis": s["kpis"], "how_to_test": s["how_to_test"],
-                "facts": [f["text"].replace("**", "") for f in state["findings"] if f["id"] in s["evidence"]]} for s in cands]
+                "facts": [{"id": f["id"], "text": f["text"].replace("**", "")} for f in state["findings"] if f["id"] in s["evidence"]]} for s in cands]
     out = ask_json(llm, REFINE_SYSTEM, (f"COMPANY CONTEXT (user-written, unverified):\n{ctx_txt}\n\n" if ctx_txt else "") + f"GOAL: {state['goal']}\nCANDIDATES:\n{json.dumps(payload, default=str, ensure_ascii=False)}")
     if not out or not isinstance(out.get("strategies"), list):
         return 0
@@ -283,18 +284,31 @@ def refine_with_llm(llm, state: dict, strategies: list[dict]) -> int:
         if not s:
             continue
         facts = [f for f in state["findings"] if f["id"] in s["evidence"]]
-        allowed = allowed_numbers(json.dumps(payload, default=str, ensure_ascii=False), ctx_txt, *[json.dumps(f["stats"], default=str, ensure_ascii=False) for f in facts])
+        own = " ".join([s["title"], s["objective"], s["how_to_test"], *s["actions"], *s["risks"], *s["kpis"]])
+        known = {"candidate": cited.make_fact(own + " " + ctx_txt, own)}
+        for f in facts:
+            known[f["id"]] = cited.make_fact(f["text"] + " " + f.get("title", ""), f["text"] + " " + f.get("title", "") + " " + " ".join(str(v) for v in (f.get("params") or {}).values() if isinstance(v, str)))
+            known[f["id"]]["numbers"] += allowed_numbers(json.dumps(f["stats"], default=str, ensure_ascii=False))
+            known[f["id"]]["subject"] |= known["candidate"]["subject"]        # the strategy is about its evidence, so its own wording names the subject of that evidence
         changed = False
         before = {k: list(v) if isinstance(v, list) else v for k, v in s.items() if k in ("title", "objective", "actions", "risks", "kpis", "how_to_test")}
 
-        def ok_text(v, lo=8, hi=260):
-            return isinstance(v, str) and lo <= len(v.strip()) <= hi and numbers_ok(v, allowed) and not wording.unsupported_profit_claim(v, state)
+        def clean_text(v, lo=8, hi=260):
+            """The text without its fact ids when it is the right length and every figure is tied to a fact it matches, else None (the reason is recorded)."""
+            if not isinstance(v, str):
+                return None
+            text, why = cited.verify(v, known)
+            if why or wording.unsupported_profit_claim(text, state):
+                state.setdefault("decisions", []).append({"decision": "strategy wording", "source": "rules", "chosen": "kept the rule-based wording", "why": f"{s['id']}: " + (why or "no cost or profit column in the data"),
+                                                          "errors": [text[:200]], "raw_output": ""})
+                return None
+            return text.strip() if lo <= len(text.strip()) <= hi else None
 
         for key, hi in (("title", 140), ("objective", 300), ("how_to_test", 420)):
-            if ok_text(item.get(key), 8, hi):
-                s[key], changed = item[key].strip(), True
+            if (t := clean_text(item.get(key), 8, hi)) is not None:
+                s[key], changed = t, True
         for key, mx in (("actions", 5), ("risks", 3), ("kpis", 4)):
-            lst = [x.strip() for x in (item.get(key) or []) if ok_text(x)][:mx]
+            lst = [t for x in (item.get(key) or []) if (t := clean_text(x)) is not None][:mx]
             if len(lst) >= (2 if key != "kpis" else 1):
                 s[key], changed = lst, True
         if changed and pushes_both_ways(s["title"] + " " + s["objective"], *s["actions"]):
