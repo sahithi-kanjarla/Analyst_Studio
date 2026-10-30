@@ -555,6 +555,11 @@ def _appendix_section(view: dict) -> list[str]:
 def _setup_section(state: dict) -> list[str]:
     plan, prof, ctx = state["plan"], state["profile"], state.get("context") or {}
     L: list[str] = []
+    from . import llm as llmmod
+    u = llmmod.usage_summary()
+    if u["calls"]:
+        tok = f"about {u['input_tokens']:,} input and {u['output_tokens']:,} output tokens" + (" (estimated)" if u["estimated"] else "")
+        L += [f"**AI usage so far:** {u['sent']} call(s) sent, {u['cached']} answered from saved or repeated results; {tok}; {u['seconds']} s in AI calls. Per call: ai_usage.json.", ""]
     cn = state.get("concerns") or {}
     if cn.get("path") == "ai":
         L += [f"**Data concerns:** proposed by the AI, verified by code ({len(cn.get('accepted') or [])} accepted, {len(cn.get('rejected') or [])} not applied).", ""]
@@ -710,6 +715,9 @@ def build_report(state: dict, summary: str, recs: list[str], run_mode: str = "",
     warns = _warnings(state)
     cs = mainview.cards(state, view)
     plan = mainview.plan_actions(state, view, cs)
+    # the saved view lists the same actions as 'What to do' (one recommendation list); the evidence of an action kept where its text is unchanged
+    old_ev = {a.get("text"): a.get("evidence") or [] for a in view.get("actions") or []}
+    view["actions"] = [{"text": a["text"], "evidence": old_ev.get(a["text"], [])} for a in plan["actions"]]
     answer_cards = [c for c in cs if c["num"]]          # an action question has no card: the 'What to do' section answers it
     L = [title, "", f"**Mode:** {run_mode or derive_mode(state.get('stage_sources'))}", ""] + [f"- ⚠ {w}" for w in warns[:mainview.WARNINGS_MAX]] + ([""] if warns else [])
 
