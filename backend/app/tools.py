@@ -22,7 +22,8 @@ from . import derived, wording
 from .measures import measure_kind
 from .config import CHART_DPI
 
-PALETTE = ["#4F6BED", "#22A699", "#F2994A", "#E5484D", "#8E6BEE", "#3FA9F5", "#A3A847", "#C45AB3"]
+# The first colour is the app accent (the highlight); other bars are a neutral warm grey, so the highlight is the one colour that stands out.
+PALETTE = ["#A4461F", "#22A699", "#F2994A", "#E5484D", "#8E6BEE", "#3FA9F5", "#A3A847", "#C45AB3"]
 plt.rcParams.update({
     "axes.spines.top": False, "axes.spines.right": False, "axes.grid": True, "axes.grid.axis": "y", "grid.alpha": 0.25,
     "font.size": 10, "axes.titlesize": 12, "axes.titleweight": "bold", "figure.dpi": 100,
@@ -286,7 +287,7 @@ def _vbars(labels, values, texts, colors, xlabel="", ylabel="", note="", err=Non
 def ranked_bars(labels, values, ns, fmt, other_at=None, xlabel="", ylabel="", note="", err=None, percent=False):
     """Pick the layout from the data: horizontal when there are more than 6 bars or long labels. The best bar is dark, others light, 'Other' grey."""
     texts = [f"{fmt(v)}  (n={int(n):,})" for v, n in zip(values, ns)]
-    colors = [PALETTE[0] if i == 0 else "#B9C2E8" for i in range(len(labels))]
+    colors = [PALETTE[0] if i == 0 else "#CFC7B9" for i in range(len(labels))]
     if other_at is not None:
         colors[other_at] = OTHER_COLOR
     if len(labels) > 6 or max((len(str(l)) for l in labels), default=0) > LONG_LABEL:

@@ -69,3 +69,11 @@ def test_shipped_copy_has_no_upload_or_secrets():
     assert not (DEMO_DIR / "inputs").exists()
     assert not list(DEMO_DIR.rglob(".env*"))
     assert (DEMO_DIR / "result.json").exists() and (DEMO_DIR / "clean.pkl").exists()
+
+
+def test_a_changed_shipped_copy_replaces_the_stale_one(monkeypatch):
+    runner.ensure_demo_run()
+    stale = runner.run_dir(runner.DEMO_RUN_ID) / "result.json"
+    stale.write_text("{}")                                   # an older copy from before the shipped run changed
+    runner.ensure_demo_run()
+    assert stale.read_bytes() == (DEMO_DIR / "result.json").read_bytes()

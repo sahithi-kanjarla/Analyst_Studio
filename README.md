@@ -7,6 +7,8 @@ its own conclusions, and gives you a report plus a **Power BI starter pack**.
 **Free to build and run.** The heavy lifting (profiling, cleaning, statistics, charts) is plain Python. The LLM only
 plans, critiques and writes prose, and it can be a free local model, a free-tier API, or nothing at all.
 
+![The Analyst Studio start page, with the sample run](docs/screenshots/landing-top-desktop.png)
+
 ```
  React UI ──upload + goal──▶ FastAPI ──▶ LangGraph workflow
     ▲                                       │
@@ -184,6 +186,23 @@ Upload up to 8 files (or one Excel workbook with several sheets; each non-empty 
 
 Try `sample_data/shop/` (customers + orders + products) with *"Why do customers churn and which segment drives revenue?"*.
 
+## Try it without uploading anything
+
+Press **Try with sample data** on the start page. It opens a finished run of a small sales file (`sample_data/demo/sales_run/`, about 600 rows, a sample store): the same report, dashboard, data viewer, cleaning log and plan as a real run. The sample is **read-only**, makes **no AI calls** and needs no API key. The start page's product tour runs the same screens on it.
+
+- The tour shows the app's real screens: **Dashboard**, **Insights**, **Report**, **Data**, **Cleaning log** and **Plan**. Click a tab, or scroll the steps; a click overrides the scroll until the next step.
+- **Print / Save as PDF** (on the report tab) includes or leaves out the summary, key numbers, charts, tables, data-quality notes and evidence; sets the title, company, date and an optional note; and chooses A4 or Letter, portrait or landscape, colour or black and white. Your last choices are remembered in this browser only.
+
+## Checking a report
+
+`python scripts/report_check.py <run id>` reads a finished run and prints PASS or FAIL for seven rules: the recommendation lists are identical wherever they appear; no action is a bare fact; a "biggest" claim names the computed top group; no investment advice from size alone; the coverage warning appears exactly when under 70% of calendar days have data; no internal column names in the main view; and no hash links. The sample run passes all seven. Its tests use one good and one bad sample per rule.
+
+Each run also keeps `ai_usage.json`: every AI call with its stage, input and output tokens (flagged as estimated when the provider gives no count), whether it was answered from a saved result, and its time. The report's data section has one line with the totals, and `scripts/scorecard.py` prints a per-stage table.
+
+## Ask about this report (optional, off by default)
+
+With `CHATBOT=on`, the report tab shows **Ask about this report**. The AI chooses **one** operation from a closed list (top N by a measure, compare two groups, trend of a measure, share of the total, or filter then total) and its parameters. Code checks those parameters against the run's real columns and values, computes the answer on the cleaned data and draws the chart. Every figure comes from code. A question that fits none of the operations is said so plainly, with two questions the report can answer. The sample run never answers questions, since it makes no AI calls.
+
 ## Quick start
 
 ```bash
@@ -238,7 +257,7 @@ registration and a Power BI Pro licence, so it is not part of the free path).
 ## Tests
 
 ```bash
-cd backend && pytest -q        # 660 tests collected (see scripts/build_log.md for the last full run): pipeline, API, edge cases, multi-table joins, clarifying questions and glossary, derived metrics, report tiers, run safety, LLM failure modes (fake model, no network)
+cd backend && pytest -q        # 699 tests: pipeline, API, edge cases, multi-table joins, clarifying questions and glossary, derived metrics, report tiers, run safety, LLM failure modes (fake model, no network)
 ```
 
 **Scorecard.** `python scripts/scorecard.py [--dataset mall] [--runs N]` runs the real pipeline on a built-in test dataset (Kaveri, 3 files; or mall, 40 000 rows) and checks the report against a known answer in 12 checks. Both datasets were built for this project. Latest recorded results: Kaveri 12/12 and mall 12/12 (25 Oct 2026). See `docs/facts.md` for measured limits, timings and storage.
@@ -249,9 +268,10 @@ cd backend && pytest -q        # 660 tests collected (see scripts/build_log.md f
 backend/app/   profiler.py  relations.py  brief.py  signals.py  placeholders.py  clarify.py  directives.py  glossary.py  planner.py  derived.py  derived_check.py
                measures.py  polarity.py  retail_roles.py  cleaner.py  tools.py  critic.py  insights.py  strategy.py  summary.py  tiering.py  goal.py
                wording.py  reporter.py  powerbi.py  dashboard.py  graph.py (LangGraph)  llm.py (providers)  runner.py  events.py  main.py (FastAPI)
-backend/tests/ 660 tests        scripts/  scorecard.py  make_mall.py        docs/  facts.md  decision_points.md  flow_audit.md
-frontend/src/  App.tsx  components/ (Landing, UploadForm, QuestionForm, RunView, Results, BIDashboard, InsightCard, StrategyView, DataViewer, DataModel, Glossary, History, ...)
-sample_data/   sales.csv  churn.csv  shop/{customers,orders,products}.csv  mall/ (40 000-row scorecard dataset with truth.json)
+backend/tests/ 699 tests        scripts/  scorecard.py  make_mall.py        docs/  facts.md  decision_points.md  flow_audit.md
+frontend/src/  App.tsx  tokens.css (colours, type and spacing: the only values new code uses)  components/ (Landing = product tour, UploadForm, QuestionForm, RunView, Results, PrintPanel, AskReport, BIDashboard, InsightCard, StrategyView, DataViewer, DataModel, Glossary, History, ...)
+sample_data/   sales.csv  churn.csv  shop/{customers,orders,products}.csv  mall/ (40 000-row scorecard dataset with truth.json)  demo/sales_run/ (the read-only sample run)
+scripts/       report_check.py  scorecard.py  landing_screenshots.js  design_notes.md  build_log.md
 ```
 
 ## Privacy: what is stored and where
@@ -271,6 +291,9 @@ To delete everything, stop the server and remove `backend/data/`. To keep runs f
 
 ## Known limits
 
+- The sample run is built from `sample_data/sales.csv`, not the Kaveri dataset named in the design brief: Kaveri is not in this repository.
+- Printing covers the report tab only. The cleaning log and plan are separate tabs and are not part of the printed report.
+- The product tour shows the dashboard as the app draws it, which is still the dark dashboard style; the rest of the landing page uses the light palette.
 - Charts are static images (PNG), not interactive: you can click to enlarge but not filter them. Power BI is the place for interactive slicing; the pack is built for that.
 - Non-English column names need a system font that has those letters (Nirmala UI on Windows, Noto Sans elsewhere).
 

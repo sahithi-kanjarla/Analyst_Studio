@@ -23,11 +23,14 @@ def is_demo(run_id: str) -> bool:
 
 
 def ensure_demo_run() -> str:
-    """Copy the shipped sample run into the runs folder (once; again if it was removed) and return its id. Nothing in it is ever re-run."""
+    """Copy the shipped sample run into the runs folder, and again whenever the shipped copy changes (or the copy was removed). Returns its id.
+    Nothing in it is ever re-run."""
     import shutil
     wd = run_dir(DEMO_RUN_ID)
-    if not (wd / "result.json").exists():
-        shutil.copytree(DEMO_DIR, wd, dirs_exist_ok=True)
+    shipped = DEMO_DIR / "result.json"
+    if not (wd / "result.json").exists() or (wd / "result.json").read_bytes() != shipped.read_bytes():
+        shutil.rmtree(wd, ignore_errors=True)
+        shutil.copytree(DEMO_DIR, wd)
     return DEMO_RUN_ID
 
 

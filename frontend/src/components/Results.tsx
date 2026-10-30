@@ -69,6 +69,7 @@ export default function Results({ run }: { run: RunResult }) {
         <span className="spacer" />
         {run.run_mode && <span className={`pill ${run.run_mode === "AI-assisted" ? "pill-ok" : run.run_mode === "AI-assisted (partly)" ? "" : "pill-muted"}`} title="How much of this run was decided by the AI versus fixed rules">{run.run_mode}</span>}
         <button className="chip" onClick={() => setReview((v) => !v)} title="See, change or re-ask the answers this run used">Review answers</button>
+        {tab === "report" && <PrintPanel run={run} />}
         <button className="chip" onClick={toggleFull} title="Full screen (Esc to exit)">{full ? "⤢ Exit full screen" : "⛶ Full screen"}</button>
         <a className="primary small" href={api.powerbiUrl(run.run_id)}>
           Download Power BI pack
@@ -94,7 +95,6 @@ export default function Results({ run }: { run: RunResult }) {
 
       {tab === "report" && (
         <>
-          <PrintPanel run={run} />
           <AskReport run={run} />
           <ReportBody md={run.report_md ?? ""} />
         </>
