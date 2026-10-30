@@ -154,6 +154,7 @@ def ask_concerns(llm, sheet: dict, goal: str, description: str = "", saved: dict
     hint = description_hint({"description": description})
     ck = aicache.key("concerns", sheet, goal, hint, aicache.glossary_answers(saved), aicache.model_name(llm), SYSTEM)
     if (hit := aicache.get(ck)) is not None:
+        aicache.note_reused("concerns")
         if reused is not None:
             reused.append(True)
         return hit, ""

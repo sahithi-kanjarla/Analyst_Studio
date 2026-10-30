@@ -14,12 +14,16 @@ from __future__ import annotations
 import json
 import os
 import re
+import sys
 import threading
 import time
 import urllib.request
 from contextlib import contextmanager
 
+from . import aicache
+
 _cache: dict = {}
+SENT = {"calls": 0}      # how many requests were really sent to the model in this process (a saved result sends none)
 _tls = threading.local()    # each run is its own worker thread, so concurrent runs never see each other's failures
 TIMEOUT_S = 60
 MAX_RETRIES = 0             # the provider SDKs must not retry on their own: _invoke is the only retry layer, so one failure is never multiplied
@@ -177,6 +181,7 @@ def begin_run(cache: bool = False) -> None:
     again from memory for the rest of this run; direct callers get no cache."""
     _tls.daily = False
     _tls.answers = {} if cache else None
+    aicache.reset_reused()
 
 
 def reset_cache():
@@ -208,6 +213,7 @@ def _invoke(llm, system: str, user: str) -> tuple[str | None, str]:
     reason, rate_tries, other_tries = "", 0, 0
     while True:
         try:
+            SENT["calls"] += 1
             out = llm.invoke([("system", system), ("human", user)])
             content = out.content
             if isinstance(content, list):  # some providers return content blocks
@@ -235,30 +241,62 @@ def _invoke(llm, system: str, user: str) -> tuple[str | None, str]:
     return None, reason
 
 
+def _stage() -> str:
+    """The module and function that asked, for the report's 'Reused saved AI result' line."""
+    f = sys._getframe(1)
+    while f is not None and f.f_globals.get("__name__") == __name__:
+        f = f.f_back
+    return f"{f.f_globals.get('__name__', '?').rsplit('.', 1)[-1]}.{f.f_code.co_name}" if f is not None else "?"
+
+
+def _disk_key(llm, system: str, user: str) -> str:
+    return aicache.call_key(system, user, aicache.model_name(llm), aicache.temperature_of(llm))
+
+
 def ask_text(llm, system: str, user: str) -> str | None:
     if llm is None:
         return None
-    return _invoke(llm, system, user)[0]
+    k = _disk_key(llm, system, user)
+    if (hit := aicache.get(k)) is not None:
+        aicache.note_reused(_stage())
+        return hit
+    out = _invoke(llm, system, user)[0]
+    if out is not None:
+        aicache.put(k, out)
+    return out
+
+
+def _extract(raw: str) -> dict | None:
+    raw = re.sub(r"^```(?:json)?|```$", "", raw.strip(), flags=re.M).strip()
+    start, end = raw.find("{"), raw.rfind("}")
+    if start == -1 or end == -1:
+        return None
+    try:
+        return json.loads(raw[start:end + 1])
+    except json.JSONDecodeError:
+        return None
 
 
 def ask_json_ex(llm, system: str, user: str) -> tuple[dict | None, str]:
-    """Ask for JSON and defensively extract it. (object, reason): the object is None when the call failed or the output is unusable, and reason says which."""
+    """Ask for JSON and defensively extract it. (object, reason): the object is None when the call failed or the output is unusable, and reason says which.
+    A reply that parsed is saved on disk (aicache) by the full prompt, model and temperature and answers the same call later; failed calls are never saved."""
     if llm is None:
         return None, "no LLM configured"
-    raw, reason = _invoke(llm, system + "\n\nReturn ONLY a single valid JSON object. No prose, no markdown fences.", user)
+    system = system + "\n\nReturn ONLY a single valid JSON object. No prose, no markdown fences."
+    k = _disk_key(llm, system, user)
+    if (hit := aicache.get(k)) is not None and (obj := _extract(hit)) is not None:
+        aicache.note_reused(_stage())
+        return obj, ""
+    raw, reason = _invoke(llm, system, user)
     if raw is None:
         return None, reason
-    raw = re.sub(r"^```(?:json)?|```$", "", raw.strip(), flags=re.M).strip()
-    start, end = raw.find("{"), raw.rfind("}")
-    bad = "bad JSON (the reply had no parseable JSON object)"
-    if start == -1 or end == -1:
+    obj = _extract(raw)
+    if obj is None:
+        bad = "bad JSON (the reply had no parseable JSON object)"
         note_failure(bad)
         return None, bad
-    try:
-        return json.loads(raw[start:end + 1]), ""
-    except json.JSONDecodeError:
-        note_failure(bad)
-        return None, bad
+    aicache.put(k, raw)
+    return obj, ""
 
 
 def ask_json(llm, system: str, user: str) -> dict | None:

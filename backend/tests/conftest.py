@@ -24,6 +24,7 @@ def fresh_ai_state(monkeypatch, tmp_path):
     from app import llm
     llm.begin_run()
     monkeypatch.setenv("AI_CACHE_DIR", str(tmp_path / "ai_cache"))      # the saved AI results never leak from one test to another
+    monkeypatch.setenv("AI_CACHE", "off")      # fake models answer the same prompt differently from one call to the next; the tests of the cache itself switch it on
     monkeypatch.setattr(llm, "_sleep", lambda s: None)
     yield
     llm.begin_run()

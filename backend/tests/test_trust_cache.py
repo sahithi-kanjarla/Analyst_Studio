@@ -15,6 +15,11 @@ from app.profiler import profile_df  # noqa: E402
 GOAL = "How do sales differ by group?"
 
 
+@pytest.fixture(autouse=True)
+def cache_on(monkeypatch):
+    monkeypatch.setenv("AI_CACHE", "on")
+
+
 # ------------------------------------------------------------------ 1. trust follows the weakest figure
 def ranking(short, kind="growth"):
     return {"id": "r1", "tool": "ranking", "kind": kind, "basis": "total", "group": "g", "measure": "m", "short": short, "text": short}

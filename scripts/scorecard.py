@@ -8,7 +8,7 @@ print PASS/FAIL per check and append the result to scripts/scorecard_history.csv
 
 Checks search the full report text (collapsed sections included) and the findings, so they measure facts, not layout.
 Test tooling only: it imports the app but changes nothing in it. Questions are answered with their defaults."""
-import argparse, csv, json, re, statistics, sys, time
+import argparse, csv, json, os, re, statistics, sys, time
 from datetime import datetime
 from pathlib import Path
 
@@ -268,13 +268,21 @@ def save(rid: str, rows) -> None:
         w.writerow([datetime.now().isoformat(timespec="seconds"), rid, sum(r[2] for r in rows), len(rows)] + [int(r[2]) for r in rows] + [DATASET])
 
 
+def run_dir_of(rid: str) -> Path:
+    from app.runner import run_dir
+    return run_dir(rid)
+
+
 def main():
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     ap = argparse.ArgumentParser()
     ap.add_argument("--run", help="score an existing run id instead of running the pipeline")
     ap.add_argument("--runs", type=int, default=1, help="number of pipeline runs, one after another")
     ap.add_argument("--dataset", choices=("kaveri", "mall"), default="kaveri")
+    ap.add_argument("--no-cache", action="store_true", help="do not reuse saved AI results (sets AI_CACHE=off)")
     a = ap.parse_args()
+    if a.no_cache:
+        os.environ["AI_CACHE"] = "off"
     global DATASET
     DATASET = a.dataset
     if a.run:
@@ -288,6 +296,8 @@ def main():
     d = data_dir()
     results = []        # one list of rows per pipeline run that finished
     for i in range(1, a.runs + 1):
+        from app import llm as llm_mod
+        sent_before = llm_mod.SENT["calls"]
         try:
             rid = run_pipeline(d)
         except RuntimeError as e:
@@ -295,7 +305,10 @@ def main():
             continue
         rows = score(rid)
         results.append(rows)
-        print(f"\n{DATASET} scorecard, run {i}/{a.runs} ({rid}); ratio KPI path: {ratio_path(rid)}\n")
+        print(f"\n{DATASET} scorecard, run {i}/{a.runs} ({rid}); ratio KPI path: {ratio_path(rid)}")
+        rep = run_dir_of(rid) / "report.md"
+        reuse = re.search(r"Reused saved AI result: [^\n]*", rep.read_text(encoding="utf-8", errors="replace")) if rep.exists() else None
+        print(f"AI requests sent in this run: {llm_mod.SENT['calls'] - sent_before}; cache {'off' if a.no_cache else 'on'}; {reuse.group(0) if reuse else 'no saved AI result reused'}\n")
         table(rows)
         print(f"\nTotal: {sum(r[2] for r in rows)}/{len(rows)}", flush=True)
         save(rid, rows)

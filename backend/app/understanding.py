@@ -131,6 +131,7 @@ def resolve(llm, df: pd.DataFrame, profile: dict, goal: str, ctx: dict | None, s
     view = build_view(sheet, goal, ctx)
     ck = aicache.key("understanding", sheet, goal, ctxmod.description_hint(ctx), aicache.glossary_answers(saved), aicache.model_name(llm), SYSTEM)
     if (hit := aicache.get(ck)) is not None:
+        aicache.note_reused("understanding")
         if state is not None:
             state.setdefault("decisions", []).append({"decision": "data understanding", "source": "cache", "chosen": aicache.REUSED, "why": "same data, goal, description, glossary, model and prompt as a saved run",
                                                       "errors": [], "raw_output": ""})

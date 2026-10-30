@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import re
 
-from . import cited, context as ctxmod, mainview, summary as summary_mod, tiering, wording
+from . import aicache, cited, context as ctxmod, mainview, summary as summary_mod, tiering, wording
 from . import understanding as und
 from .clarify import named_in_goal
 from .llm import ask_json, capture
@@ -487,6 +487,8 @@ def _setup_section(state: dict) -> list[str]:
           f"{prof['rows']:,} rows × {prof['cols']} columns. Columns used: {', '.join(f'`{c}`' for c in plan['relevant_columns']) or 'n/a'}.", ""]
     L += [f"- **{s['step']}**: {s['detail']}" for s in state["cleaning_log"]] or ["- No cleaning changes were needed."]
     L += und.setup_lines(state.get("understanding"))
+    if state.get("reused_ai"):      # never silent: a saved AI result stood in for a call
+        L.append(f"- {aicache.REUSED}: {', '.join(state['reused_ai'])}.")
     return L + [f"- {r}" for r in (state.get("concerns") or {}).get("rejected") or []]
 
 
@@ -658,4 +660,5 @@ def write_report(state: dict, llm) -> tuple[str, str]:
         plan = mainview.plan_actions(state, view, cs)
         if plan["open"]:
             state["ai_actions"] = llm_actions(llm, state, view, cs, plan["open"], mainview.ACTIONS_MAX - len(plan["actions"]))
+    state["reused_ai"] = aicache.reused_stages()
     return build_report(state, summary, recs, derive_mode({**(state.get("stage_sources") or {}), "report": mode}), view), mode
