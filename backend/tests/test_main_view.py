@@ -163,7 +163,7 @@ def test_an_ai_action_without_a_fact_id_is_dropped(monkeypatch):
     st = state_with(strategies=False)
     monkeypatch.setattr(reporter, "ask_json", fake_ai({"summary": "Fine [counts].", "recommendations": ["Do it."]}, {"actions": [{"question": 1, "text": "Shift budget to segment a."}]}, []))
     todo = what_to_do(main_of(render(st, object())))
-    assert "Shift budget" not in todo and "No action suggested for question 1: " in todo
+    assert "Shift budget" not in todo and "segment a is highest at 5,000" in todo      # Task A: a dropped action is replaced by the computed fact line, not by "No action suggested"
     assert any(d["decision"] == "report_actions" for d in st["decisions"])
 
 

@@ -185,14 +185,24 @@ def llm_actions(llm, state: dict, view: dict, cs: list[dict], wanted: list[int],
             "Every action must end with the id of the fact it rests on in square brackets, even when it has no number. "
             "Return JSON: {\"actions\": [{\"question\": <question number>, \"text\": \"one plain sentence\"}]}",
             "GOAL QUESTIONS AND THEIR FACTS: " + json.dumps({n: {"question": q_of[n], "facts": {i: t for i, t in fs.items()}} for n, fs in offered.items()}, ensure_ascii=False))
-    got, dropped, rejected = {}, [], []
+    got, dropped, rejected, none, ids_of = {}, [], [], {}, {}
     computed = cited.claims((state.get("summary_facts") or {}).get("rankings") or [])
+
+    def instead(n: int, why: str) -> None:
+        """The action is replaced by the computed fact (its own wording and figures); with no fact that has a figure and names its measure, the question gets 'No action suggested: <reason>'."""
+        for i in offered[n]:
+            line = mainview.fact_line(i, by_id, r_by_id, state)
+            if mainview.concrete(line, {mainview.measure_of(i, by_id, r_by_id)}):
+                got[q_of[n]], ids_of[q_of[n]] = line, [i]
+                return
+        none[q_of[n]] = f"the AI's action was dropped ({why}) and no computed fact for it has a figure to act on."
+
     for item in (out or {}).get("actions") if isinstance((out or {}).get("actions"), list) else []:
         try:
             n, text = int(item["question"]), str(item["text"])
         except (KeyError, TypeError, ValueError):
             continue
-        if n not in offered or q_of[n] in got:
+        if n not in offered or q_of[n] in got or q_of[n] in none:
             continue
         clean, bad = cited.verify(text, facts)
         marks = {i for _, ids in cited.split_cites(text)[1] for i in ids}
@@ -201,8 +211,16 @@ def llm_actions(llm, state: dict, view: dict, cs: list[dict], wanted: list[int],
             why = bad or (f"disagrees with computed fact {wrong['id']}" if wrong else "cites no fact offered for this question" if not marks & set(offered[n]) else "no cost or profit column in the data")
             dropped.append(f"action dropped ({why}): {clean}")
             rejected.append(why)
+            instead(n, "it failed the fact check")
             continue
-        got[q_of[n]] = _sentences(clean)[0]
+        sentence = _sentences(clean)[0]
+        if not mainview.concrete(sentence, {mainview.measure_of(i, by_id, r_by_id) for i in offered[n]}):
+            dropped.append(f"action replaced (no figure with its measure named): {clean}")
+            instead(n, "no figure with its measure named")
+            continue
+        got[q_of[n]], ids_of[q_of[n]] = sentence, sorted(marks & set(offered[n]))
+    state["action_none"] = {**(state.get("action_none") or {}), **none}
+    state["ai_action_ids"] = {**(state.get("ai_action_ids") or {}), **ids_of}
     if dropped or not out or not got:
         state.setdefault("decisions", []).append({"decision": "report_actions", "source": "fallback" if not got else "mixed", "chosen": "no AI action" if not got else "AI actions that passed the fact-id check",
                                                   "why": cap.reason or "the model's actions were checked against the facts offered", "errors": dropped or ["the model returned no usable actions"], "raw_output": json.dumps(out, default=str)[:500]})

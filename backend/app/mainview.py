@@ -133,6 +133,114 @@ def action_basis(i: str, state: dict, by_id: dict, r_by_id: dict) -> bool:
     return goal_named(f, state.get("goal", "")) and f.get("significant") is not False
 
 
+# ------------------------------------------------------------------ labels, units and concrete figures
+GROWTH_SHORT = re.compile(r"^Biggest change in .+?, (?P<a>\S+) vs (?P<b>\S+): (?P<what>.+?) \([^()]*\), (?P<rel>not statistically reliable|statistically reliable)$")
+FREQ_WORD = {"D": "day", "W": "week", "MS": "month"}
+GROWTH_CLAIM = re.compile(r"\b(?:high|strong|rapid|fast|significant)[- ]growth\b|\bgrowing (?:fast|strongly|rapidly)\b|\bfastest[- ]growing\b", re.I)
+SAYS_UNIT = r"(?![\d.,]*\d|%|\s?[%×]|\s?[xKMB]\b|\s?(?:rows|times|days|months|weeks|years|groups|customers|orders)\b)"
+BARE_AFTER = re.compile(r"\b(?P<lead>averages?|mean|median|stands at|is|at|was|to)\s+(?P<num>-?\d[\d,]*(?:\.\d+)?)" + SAYS_UNIT)
+PERCENT_WORDS = {"pct", "percent", "percentage", "rate", "share", "ratio"}
+
+
+def growth_label(r: dict) -> str | None:
+    """The change between the first and last full period, said in plain words with its own reliability: '2023 vs 2024: group g3 +41% (not statistically reliable)'."""
+    m = GROWTH_SHORT.match(str(r.get("short") or ""))
+    return f"{m['a']} vs {m['b']}: {m['what']} ({m['rel']})" if m else None
+
+
+def trend_label(f: dict) -> str | None:
+    """The fitted trend over the whole period, in plain words with its own reliability: 'monthly trend over 24 months: rising (statistically reliable)'."""
+    st = f.get("stats") or {}
+    unit = FREQ_WORD.get(st.get("freq"))
+    if not unit or st.get("periods") is None or st.get("slope") is None:
+        return None
+    rel = "statistically reliable" if f.get("significant") else NOT_RELIABLE
+    return f"{unit}ly trend over {st['periods']} {unit}s: {'rising' if st['slope'] > 0 else 'falling'} ({rel})"
+
+
+def growth_reliable(i: str, by_id: dict, r_by_id: dict) -> bool | None:
+    """Is the growth figure behind this fact id statistically reliable? None when the fact is not a growth figure."""
+    if i in r_by_id and r_by_id[i].get("kind") == "growth":
+        m = GROWTH_SHORT.match(str(r_by_id[i].get("short") or ""))
+        return bool(m) and m["rel"] == "statistically reliable"
+    if i in by_id and by_id[i].get("tool") == "trend":
+        return bool(by_id[i].get("significant"))
+    return None
+
+
+def measure_of(i: str, by_id: dict, r_by_id: dict) -> str:
+    if i in r_by_id:
+        return str(r_by_id[i].get("measure") or "")
+    return str(((by_id.get(i) or {}).get("params") or {}).get("target") or "")
+
+
+def unit_of(measure: str, state: dict) -> tuple[str, str]:
+    """(prefix, suffix) the fact's measure is written with: a currency symbol for money, % for a rate or share, else nothing."""
+    cur = summary._cur(measure, state)
+    if cur:
+        return cur, ""
+    words = set(re.findall(r"[a-z]+", re.sub(r"([a-z])([A-Z])", r" ", measure).lower()))
+    spec = summary._ratios(state).get(measure)
+    if words & PERCENT_WORDS or (spec is not None and (state.get("profile") or {}).get("rows") and "%" in str(spec.get("meaning", ""))):
+        return "", "%"
+    return "", ""
+
+
+def with_unit(text: str, measure: str, state: dict) -> str:
+    """A bare figure the line gives for the measure ('averages 15.1') gets the measure's unit ('averages 15.1%'). Figures that already carry one are left alone."""
+    pre, suf = unit_of(measure, state)
+    if not (pre or suf) or not measure:
+        return text
+    return BARE_AFTER.sub(lambda m: f"{m['lead']} {pre}{m['num']}{suf}", text)
+
+
+def names_measure(text: str, measures) -> bool:
+    flat = lambda s: re.sub(r"[\s_\-]+", " ", str(s)).strip().lower()
+    return any(flat(m) and flat(m) in flat(text) for m in measures)
+
+
+def concrete(text: str, measures) -> bool:
+    """An action is concrete when it has a figure and names the measure that figure is about."""
+    return bool(re.search(r"\d", plain(text))) and names_measure(text, measures)
+
+
+def fact_line(i: str, by_id: dict, r_by_id: dict, state: dict) -> str:
+    """The computed fact in its own wording and figures, with the measure's unit."""
+    return with_unit(_line(i, by_id, r_by_id), measure_of(i, by_id, r_by_id), state)
+
+
+def growth_safe(text: str, ids: list[str], by_id: dict, r_by_id: dict) -> str:
+    """An action that calls growth high or strong says which measure supports it. If that figure is not statistically reliable, the claim is dropped and the figure is quoted instead."""
+    if not GROWTH_CLAIM.search(text):
+        return text
+    shown = []
+    for i in ids:
+        ok = growth_reliable(i, by_id, r_by_id)
+        if ok is None:
+            continue
+        shown.append((ok, growth_label(r_by_id[i]) if i in r_by_id else trend_label(by_id[i])))
+    shown = [(ok, lab) for ok, lab in shown if lab]
+    if not shown:
+        return GROWTH_CLAIM.sub("growth", text).rstrip(". ") + f" (growth: {NOT_RELIABLE}, no figure supports a strong claim)."
+    out = text if any(ok for ok, _ in shown) else GROWTH_CLAIM.sub("growth", text)
+    return out.rstrip(". ") + " (based on " + "; ".join(lab for _, lab in shown) + ")."
+
+
+def label_growth_measures(lines: list[str], origin: dict, by_id: dict, r_by_id: dict) -> list[str]:
+    """When a card shows a growth table figure (first vs last period) and a fitted trend (whole period), each is labelled in plain words, with its own reliability."""
+    kinds = {origin.get(t) for t in lines}
+    has_growth = any(i in r_by_id and r_by_id[i].get("kind") == "growth" for i in kinds)
+    has_trend = any(i in by_id and by_id[i].get("tool") == "trend" for i in kinds)
+    if not (has_growth and has_trend):
+        return lines
+    out = []
+    for t in lines:
+        i = origin.get(t)
+        lab = growth_label(r_by_id[i]) if i in r_by_id and r_by_id[i].get("kind") == "growth" else trend_label(by_id[i]) if i in by_id and by_id[i].get("tool") == "trend" else None
+        out.append(lab or t)
+    return out
+
+
 def readable(state: dict, text: str) -> str:
     return und.readable(text, state)
 
@@ -155,6 +263,12 @@ def cards(state: dict, view: dict) -> list[dict]:
     main = summary.main_measure(state, list(r_by_id.values()))
     out, used, first_card, shown = [], set(), {}, 0
     for n, a in enumerate(view.get("answers") or [], 1):
+        origin: dict[str, str] = {}      # shown line -> the fact id it came from
+
+        def ln(i: str) -> str:
+            origin[text := fact_line(i, by_id, r_by_id, state)] = i
+            return text
+
         limit = ANSWER_LINES
         ids = [i for i in a["ids"] if i in by_id or i in r_by_id]
         action = is_action_question(a["question"])
@@ -167,7 +281,7 @@ def cards(state: dict, view: dict) -> list[dict]:
         sids = [i for i in a["ids"] if i in strat]
         lines: list[str] = []
         if parts:        # a question with several parts: the best fact for each part, picked by the kind of the fact
-            lines = [_line(i, by_id, r_by_id) for i in parts]
+            lines = [ln(i) for i in parts]
             card["ids"] = a["ids"] + [i for i in parts if i not in a["ids"]]
             card["trust"] = trust_of(ids + parts, by_id, r_by_id)
             ids = ids + [i for i in parts if i not in ids]
@@ -183,19 +297,20 @@ def cards(state: dict, view: dict) -> list[dict]:
             lines = [f"Same figures as question {earlier}."]
         else:
             fresh = fresh or ids
-            lines = [_line(i, by_id, r_by_id) for i in fresh if i not in strat]
+            lines = [ln(i) for i in fresh if i not in strat]
             if not any(r_by_id.get(i, {}).get("kind") == "growth" for i in ids):          # the biggest change of the measure this card is about: one line, from the growth table in the details
                 base = next((r_by_id[i] for i in fresh if i in r_by_id and r_by_id[i].get("kind") not in ("growth", "outside_rate")), None)
                 g = next((r for r in growth if base and r["group"] == base["group"] and r["measure"] == base["measure"] and r["id"] not in used), None) or \
                     next((r for r in growth if base and r["measure"] == base["measure"] and r["id"] not in used), None) if base else None
                 if g and g["measure"] == main:
-                    lines.append(clip(g.get("short") or g["text"]))
+                    lines.append(ln(g["id"]))
                     used.add(g["id"])
         for i in ids:
             used.add(i)
             if card["num"]:
                 first_card.setdefault(i, card["num"])
-        card["text"] = [readable(state, t) for t in lines[:limit]]
+        lines = label_growth_measures(lines[:limit], origin, by_id, r_by_id)
+        card["text"] = [readable(state, t) for t in lines]
         card["trust"] = cap_by_text(card["trust"], card["text"])
         out.append(card)
     return out
@@ -255,10 +370,11 @@ def plan_actions(state: dict, view: dict, cs: list[dict]) -> dict:
         if c["s"]["id"] not in taken and len(chosen) < ACTIONS_MAX:
             chosen.append((c["links"][0], c["s"]))
             taken.add(c["s"]["id"])
-    actions = [{"n": n, "text": readable(state, plain(f"{s['title']}: {s['objective']}")), "ai": False, "evidence": s["evidence"]} for n, s in chosen]
+    actions = [{"n": n, "text": readable(state, growth_safe(plain(f"{s['title']}: {s['objective']}"), s["evidence"], by_id, r_by_id)), "ai": False, "evidence": s["evidence"]} for n, s in chosen]
     for c in cs:        # a verified AI proposal for a question with an answer but no action
         if len(actions) < ACTIONS_MAX and c["question"] in ai and not any(a["n"] == c["n"] for a in actions):
-            actions.append({"n": c["n"], "text": readable(state, plain(ai[c["question"]])), "ai": True, "evidence": []})
+            cited_ids = (state.get("ai_action_ids") or {}).get(c["question"], [])
+            actions.append({"n": c["n"], "text": readable(state, growth_safe(plain(ai[c["question"]]), cited_ids, by_id, r_by_id)), "ai": True, "evidence": cited_ids})
     actions.sort(key=lambda a: a["n"])
     covered = {a["n"] for a in actions}
     none, open_ = {}, []
@@ -266,7 +382,9 @@ def plan_actions(state: dict, view: dict, cs: list[dict]) -> dict:
         if c["n"] in covered:
             continue
         ids = [i for i in c["ids"] if i in by_id or i in r_by_id]
-        if not ids:
+        if c["question"] in (state.get("action_none") or {}):
+            none[c["n"]] = state["action_none"][c["question"]]
+        elif not ids:
             none[c["n"]] = "not enough data to answer this question."
         elif any(action_basis(i, state, by_id, r_by_id) for i in ids):
             if len(actions) >= ACTIONS_MAX:
