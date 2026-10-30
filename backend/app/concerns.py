@@ -15,9 +15,10 @@ import re
 
 import pandas as pd
 
+from . import aicache
 from . import directives as dv
 from .context import CONTEXT_RULE, description_hint
-from .llm import ask_json, last_error
+from .llm import ask_json, deterministic, last_error
 from .signals import _sig
 
 CONCERN_TYPES = ("label_variants", "date_order", "missing_code", "number_is_category", "other")
@@ -145,16 +146,24 @@ At most {MAX_CONCERNS} concerns, the ones that matter most for the goal first.
 {CONTEXT_RULE}"""
 
 
-def ask_concerns(llm, sheet: dict, goal: str, description: str = "") -> tuple[list | None, str]:
-    """(concerns as the model wrote them, "") or (None, why the AI part did not work)."""
+def ask_concerns(llm, sheet: dict, goal: str, description: str = "", saved: dict | None = None, reused: list | None = None) -> tuple[list | None, str]:
+    """(concerns as the model wrote them, "") or (None, why the AI part did not work). Runs at temperature 0. A successful reply is saved on disk (aicache) and reused when the
+    fact sheet, goal, description, saved glossary answers, model and prompt are the same; `reused` (a list) receives True when that happened. Failed calls are never saved."""
     if llm is None:
         return None, "no AI configured"
     hint = description_hint({"description": description})
+    ck = aicache.key("concerns", sheet, goal, hint, aicache.glossary_answers(saved), aicache.model_name(llm), SYSTEM)
+    if (hit := aicache.get(ck)) is not None:
+        if reused is not None:
+            reused.append(True)
+        return hit, ""
     about = f"BUSINESS CONTEXT (user-written, unverified): {hint}\n\n" if hint else ""
-    out = ask_json(llm, SYSTEM, f"GOAL: {goal}\n\n{about}FACT SHEET ({sheet['rows']} rows):\n{json.dumps(sheet, ensure_ascii=False, default=str)}")
+    out = ask_json(deterministic(llm), SYSTEM, f"GOAL: {goal}\n\n{about}FACT SHEET ({sheet['rows']} rows):\n{json.dumps(sheet, ensure_ascii=False, default=str)}")
     if not isinstance(out, dict) or not isinstance(out.get("concerns"), list):
         return None, last_error() or ("the reply had no 'concerns' list" if isinstance(out, dict) else "no usable reply")
-    return out["concerns"][:MAX_CONCERNS], ""
+    proposed = out["concerns"][:MAX_CONCERNS]
+    aicache.put(ck, proposed)
+    return proposed, ""
 
 
 # ---------------------------------------------------------------- verification
@@ -289,7 +298,7 @@ def verify(concerns: list, sheet: dict, df: pd.DataFrame, profile: dict, goal: s
     by_id = {s["id"]: v for s, v in zip(sigs, [a for a in accepted if a["action"] is not None])}
     for q in questions:
         v = by_id[q["id"]]
-        q["ai"], q["confidence"], q["rows"], q["relevant"] = True, v["confidence"], v["rows"], clarify.named_in_goal(v["column"], goal)
+        q["ai"], q["asked_by"], q["confidence"], q["rows"], q["relevant"] = True, "ai", v["confidence"], v["rows"], clarify.named_in_goal(v["column"], goal)
         for o in q["options"]:
             if o["value"] == "apply":
                 o["rows"] = v["rows"]
@@ -300,10 +309,12 @@ def verify(concerns: list, sheet: dict, df: pd.DataFrame, profile: dict, goal: s
     return {"accepted": accepted, "questions": questions, "gaps": gaps, "rejected": rejected}
 
 
-def run(llm, df: pd.DataFrame, profile: dict, goal: str, description: str = "") -> dict:
-    """The whole AI part: {"worked": bool, "why_not": str, "proposed": [...], plus verify()'s result}. `worked` is False when the model gave no usable answer, so the caller uses the rules."""
+def run(llm, df: pd.DataFrame, profile: dict, goal: str, description: str = "", saved: dict | None = None) -> dict:
+    """The whole AI part: {"worked": bool, "why_not": str, "proposed": [...], "cached": bool, plus verify()'s result}. `worked` is False when the model gave no usable answer, so the caller uses the rules.
+    A reused reply is still verified against the data."""
     sheet = fact_sheet(df, profile, goal)
-    proposed, why = ask_concerns(llm, sheet, goal, description)
+    reused: list = []
+    proposed, why = ask_concerns(llm, sheet, goal, description, saved, reused)
     if proposed is None:
-        return {"worked": False, "why_not": why, "proposed": [], "accepted": [], "questions": [], "gaps": [], "rejected": [], "sheet_chars": len(json.dumps(sheet, default=str))}
-    return {"worked": True, "why_not": "", "proposed": proposed, "sheet_chars": len(json.dumps(sheet, default=str)), **verify(proposed, sheet, df, profile, goal)}
+        return {"worked": False, "why_not": why, "cached": False, "proposed": [], "accepted": [], "questions": [], "gaps": [], "rejected": [], "sheet_chars": len(json.dumps(sheet, default=str))}
+    return {"worked": True, "why_not": "", "cached": bool(reused), "proposed": proposed, "sheet_chars": len(json.dumps(sheet, default=str)), **verify(proposed, sheet, df, profile, goal)}

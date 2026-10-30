@@ -14,9 +14,10 @@ import re
 
 import pandas as pd
 
+from . import aicache
 from . import context as ctxmod
 from .concerns import fact_sheet
-from .llm import ask_json_ex
+from .llm import ask_json_ex, deterministic
 
 ROLES = ("measure", "category", "date", "id", "flag", "free_text", "other")
 MAX_RETRIES = 2
@@ -117,15 +118,24 @@ def _record(source: str, parts: dict | None = None, retries: int = 0, error: str
             "descriptive": parts.get("descriptive", []), "unmapped": [t for t, c in parts["goal_columns"].items() if not c], "retries": retries, "error": error}
 
 
-def resolve(llm, df: pd.DataFrame, profile: dict, goal: str, ctx: dict | None, state: dict | None = None) -> dict:
+def resolve(llm, df: pd.DataFrame, profile: dict, goal: str, ctx: dict | None, state: dict | None = None, saved: dict | None = None) -> dict:
     """The record. source "llm" (valid at the first try or after retries) or "fallback" (no usable answer: `error` says why in one short line; the consumers use their rules).
-    With no LLM configured the source is "rules-only" and there is no error to report."""
+    With no LLM configured the source is "rules-only" and there is no error to report. A successful record is saved on disk (aicache) and reused, with "cached": True,
+    when the data, goal, description, saved glossary answers, model and prompt are all the same. `saved` is the workspace's glossary."""
     if llm is None:
         return _record("rules-only")
     columns = [c for c in df.columns if c in {p["name"] for p in profile["columns"]}]
     if len(columns) > MAX_COLUMNS:
         return _fallback(state, f"the table has {len(columns)} columns, more than the {MAX_COLUMNS} it can describe", 0, [])
-    view = build_view(fact_sheet(df, profile, goal), goal, ctx)
+    sheet = fact_sheet(df, profile, goal)
+    view = build_view(sheet, goal, ctx)
+    ck = aicache.key("understanding", sheet, goal, ctxmod.description_hint(ctx), aicache.glossary_answers(saved), aicache.model_name(llm), SYSTEM)
+    if (hit := aicache.get(ck)) is not None:
+        if state is not None:
+            state.setdefault("decisions", []).append({"decision": "data understanding", "source": "cache", "chosen": aicache.REUSED, "why": "same data, goal, description, glossary, model and prompt as a saved run",
+                                                      "errors": [], "raw_output": ""})
+        return {**hit, "cached": True}
+    llm = deterministic(llm)
     ask, retries, errors = view, 0, []
     for attempt in range(MAX_RETRIES + 1):
         obj, why = ask_json_ex(llm, SYSTEM, ask)
@@ -137,7 +147,9 @@ def resolve(llm, df: pd.DataFrame, profile: dict, goal: str, ctx: dict | None, s
                 state.setdefault("decisions", []).append({"decision": "data understanding", "source": "llm" if not retries else "repaired",
                                                           "chosen": f"{len(parts['columns'])} columns described; {len(parts['goal_columns'])} goal terms mapped ({sum(not c for c in parts['goal_columns'].values())} without a column)",
                                                           "why": f"structure test passed after {retries} retr{'y' if retries == 1 else 'ies'}", "errors": [], "raw_output": ""})
-            return _record("llm", parts, retries)
+            rec = _record("llm", parts, retries)
+            aicache.put(ck, rec)
+            return rec
         if attempt < MAX_RETRIES:
             retries += 1
             ask = view + "\n\nYour previous answer failed the structure test:\n" + json.dumps(obj, ensure_ascii=False, default=str)[:3000] + "\nProblems:\n" + "\n".join(f"- {e}" for e in errors[:20]) \

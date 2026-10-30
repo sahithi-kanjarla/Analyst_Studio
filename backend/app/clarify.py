@@ -325,6 +325,8 @@ def llm_questions(llm, profile: dict, signals: list[dict], goal: str, ctx: dict 
             note_failure("validation (the reply had no 'questions' list)")
         return None, []
     qs, dropped = validate_all(out["questions"], profile, signals, limit=MAX_CANDIDATES)
+    for q in qs:
+        q["asked_by"] = "ai"
     return (qs if qs or not out["questions"] else None), dropped
 
 
@@ -360,14 +362,14 @@ def build_questions_and_ignored(df: pd.DataFrame, profile: dict, goal: str, ctx:
     With a model, the AI proposes data concerns and code verifies them (concerns.py); their questions replace the rule questions for label variants, swapped dates and
     rare labels, and for a placeholder on the same column. The rule signals only run when the AI part is unavailable or failed. `concerns_out` receives what happened."""
     skip = skip_columns or set()
-    ai = concernmod.run(llm, df, profile, goal, (ctx or {}).get("description", "")) if llm is not None else {"worked": False, "why_not": "no AI configured", "proposed": [], "accepted": [], "questions": [], "gaps": [], "rejected": []}
+    ai = concernmod.run(llm, df, profile, goal, (ctx or {}).get("description", ""), saved) if llm is not None else {"worked": False, "why_not": "no AI configured", "proposed": [], "accepted": [], "questions": [], "gaps": [], "rejected": []}
     ai_cols = {a["column"] for a in ai["accepted"] if a["concern_type"] == "missing_code"}
     signals = [sg for sg in compute_signals(df, profile, raw, raw_profile, kinds, brief) if sg["type"] not in UNASKED and not (sg["type"] == "sentinel" and set(sg["columns"]) <= skip)]
     if ai["worked"]:
         signals = [sg for sg in signals if sg["type"] not in concernmod.RULE_SIGNALS and not (sg["type"] == "sentinel" and set(sg["columns"]) <= ai_cols)]
     if concerns_out is not None:
         concerns_out.update(path="ai" if ai["worked"] else "rules", why_not=ai["why_not"], proposed=ai["proposed"], accepted=ai["accepted"], rejected=[r["line"] for r in ai["rejected"]],
-                            rejected_detail=ai["rejected"], gaps=ai["gaps"], sheet_chars=ai.get("sheet_chars", 0))
+                            rejected_detail=ai["rejected"], gaps=ai["gaps"], sheet_chars=ai.get("sheet_chars", 0), cached=ai.get("cached", False))
     if not signals and not ai["questions"]:
         return [], []
     owned = [sg for sg in signals if sg["type"] in CODE_OWNED]
@@ -485,7 +487,7 @@ def summarise(questions: list[dict], answers: dict, sources: dict, effects: dict
         src = sources.get(qid, "default")
         entry = (saved or {}).get(qid) if src == "glossary" else None
         when = time.strftime("%Y-%m-%d", time.localtime(entry["updated"])) if isinstance(entry, dict) and entry.get("updated") else ""
-        rows.append({"id": qid, "question": q["text"], "answer": o["value"], "answer_label": o["label"], "source": src,
+        rows.append({"id": qid, "question": q["text"], "answer": o["value"], "answer_label": o["label"], "source": src, "asked_by": q.get("asked_by", "rules"),
                      "set_by": (f"workspace '{workspace}'" + (f", saved {when}" if when else "")) if src == "glossary" else "",
                      "effect": eff.get("effect", "Recorded as context; the data was not changed."), "rows": eff.get("rows")})
     return rows

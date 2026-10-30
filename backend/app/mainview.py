@@ -20,7 +20,8 @@ PART_LINES = 3          # a question with several parts shows the best fact for 
 RANK_WORDS = re.compile(r"\b(?:which|who|whose|most|least|top|bottom|best|worst|highest|lowest|biggest|largest|smallest|rank\w*)\b", re.I)
 CLAUSES = re.compile(r",|;|\band\b|\bor\b|\bbut\b", re.I)
 LINE_CHARS = 170
-TRUST = {"high": "High", "medium": "Medium", "low": "Low", "exploratory": "Low", "descriptive": "High"}
+TRUST = {"high": "High", "medium": "Medium", "low": "Low", "exploratory": "Low", "descriptive": "Medium"}      # a descriptive figure makes no statistical claim, so it cannot lift a card to High
+NOT_RELIABLE = "not statistically reliable"
 STRONG = ("medium", "large")
 TAG = re.compile(r"\s*[\[(]\s*[rfs]\d+(?:\s*[,;]\s*[rfs]\d+)*\s*[\])]")
 STAT = re.compile(r"\s*\((?:[^()]*\b(?:p\s*[=<]|eta|η|Cram|Kruskal|Welch|ANOVA|chi-?square|rho|effect size)[^()]*)\)|,\s*p\s*[=<]\s*[\d.e-]+", re.I)
@@ -97,8 +98,17 @@ def lookup(state: dict, view: dict) -> tuple[dict, dict, dict]:
 def trust_of(ids: list[str], by_id: dict, r_by_id: dict) -> str:
     levels = [TRUST.get(((by_id[i].get("insight") or {}).get("confidence") or {}).get("level", "descriptive"), "Low") for i in ids if i in by_id]
     if levels:
-        return min(levels, key=["Low", "Medium", "High"].index)
-    return "High" if any(i in r_by_id for i in ids) else "Medium"
+        trust = min(levels, key=["Low", "Medium", "High"].index)
+    else:
+        trust = "High" if any(i in r_by_id for i in ids) else "Medium"
+    if trust == "High" and any(NOT_RELIABLE in str(r_by_id[i].get("short") or "").lower() for i in ids if i in r_by_id):
+        trust = "Medium"      # the card is only as trustworthy as its weakest figure
+    return trust
+
+
+def cap_by_text(trust: str, lines: list[str]) -> str:
+    """A card that shows a figure marked 'not statistically reliable' cannot say High."""
+    return "Medium" if trust == "High" and any(NOT_RELIABLE in t.lower() for t in lines) else trust
 
 
 def group_cols(ids: list[str], by_id: dict, r_by_id: dict) -> set[str]:
@@ -186,6 +196,7 @@ def cards(state: dict, view: dict) -> list[dict]:
             if card["num"]:
                 first_card.setdefault(i, card["num"])
         card["text"] = [readable(state, t) for t in lines[:limit]]
+        card["trust"] = cap_by_text(card["trust"], card["text"])
         out.append(card)
     return out
 

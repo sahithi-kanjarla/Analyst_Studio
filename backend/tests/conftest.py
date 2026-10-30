@@ -19,10 +19,11 @@ import pytest
 
 
 @pytest.fixture(autouse=True)
-def fresh_ai_state(monkeypatch):
+def fresh_ai_state(monkeypatch, tmp_path):
     """Every test starts without a daily-limit stop or cached AI answers, and never really waits for a rate-limit retry (tests that check the wait patch it themselves)."""
     from app import llm
     llm.begin_run()
+    monkeypatch.setenv("AI_CACHE_DIR", str(tmp_path / "ai_cache"))      # the saved AI results never leak from one test to another
     monkeypatch.setattr(llm, "_sleep", lambda s: None)
     yield
     llm.begin_run()

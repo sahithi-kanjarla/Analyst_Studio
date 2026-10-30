@@ -210,6 +210,14 @@ def llm_actions(llm, state: dict, view: dict, cs: list[dict], wanted: list[int],
 
 
 SOURCE_LABEL = {"user": "You", "default": "Default (rules)", "glossary": "Saved glossary", "goal": "Your goal"}
+AI_DEFAULT_LABEL = "Default (AI-suggested)"
+
+
+def source_label(d: dict) -> str:
+    """Who set the answer. A default for a question the AI asked says so; a default for a question the rules asked is 'Default (rules)'."""
+    if d["source"] == "default" and d.get("asked_by") == "ai":
+        return AI_DEFAULT_LABEL
+    return SOURCE_LABEL.get(d["source"], d["source"])
 
 
 def _cell(v) -> str:
@@ -236,7 +244,7 @@ def _definitions_section(state: dict) -> list[str]:
         L += ["| Question | Answer | Set by | Effect on the data | Rows affected |", "|---|---|---|---|---|"]
         for d in applied:
             rows = "-" if d.get("rows") is None else f"{d['rows']:,}"
-            L.append(f"| {_cell(d['question'])} | {_cell(d['answer_label'])} | {SOURCE_LABEL.get(d['source'], d['source'])}{' (' + _cell(d['set_by']) + ')' if d.get('set_by') else ''} | {_cell(d['effect'])} | {rows} |")
+            L.append(f"| {_cell(d['question'])} | {_cell(d['answer_label'])} | {source_label(d)}{' (' + _cell(d['set_by']) + ')' if d.get('set_by') else ''} | {_cell(d['effect'])} | {rows} |")
     if ignored:
         L += ["", "**Saved answers not applied** (the glossary has an answer, but it no longer fits this data, so the default was used):", ""]
         L += [f"- {_cell(i['question'])} -> {_cell(i['answer'])} ({_cell(i['reason'])})" for i in ignored]

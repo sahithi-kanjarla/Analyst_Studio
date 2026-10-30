@@ -20,7 +20,7 @@ from typing import TypedDict
 import pandas as pd
 from langgraph.graph import END, START, StateGraph
 
-from . import brief as briefmod, clarify, derived, derived_check as derivedcheck, glossary, placeholders
+from . import aicache, brief as briefmod, clarify, derived, derived_check as derivedcheck, glossary, placeholders
 from . import goal as goalmod
 from . import context as ctxmod
 from . import critic as critic_mod
@@ -336,7 +336,9 @@ def understand_node(state: RunState) -> dict:
         typed_profile = briefmod.apply_roles(profile_df(typed), (state.get("brief") or {}).get("roles") or {})
         st: dict = {"decisions": []}
         with llmmod.capture() as cap:
-            rec = undmod.resolve(llm, typed, typed_profile, state["goal"], state.get("context") or {}, st)
+            rec = undmod.resolve(llm, typed, typed_profile, state["goal"], state.get("context") or {}, st, glossary.get_workspace(glossary.workspace_key(state.get("context") or {})))
+        if rec.get("cached"):
+            emit(rid, "Data understanding", f"{aicache.REUSED} (same data, goal, description, saved answers, model and prompt).")
         notes = list(state.get("ai_notes") or [])
         if line := undmod.notice(rec):
             notes.append(line)
@@ -381,6 +383,8 @@ def clarify_node(state: RunState) -> dict:
         with llmmod.capture() as cap:
             questions, ignored = clarify.build_questions_and_ignored(typed, typed_profile, state["goal"], ctx, bool(state.get("explore")), llm, ws, skip, dropped,
                                                                      raw=raw, raw_profile=state["profile"], kinds=briefmod.kinds(state.get("brief")), brief=state.get("brief"), concerns_out=concerns)
+        if concerns.get("cached"):
+            emit(rid, "Clarifier", f"{aicache.REUSED} for the data concerns (same data, goal, description, saved answers, model and prompt).")
         res = _ai_failed({**state, "decisions": []}, {}, "clarifying questions", llm, cap, "clarifier")
         ai = {k: res[k] for k in ("ai_notes", "decisions", "stage_sources") if k in res}
         questions, over = clarify.cap_questions(pq + questions)        # placeholder questions and the others share one cap of MAX_QUESTIONS
