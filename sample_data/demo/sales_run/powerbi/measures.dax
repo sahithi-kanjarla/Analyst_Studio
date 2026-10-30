@@ -1,0 +1,23 @@
+// Number of records.
+Row Count = COUNTROWS('Data')
+
+Total revenue = SUM('Data'[revenue])
+
+Average revenue = AVERAGE('Data'[revenue])
+
+// Better than average when the column is skewed.
+Median revenue = MEDIAN('Data'[revenue])
+
+// Use with a bar chart on this column to reproduce the Pareto view.
+Share of revenue by Segment = DIVIDE([Total revenue], CALCULATE([Total revenue], ALL('Data'[Segment])))
+
+// Use with a bar chart on this column to reproduce the Pareto view.
+Share of revenue by region = DIVIDE([Total revenue], CALCULATE([Total revenue], ALL('Data'[region])))
+
+// Needs a continuous date column; mark a Date table if you add one.
+revenue Prior Month = CALCULATE([Total revenue], DATEADD('Data'[order_date], -1, MONTH))
+
+// Format as percentage.
+revenue MoM % = DIVIDE([Total revenue] - [revenue Prior Month], [revenue Prior Month])
+
+revenue YTD = TOTALYTD([Total revenue], 'Data'[order_date])

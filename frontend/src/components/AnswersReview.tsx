@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { api, AnswerRow } from "../api";
+import { api, AnswerRow, isDemo } from "../api";
 
 /** The answers a run used, with where each came from. A changed answer replaces the saved one and the run starts again from the cleaning step;
  *  "Ask me again" forgets the saved answer so the new run asks the question. */
@@ -64,7 +64,7 @@ export default function AnswersReview({ runId, onClose }: { runId: string; onClo
       ))}
       {error && <div className="error">{error}</div>}
       <div className="qactions">
-        <button className="primary" disabled={busy || (!changed.length && !again.length)} onClick={rerun}>{busy ? "Starting…" : "Re-run with these answers"}</button>
+        {!isDemo(runId) && <button className="primary" disabled={busy || (!changed.length && !again.length)} onClick={rerun}>{busy ? "Starting…" : "Re-run with these answers"}</button>}
         <button className="chip" disabled={busy} onClick={onClose}>Close</button>
       </div>
     </div>

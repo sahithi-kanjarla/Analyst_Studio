@@ -1,0 +1,8 @@
+column,detected_role,recommended_power_bi_type,missing_pct,unique_values,used_in_analysis
+order_id,id,Text (hide from report view),0.0,600,False
+Segment,categorical,Text,0.0,3,True
+region,categorical,Text,0.0,4,True
+order_date,date,Date,0.0,285,True
+revenue,numeric,Decimal number,0.0,598,True
+discount_pct,numeric,Decimal number,3.95,257,True
+notes,categorical,Text,65.62,1,False

@@ -560,6 +560,8 @@ def _setup_section(state: dict) -> list[str]:
     if u["calls"]:
         tok = f"about {u['input_tokens']:,} input and {u['output_tokens']:,} output tokens" + (" (estimated)" if u["estimated"] else "")
         L += [f"**AI usage so far:** {u['sent']} call(s) sent, {u['cached']} answered from saved or repeated results; {tok}; {u['seconds']} s in AI calls. Per call: ai_usage.json.", ""]
+    else:
+        L += ["**AI usage:** no AI calls in this run (rules only).", ""]
     cn = state.get("concerns") or {}
     if cn.get("path") == "ai":
         L += [f"**Data concerns:** proposed by the AI, verified by code ({len(cn.get('accepted') or [])} accepted, {len(cn.get('rejected') or [])} not applied).", ""]

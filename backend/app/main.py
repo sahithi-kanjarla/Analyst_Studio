@@ -17,7 +17,7 @@ from .context import normalise_context
 from .dashboard import build_dashboard, list_sources, source_path, valid_source
 from .events import get_events
 from .llm import get_llm
-from .runner import DEFAULT_EXPLORE_GOAL, RUN_ID_RE, create_run, purge_expired, read_status, rerun_with_answers, rerun_without_derived, resume_with_answers, run_dir, start_run
+from .runner import DEFAULT_EXPLORE_GOAL, RUN_ID_RE, create_run, ensure_demo_run, is_demo, purge_expired, read_status, rerun_with_answers, rerun_without_derived, resume_with_answers, run_dir, start_run
 
 @asynccontextmanager
 async def _lifespan(_app: FastAPI):
@@ -32,6 +32,18 @@ app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:5173", "http
 def _check_id(run_id: str) -> None:
     if not re.match(RUN_ID_RE, run_id) or not run_dir(run_id).exists():
         raise HTTPException(404, "Run not found")
+
+
+def _writable(run_id: str) -> None:
+    """The sample run is read-only: it can be viewed, but never answered, re-run or changed."""
+    if is_demo(run_id):
+        raise HTTPException(403, "The sample run is read-only. Upload your own data to run an analysis.")
+
+
+@app.post("/api/demo")
+def open_demo():
+    """The sample run (shipped with the repo, no AI calls, no upload). Returns its run id; the run page shows it like any other run."""
+    return {"run_id": ensure_demo_run(), "read_only": True}
 
 
 @app.get("/api/health")
@@ -151,6 +163,7 @@ class AnswersIn(BaseModel):
 def post_answers(run_id: str, body: AnswersIn):
     """Answer the questions (or skip to use the defaults) and resume the run. Answers are also saved to the company's glossary."""
     _check_id(run_id)
+    _writable(run_id)
     data = _load_questions(run_id)
     qmap = {q["id"]: q for q in data["questions"] if not q.get("auto")}
     for qid, val in body.answers.items():
@@ -209,6 +222,7 @@ def rerun_answers(run_id: str, body: RerunAnswersIn):
     """Change answers of a finished run and re-run it from the cleaning step. A changed answer replaces the saved one; a question in `ask_again` is forgotten and asked again.
     Returns the id of the new run."""
     _check_id(run_id)
+    _writable(run_id)
     data = _load_questions(run_id)
     if (read_status(run_id) or {}).get("status") not in ("done", "error"):
         raise HTTPException(409, "Only a finished run can be re-run with other answers.")
@@ -241,6 +255,7 @@ class RemoveDerivedIn(BaseModel):
 def remove_derived(run_id: str, body: RemoveDerivedIn):
     """Re-run the analysis without the derived metrics the user removed. Returns the id of the new run."""
     _check_id(run_id)
+    _writable(run_id)
     res = run_dir(run_id) / "result.json"
     if (read_status(run_id) or {}).get("status") != "done" or not res.exists():
         raise HTTPException(409, "Only a finished run can be re-run.")

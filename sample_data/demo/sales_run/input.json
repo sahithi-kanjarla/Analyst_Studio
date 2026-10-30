@@ -1,0 +1,1 @@
+{"goal": "Which segment and region earn the most revenue, and is revenue growing?", "files": ["sales.csv"], "context": {"company": "Sample Store", "industry": "retail", "description": "", "kpis": [], "audience": "", "notes": "", "currency": "", "explore": false, "industry_key": "ecommerce"}, "review_saved": false}

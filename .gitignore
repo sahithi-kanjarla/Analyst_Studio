@@ -17,3 +17,6 @@ scripts/scorecard_history.csv
 .idea/
 .DS_Store
 Thumbs.db
+
+# the sample run needs its two pickles to open (dashboard, data viewer)
+!sample_data/demo/**/*.pkl

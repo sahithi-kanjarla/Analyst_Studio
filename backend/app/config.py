@@ -21,5 +21,6 @@ MAX_ITERATIONS = int(os.environ.get("MAX_ITERATIONS", "1"))
 CHART_DPI = int(os.environ.get("CHART_DPI", "140"))  # lower it (the tests use 50) to render charts faster
 ALLOWED_EXT = {".csv", ".tsv", ".txt", ".xlsx", ".xls", ".json"}
 FRONTEND_DIST = ROOT.parent / "frontend" / "dist"
+DEMO_DIR = ROOT.parent / "sample_data" / "demo" / "sales_run"   # a finished run shipped with the repo: read-only, no AI calls, no uploads
 
 RUNS_DIR.mkdir(parents=True, exist_ok=True)

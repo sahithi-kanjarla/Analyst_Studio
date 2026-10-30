@@ -381,6 +381,10 @@ async function json<T>(res: Response): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+/** The shipped sample run (backend DEMO_RUN_ID): read-only, so nothing that re-runs it is offered. */
+export const DEMO_RUN_ID = "5a1e5d3e0001";
+export const isDemo = (id: string) => id === DEMO_RUN_ID;
+
 export const api = {
   health: () => fetch("/api/health").then((r) => json<{ status: string; llm: string }>(r)),
   listRuns: () => fetch("/api/runs").then((r) => json<RunSummary[]>(r)),
@@ -396,6 +400,7 @@ export const api = {
     }
     return fetch("/api/runs", { method: "POST", body: fd }).then((r) => json<{ run_id: string }>(r));
   },
+  openDemo: () => fetch("/api/demo", { method: "POST" }).then((r) => json<{ run_id: string; read_only: boolean }>(r)),
   removeDerived: (id: string, names: string[]) =>
     fetch(`/api/runs/${id}/remove-derived`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ names }) }).then((r) => json<{ run_id: string }>(r)),
   getAnswersReview: (id: string) => fetch(`/api/runs/${id}/answers-review`).then((r) => json<{ workspace: string; status: string; answers: AnswerRow[] }>(r)),

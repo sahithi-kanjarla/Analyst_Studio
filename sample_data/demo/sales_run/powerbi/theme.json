@@ -1,0 +1,16 @@
+{
+  "name": "Analyst Studio",
+  "dataColors": [
+    "#4F6BED",
+    "#22A699",
+    "#F2994A",
+    "#E5484D",
+    "#8E6BEE",
+    "#3FA9F5",
+    "#A3A847",
+    "#C45AB3"
+  ],
+  "background": "#FFFFFF",
+  "foreground": "#1F2937",
+  "tableAccent": "#4F6BED"
+}

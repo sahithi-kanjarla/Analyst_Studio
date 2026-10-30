@@ -55,6 +55,19 @@ export default function UploadForm({ onStarted }: { onStarted: (id: string) => v
     setError("");
   }
 
+  /** The shipped sample run: read-only, no upload and no AI call. */
+  async function tryDemo() {
+    setBusy(true);
+    setError("");
+    try {
+      const { run_id } = await api.openDemo();
+      onStarted(run_id);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "The sample could not be opened");
+      setBusy(false);
+    }
+  }
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (files.length === 0) return setError("Choose at least one data file first.");
@@ -225,9 +238,12 @@ export default function UploadForm({ onStarted }: { onStarted: (id: string) => v
         )}
 
         {error && <div className="error">{error}</div>}
-        <button className="primary" disabled={busy}>
-          {busy ? "Starting the agents…" : files.length > 1 ? `Connect ${files.length} files and analyse` : ctx.explore ? "Explore my data" : "Analyse"}
-        </button>
+        <div className="form-actions">
+          <button className="primary" disabled={busy}>
+            {busy ? "Starting the agents…" : files.length > 1 ? `Connect ${files.length} files and analyse` : ctx.explore ? "Explore my data" : "Analyse"}
+          </button>
+          <button type="button" className="ghost" disabled={busy} onClick={tryDemo}>Try with sample data</button>
+        </div>
       </form>
 
       <p className="trust">

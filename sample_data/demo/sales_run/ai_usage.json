@@ -1,0 +1,12 @@
+{
+ "calls": [],
+ "totals": {
+  "calls": 0,
+  "sent": 0,
+  "cached": 0,
+  "input_tokens": 0,
+  "output_tokens": 0,
+  "estimated": false,
+  "seconds": 0
+ }
+}

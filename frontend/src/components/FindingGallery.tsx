@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { api, Finding, RunResult } from "../api";
+import { api, Finding, RunResult, isDemo } from "../api";
 import FindingTable from "./FindingTable";
 import InsightCard from "./InsightCard";
 
@@ -90,7 +90,7 @@ export default function FindingGallery({ run }: { run: RunResult }) {
           {dm.created.map((d) => (
             <p key={d.name} className="small">
               <code>{d.name}</code> = {d.a} / {d.b} (ratio of sums). {d.meaning}{" "}
-              <button className="link" disabled={!!busy} onClick={() => remove(d.name)}>{busy === d.name ? "Re-running…" : "Remove and re-run"}</button>
+              {!isDemo(run.run_id) && <button className="link" disabled={!!busy} onClick={() => remove(d.name)}>{busy === d.name ? "Re-running…" : "Remove and re-run"}</button>}
             </p>
           ))}
           {dm.rejected.map((r) => <p key={r.a + r.b} className="muted small">Not created: {r.a} / {r.b}. {r.reason}.</p>)}

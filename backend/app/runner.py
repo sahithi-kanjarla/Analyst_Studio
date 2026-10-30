@@ -10,11 +10,25 @@ import traceback
 import uuid
 from pathlib import Path
 
-from .config import RETENTION_DAYS, RUNS_DIR
+from .config import DEMO_DIR, RETENTION_DAYS, RUNS_DIR
 from . import reporter
 from .events import emit, set_quiet
 
 RUN_ID_RE = r"^[a-f0-9]{12}$"
+DEMO_RUN_ID = "5a1e5d3e0001"  # the sample run's id: a copy of sample_data/demo/sales_run, read-only and kept by the retention sweep
+
+
+def is_demo(run_id: str) -> bool:
+    return run_id == DEMO_RUN_ID
+
+
+def ensure_demo_run() -> str:
+    """Copy the shipped sample run into the runs folder (once; again if it was removed) and return its id. Nothing in it is ever re-run."""
+    import shutil
+    wd = run_dir(DEMO_RUN_ID)
+    if not (wd / "result.json").exists():
+        shutil.copytree(DEMO_DIR, wd, dirs_exist_ok=True)
+    return DEMO_RUN_ID
 
 
 def run_dir(run_id: str) -> Path:
@@ -135,7 +149,7 @@ def purge_expired(days: float | None = None, now: float | None = None) -> list[s
     cutoff = (time.time() if now is None else now) - days * 86400
     removed = []
     for d in RUNS_DIR.iterdir():
-        if not re.match(RUN_ID_RE, d.name):
+        if not re.match(RUN_ID_RE, d.name) or is_demo(d.name):
             continue
         st = read_status(d.name) or {}
         if st.get("status") in ("queued", "running", None):

@@ -1,0 +1,13 @@
+{
+ "record": {
+  "source": "rules-only",
+  "columns": {},
+  "goal_columns": {},
+  "descriptive": [],
+  "unmapped": [],
+  "retries": 0,
+  "error": ""
+ },
+ "decisions": [],
+ "ai_notes": []
+}
