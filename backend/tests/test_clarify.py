@@ -698,7 +698,7 @@ def test_ambiguous_run_pauses_then_answers_change_the_data_and_the_report():
     steps = [s for s in res["cleaning_log"] if s["step"] == "Definition applied"]
     assert {s["count"] for s in steps} >= {n_neg, n_sent}
     md = res["report_md"]
-    assert "## Definitions used" in md and "Rows affected" in md and "not applied to the data" in md and "back within 30 days" in md
+    assert "<summary>Definitions used" in md and "Rows affected" in md and "not applied to the data" in md and "back within 30 days" in md
     by = {d["id"]: d for d in res["applied_definitions"]}
     assert by[q["negatives"]["id"]]["source"] == "user" and by[q["negatives"]["id"]]["rows"] == n_neg
     evs = [json.loads(line) for line in (RUNS_DIR / rid / "events.jsonl").read_text(encoding="utf-8").splitlines()]

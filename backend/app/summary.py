@@ -91,6 +91,18 @@ def full(x: float, cur: str = "") -> str:
     return ("-" if x < 0 else "") + cur + (f"{abs(x):,.0f}" if abs(x) >= 1000 else _fmt(abs(x)))
 
 
+def short(x: float, cur: str = "") -> str:
+    """A figure rounded for reading (7.5M, 12K, 2M); exact figures stay in the details."""
+    a = abs(x)
+    units = ((1e3, "K"), (1e6, "M"), (1e9, "B"))
+    k = max((i for i, (lim, _) in enumerate(units) if a >= lim), default=-1)
+    if k >= 0 and k + 1 < len(units) and round(a / units[k][0], 1) >= 1000:
+        k += 1
+    if k >= 0:
+        return ("-" if x < 0 else "") + cur + f"{a / units[k][0]:.1f}".rstrip("0").rstrip(".") + units[k][1]
+    return ("-" if x < 0 else "") + cur + (f"{a:,.0f}" if a >= 100 else _fmt(a))
+
+
 def _ratio_text(x: float, overall: float) -> str:
     """A ratio KPI as a percentage; a ratio far above 1 (a per-unit value, not a share) stays a plain number."""
     return f"{x:.1%}" if abs(overall) <= 5 else full(x)
@@ -189,8 +201,9 @@ def _rank_additive(df, state: dict, group: str, measure: str, n: int) -> dict | 
         text += " Loss-making (negative total): " + ", ".join(f"{wording.entity(group, g)} ({full(s.loc[g, 'sum'], cur)})" for g in loss[:5]) + "."
     pct3 = lambda v: f" ({v / total:.1%})" if total > 0 else ""
     lead = f"Top {min(MAIN_PICKS, len(s))} {group} by total {measure}: " + ", ".join(f"{wording.entity(group, g)} {full(v, cur)}{pct3(v)}" for g, v in s["sum"].head(MAIN_PICKS).items())
+    brief_top = ", ".join(f"{wording.entity(group, g)} {short(v, cur)}" + (f" ({v / total:.0%})" if total > 0 and 0 < v <= total else "") for g, v in s["sum"].head(MAIN_PICKS).items())
     return {"id": f"r{n}", "tool": "ranking", "basis": "total", "group": group, "measure": measure, "top": top, "bottom": bot, "dominant": top if dominant else None, "groups_total": len(s),
-            "top_share": frac, "lead": lead, "text": text}
+            "top_share": frac, "lead": lead, "text": text, "short": f"Top {min(MAIN_PICKS, len(s))} {group} by total {measure}: {brief_top}"}
 
 
 def _rank_ratio(df, spec: dict, group: str, measure: str, n: int) -> dict | None:
@@ -206,7 +219,8 @@ def _rank_ratio(df, spec: dict, group: str, measure: str, n: int) -> dict | None
     loss = [k for k, v in r.items() if v < 0]
     if loss:
         text += " Loss-making (negative " + measure + "): " + ", ".join(f"{wording.entity(group, k)} ({_ratio_text(r[k], overall)})" for k in loss[:5]) + "."
-    return {"id": f"r{n}", "tool": "ranking", "basis": "ratio", "group": group, "measure": measure, "top": str(r.index[0]), "bottom": str(r.index[-1]), "text": text}
+    brief = f"{measure} by {group}: highest {wording.entity(group, r.index[0])} {_ratio_text(r.iloc[0], overall)}, lowest {wording.entity(group, r.index[-1])} {_ratio_text(r.iloc[-1], overall)} (overall {_ratio_text(overall, overall)})"
+    return {"id": f"r{n}", "tool": "ranking", "basis": "ratio", "group": group, "measure": measure, "top": str(r.index[0]), "bottom": str(r.index[-1]), "text": text, "short": brief}
 
 
 # ------------------------------------------------------------------ rate outside the main value
@@ -222,7 +236,7 @@ def _outside_rate(df, state: dict, col: str, main: str, measure: str | None, foc
     rate = f" ({amt / total:.1%} of all {label})" if total > 0 else ""
     text = (f"{label} outside {main}: {full(amt, cur)}{rate}; {rows_out:,} of {int(valid.sum()):,} rows ({rows_out / valid.sum():.1%}) are outside {main}, "
             f"which holds {1 - rows_out / valid.sum():.1%} of the rows in {col}.")
-    by = []
+    by, clauses = [], []
     for grp in focus:
         if grp == col:
             continue
@@ -239,8 +253,10 @@ def _outside_rate(df, state: dict, col: str, main: str, measure: str | None, foc
         fmt = lambda t: ", ".join(f"{wording.entity(grp, k)} {full(r['outside'], cur)} ({r['rate']:.1%})" for k, r in t.iterrows())
         text += f" By {grp}, the highest rate outside {main}: {fmt(top)}" + (f"; the lowest: {fmt(bottom)}" if len(bottom) else "") + "."
         by.append({"group": grp, "highest": [str(k) for k in top.index], "lowest": [str(k) for k in bottom.index]})
+        clauses.append(f"highest rate by {grp}: " + ", ".join(f"{wording.entity(grp, k)} {r['rate']:.0%}" for k, r in top.iterrows()))
     values = [str(v) for v in g.value_counts().index if str(v) != main][:VALUES_MAX]
-    return {"id": f"r{n}", "tool": "ranking", "kind": "outside_rate", "basis": "ratio", "group": col, "measure": label, "top": main, "bottom": main, "outside": amt, "by": by, "values": values, "text": text,
+    brief = f"{label} outside {main}: {short(amt, cur)}" + (f" ({amt / total:.1%} of all {label})" if total > 0 else f" ({rows_out / valid.sum():.1%} of rows)") + ("; " + clauses[0] if clauses else "")
+    return {"id": f"r{n}", "short": brief, "tool": "ranking", "kind": "outside_rate", "basis": "ratio", "group": col, "measure": label, "top": main, "bottom": main, "outside": amt, "by": by, "values": values, "text": text,
             "rate_amount": amt / total if total > 0 else None, "rate_rows": rows_out / int(valid.sum())}
 
 
@@ -320,11 +336,15 @@ def _growth_fact(df, state: dict, group: str, measure: str, date: str, n: int) -
               else f"{'+' if x['change'] >= 0 else '-'}{full(abs(x['change']), cur)} ({move})")
         x["line"] = f"{wording.entity(group, x['group'])} {ch}, {'statistically reliable' if x['reliable'] else 'not statistically reliable'}"
         parts.append(x["line"])
+    big = max(rows, key=lambda x: abs(x["change"]))
+    move = f"{short(big['first'], cur)} to {short(big['last'], cur)}"
+    brief = (f"Biggest change in {measure} by {group}, {first} vs {last}: {wording.entity(group, big['group'])} "
+             + (f"{big['pct']:+.0%}" if big["pct"] is not None else f"{'+' if big['change'] >= 0 else '-'}{short(abs(big['change']), cur)}") + f" ({move}), {'statistically reliable' if big['reliable'] else 'not statistically reliable'}")
     head = f"Growth in total {measure} by {group}, {first} vs {last} (first and last full periods): "
     tail = f". Reliability is a Welch test on {sub_word}ly totals, corrected for {k} groups."
     text = head + "; ".join(parts) + tail
     return {"id": f"r{n}", "tool": "ranking", "kind": "growth", "basis": "total", "group": group, "measure": measure, "date": date, "periods": [str(first), str(last)],
-            "top": rows[0]["group"], "bottom": rows[-1]["group"], "groups": rows, "text": text, "text_head": head, "text_tail": tail}
+            "top": rows[0]["group"], "bottom": rows[-1]["group"], "groups": rows, "text": text, "text_head": head, "text_tail": tail, "short": brief}
 
 
 def ranking_facts(state: dict, df) -> list[dict]:

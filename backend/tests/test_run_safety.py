@@ -117,7 +117,7 @@ def test_provider_errors_are_named_in_the_log_and_the_report_header(data, error,
     status, res = go(data)
     assert status["status"] == "done" and res is not None
     header = res["report_md"].split("## Executive summary")[0]
-    assert f"AI unavailable for the analysis plan: {word}" in header and f"AI unavailable for insights: {word}" in header
+    assert "AI unavailable for " in header and f": {word}" in header and "the analysis plan" in header and "insights" in header      # one line, stages grouped by reason
     logged = [d for d in res["decisions"] if d["decision"].startswith("AI unavailable:")]
     assert logged and all(d["why"].startswith(word) for d in logged)
     assert any(word in str(d["errors"]) for d in res["decisions"] if d["decision"] == "analysis plan")

@@ -151,9 +151,9 @@ def test_percent_change_is_replaced_by_the_absolute_change_for_a_ratio_or_a_seri
 def test_report_shows_tiers_and_collapsed_appendix():
     state = make_state()
     md = reporter.build_report(state, "Summary.", ["rec one", "rec two", "rec three", "rec four"], "rules")
-    top, rest = md.split("## Key numbers" if "## Key numbers" in md else "## Evidence", 1)
-    assert "**Headline findings**" in top and top.count("\n- ") <= 5 + 1 + 1 + 3                                 # headlines, plus the answers and actions, all short
+    main = md.split("<details>", 1)[0]
+    assert "**Headline findings**" not in main and "**Headline findings**" in md                                 # the headlines are in the details, not the main view
     assert "rec four" not in md
-    assert md.index("## Evidence") < md.index("## Checked, nothing found") < md.index("## Appendix")
-    assert "<details>" in md.split("## Appendix")[1] and md.count("<details>") == md.count("</details>")
-    assert "Possible explanations" not in md.split("## Appendix")[1]
+    assert md.index("<summary>Evidence") < md.index("<summary>Checked, nothing found") < md.index("<summary>Appendix")
+    assert md.count("<details>") == md.count("</details>")
+    assert "Possible explanations" not in md.split("<summary>Appendix")[1]

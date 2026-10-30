@@ -40,9 +40,12 @@ export default function FindingGallery({ run }: { run: RunResult }) {
   const answerIds = new Set(ans?.finding_ids ?? []);
   const answerCharts = all.filter((f) => answerIds.has(f.id) && f.chart_url).sort((a) => (a.tool === "segment_trend" ? -1 : 1));
   const shownInAnswer = new Set(answerCharts.map((f) => f.id));
-  const ranked = all.filter((f) => !shownInAnswer.has(f.id)).sort((a, b) => b.insight!.score - a.insight!.score);
-  const top = ranked.slice(0, TOP);
-  const more = ranked.slice(TOP);
+  const order = run.report_view?.gallery;       // goal-named findings first; a small or negligible effect, or a weak correlation, is never a key finding
+  const byScore = (a: Finding, b: Finding) => b.insight!.score - a.insight!.score;
+  const rest = all.filter((f) => !shownInAnswer.has(f.id));
+  const keyIds = order ? order.key.filter((id) => !shownInAnswer.has(id)) : [];
+  const top = order ? keyIds.map((id) => rest.find((f) => f.id === id)).filter((f): f is Finding => !!f) : rest.sort(byScore).slice(0, TOP);
+  const more = order ? rest.filter((f) => !keyIds.includes(f.id)).sort(byScore) : rest.slice(TOP);
   const dm = run.derived_metrics;
 
   const remove = async (name: string) => {

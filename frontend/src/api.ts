@@ -78,6 +78,7 @@ export interface ReportCard {
 }
 
 export interface ReportView {
+  gallery?: { key: string[]; more: string[] };
   answers: { question: string; answer: string }[];
   numbers: { label: string; value: string; note: string }[];
   headlines: { id: string; members: string[]; text: string }[];

@@ -112,8 +112,8 @@ def test_every_planned_question_gets_one_line_and_the_goal_segment_comes_first()
     assert "No reliable trend" in dict(qa)["Is value trending up or down over time?"]
     assert dict(qa)["Something nobody ran an analysis for?"].startswith(("Not answered", "No reliable driver"))
     md = reporter.write_report({**state, "strategies": [], "strategy_summary": "", "key_metrics": [], "data_gaps": [], "goal_answer": None}, None)[0]
-    summary = md.split("## Key numbers")[0].split("## What we set out to answer")[0]
-    assert "in one line each" in summary and summary.index("in one line each") < summary.index("analyses were run")
+    main = md.split("<details>", 1)[0]
+    assert "Does value differ by tier and is it growing?" in main and "analyses were run" in md          # the goal question has its card in the main view; the written summary is in the details
 
 
 # ------------------------------------------------------------------ 4. strategies

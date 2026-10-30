@@ -27,8 +27,8 @@ def test_growth_main_report_only_for_goal_named_groups_and_at_most_eight_lines()
     state["summary_facts"]["rankings"] += [growth("named", 12, True), growth("other", 3, False)]
     view = tiering.build_view(state)
     md = reporter.build_report(state, "Summary.", ["rec"], "rules", view)
-    main, appendix = md.split("## Appendix")
-    sec = main.split("## Growth in revenue by named")[1].split("\n## ")[0]
+    main, appendix = md.split("<summary>Appendix")
+    sec = main.split("<summary>Growth in revenue by named")[1].split("</details>")[0]
     assert sec.count("\n- g") == 8 and "- and 4 more in the appendix" in sec
     assert sec.index("g11 +11") < sec.index("g4 +4") and "g3 +3" not in sec                    # largest absolute change first
     assert "by other" not in main and "Growth in revenue by other" in appendix                 # not named by the goal: appendix only

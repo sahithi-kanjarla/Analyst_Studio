@@ -144,7 +144,7 @@ def test_date_caution_is_the_first_line_under_the_header_when_swap_was_not_chose
     for answers in ({}, {"q_date": "keep"}):
         md, state = report(answers)
         lines = md.split("\n")
-        assert lines[0].startswith("# Analysis report") and lines[2] == f"> ⚠ {DATE_CAUTION}" and dates_unconfirmed(state)
+        assert lines[0].startswith("# Analysis report") and lines[4] == f"- ⚠ {DATE_CAUTION}" and dates_unconfirmed(state)
         assert md.count(DATE_CAUTION) == 1
         assert f"[{DATE_TAG}]" in next(l for l in lines if "Sales are flat over time" in l and l.startswith("- "))     # the trend finding is tagged
         assert f"[{DATE_TAG}]" not in next(l for l in lines if l.startswith("- Profit does not differ"))               # a finding that does not use dates is not

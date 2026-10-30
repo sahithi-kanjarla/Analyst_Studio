@@ -55,7 +55,7 @@ def test_warning_is_at_the_top_of_the_report(monkeypatch):
     view = {"headlines": [], "numbers": [], "rankings": [], "answers": []}
     state = {"context": {}, "critique": {"issues": []}, "date_coverage_warning": warn}
     md = reporter.build_report(state, "S", ["r"], "rules", view)
-    assert md.split(chr(10))[:3] == ["# Analysis report", "", f"> ⚠ {warn}"]
+    assert md.split(chr(10))[:5] == ["# Analysis report", "", "**Mode:** rules", "", f"- ⚠ {warn}"]
     assert warn not in reporter.build_report({**state, "date_coverage_warning": ""}, "S", ["r"], "rules", view)
 
 

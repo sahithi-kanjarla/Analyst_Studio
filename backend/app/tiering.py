@@ -325,8 +325,11 @@ def build_view(state: dict, df=None) -> dict:
         for a in answered:
             a["answer"] += f" [{DATE_TAG}]" if timed & set(a["ids"]) else ""
     actions = [{"text": f"{s['title']}: {s['objective']}", "evidence": s["evidence"]} for s in strat["strategies"][:ACTIONS_MAX]]
+    from . import mainview
     return {
         "answers": answered,
+        "main_measure": summary.main_measure(state, (facts or {}).get("rankings") or []),
+        "gallery": mainview.gallery_order(state),
         "numbers": key_numbers(state, df),
         "headlines": heads,
         "rankings": (facts or {}).get("rankings") or [],
