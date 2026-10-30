@@ -35,6 +35,7 @@ MAX_RANK_GROUPS = 500         # ... and up to this many, with only the top few g
 TOP_SHOWN = 5
 DOMINANT_VALUE_SHARE = 0.8    # a category column whose main value holds at least this share of the rows gets a "rate outside the main value" fact
 OUTSIDE_SHOWN = 3
+BARS_MAX = 10                 # a bar chart of a ranking shows this many groups
 SMALL_SPREAD = 0.25           # groups whose lowest and highest values differ by less than this share of the higher one (or, for rates, by under SMALL_RATE_POINTS) are called similar
 SMALL_RATE_POINTS = 0.02
 MAX_OUTSIDE_COLUMNS = 3
@@ -220,6 +221,7 @@ def _rank_additive(df, state: dict, group: str, measure: str, n: int) -> dict | 
     brief_top = ", ".join(f"{wording.entity(group, g)} {short(v, cur)}" + (f" ({v / total:.0%})" if total > 0 and 0 < v <= total else "") for g, v in s["sum"].head(MAIN_PICKS).items())
     return {"id": f"r{n}", "tool": "ranking", "basis": "total", "group": group, "measure": measure, "top": top, "bottom": bot, "dominant": top if dominant else None, "groups_total": len(s),
             "top_share": frac, "lead": lead, "text": text, "short": f"Top {min(MAIN_PICKS, len(s))} {group} by total {measure}: {brief_top}",
+            "bars": [[str(g), float(v)] for g, v in s["sum"].head(BARS_MAX).items()],
             "range": f"{short(float(s['sum'].iloc[-1]), cur)} to {short(float(s['sum'].iloc[0]), cur)}", **spread_of(float(s["sum"].iloc[-1]), float(s["sum"].iloc[0]))}
 
 
@@ -248,6 +250,7 @@ def _rank_ratio(df, spec: dict, group: str, measure: str, n: int, state: dict | 
     brief = f"{measure} by {group}: highest {wording.entity(group, r.index[0])} {_ratio_text(r.iloc[0], overall)}, lowest {wording.entity(group, r.index[-1])} {_ratio_text(r.iloc[-1], overall)} (overall {_ratio_text(overall, overall)})"
     return {"id": f"r{n}", "tool": "ranking", "basis": "ratio", "group": group, "measure": measure, "top": str(r.index[0]), "bottom": str(r.index[-1]), "text": text, "short": brief,
             "min_base": base, "small_base": small, "top_amount": [str(k) for k in amount.head(TOP_SHOWN).index],
+            "bars": [[str(k), float(v)] for k, v in r.head(BARS_MAX).items()], "bars_pct": abs(overall) <= 5,
             "range": f"{_ratio_text(r.iloc[-1], overall)} to {_ratio_text(r.iloc[0], overall)}", **spread_of(float(r.iloc[-1]), float(r.iloc[0]), rate=True)}
 
 
@@ -295,7 +298,7 @@ def _outside_rate(df, state: dict, col: str, main: str, measure: str | None, foc
         clause = f"highest rate by {grp}: " + ", ".join(f"{wording.entity(grp, k)} {r['rate']:.0%}" for k, r in top.iterrows()) + f"; largest amount by {grp}: " + ", ".join(wording.entity(grp, k) for k in by_amount.index[:2])
         lo, hi = float(s["rate"].min()), float(s["rate"].max())
         by.append({"group": grp, "highest": [str(k) for k in top.index], "lowest": [str(k) for k in bottom.index], "by_amount": [str(k) for k in by_amount.index], "small_base": small, "min_base": base,
-                   "clause": clause, "range": f"{lo:.1%} to {hi:.1%}", **spread_of(lo, hi, rate=True)})
+                   "clause": clause, "bars": [[str(k), float(r["rate"])] for k, r in s.head(BARS_MAX).iterrows()], "range": f"{lo:.1%} to {hi:.1%}", **spread_of(lo, hi, rate=True)})
         clauses.append(clause)
     values = [str(v) for v in g.value_counts().index if str(v) != main][:VALUES_MAX]
     head = f"{label} outside {main}: {short(amt, cur)}" + (f" ({amt / total:.1%} of {of_all})" if total > 0 else f" ({rows_out / valid.sum():.1%} of {ROWS_LABEL})") + (f"; by {col}: " + ", ".join(f"{wording.entity(col, x['value'])} {x['share']:.0%}" for x in split[:MAIN_PICKS]) + " of the outside total" if amt > 0 and split else "")

@@ -5,9 +5,11 @@ from __future__ import annotations
 import json
 import re
 
-from . import aicache, cited, context as ctxmod, mainview, strategy as strat_mod, summary as summary_mod, tiering, wording
+from . import aicache, cited, context as ctxmod, mainview, reportcharts, strategy as strat_mod, summary as summary_mod, tiering, wording
 from . import understanding as und
 from .clarify import named_in_goal
+from pathlib import Path
+
 from .llm import ask_json, capture
 from .insights import DATE_CAUTION, DATE_TAG, dates_unconfirmed
 from .propose import derive_mode
@@ -164,6 +166,101 @@ def llm_summary(llm, state: dict) -> tuple[str, list[str], bool] | None:
     if dropped:
         _log(state, "numbers_ok: some sentences/recommendations had figures not tied to the fact they cite and were dropped", rejected, raw, dropped)
     return " ".join(kept), recs[:6], bool(dropped)
+
+
+def _chart_facts(ids, by_id: dict, r_by_id: dict) -> dict[str, dict]:
+    """The facts a chart caption may cite: each one's own figures and subject words, as for an AI action."""
+    facts = {}
+    for i in ids:
+        if i in r_by_id:
+            r = r_by_id[i]
+            facts[i] = cited.make_fact(r["text"], r["text"], cited.scope_of(r))
+            facts[i]["subject"] |= cited.tokens(f"{r['group']} {r['measure']} {r['top']} {r['bottom']} " + " ".join(r.get("values") or []))
+        elif i in by_id:
+            f = by_id[i]
+            text = f"{(f.get('insight') or {}).get('headline', '')} {f.get('text', '')}".replace("**", "")
+            facts[i] = cited.make_fact(text, text, cited.scope_of(f))
+    return facts
+
+
+def plan_charts(llm, state: dict, view: dict, cs: list[dict], plan: dict) -> dict:
+    """{"cards": {question: [{id, path, title, fact, caption}]}, "actions": {action index: {chart, title, figure}}}. Needs a work folder to draw into (state['workdir']).
+    The AI picks, from the closed list of chart specs the card's facts offer, the one or two that best answer the question, and writes a caption of at most CAPTION_WORDS words per chart;
+    every figure in a caption must pass the fact-id check, else the caption is a plain one with no figure. With no AI, each card gets its first chart. At most MAX_CHARTS distinct charts
+    on the page; a chart is never used for two cards."""
+    by_id, r_by_id, _ = mainview.lookup(state, view)
+    folder = Path(state["workdir"]) / "charts"
+    avail = {c["n"]: reportcharts.specs_for([i for i in c["ids"] if i in by_id or i in r_by_id], by_id, r_by_id, state) for c in cs if c["num"]}
+    avail = {n: v for n, v in avail.items() if v}
+    q_of = {c["n"]: c["question"] for c in cs}
+    picked: dict[int, list[tuple[str, str]]] = {}          # question number -> [(chart id, AI caption)]
+    if llm is not None and avail:
+        with capture() as cap:
+            out = ask_json(
+                llm,
+                "You choose charts for a business report. For each goal question below pick the ONE or TWO charts from its list that best answer the question, and write for each a caption "
+                f"of at most {reportcharts.CAPTION_WORDS} words that tells the reader how to read it (what the bars or line show, what to look at). Use only chart ids from the list. "
+                + cited.CITE_RULE + "A caption needs no figure; if it has one it must end with the id of the fact in square brackets. "
+                "Return JSON: {\"charts\": [{\"question\": <question number>, \"chart\": \"<chart id>\", \"caption\": \"...\"}]}",
+                "GOAL QUESTIONS AND THEIR CHARTS: " + json.dumps({n: {"question": q_of[n], "charts": {sp["id"]: {"title": sp["title"], "fact": sp["fact"]} for sp in specs}} for n, specs in avail.items()}, ensure_ascii=False))
+        rows = out.get("charts") if isinstance(out, dict) else None
+        for row in rows if isinstance(rows, list) else []:
+            try:
+                n, cid = int(row["question"]), str(row["chart"])
+            except (KeyError, TypeError, ValueError):
+                continue
+            if n in avail and any(sp["id"] == cid for sp in avail[n]) and cid not in [c for v in picked.values() for c, _ in v] and len(picked.setdefault(n, [])) < reportcharts.PER_CARD:
+                picked[n].append((cid, str(row.get("caption") or "")))
+        if not picked:
+            state.setdefault("decisions", []).append({"decision": "report_charts", "source": "fallback", "chosen": "first chart of each card", "why": cap.reason or "the model chose no listed chart",
+                                                      "errors": [], "raw_output": json.dumps(out, default=str)[:500]})
+    taken: set[str] = {c for v in picked.values() for c, _ in v}
+    cards: dict[str, list[dict]] = {}
+    budget = reportcharts.MAX_CHARTS
+    computed = cited.claims((state.get("summary_facts") or {}).get("rankings") or [])
+    for n, specs in avail.items():
+        by_spec = {sp["id"]: sp for sp in specs}
+        chosen = list(picked.get(n, []))
+        if not chosen:          # no AI choice for this card: its first chart that no other card uses
+            first = next((sp for sp in specs if sp["id"] not in taken), None)
+            chosen = [(first["id"], "")] if first else []
+            taken |= {first["id"]} if first else set()
+        for cid, text in chosen:
+            if budget <= 0:
+                break
+            sp = by_spec[cid]
+            caption = reportcharts.fallback_caption(sp)
+            if text:
+                clean, bad = cited.verify(text, _chart_facts([sp["fact"]], by_id, r_by_id))
+                clean = clean.strip()
+                if not bad and clean and len(clean.split()) <= reportcharts.CAPTION_WORDS and not cited.contradicts(clean, computed):
+                    caption = clean
+                else:
+                    state.setdefault("decisions", []).append({"decision": "report_chart_caption", "source": "fallback", "chosen": "plain caption", "why": bad or "caption too long or disagrees with a computed share",
+                                                              "errors": [bad or clean], "raw_output": text[:300]})
+            cards.setdefault(q_of[n], []).append({"id": cid, "path": reportcharts.draw(sp, folder), "title": sp["title"], "fact": sp["fact"], "caption": caption})
+            budget -= 1
+    shown = {c["path"] for v in cards.values() for c in v}
+    support: dict[int, dict] = {}
+    for k, a in enumerate(plan["actions"]):          # each action shows the chart (else the figure) that supports it
+        ev = [i for i in a.get("evidence") or [] if i in by_id or i in r_by_id]
+        made = next((c for v in cards.values() for c in v if c["fact"] in ev), None)
+        if made:
+            support[k] = {"chart": made["path"], "title": made["title"], "figure": mainview.fact_line(made["fact"], by_id, r_by_id, state)}
+            continue
+        spec = next(iter(reportcharts.specs_for(ev, by_id, r_by_id, state)), None)
+        fid = next((i for i in ev if i in by_id and by_id[i].get("chart")), None)
+        path, title = None, ""
+        if spec and (budget > 0 or reportcharts.draw_path(spec) in shown):
+            path, title = reportcharts.draw(spec, folder), spec["title"]
+        elif fid and (budget > 0 or by_id[fid]["chart"] in shown):
+            path, title = by_id[fid]["chart"], by_id[fid].get("title", "")
+        if path and path not in shown:
+            shown.add(path)
+            budget -= 1
+        if path or ev:
+            support[k] = {"chart": path, "title": title, "figure": mainview.fact_line(ev[0], by_id, r_by_id, state)}
+    return {"cards": cards, "actions": support}
 
 
 def llm_actions(llm, state: dict, view: dict, cs: list[dict], wanted: list[int], slots: int) -> dict[str, str]:
@@ -618,13 +715,13 @@ def build_report(state: dict, summary: str, recs: list[str], run_mode: str = "",
 
     L += ["## Executive summary", "", "### Answers", ""]          # B. one card per goal question
     for c in answer_cards:
-        L += mainview.card_md(c, _card_detail(state, view, c))
+        L += mainview.card_md(c, _card_detail(state, view, c), (state.get("chart_plan") or {}).get("cards", {}).get(c["question"]))
     if not cs:
         L += ["No question was asked in the goal; the key numbers and the sections under 'view more' describe the data.", ""]
     also = [mainview.readable(state, x) for x in [f"**By {r['group']}** (named in your goal). {mainview.clip(r.get('short') or r.get('lead') or r['text'])}" for r in summary_mod.uncovered_groups(state, view)] + summary_mod.difference_lines(state)]
     if also:
         L += ["**Also named in your goal**", ""] + [f"- {x}" for x in also[:3]] + [""]
-    L += ["### What to do", ""] + mainview.actions_md(cs, plan) + [""]          # C
+    L += ["### What to do", ""] + mainview.actions_md(cs, plan, (state.get("chart_plan") or {}).get("actions")) + [""]          # C
 
     ts = mainview.tiles(state, view)          # D
     if ts:
@@ -688,5 +785,8 @@ def write_report(state: dict, llm) -> tuple[str, str]:
         plan = mainview.plan_actions(state, view, cs)
         if plan["open"]:
             state["ai_actions"] = llm_actions(llm, state, view, cs, plan["open"], mainview.ACTIONS_MAX - len(plan["actions"]))
+    if state.get("workdir"):      # charts need a folder to be drawn into; without one the report has none
+        cs = mainview.cards(state, view)
+        state["chart_plan"] = plan_charts(llm, state, view, cs, mainview.plan_actions(state, view, cs))
     state["reused_ai"] = aicache.reused_stages()
     return build_report(state, summary, recs, derive_mode({**(state.get("stage_sources") or {}), "report": mode}), view), mode

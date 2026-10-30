@@ -1,0 +1,20 @@
+run c40ed9b60c8f started...
+
+kaveri scorecard, run 1/1 (c40ed9b60c8f); ratio KPI path: profit margin: llm
+AI requests sent in this run: 9; cache on; Reused saved AI result: relations.llm_review, derived.propose, propose.propose, critic.review, insights.enrich_with_llm.
+
+ #  Result  Check                                     Detail
+ 1  PASS    Revenue total                             truth 45,422,281; found 45,422,281
+ 2  PASS    Profit total and margin                   truth 2,635,797 / 5.8%; profit total found, margin found
+ 3  PASS    Gold top tier, ~38.5% share               share sentence found
+ 4  PASS    Tier growth 2023->2024                    Bronze -18% ok; Gold +41% ok; Silver -9% ok
+ 5  PASS    Tier margin not reliably different        stated in the report
+ 6  PASS    Electronics loss-making (~-5.0%)          found
+ 7  PASS    Discount vs margin (r~-0.83)              finding f11
+ 8  PASS    Seasonality: Oct high, Aug low            found
+ 9  PASS    <=3 questions, none scope                 3 asked
+10  PASS    999 delivery_days handled                 asked
+11  PASS    Pincode not a measure                     not used in any finding
+12  PASS    Ratios are sum/sum                        1 ratio(s), all consistent
+
+Total: 12/12

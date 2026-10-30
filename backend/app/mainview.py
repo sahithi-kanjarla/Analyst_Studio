@@ -425,10 +425,10 @@ def cards(state: dict, view: dict) -> list[dict]:
                 first_card.setdefault(i, card["num"])
         if not action and wording.TREND_Q.search(a["question"]):
             tid = next((i for i in ids if (by_id.get(i) or {}).get("tool") == "trend" and any(origin.get(t) == i for t in lines)), None)
-            shown, caution = trend_lines(by_id[tid], state) if tid else (None, None)
-            if tid and (shown or caution):
+            totals_line, caution = trend_lines(by_id[tid], state) if tid else (None, None)
+            if tid and (totals_line or caution):
                 at = next(k for k, t in enumerate(lines) if origin.get(t) == tid)
-                lines[at:at + 1] = ([] if caution else [lines[at]]) + [x for x in (shown, caution) if x]      # a trend that is too short to call is not stated, only its figures and why
+                lines[at:at + 1] = ([] if caution else [lines[at]]) + [x for x in (totals_line, caution) if x]      # a trend that is too short to call is not stated, only its figures and why
                 limit = max(limit, TREND_LINES)
         if not action and WORST_Q.search(a["question"]):
             lead, found = breakdown_lines(ids, r_by_id)
@@ -443,9 +443,11 @@ def cards(state: dict, view: dict) -> list[dict]:
     return out
 
 
-def card_md(c: dict, detail: list[str] | None = None) -> list[str]:
+def card_md(c: dict, detail: list[str] | None = None, charts: list[dict] | None = None) -> list[str]:
     tag = f" [{DATE_TAG}]" if c["date_tag"] and c["text"] and not c["text"][0].startswith("Not answered") else ""
     L = [f"**{c['num']}. {plain(c['question'])}**", ""] + [f"{t}{tag if k == len(c['text']) - 1 else ''}  " for k, t in enumerate(c["text"])]
+    for ch in charts or []:        # 1 to 2 charts drawn from the facts the card uses, each with a "how to read this" caption
+        L += ["", f"![{ch['title']}]({ch['path']})", "", f"*How to read this: {ch['caption']}*", ""]
     foot = []
     if c["trust"]:
         foot.append(f"Trust: **{c['trust']}**")
@@ -534,9 +536,19 @@ def action_lines(cs: list[dict], plan: dict) -> list[str]:
     return [f"{i}. {a['text']}" + (f" *(question {num[a['n']]})*" if num.get(a["n"]) else "") for i, a in enumerate(plan["actions"], 1)]      # an action question has no number: its actions carry no tag
 
 
-def actions_md(cs: list[dict], plan: dict) -> list[str]:
+def actions_md(cs: list[dict], plan: dict, support: dict | None = None) -> list[str]:
+    """The actions, each followed by the chart and figure that support it, indented under its item."""
     num = {c["n"]: c["num"] for c in cs}
-    L = action_lines(cs, plan)
+    L: list[str] = []
+    for k, line in enumerate(action_lines(cs, plan)):
+        L.append(line)
+        s = (support or {}).get(k)
+        if s and s.get("chart"):
+            L += ["", f"   ![{s['title']}]({s['chart']})"]
+        if s and s.get("figure"):
+            L += ["", f"   *Supported by: {s['figure']}*"]
+        if s:
+            L.append("")
     L += [f"- No action suggested for question {num[n]}: {reason}" for n, reason in sorted(plan["none"].items()) if num.get(n)]
     return L or ["- No action suggested: no goal question has a finding with a medium or larger effect to act on."]
 

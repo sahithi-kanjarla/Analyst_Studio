@@ -198,3 +198,12 @@ def test_with_no_goal_named_column_the_key_findings_fall_back_to_the_strong_ones
     st["goal"] = "Give me a general understanding of this data."
     key = mainview.gallery_order(st)["key"]
     assert key                                                                           # nothing is named, so nothing is demoted for being unnamed
+
+
+def test_a_trend_card_does_not_break_the_numbering_of_the_cards_after_it():
+    """Regression: the trend branch once reused the card counter's name, so any card after a trend question failed the whole report."""
+    q1, q2 = "How is revenue changing over time?", "Which segment earns the most revenue?"
+    st = state_for([q1, q2], [ranking("r1", "segment")], {q1: ["f105"], q2: ["r1"]})
+    st["findings"] = [f for f in st["findings"] if f["id"] != "f105"] + [trend_fact(4, 0.95)]
+    head = main_of(render(st))
+    assert "**1. " + q1 + "**" in head and "**2. " + q2 + "**" in head
