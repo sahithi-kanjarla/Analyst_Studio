@@ -32,7 +32,7 @@ def multi_part_state(rankings):
 def test_a_multi_part_question_shows_the_ranking_the_growth_and_the_ratio_fact():
     decoys = [growth(group="other", measure="cost"), ratio_fact(group="other", fid="r_other")]            # same kinds, wrong group or measure: never picked
     main = main_of(render(multi_part_state([growth(group="g0", measure="revenue"), ratio_fact()] + decoys)))
-    card = main.split(f"**1. {Q}**")[1].split("[details]")[0]
+    card = main.split(f"**1. {Q}**")[1].split("Trust:")[0]
     lines = [l.strip() for l in card.split("\n") if l.strip() and not l.startswith("Trust")]
     assert len(lines) == 3 and len(lines) <= mainview.PART_LINES
     assert lines[0].startswith("By total revenue, segment a is highest") and "Biggest change in revenue by g0" in lines[1] and lines[2].startswith("margin by g0")
@@ -41,7 +41,7 @@ def test_a_multi_part_question_shows_the_ranking_the_growth_and_the_ratio_fact()
 
 def test_a_part_without_a_fact_is_left_out_and_a_one_part_question_is_unchanged():
     main = main_of(render(multi_part_state([growth(group="g0", measure="revenue")])))            # no ratio fact exists
-    card = main.split(f"**1. {Q}**")[1].split("[details]")[0]
+    card = main.split(f"**1. {Q}**")[1].split("Trust:")[0]
     assert "Biggest change" in card and "margin" not in card
     assert mainview.part_kinds("Which segment earns the most revenue?") == [] and mainview.part_kinds("Is revenue growing?") == []
     assert mainview.part_kinds(Q) == ["ranking", "growth", "ratio"]

@@ -2,7 +2,8 @@
 fact-id-checked AI sentence; nothing is analysed here. Everything else goes into collapsed sections (see reporter).
 
   A  title, mode, at most WARNINGS_MAX warning lines (built in reporter)
-  B  Answers: one card per goal question: the answer in at most ANSWER_LINES lines, a trust label, at most one "so what" sentence, a link to the details
+  B  Answers: one card per goal question: the answer in at most ANSWER_LINES lines (a question naming several columns: one line per column, up to GROUP_LINES), a trust label,
+     at most one "so what" sentence, and a Details toggle that opens in place (never a link)
   C  What to do: at most ACTIONS_MAX actions, each for a goal question; a question without one says "No action suggested: <reason>"
   D  Key numbers: TILES_MIN to TILES_MAX tiles"""
 from __future__ import annotations
@@ -20,6 +21,11 @@ PART_LINES = 3          # a question with several parts shows the best fact for 
 RANK_WORDS = re.compile(r"\b(?:which|who|whose|most|least|top|bottom|best|worst|highest|lowest|biggest|largest|smallest|rank\w*)\b", re.I)
 CLAUSES = re.compile(r",|;|\band\b|\bor\b|\bbut\b", re.I)
 LINE_CHARS = 170
+GROUP_LINES = 4         # a question naming several group columns shows one line for each, at most this many
+TREND_LINES = 3         # a trend question: the period totals, what is too short about them, and one more line
+MIN_TREND_PERIODS, MIN_DATE_COVERAGE = 6, 0.7          # fewer periods than this, or dates on fewer rows than this, cannot show a trend
+LOSS_Q = re.compile(r"\b(?:lose|losing|lost|loss(?:es)?|leak\w*|waste\w*)\b", re.I)
+WORST_Q = re.compile(r"\b(?:lose|losing|lost|loss(?:es)?|leak\w*|waste\w*|worst)\b", re.I)          # "where is it worst", "how much do we lose"
 TRUST = {"high": "High", "medium": "Medium", "low": "Low", "exploratory": "Low", "descriptive": "Medium"}      # a descriptive figure makes no statistical claim, so it cannot lift a card to High
 NOT_RELIABLE = "not statistically reliable"
 STRONG = ("medium", "large")
@@ -280,6 +286,79 @@ def with_shares(ai: str, extra: str) -> str:
     return f"{ai.rstrip()} {extra}".strip()
 
 
+# ------------------------------------------------------------------ what a card shows for a question that names several columns, asks about a trend, or asks where it is worst
+def named_groups(q: str, ids: list[str], r_by_id: dict, main: str, state: dict) -> list[str]:
+    """Ids of the total rankings, one per group column the question names (at most GROUP_LINES), for the measure the question's ranking is about. Fewer than two columns: []."""
+    totals = [r for r in r_by_id.values() if r.get("basis") == "total" and not r.get("kind")]
+    lead = next((r_by_id[i] for i in ids if i in r_by_id and r_by_id[i] in totals), None)
+    measure = lead["measure"] if lead else main
+    mapped = set(und.columns_for_text(state.get("understanding"), q))
+    scored = [(3 if r["group"] in mapped else summary.names(r["group"], q), r) for r in totals if r["measure"] == measure]
+    out = [r["id"] for n, r in sorted(scored, key=lambda t: -t[0]) if n][:GROUP_LINES]
+    return out if len(out) >= 2 else []
+
+
+PERIOD_ADJ = {"D": "Daily", "W": "Weekly", "MS": "Monthly"}
+AGG_WORD = {"sum": "totals", "mean": "averages", "ratio of sums": "ratio"}
+
+
+def trend_lines(f: dict, state: dict) -> tuple[str | None, str | None]:
+    """(the period totals in plain words, the plain-words warning that the data is too short to call a trend). Too short: fewer than MIN_TREND_PERIODS periods, or dates on under
+    MIN_DATE_COVERAGE of the rows. Either is None when the finding has no such figure."""
+    st = f.get("stats") or {}
+    unit, periods, cov = FREQ_WORD.get(st.get("freq")), st.get("periods"), f.get("date_coverage")
+    if not unit or periods is None:
+        return None, None
+    target = str((f.get("params") or {}).get("target") or "")
+    cur = summary._cur(target, state)
+    fmt = (lambda v: f"{v:.3g}") if st.get("agg") == "ratio of sums" else (lambda v: summary.short(v, cur))
+    label = lambda d: d[:7] if st.get("freq") == "MS" else d
+    vals = [(label(str(d)), v) for d, v in f.get("series") or [] if v is not None]
+    body = None
+    if vals and len(vals) <= MIN_TREND_PERIODS:
+        body = ", ".join(f"{d} {fmt(v)}" for d, v in vals)
+    elif vals:
+        best, weak = max(vals, key=lambda x: x[1]), min(vals, key=lambda x: x[1])
+        body = f"{vals[0][0]} {fmt(vals[0][1])} to {vals[-1][0]} {fmt(vals[-1][1])} ({len(vals)} {unit}s; best {best[0]} {fmt(best[1])}, weakest {weak[0]} {fmt(weak[1])})"
+    shown = f"{PERIOD_ADJ[st['freq']]} {AGG_WORD.get(st.get('agg'), 'totals')} of {target}: {body}" if body else None
+    why = ([f"there are only {periods} {unit}s of data"] if periods < MIN_TREND_PERIODS else []) + ([f"dates are on only {cov:.0%} of the rows"] if cov is not None and cov < MIN_DATE_COVERAGE else [])
+    return shown, (f"The data is too short to call a trend: {' and '.join(why)}." if why else None)
+
+
+def breakdown_lines(ids: list[str], r_by_id: dict) -> tuple[str | None, list[str]]:
+    """(the fact the lines replace, lines) for a 'where is it worst / how much do we lose' question: the breakdown with the largest spread between its groups. When every breakdown's
+    spread is small the line says so ('similar across <group> (low to high): no real difference'). The lead fact of a loss answer (the amount outside the main value) comes first."""
+    outside = [r_by_id[i] for i in ids if i in r_by_id and r_by_id[i].get("kind") == "outside_rate"]
+    lead = outside[0] if outside else next((r_by_id[i] for i in ids if i in r_by_id and not r_by_id[i].get("kind")), None)
+    if lead is None:
+        return None, []
+    if outside:
+        pool = [{"group": b["group"], "range": b["range"], "spread": b["spread"], "similar": b["similar"], "line": b["clause"]} for r in outside for b in r.get("by") or [] if "spread" in b]
+    else:
+        pool = [{"group": r["group"], "range": r["range"], "spread": r["spread"], "similar": r["similar"], "line": r["short"]} for r in r_by_id.values()
+                if not r.get("kind") and r["measure"] == lead["measure"] and r["basis"] == lead["basis"] and r.get("focus", True) and "spread" in r]
+    if not pool:
+        return None, []
+    pool.sort(key=lambda b: -b["spread"])
+    head = [clip(lead.get("head") or lead.get("short") or lead["text"])] if outside else []
+    if all(b["similar"] for b in pool):
+        return lead["id"], head + ["Similar across " + " and ".join(f"{b['group']} ({b['range']})" for b in pool[:3]) + ": no real difference."]
+    best = pool[0]
+    return lead["id"], head + [clip(f"Biggest spread is across {best['group']} ({best['range']}): {best['line']}")]
+
+
+def look_into(i: str, by_id: dict, r_by_id: dict, state: dict) -> str | None:
+    """'Look into <top group> first: <figure with measure>', built from a computed fact. None when the fact names no top group, or has no figure that names its measure."""
+    if i in r_by_id:
+        r = r_by_id[i]
+        top = wording.entity(r["group"], r["largest"]) if r.get("kind") == "outside_rate" and r.get("largest") else None if r.get("kind") else wording.entity(r["group"], r["top"])
+    else:
+        f = by_id.get(i) or {}
+        top = wording.entity(f["params"]["group"], f["stats"]["best"]) if (f.get("params") or {}).get("group") and (f.get("stats") or {}).get("best") else None
+    line = fact_line(i, by_id, r_by_id, state) if top else ""
+    return f"Look into {top} first: {line.rstrip('. ')}." if top and concrete(line, {measure_of(i, by_id, r_by_id)}) else None
+
+
 # ------------------------------------------------------------------ B. answer cards
 def cards(state: dict, view: dict) -> list[dict]:
     """One card per goal question: {n, num, question, text, trust, ids, so_what, action_question}. `n` is the question's place in the goal; `num` is the number shown (None for an action question:
@@ -300,6 +379,7 @@ def cards(state: dict, view: dict) -> list[dict]:
         ids = [i for i in a["ids"] if i in by_id or i in r_by_id]
         action = is_action_question(a["question"])
         shown += not action
+        groups = named_groups(a["question"], ids, r_by_id, main, state) if ids and not action else []
         mine, replaces = code_so_what(ids, by_id, r_by_id)
         card = {"n": n, "num": None if action else shown, "question": a["question"], "ids": a["ids"], "gcols": sorted(group_cols(ids, by_id, r_by_id)), "trust": trust_of(ids, by_id, r_by_id),
                 "so_what": readable(state, mine if replaces else with_shares(so_what.get(a["question"], ""), mine)), "so_what_by": "code" if replaces else "ai", "action_question": action, "text": "", "date_tag": DATE_TAG in a["answer"]}
@@ -314,6 +394,12 @@ def cards(state: dict, view: dict) -> list[dict]:
             card["trust"] = trust_of(ids + parts, by_id, r_by_id)
             ids = ids + [i for i in parts if i not in ids]
             limit = PART_LINES
+        elif len([i for i in groups if i not in used]) >= 2:        # a question naming several columns: one line for each
+            lines = [ln(i) for i in groups if i not in used]
+            card["ids"] = a["ids"] + [i for i in groups if i not in a["ids"]]
+            card["trust"] = trust_of(ids + groups, by_id, r_by_id)
+            ids = ids + [i for i in groups if i not in ids]
+            limit = GROUP_LINES
         elif not ids and sids and card["action_question"]:
             lines = ["Answered under 'What to do' below."]
             card["trust"] = next((str(strat[i]["confidence"]).capitalize() for i in sids if strat[i].get("confidence")), "Medium")
@@ -337,6 +423,19 @@ def cards(state: dict, view: dict) -> list[dict]:
             used.add(i)
             if card["num"]:
                 first_card.setdefault(i, card["num"])
+        if not action and wording.TREND_Q.search(a["question"]):
+            tid = next((i for i in ids if (by_id.get(i) or {}).get("tool") == "trend" and any(origin.get(t) == i for t in lines)), None)
+            shown, caution = trend_lines(by_id[tid], state) if tid else (None, None)
+            if tid and (shown or caution):
+                at = next(k for k, t in enumerate(lines) if origin.get(t) == tid)
+                lines[at:at + 1] = ([] if caution else [lines[at]]) + [x for x in (shown, caution) if x]      # a trend that is too short to call is not stated, only its figures and why
+                limit = max(limit, TREND_LINES)
+        if not action and WORST_Q.search(a["question"]):
+            lead, found = breakdown_lines(ids, r_by_id)
+            at = next((k for k, t in enumerate(lines) if origin.get(t) == lead), None) if found else None
+            if at is not None:
+                lines[at:at + 1] = found
+                limit = max(limit, len(found))
         lines = label_growth_measures(lines[:limit], origin, by_id, r_by_id)
         card["text"] = [readable(state, t) for t in lines]
         card["trust"] = cap_by_text(card["trust"], card["text"])
@@ -344,7 +443,7 @@ def cards(state: dict, view: dict) -> list[dict]:
     return out
 
 
-def card_md(c: dict) -> list[str]:
+def card_md(c: dict, detail: list[str] | None = None) -> list[str]:
     tag = f" [{DATE_TAG}]" if c["date_tag"] and c["text"] and not c["text"][0].startswith("Not answered") else ""
     L = [f"**{c['num']}. {plain(c['question'])}**", ""] + [f"{t}{tag if k == len(c['text']) - 1 else ''}  " for k, t in enumerate(c["text"])]
     foot = []
@@ -352,8 +451,10 @@ def card_md(c: dict) -> list[str]:
         foot.append(f"Trust: **{c['trust']}**")
     if c["so_what"]:
         foot.append(f"So what: {c['so_what']}")
-    foot.append(f"[details](#answer-q{c['num']})")
-    return L + [" · ".join(foot), ""]
+    L += [" · ".join(foot), ""]
+    if detail:        # opens in place: no link, no navigation, no change to the address
+        L += ['<details class="card-details">', "<summary>Details</summary>", ""] + detail + ["", "</details>", ""]
+    return L
 
 
 # ------------------------------------------------------------------ C. actions
@@ -441,6 +542,20 @@ def actions_md(cs: list[dict], plan: dict) -> list[str]:
 
 
 # ------------------------------------------------------------------ D. key numbers
+def loss_tile(state: dict, view: dict) -> tuple[str, str] | None:
+    """When the goal asks about loss: the amount outside the main value and its share, from the computed fact (the one a loss question's answer cites, else the first)."""
+    if not LOSS_Q.search(state.get("goal", "")):
+        return None
+    outside = [r for r in view.get("rankings") or [] if r.get("kind") == "outside_rate"]
+    cited = {i for a in view.get("answers") or [] if LOSS_Q.search(a["question"]) for i in a["ids"]}
+    r = next((r for r in outside if r["id"] in cited), outside[0] if outside else None)
+    if r is None:
+        return None
+    share = r.get("rate_amount") if r.get("rate_amount") is not None else r.get("rate_rows")
+    amount = f"{r['outside']:,.0f}" if r["measure"] == "rows" else summary.short(r["outside"], summary._cur(r["measure"], state))
+    return readable(state, f"{r['measure']} outside {r['top']}"), amount + (f" ({share:.1%})" if share is not None else "")
+
+
 def tiles(state: dict, view: dict) -> list[tuple[str, str]]:
     """4 to 6 (label, value): the goal's main measures first, then the period and the row count."""
     nums = view.get("numbers") or state.get("key_metrics") or []
@@ -452,7 +567,9 @@ def tiles(state: dict, view: dict) -> list[tuple[str, str]]:
         label = m["label"]
         return (0 if target and target in label else 1 if summary.mentions(label.replace("Total ", ""), goal) else 2)
     kpis = sorted(kpis, key=rank)
-    out = [(readable(state, m["label"]), m["value"]) for m in kpis[:TILES_MAX - 2]]
+    loss = loss_tile(state, view)
+    first = kpis[:TILES_MAX - 2 - bool(loss)]
+    out = [(readable(state, m["label"]), m["value"]) for m in first[:1]] + ([loss] if loss else []) + [(readable(state, m["label"]), m["value"]) for m in first[1:]]
     if period:
         out.append((period["label"], period["value"]))
     prof = state.get("profile") or {}
@@ -471,13 +588,18 @@ def tiles_md(ts: list[tuple[str, str]]) -> list[str]:
 
 
 # ------------------------------------------------------------------ the dashboard's key findings
+def order_key(named: bool, effect: str | None, score: float) -> tuple:
+    """The one ordering of findings: goal-named first, a small or negligible effect last, score within a group. Used by the dashboard's key findings and 'What stands out' and by the report's evidence list."""
+    return (effect in ("negligible", "small"), not named, -score)
+
+
 def gallery_order(state: dict, top: int = 4) -> dict:
-    """{"key": ids, "more": ids}: findings that name the goal's columns lead; a small or negligible effect, or a weak correlation, is never a key finding. Score decides within a group."""
+    """{"key": ids, "more": ids}: findings that name the goal's columns lead; a small or negligible effect, a weak correlation, or (when the goal names some column) a finding on a column
+    it does not name is never a key finding and goes to 'More charts'. Score decides within a group."""
     goal = state.get("goal", "")
     fs = [f for f in state.get("findings") or [] if f.get("insight")]
-
-    def weak(f):
-        return effect_label(f.get("stats") or {}) in ("negligible", "small")
-    ranked = sorted(fs, key=lambda f: (weak(f), not goal_named(f, goal), -(f["insight"].get("score") or 0)))
-    strong = [f["id"] for f in ranked if not weak(f)]
-    return {"key": strong[:top], "more": [f["id"] for f in ranked if f["id"] not in strong[:top]]}
+    named = {f["id"]: goal_named(f, goal) for f in fs}
+    ranked = sorted(fs, key=lambda f: order_key(named[f["id"]], effect_label(f.get("stats") or {}), f["insight"].get("score") or 0))
+    strong = [f["id"] for f in ranked if effect_label(f.get("stats") or {}) not in ("negligible", "small")]
+    key = [i for i in strong if named[i]] if any(named[i] for i in strong) else strong
+    return {"key": key[:top], "more": [f["id"] for f in ranked if f["id"] not in key[:top]]}

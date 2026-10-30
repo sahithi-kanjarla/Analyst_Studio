@@ -155,5 +155,5 @@ def test_report_shows_tiers_and_collapsed_appendix():
     assert "**Headline findings**" not in main and "**Headline findings**" in md                                 # the headlines are in the details, not the main view
     assert "rec four" not in md
     assert md.index("<summary>Evidence") < md.index("<summary>Checked, nothing found") < md.index("<summary>Appendix")
-    assert md.count("<details>") == md.count("</details>")
+    assert md.count("<details") == md.count("</details>")
     assert "Possible explanations" not in md.split("<summary>Appendix")[1]

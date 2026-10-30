@@ -11,6 +11,7 @@ from test_report_tiers import compare, finding, make_state  # noqa: E402
 from app import mainview, reporter, summary, tiering  # noqa: E402
 
 MAIN_LINES_MAX = 60
+CARD_DETAILS = re.compile(r'<details class="card-details">.*?</details>\s*', re.S)
 TAG = re.compile(r"\b[rfs]\d+\b")
 Q1, Q2 = "Which segment earns the most revenue?", "Is revenue growing?"
 
@@ -41,7 +42,7 @@ def render(st, llm=None):
 
 
 def main_of(md):
-    return md.split("<details>", 1)[0]
+    return CARD_DETAILS.sub("", md.split("<details>", 1)[0])          # what a reader sees: the Details toggle inside each card is collapsed
 
 
 def what_to_do(main):
@@ -49,10 +50,12 @@ def what_to_do(main):
 
 
 # ------------------------------------------------------------------ B. one card per goal question
-def test_every_goal_question_has_a_card_with_a_trust_label_and_a_details_link():
-    main = main_of(render(state_with()))
+def test_every_goal_question_has_a_card_with_a_trust_label_and_a_details_toggle():
+    md = render(state_with())
+    main = main_of(md)
     for n, q in enumerate((Q1, Q2), 1):
-        assert f"**{n}. {q}**" in main and f"[details](#answer-q{n})" in main
+        assert f"**{n}. {q}**" in main
+    assert md.split("<details>", 1)[0].count('<details class="card-details">') == 2          # one toggle inside each card
     assert "Trust: **High**" in main
 
 
@@ -178,6 +181,6 @@ def test_an_action_question_has_no_answer_card_only_the_what_to_do_section():
     st["summary_facts"].pop("picks")                                               # the picks are made from the new goal
     main = main_of(render(st))
     assert "What should we do?" not in main.split("### What to do")[0]             # no card, no 'Answered under...' stub, no details link for it
-    assert "Answered under" not in main and "[details](#answer-q2)" not in main and "**1. " + Q1 + "**" in main
+    assert "Answered under" not in main and "**1. " + Q1 + "**" in main
     todo = what_to_do(main)
     assert re.search(r"^1\. ", todo, re.M) and "*(question 2)*" not in todo        # its actions are listed without a question tag

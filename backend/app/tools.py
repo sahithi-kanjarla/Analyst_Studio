@@ -650,7 +650,9 @@ def trend(df, ctx, target, date):
     return finding("trend", f"{target} over time", text,
                    {"p": _f(lr.pvalue), "slope": _f(lr.slope), "relative_change": _f(change), "periods": int(len(series)), "empty_periods": int(len(gaps)), "freq": rule, "agg": agg, "n": int(len(d)),
                     "first": _f(series.iloc[0]), "last": _f(series.iloc[-1]), "fit_end": _f(fit_end)},
-                   _save(fig, ctx, _slug("trend", target, date)), significant=bool(sig), action=action)
+                   _save(fig, ctx, _slug("trend", target, date)), significant=bool(sig), action=action) | {
+        "series": [[str(i.date()), _f(v)] for i, v in series.items()],           # the period totals (or averages), for the report card; kept out of `stats`, which the AI number check reads
+        "date_coverage": _f(float(pd.to_datetime(df[date], errors="coerce").notna().mean()))}
 
 
 def correlation(df, ctx, cols=None):

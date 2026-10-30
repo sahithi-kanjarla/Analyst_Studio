@@ -35,6 +35,8 @@ MAX_RANK_GROUPS = 500         # ... and up to this many, with only the top few g
 TOP_SHOWN = 5
 DOMINANT_VALUE_SHARE = 0.8    # a category column whose main value holds at least this share of the rows gets a "rate outside the main value" fact
 OUTSIDE_SHOWN = 3
+SMALL_SPREAD = 0.25           # groups whose lowest and highest values differ by less than this share of the higher one (or, for rates, by under SMALL_RATE_POINTS) are called similar
+SMALL_RATE_POINTS = 0.02
 MAX_OUTSIDE_COLUMNS = 3
 DOMINANT_SHARE = 0.4          # a group holding more of the total than this is called dominant
 MAX_ADDITIVE = 8
@@ -174,6 +176,14 @@ def group_columns(state: dict, df, every: bool = False) -> list[str]:
     return out
 
 
+def spread_of(lo: float, hi: float, rate: bool = False) -> dict:
+    """How far apart the lowest and highest group are: {"spread": gap as a share of the larger absolute value, "similar": the gap is too small to call a difference}."""
+    top = max(abs(lo), abs(hi))
+    gap = abs(hi - lo)
+    spread = gap / top if top > 0 else 0.0
+    return {"spread": spread, "similar": spread < SMALL_SPREAD or (rate and gap < SMALL_RATE_POINTS)}
+
+
 def _clean_groups(df, group: str) -> pd.Series:
     g = df[group].astype(str)
     return g.where(~g.isin(["nan", "None", ""]))
@@ -209,7 +219,8 @@ def _rank_additive(df, state: dict, group: str, measure: str, n: int) -> dict | 
     lead = f"Top {min(MAIN_PICKS, len(s))} {group} by total {measure}: " + ", ".join(f"{wording.entity(group, g)} {full(v, cur)}{pct3(v)}" for g, v in s["sum"].head(MAIN_PICKS).items())
     brief_top = ", ".join(f"{wording.entity(group, g)} {short(v, cur)}" + (f" ({v / total:.0%})" if total > 0 and 0 < v <= total else "") for g, v in s["sum"].head(MAIN_PICKS).items())
     return {"id": f"r{n}", "tool": "ranking", "basis": "total", "group": group, "measure": measure, "top": top, "bottom": bot, "dominant": top if dominant else None, "groups_total": len(s),
-            "top_share": frac, "lead": lead, "text": text, "short": f"Top {min(MAIN_PICKS, len(s))} {group} by total {measure}: {brief_top}"}
+            "top_share": frac, "lead": lead, "text": text, "short": f"Top {min(MAIN_PICKS, len(s))} {group} by total {measure}: {brief_top}",
+            "range": f"{short(float(s['sum'].iloc[-1]), cur)} to {short(float(s['sum'].iloc[0]), cur)}", **spread_of(float(s["sum"].iloc[-1]), float(s["sum"].iloc[0]))}
 
 
 def _rank_ratio(df, spec: dict, group: str, measure: str, n: int, state: dict | None = None) -> dict | None:
@@ -236,7 +247,8 @@ def _rank_ratio(df, spec: dict, group: str, measure: str, n: int, state: dict | 
         text += f" Small base (under {base} rows, not ranked): " + ", ".join(wording.entity(group, k) for k in small[:TOP_SHOWN]) + (f" and {len(small) - TOP_SHOWN} more" if len(small) > TOP_SHOWN else "") + "."
     brief = f"{measure} by {group}: highest {wording.entity(group, r.index[0])} {_ratio_text(r.iloc[0], overall)}, lowest {wording.entity(group, r.index[-1])} {_ratio_text(r.iloc[-1], overall)} (overall {_ratio_text(overall, overall)})"
     return {"id": f"r{n}", "tool": "ranking", "basis": "ratio", "group": group, "measure": measure, "top": str(r.index[0]), "bottom": str(r.index[-1]), "text": text, "short": brief,
-            "min_base": base, "small_base": small, "top_amount": [str(k) for k in amount.head(TOP_SHOWN).index]}
+            "min_base": base, "small_base": small, "top_amount": [str(k) for k in amount.head(TOP_SHOWN).index],
+            "range": f"{_ratio_text(r.iloc[-1], overall)} to {_ratio_text(r.iloc[0], overall)}", **spread_of(float(r.iloc[-1]), float(r.iloc[0]), rate=True)}
 
 
 # ------------------------------------------------------------------ rate outside the main value
@@ -280,11 +292,15 @@ def _outside_rate(df, state: dict, col: str, main: str, measure: str | None, foc
         text += f" Largest amount outside {main} (ranked by amount, not by rate): " + ", ".join(f"{wording.entity(grp, k)} {full(r['outside'], cur)}" for k, r in by_amount.iterrows()) + "."
         if small:
             text += f" Small base (under {base} rows, not ranked): " + ", ".join(wording.entity(grp, k) for k in small[:TOP_SHOWN]) + (f" and {len(small) - TOP_SHOWN} more" if len(small) > TOP_SHOWN else "") + "."
-        by.append({"group": grp, "highest": [str(k) for k in top.index], "lowest": [str(k) for k in bottom.index], "by_amount": [str(k) for k in by_amount.index], "small_base": small, "min_base": base})
-        clauses.append(f"highest rate by {grp}: " + ", ".join(f"{wording.entity(grp, k)} {r['rate']:.0%}" for k, r in top.iterrows()) + f"; largest amount by {grp}: " + ", ".join(wording.entity(grp, k) for k in by_amount.index[:2]))
+        clause = f"highest rate by {grp}: " + ", ".join(f"{wording.entity(grp, k)} {r['rate']:.0%}" for k, r in top.iterrows()) + f"; largest amount by {grp}: " + ", ".join(wording.entity(grp, k) for k in by_amount.index[:2])
+        lo, hi = float(s["rate"].min()), float(s["rate"].max())
+        by.append({"group": grp, "highest": [str(k) for k in top.index], "lowest": [str(k) for k in bottom.index], "by_amount": [str(k) for k in by_amount.index], "small_base": small, "min_base": base,
+                   "clause": clause, "range": f"{lo:.1%} to {hi:.1%}", **spread_of(lo, hi, rate=True)})
+        clauses.append(clause)
     values = [str(v) for v in g.value_counts().index if str(v) != main][:VALUES_MAX]
+    head = f"{label} outside {main}: {short(amt, cur)}" + (f" ({amt / total:.1%} of {of_all})" if total > 0 else f" ({rows_out / valid.sum():.1%} of {ROWS_LABEL})") + (f"; by {col}: " + ", ".join(f"{wording.entity(col, x['value'])} {x['share']:.0%}" for x in split[:MAIN_PICKS]) + " of the outside total" if amt > 0 and split else "")
     brief = f"{label} outside {main}: {short(amt, cur)}" + (f" ({amt / total:.1%} of {of_all})" if total > 0 else f" ({rows_out / valid.sum():.1%} of {ROWS_LABEL})")         + (f"; by {col}: " + ", ".join(f"{wording.entity(col, x['value'])} {x['share']:.0%}" for x in split[:MAIN_PICKS]) + " of the outside total" if amt > 0 and split else "") + ("; " + clauses[0] if clauses else "")
-    return {"id": f"r{n}", "short": brief, "tool": "ranking", "kind": "outside_rate", "basis": "ratio", "group": col, "measure": label, "top": main, "bottom": main, "outside": amt, "by": by, "values": values, "text": text,
+    return {"id": f"r{n}", "short": brief, "head": head, "tool": "ranking", "kind": "outside_rate", "basis": "ratio", "group": col, "measure": label, "top": main, "bottom": main, "outside": amt, "by": by, "values": values, "text": text,
             "rate_amount": amt / total if total > 0 else None, "rate_rows": rows_out / int(valid.sum()), "split": split, "largest": split[0]["value"] if amt > 0 and split else None,
             "largest_share": split[0]["share"] if amt > 0 and split else None, "min_base": base}
 

@@ -298,12 +298,13 @@ def key_numbers(state: dict, df=None) -> list[dict]:
 
 # ------------------------------------------------------------------ the view
 def build_view(state: dict, df=None) -> dict:
+    from . import mainview
     goal = state.get("goal", "")
     built = build_cards(state)
     cards = built["cards"]
     by_id = {f["id"]: f for f in state.get("findings") or []}
     eligible = sorted([c for c in cards if any(evidence_eligible(by_id[i], goal) for i in [c["id"]] + [a["id"] for a in c["also"]])],
-                      key=lambda c: (not c["goal_named"], -c["score"]))
+                      key=lambda c: mainview.order_key(c["goal_named"], c["effect"], c["score"]))        # the dashboard's order: goal-named first, a small or negligible effect last
     evidence = eligible[:EVIDENCE_MAX]
     ids = {c["id"] for c in evidence}
     appendix = sorted([c for c in cards if c["id"] not in ids], key=lambda c: -c["score"])
@@ -327,7 +328,6 @@ def build_view(state: dict, df=None) -> dict:
         for a in answered:
             a["answer"] += f" [{DATE_TAG}]" if timed & set(a["ids"]) else ""
     actions = [{"text": f"{s['title']}: {s['objective']}", "evidence": s["evidence"]} for s in strat["strategies"][:ACTIONS_MAX]]
-    from . import mainview
     return {
         "answers": answered,
         "main_measure": summary.main_measure(state, (facts or {}).get("rankings") or []),

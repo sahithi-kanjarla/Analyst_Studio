@@ -179,3 +179,8 @@ textarea:focus, .ctx-grid input:focus, .ctx-grid select:focus, .ctx-grid textare
 details.fold { margin: 10px 0; }
 details.fold > summary { cursor: pointer; font-weight: 600; }
 details.appendix > summary { font-size: 1.05em; padding: 8px 0; }
+
+/* The Details toggle inside an answer card: opens in place, no link */
+details.card-details { margin: 4px 0 18px; }
+details.card-details > summary { cursor: pointer; font-weight: 600; font-size: 0.9em; color: var(--accent, #2563eb); }
+details.card-details > ul { margin: 6px 0 0; }

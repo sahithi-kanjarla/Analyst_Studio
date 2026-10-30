@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { api, DashData, DashMeasure, RunResult } from "../api";
+import { api, DashData, DashMeasure, Finding, RunResult } from "../api";
 import FindingGallery from "./FindingGallery";
 import InsightCard from "./InsightCard";
 import { Columns, Donut, HBar, Item, PALETTE } from "./charts";
@@ -186,7 +186,10 @@ export default function BIDashboard({ run }: { run: RunResult }) {
   const tableTotal = tableRows.reduce((s, r) => s + r.value, 0) || 1;
   const tableMax = Math.max(...tableRows.map((r) => Math.abs(r.value)), 0.0001);
 
-  const takeaways = (run.findings ?? []).filter((x) => x.insight && ["high", "medium"].includes(x.insight.confidence.level)).sort((a, b) => b.insight!.score - a.insight!.score).slice(0, 3);
+  // same order as "Key findings": goal-named first; a small or negligible effect, or a column the goal does not name, is left to "More charts"
+  const keyIds = run.report_view?.gallery?.key;
+  const withInsight = (run.findings ?? []).filter((x) => x.insight && ["high", "medium"].includes(x.insight.confidence.level));
+  const takeaways = (keyIds ? keyIds.map((id) => withInsight.find((x) => x.id === id)).filter((x): x is Finding => !!x) : withInsight.sort((a, b) => b.insight!.score - a.insight!.score)).slice(0, 3);
   const topStrategy = run.strategies?.find((s) => s.kind === "data");
   const openFinding = (run.findings ?? []).find((x) => x.id === open);
 

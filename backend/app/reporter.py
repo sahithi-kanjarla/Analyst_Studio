@@ -199,13 +199,12 @@ def llm_actions(llm, state: dict, view: dict, cs: list[dict], wanted: list[int],
     computed = cited.claims((state.get("summary_facts") or {}).get("rankings") or [])
 
     def instead(n: int, why: str) -> None:
-        """The action is replaced by the computed fact (its own wording and figures); with no fact that has a figure and names its measure, the question gets 'No action suggested: <reason>'."""
+        """The action is replaced by 'Look into <top group> first: <figure with measure>', built from the computed fact (never the fact line itself); with no fact that gives both, the question gets 'No action suggested: <reason>'."""
         for i in offered[n]:
-            line = mainview.fact_line(i, by_id, r_by_id, state)
-            if mainview.concrete(line, {mainview.measure_of(i, by_id, r_by_id)}):
-                got[q_of[n]], ids_of[q_of[n]] = line, [i]
+            if look := mainview.look_into(i, by_id, r_by_id, state):
+                got[q_of[n]], ids_of[q_of[n]] = look, [i]
                 return
-        none[q_of[n]] = f"the AI's action was dropped ({why}) and no computed fact for it has a figure to act on."
+        none[q_of[n]] = f"the AI's action was dropped ({why}) and no computed fact for it names a top group with a figure to look into."
 
     for item in (out or {}).get("actions") if isinstance((out or {}).get("actions"), list) else []:
         try:
@@ -563,6 +562,24 @@ def _warnings(state: dict) -> list[str]:
     return out
 
 
+def _card_detail(state: dict, view: dict, c: dict) -> list[str]:
+    """What the Details toggle of an answer card opens in place: the full answer, and for each fact it rests on its headline and how far to trust it, in plain words (no ids, no test names;
+    those are under 'View more')."""
+    by_id, r_by_id, _ = mainview.lookup(state, view)
+    answer = next((a["answer"] for a in view.get("answers") or [] if a["question"] == c["question"]), "")
+    L = [f"- Full answer: {mainview.readable(state, mainview.plain(answer))}"] if answer and not answer.startswith("Not answered") else []
+    for i in c["ids"]:
+        if i in by_id:
+            ins = by_id[i].get("insight") or {}
+            conf = ins.get("confidence") or {}
+            why = mainview.plain(" ".join(conf.get("reasons") or []))
+            L.append(f"- {mainview.readable(state, mainview.plain(ins.get('headline') or by_id[i].get('title', '')))}" + (f" ({conf['label']} confidence. {why})" if conf.get("label") else ""))
+        elif i in r_by_id:
+            L.append(f"- {mainview.readable(state, mainview.plain(r_by_id[i].get('lead') or r_by_id[i]['text']))}")
+    full = L[0][len("- Full answer: "):] if L and L[0].startswith("- Full answer: ") else None
+    return [x for k, x in enumerate(L) if k == 0 or x[2:] != full]          # a fact line that repeats the full answer is not shown again
+
+
 def _answer_details(state: dict, view: dict, cs: list[dict], summary: str) -> list[str]:
     """Exact figures behind every card: the full answer, the facts it rests on, why to trust it, and the statistics (kept out of the main view)."""
     by_id, r_by_id, _ = mainview.lookup(state, view)
@@ -570,7 +587,7 @@ def _answer_details(state: dict, view: dict, cs: list[dict], summary: str) -> li
     L: list[str] = []
     for c in cs:
         a = answers[c["question"]]
-        L += [f'<a id="answer-q{c["num"]}"></a>', "", f"**{c['num']}. {c['question']}**", "", f"- Answer: {a['answer']}"]
+        L += [f"**{c['num']}. {c['question']}**", "", f"- Answer: {a['answer']}"]
         for i in a["ids"]:
             if i in by_id:
                 f = by_id[i]
@@ -601,7 +618,7 @@ def build_report(state: dict, summary: str, recs: list[str], run_mode: str = "",
 
     L += ["## Executive summary", "", "### Answers", ""]          # B. one card per goal question
     for c in answer_cards:
-        L += mainview.card_md(c)
+        L += mainview.card_md(c, _card_detail(state, view, c))
     if not cs:
         L += ["No question was asked in the goal; the key numbers and the sections under 'view more' describe the data.", ""]
     also = [mainview.readable(state, x) for x in [f"**By {r['group']}** (named in your goal). {mainview.clip(r.get('short') or r.get('lead') or r['text'])}" for r in summary_mod.uncovered_groups(state, view)] + summary_mod.difference_lines(state)]
