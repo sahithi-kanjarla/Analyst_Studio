@@ -16,6 +16,7 @@ import re
 import pandas as pd
 
 from . import directives as dv
+from .context import CONTEXT_RULE, description_hint
 from .llm import ask_json, last_error
 from .signals import _sig
 
@@ -140,14 +141,17 @@ proposed_action is chosen ONLY from this closed list (code checks it; anything e
 - number_is_category and other -> null (no action exists yet; it is reported as a note)
 
 Reply with JSON: {{"concerns": [{{"column": str, "concern_type": str, "values": [the values involved], "proposed_action": object or null, "confidence": "high"|"medium"|"low", "reason": one short line}}]}}
-At most {MAX_CONCERNS} concerns, the ones that matter most for the goal first."""
+At most {MAX_CONCERNS} concerns, the ones that matter most for the goal first.
+{CONTEXT_RULE}"""
 
 
-def ask_concerns(llm, sheet: dict, goal: str) -> tuple[list | None, str]:
+def ask_concerns(llm, sheet: dict, goal: str, description: str = "") -> tuple[list | None, str]:
     """(concerns as the model wrote them, "") or (None, why the AI part did not work)."""
     if llm is None:
         return None, "no AI configured"
-    out = ask_json(llm, SYSTEM, f"GOAL: {goal}\n\nFACT SHEET ({sheet['rows']} rows):\n{json.dumps(sheet, ensure_ascii=False, default=str)}")
+    hint = description_hint({"description": description})
+    about = f"BUSINESS CONTEXT (user-written, unverified): {hint}\n\n" if hint else ""
+    out = ask_json(llm, SYSTEM, f"GOAL: {goal}\n\n{about}FACT SHEET ({sheet['rows']} rows):\n{json.dumps(sheet, ensure_ascii=False, default=str)}")
     if not isinstance(out, dict) or not isinstance(out.get("concerns"), list):
         return None, last_error() or ("the reply had no 'concerns' list" if isinstance(out, dict) else "no usable reply")
     return out["concerns"][:MAX_CONCERNS], ""
@@ -296,10 +300,10 @@ def verify(concerns: list, sheet: dict, df: pd.DataFrame, profile: dict, goal: s
     return {"accepted": accepted, "questions": questions, "gaps": gaps, "rejected": rejected}
 
 
-def run(llm, df: pd.DataFrame, profile: dict, goal: str) -> dict:
+def run(llm, df: pd.DataFrame, profile: dict, goal: str, description: str = "") -> dict:
     """The whole AI part: {"worked": bool, "why_not": str, "proposed": [...], plus verify()'s result}. `worked` is False when the model gave no usable answer, so the caller uses the rules."""
     sheet = fact_sheet(df, profile, goal)
-    proposed, why = ask_concerns(llm, sheet, goal)
+    proposed, why = ask_concerns(llm, sheet, goal, description)
     if proposed is None:
         return {"worked": False, "why_not": why, "proposed": [], "accepted": [], "questions": [], "gaps": [], "rejected": [], "sheet_chars": len(json.dumps(sheet, default=str))}
     return {"worked": True, "why_not": "", "proposed": proposed, "sheet_chars": len(json.dumps(sheet, default=str)), **verify(proposed, sheet, df, profile, goal)}

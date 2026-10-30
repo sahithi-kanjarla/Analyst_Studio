@@ -164,3 +164,34 @@ def test_fact_sheet_has_no_raw_rows_and_dates_have_counts():
     s = concerns.fact_sheet(typed, prof)["columns"]
     assert s["d"]["range"] == ["2020-01-01", "2020-02-29"] and s["d"]["distinct_months"] == 2 and s["d"]["distinct_years"] == 1
     assert s["g"]["top"] == [["a", 30], ["b", 30]] and "rarest" not in s["g"]
+
+
+def test_business_description_reaches_ai_call_capped(monkeypatch):
+    seen = []
+
+    def fake(llm, system, user):
+        seen.append((system, user))
+        return {"concerns": []}
+    monkeypatch.setattr(concerns, "ask_json", fake)
+    typed, prof = prep(table())
+    long = "We run a thing. " + "x" * 800
+    concerns.run(object(), typed, prof, GOAL, long)
+    system, user = seen[-1]
+    assert "BUSINESS CONTEXT" in user and "We run a thing." in user
+    assert "never overrides the data" in system
+    hint = user.split("unverified): ", 1)[1].split("\n\n", 1)[0]
+    assert len(hint) == 500 and hint.startswith("We run a thing. xxx")
+
+
+def test_no_description_leaves_ai_call_unchanged(monkeypatch):
+    seen = []
+    monkeypatch.setattr(concerns, "ask_json", lambda llm, system, user: seen.append(user) or {"concerns": []})
+    typed, prof = prep(table())
+    out = concerns.run(object(), typed, prof, GOAL)
+    assert out["worked"] and "BUSINESS CONTEXT" not in seen[-1]
+
+
+def test_description_is_cut_to_500_in_context():
+    from app import context as ctxmod
+    assert len(ctxmod.normalise_context({"description": "y" * 3000})["description"]) == 500
+    assert "never overrides the data" in __import__("app.planner", fromlist=["x"]).plan_system(5)

@@ -188,7 +188,7 @@ export default function UploadForm({ onStarted }: { onStarted: (id: string) => v
             </div>
             <div className="field wide">
               <label htmlFor="description">What does the business do? Who are its customers?</label>
-              <textarea id="description" rows={2} value={ctx.description} maxLength={1500} onChange={(e) => setC("description", e.target.value)}
+              <textarea id="description" rows={2} value={ctx.description} maxLength={500} onChange={(e) => setC("description", e.target.value)}
                 placeholder="e.g. We sell fabrics and ready-made garments to boutiques and direct consumers across India." />
             </div>
             <div className="field wide">

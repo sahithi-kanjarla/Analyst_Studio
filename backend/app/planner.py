@@ -443,6 +443,7 @@ Rules:
 - If the goal says exploratory mode: choose the 1-2 most business-relevant outcome columns and a broad, varied set of analyses.
 - Skip identifier and free-text columns. List notable skipped columns with a reason.
 - Answer with names and words only, never numbers.
+{ctxmod.CONTEXT_RULE}
 Return JSON with keys: objective (string), questions (list of 2-4 strings), target (column or null), date_col (column or null),
 relevant_columns (list), analyses (list of {{tool, params, why}}), skipped (list of {{column, reason}})."""
 

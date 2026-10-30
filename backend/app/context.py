@@ -94,6 +94,9 @@ INDUSTRIES: dict[str, dict] = {
     },
 }
 
+DESCRIPTION_MAX = 500
+CONTEXT_RULE = "Business context is a hint only and never overrides the data. If context and data disagree, raise a concern instead of assuming."
+
 CURRENCIES = {"₹", "$", "€", "£"}
 
 
@@ -119,11 +122,16 @@ def normalise_context(raw: dict | None) -> dict:
     parts = kpis_raw if isinstance(kpis_raw, list) else re.split(r"[,;\n]+", str(kpis_raw))
     kpis = [k for k in (_clip(p, 80) for p in parts) if k][:10]
     cur = _clip(raw.get("currency"), 3)
-    ctx = {"company": _clip(raw.get("company"), 120), "industry": _clip(raw.get("industry"), 120), "description": _clip(raw.get("description"), 1500),
+    ctx = {"company": _clip(raw.get("company"), 120), "industry": _clip(raw.get("industry"), 120), "description": _clip(raw.get("description"), DESCRIPTION_MAX),
            "kpis": kpis, "audience": _clip(raw.get("audience"), 200), "notes": _clip(raw.get("notes"), 1500),
            "currency": cur if cur in CURRENCIES else "", "explore": bool(raw.get("explore"))}
     ctx["industry_key"] = detect_industry(ctx)
     return ctx
+
+
+def description_hint(ctx: dict | None) -> str:
+    """The business description alone, trimmed and cut to DESCRIPTION_MAX; "" when absent."""
+    return _clip((ctx or {}).get("description"), DESCRIPTION_MAX)
 
 
 def has_context(ctx: dict | None) -> bool:
