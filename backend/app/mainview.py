@@ -117,6 +117,40 @@ def cap_by_text(trust: str, lines: list[str]) -> str:
     return "Medium" if trust == "High" and any(NOT_RELIABLE in t.lower() for t in lines) else trust
 
 
+FIGURE_WORD = {"growth": "growth", "outside_rate": "share"}
+LEVEL_WHY = {"low": "the {w} result could be random variation", "exploratory": "the {w} figures are leads that were not statistically tested",
+             "descriptive": "the {w} figures describe the data without a statistical test", "medium": "the {w} result is real but only moderately strong"}
+
+
+def figure_word(i: str, by_id: dict, r_by_id: dict) -> str:
+    """What kind of figure a fact is, in a word: growth, share, ranking, or the name of the finding's analysis ('trend')."""
+    if i in r_by_id:
+        return FIGURE_WORD.get(r_by_id[i].get("kind"), "ranking")
+    return str((by_id.get(i) or {}).get("tool") or "").replace("_", " ") or "one"
+
+
+def trust_reason(trust: str, ids: list[str], by_id: dict, r_by_id: dict, lines: list[str] | None = None, origin: dict | None = None) -> str:
+    """One plain line for why the trust label is what it is, from the weakest figure: a figure marked 'not statistically reliable', else the finding with the lowest confidence,
+    else (computed figures only) that they are computed straight from the data."""
+    if not trust:
+        return ""
+    for t in lines or []:
+        if NOT_RELIABLE in t.lower():
+            i = (origin or {}).get(t)
+            return f"the {figure_word(i, by_id, r_by_id)} figure is {NOT_RELIABLE}" if i else f"a figure shown here is {NOT_RELIABLE}"
+    for i in ids:
+        if i in r_by_id and NOT_RELIABLE in str(r_by_id[i].get("short") or "").lower():
+            return f"the {figure_word(i, by_id, r_by_id)} figure is {NOT_RELIABLE}"
+    rank = ["low", "exploratory", "descriptive", "medium", "high"]
+    found = [(rank.index(lv), i) for i in ids if i in by_id and (lv := ((by_id[i].get("insight") or {}).get("confidence") or {}).get("level", "descriptive")) in rank]
+    if found:
+        level, i = min(found)
+        if rank[level] == "high":
+            return "every figure passed its statistical checks"
+        return LEVEL_WHY[rank[level]].format(w=figure_word(i, by_id, r_by_id))
+    return "the figures are computed directly from the data" if any(i in r_by_id for i in ids) else "no analysis in this run backs it directly"
+
+
 def group_cols(ids: list[str], by_id: dict, r_by_id: dict) -> set[str]:
     """The group columns the facts split by: what ties a strategy to the question its facts answer."""
     out = {r_by_id[i]["group"] for i in ids if i in r_by_id}
@@ -381,7 +415,7 @@ def cards(state: dict, view: dict) -> list[dict]:
         shown += not action
         groups = named_groups(a["question"], ids, r_by_id, main, state) if ids and not action else []
         mine, replaces = code_so_what(ids, by_id, r_by_id)
-        card = {"n": n, "num": None if action else shown, "question": a["question"], "ids": a["ids"], "gcols": sorted(group_cols(ids, by_id, r_by_id)), "trust": trust_of(ids, by_id, r_by_id),
+        card = {"n": n, "num": None if action else shown, "question": a["question"], "ids": a["ids"], "gcols": sorted(group_cols(ids, by_id, r_by_id)), "trust": trust_of(ids, by_id, r_by_id), "trust_why": "",
                 "so_what": readable(state, mine if replaces else with_shares(so_what.get(a["question"], ""), mine)), "so_what_by": "code" if replaces else "ai", "action_question": action, "text": "", "date_tag": DATE_TAG in a["answer"]}
         parts = part_facts(part_kinds(a["question"]), ids, by_id, r_by_id, main) if ids and not action else []
         parts = [i for i in parts if i not in used] if len(parts) > 1 else []
@@ -403,6 +437,7 @@ def cards(state: dict, view: dict) -> list[dict]:
         elif not ids and sids and card["action_question"]:
             lines = ["Answered under 'What to do' below."]
             card["trust"] = next((str(strat[i]["confidence"]).capitalize() for i in sids if strat[i].get("confidence")), "Medium")
+            card["trust_why"] = f"the strategy's own evidence is rated {card['trust'].lower()}"
         elif not ids:
             lines = [clip(a["answer"]) if a["answer"].startswith("Not answered") else "Not answered: no analysis in this run answers it."]
             card["trust"] = ""
@@ -436,9 +471,12 @@ def cards(state: dict, view: dict) -> list[dict]:
             if at is not None:
                 lines[at:at + 1] = found
                 limit = max(limit, len(found))
-        lines = label_growth_measures(lines[:limit], origin, by_id, r_by_id)
+        before = lines[:limit]
+        lines = label_growth_measures(before, origin, by_id, r_by_id)
         card["text"] = [readable(state, t) for t in lines]
+        shown_from = {t: origin.get(b) for t, b in zip(card["text"], before)}          # each line as shown -> the fact it came from
         card["trust"] = cap_by_text(card["trust"], card["text"])
+        card["trust_why"] = card["trust_why"] or trust_reason(card["trust"], ids, by_id, r_by_id, card["text"], shown_from)
         out.append(card)
     return out
 
@@ -450,7 +488,7 @@ def card_md(c: dict, detail: list[str] | None = None, charts: list[dict] | None 
         L += ["", f"![{ch['title']}]({ch['path']})", "", f"*How to read this: {ch['caption']}*", ""]
     foot = []
     if c["trust"]:
-        foot.append(f"Trust: **{c['trust']}**")
+        foot.append(f"Trust: **{c['trust']}**" + (f": {c['trust_why']}" if c.get("trust_why") else ""))
     if c["so_what"]:
         foot.append(f"So what: {c['so_what']}")
     L += [" · ".join(foot), ""]

@@ -13,7 +13,7 @@ from .llm import ask_json_ex
 
 AI_SOURCES = ("llm", "repaired")
 RULE_SOURCES = ("rules", "fallback", "rules-only")
-AI_ASSISTED, MIXED, RULES_ONLY = "AI-assisted", "mixed", "rules-only mode"
+AI_ASSISTED, MIXED, RULES_ONLY = "AI-assisted", "AI-assisted (partly)", "Rules only"
 
 
 def _numbers(obj) -> int:
@@ -67,7 +67,7 @@ def propose(llm, name: str, system: str, view: str, validator: Callable, fallbac
 
 
 def derive_mode(stage_sources: dict | None) -> str:
-    """One label from the per-stage sources: AI-assisted (every stage used the model), rules-only mode (none did) or mixed."""
+    """One label from the per-stage sources: AI-assisted (every stage used the model), AI-assisted (partly) (some did not) or Rules only (none did)."""
     srcs = [s for s in (stage_sources or {}).values() if s]
     ai = sum(s in AI_SOURCES or s == "mixed" for s in srcs)      # every AI stage is counted: brief, clarifier, planner, polarity, critic, summary pick, insights, strategy, report
     if not ai:

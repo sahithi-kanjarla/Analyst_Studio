@@ -86,6 +86,11 @@ def test_ranking_facts_carry_at_most_ten_bars():
 
 
 # ------------------------------------------------------------------ 8. captions: at most 20 words, every figure passes the fact-id check
+def plain_caption():
+    """What code writes for the r1 chart when the AI caption is not usable: built from that chart's own numbers."""
+    return reportcharts.fallback_caption(reportcharts.specs_for(["r1"], {}, {"r1": ranking("r1", "segment", bars=BARS)}, {})[0])
+
+
 def caption_for(tmp_path, monkeypatch, text):
     monkeypatch.setattr(reporter, "ask_json", fake({"charts": [{"question": 1, "chart": "r1:bars", "caption": text}]}))
     st = charted(tmp_path)
@@ -98,7 +103,8 @@ def test_a_caption_with_a_figure_tied_to_its_fact_is_kept(tmp_path, monkeypatch)
 
 
 def test_a_caption_with_a_wrong_or_untagged_figure_is_replaced_by_a_plain_one(tmp_path, monkeypatch):
-    plain = reportcharts.fallback_caption({"kind": "bars"})
+    plain = plain_caption()
+    assert "s0" in plain and "s9" in plain
     assert caption_for(tmp_path, monkeypatch, "Segment a is highest at 9,999 [r1].") == plain
     assert caption_for(tmp_path, monkeypatch, "Segment a is highest at 100.") == plain                    # a figure with no fact id
     assert caption_for(tmp_path, monkeypatch, "Segment a is highest at 100 [r7].") == plain               # an id that does not exist
@@ -106,8 +112,8 @@ def test_a_caption_with_a_wrong_or_untagged_figure_is_replaced_by_a_plain_one(tm
 
 def test_a_caption_over_twenty_words_is_replaced(tmp_path, monkeypatch):
     long = " ".join(["Look"] * 21)
-    assert caption_for(tmp_path, monkeypatch, long) == reportcharts.fallback_caption({"kind": "bars"})
-    assert len(reportcharts.fallback_caption({"kind": "bars"}).split()) <= reportcharts.CAPTION_WORDS
+    assert caption_for(tmp_path, monkeypatch, long) == plain_caption()
+    assert len(plain_caption().split()) <= reportcharts.CAPTION_WORDS
 
 
 # ------------------------------------------------------------------ chart cap

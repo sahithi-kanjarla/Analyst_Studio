@@ -90,9 +90,9 @@ def test_polarity_goes_through_propose_and_is_logged():
 
 def test_mode_label_from_stage_sources():
     assert derive_mode({"planner": "llm", "polarity": "repaired", "report": "llm"}) == "AI-assisted"
-    assert derive_mode({"planner": "rules", "polarity": "fallback", "report": "rules-only"}) == "rules-only mode"
-    assert derive_mode({"planner": "llm", "polarity": "fallback", "report": "rules"}) == "mixed"
-    assert derive_mode({}) == "rules-only mode"
+    assert derive_mode({"planner": "rules", "polarity": "fallback", "report": "rules-only"}) == "Rules only"
+    assert derive_mode({"planner": "llm", "polarity": "fallback", "report": "rules"}) == "AI-assisted (partly)"
+    assert derive_mode({}) == "Rules only"
 
 
 def test_rules_plan_lists_what_it_skipped():
@@ -104,7 +104,7 @@ def test_rules_plan_lists_what_it_skipped():
 
 def test_a_rules_only_run_saves_its_mode_and_decisions(finished_run):  # noqa: F811
     res = json.loads((RUNS_DIR / finished_run / "result.json").read_text())
-    assert res["run_mode"] == "rules-only mode"
+    assert res["run_mode"] == "Rules only"
     assert any(d["decision"] == "metric direction" and d["source"] == "rules-only" for d in res["decisions"])
-    assert "**Mode:** rules-only mode" in res["report_md"]
+    assert "**Mode:** Rules only" in res["report_md"]
     assert res["plan"]["skipped"]

@@ -98,7 +98,7 @@ def test_entries_expire_after_cache_days(monkeypatch):
 
 
 def test_failed_and_unusable_calls_are_not_cached():
-    model = FakeModel([RuntimeError("boom"), RuntimeError("boom"), RuntimeError("boom"), "no json at all", '{"ok": true}'])
+    model = FakeModel([RuntimeError("boom"), RuntimeError("boom"), RuntimeError("boom"), "no json at all", "still no json", '{"ok": true}'])
     assert llm_mod.ask_json(model, "sys", "user") is None                           # raised on every try
     before = model.calls
     assert llm_mod.ask_json(model, "sys", "user") is None and model.calls > before  # asked again: the failure was not stored

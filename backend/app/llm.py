@@ -277,9 +277,13 @@ def _extract(raw: str) -> dict | None:
         return None
 
 
-def ask_json_ex(llm, system: str, user: str) -> tuple[dict | None, str]:
+REPAIR_ASK = "\n\nYour previous reply was not valid JSON. It was: {seen}\nAnswer again with only the JSON object, nothing else."
+
+
+def ask_json_ex(llm, system: str, user: str, repair: bool = False) -> tuple[dict | None, str]:
     """Ask for JSON and defensively extract it. (object, reason): the object is None when the call failed or the output is unusable, and reason says which.
-    A reply that parsed is saved on disk (aicache) by the full prompt, model and temperature and answers the same call later; failed calls are never saved."""
+    A reply that parsed is saved on disk (aicache) by the full prompt, model and temperature and answers the same call later; failed calls are never saved.
+    repair=True: a reply that is not JSON is asked for once more (ask_json does this). The callers that already run their own repair loop (propose, understanding) leave it off."""
     if llm is None:
         return None, "no LLM configured"
     system = system + "\n\nReturn ONLY a single valid JSON object. No prose, no markdown fences."
@@ -291,7 +295,17 @@ def ask_json_ex(llm, system: str, user: str) -> tuple[dict | None, str]:
     if raw is None:
         return None, reason
     obj = _extract(raw)
-    if obj is None:
+    if obj is None and repair:          # the call worked but the reply was not JSON: ask once more, quoting what came back. Never for a failed call (rate limit, timeout): _invoke already handled those.
+        seen = " ".join(raw.split())[:300] or "(empty)"
+        raw2, reason2 = _invoke(llm, system, user + REPAIR_ASK.format(seen=seen))
+        obj = _extract(raw2) if raw2 is not None else None
+        if obj is None:
+            bad = reason2 or "bad JSON (the reply had no parseable JSON object)"
+            if not reason2:
+                note_failure(bad)
+            return None, bad
+        raw = raw2
+    elif obj is None:
         bad = "bad JSON (the reply had no parseable JSON object)"
         note_failure(bad)
         return None, bad
@@ -300,4 +314,4 @@ def ask_json_ex(llm, system: str, user: str) -> tuple[dict | None, str]:
 
 
 def ask_json(llm, system: str, user: str) -> dict | None:
-    return ask_json_ex(llm, system, user)[0]
+    return ask_json_ex(llm, system, user, repair=True)[0]
