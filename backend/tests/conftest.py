@@ -13,3 +13,16 @@ os.environ.setdefault("GLOSSARY_PATH", os.path.join(_TMP, "glossary.json"))
 
 def pytest_sessionfinish(session, exitstatus):
     shutil.rmtree(_TMP, ignore_errors=True)
+
+
+import pytest
+
+
+@pytest.fixture(autouse=True)
+def fresh_ai_state(monkeypatch):
+    """Every test starts without a daily-limit stop or cached AI answers, and never really waits for a rate-limit retry (tests that check the wait patch it themselves)."""
+    from app import llm
+    llm.begin_run()
+    monkeypatch.setattr(llm, "_sleep", lambda s: None)
+    yield
+    llm.begin_run()

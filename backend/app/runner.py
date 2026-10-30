@@ -89,6 +89,8 @@ def _execute(run_id: str) -> None:
     wd = run_dir(run_id)
     meta = json.loads((wd / "input.json").read_text())
     write_status(run_id, "running")
+    from . import llm as llm_mod
+    llm_mod.begin_run(cache=True)
     if (wd / "answers.json").exists():
         set_quiet(run_id, True)  # resumed after a pause: profile/relate run again but must not repeat their timeline events
     try:

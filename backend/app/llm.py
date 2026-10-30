@@ -22,7 +22,13 @@ from contextlib import contextmanager
 _cache: dict = {}
 _tls = threading.local()    # each run is its own worker thread, so concurrent runs never see each other's failures
 TIMEOUT_S = 60
-MAX_RETRIES = 2
+MAX_RETRIES = 0             # the provider SDKs must not retry on their own: _invoke is the only retry layer, so one failure is never multiplied
+RATE_LIMIT_RETRIES = 3      # retries after a 429 (per-minute limits clear on their own)
+RATE_LIMIT_WAIT_CAP_S = 60  # the longest we wait for one retry, whatever retry-after asks for
+RATE_LIMIT_BACKOFF_S = 5    # the wait when the 429 carries no retry-after
+OTHER_ERROR_RETRIES = 1     # timeouts and provider errors: one gentle retry
+RATE_LIMIT = "rate limit"
+DAILY_LIMIT = "rate limit (daily limit reached)"
 
 DEFAULTS = {
     "gemini": "gemini-flash-latest",
@@ -79,19 +85,48 @@ def get_llm():
     return _cache["llm"]
 
 
+def _text(e: BaseException) -> str:
+    return f"{type(e).__name__} {e}".lower()
+
+
+def is_rate_limit(e: BaseException) -> bool:
+    low = _text(e)
+    return any(w in low for w in ("ratelimit", "rate limit", "rate_limit", "429", "quota", "resource_exhausted", "resourceexhausted"))
+
+
+def is_daily_limit(e: BaseException) -> bool:
+    """A limit that resets per day (Groq 'tokens per day (TPD)', Gemini '...PerDay...'): waiting a minute will not help."""
+    low = _text(e)
+    return is_rate_limit(e) and any(w in low for w in ("per day", "perday", "(tpd)", "(rpd)", "daily"))
+
+
+def retry_after(e: BaseException) -> float | None:
+    """Seconds the provider asks us to wait (retry-after-ms or retry-after header on the error's response), or None."""
+    headers = getattr(getattr(e, "response", None), "headers", None) or getattr(e, "headers", None)
+    if not headers:
+        return None
+    try:
+        ms = headers.get("retry-after-ms")
+        if ms is not None:
+            return max(0.0, float(ms) / 1000)
+        v = headers.get("retry-after")
+        return max(0.0, float(v)) if v is not None else None
+    except (TypeError, ValueError, AttributeError):
+        return None
+
+
 def classify_error(e: BaseException) -> str:
-    """The reason a call failed, in words a reader understands: rate limit, auth, timeout, or the provider's own error."""
-    name, msg = type(e).__name__, str(e)
-    low = f"{name} {msg}".lower()
-    if "ratelimit" in low or "rate limit" in low or "rate_limit" in low or "429" in low or "quota" in low or "resource_exhausted" in low or "resourceexhausted" in low:
-        kind = "rate limit"
-    elif "timeout" in low or "timed out" in low or "deadline" in low:
-        kind = "timeout"
-    elif "auth" in low or "api key" in low or "api_key" in low or "401" in low or "403" in low or "permission" in low or "unauthorized" in low:
-        kind = "auth"
-    else:
-        kind = "provider error"
-    return f"{kind} ({name}: {' '.join(msg.split())[:120]})" if msg else f"{kind} ({name})"
+    """The reason a call failed as a short phrase for a report header: rate limit, timeout, auth or provider error. Never the raw error text (it can name organisations or keys)."""
+    low = _text(e)
+    if is_daily_limit(e):
+        return DAILY_LIMIT
+    if is_rate_limit(e):
+        return RATE_LIMIT
+    if "timeout" in low or "timed out" in low or "deadline" in low:
+        return "timeout"
+    if "auth" in low or "api key" in low or "api_key" in low or "401" in low or "403" in low or "permission" in low or "unauthorized" in low:
+        return "auth"
+    return "provider error"
 
 
 class Capture:
@@ -137,26 +172,65 @@ def deterministic(llm):
         return llm
 
 
+def begin_run(cache: bool = False) -> None:
+    """Start of a run on this thread: forget the daily-limit stop and the cached answers of the previous run. cache=True (the runner) answers an identical call
+    again from memory for the rest of this run; direct callers get no cache."""
+    _tls.daily = False
+    _tls.answers = {} if cache else None
+
+
 def reset_cache():
     _cache.clear()
+    begin_run()
 
 
-def _invoke(llm, system: str, user: str, retries: int = 1) -> tuple[str | None, str]:
-    """(text, reason). reason is "" on success; otherwise why the last attempt failed."""
-    reason = ""
+def daily_limit_hit() -> bool:
+    return bool(getattr(_tls, "daily", False))
+
+
+def _sleep(seconds: float) -> None:     # one place to patch in tests
+    time.sleep(seconds)
+
+
+def _invoke(llm, system: str, user: str) -> tuple[str | None, str]:
+    """(text, reason). reason is "" on success; otherwise a short phrase for why the call failed. This is the only retry layer.
+    A 429 waits for retry-after (at most RATE_LIMIT_WAIT_CAP_S) and retries up to RATE_LIMIT_RETRIES times; a per-day limit is not retried and stops every
+    later call in the run; an identical call already answered in this run is not sent again."""
     for cap in getattr(_tls, "stack", []):
         cap.calls += 1
-    for attempt in range(retries + 1):
+    if daily_limit_hit():
+        note_failure(DAILY_LIMIT)
+        return None, DAILY_LIMIT
+    answers = getattr(_tls, "answers", None)
+    key = (system, user, str(getattr(llm, "kwargs", "")))
+    if answers is not None and key in answers:
+        return answers[key], ""
+    reason, rate_tries, other_tries = "", 0, 0
+    while True:
         try:
             out = llm.invoke([("system", system), ("human", user)])
             content = out.content
             if isinstance(content, list):  # some providers return content blocks
                 content = "".join(part.get("text", "") if isinstance(part, dict) else str(part) for part in content)
+            if answers is not None:
+                answers[key] = str(content)
             return str(content), ""
         except Exception as e:
             reason = classify_error(e)
-            if attempt < retries:
-                time.sleep(2)  # free tiers rate-limit; one gentle retry
+            if is_daily_limit(e):
+                _tls.daily = True
+                break
+            if is_rate_limit(e):
+                if rate_tries >= RATE_LIMIT_RETRIES:
+                    break
+                wait = retry_after(e)
+                _sleep(min(RATE_LIMIT_WAIT_CAP_S, wait if wait is not None else RATE_LIMIT_BACKOFF_S))
+                rate_tries += 1
+            else:
+                if other_tries >= OTHER_ERROR_RETRIES:
+                    break
+                other_tries += 1
+                _sleep(2)
     note_failure(reason)
     return None, reason
 

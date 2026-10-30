@@ -65,8 +65,8 @@ def test_llm_that_raises_in_the_insights_stage_still_completes_with_a_reason(dat
     llm_mod._cache["llm"] = (FakeLLM(raises="business analyst explaining analysis results"), "fake:model")
     status, res = go(data)
     assert status["status"] == "done" and res is not None
-    assert any(n.startswith("AI unavailable for insights:") and "boom" in n for n in res["ai_notes"])
-    assert any(d["decision"] == "AI unavailable: insights" and "boom" in d["why"] for d in res["decisions"])
+    assert "AI unavailable for insights: provider error" in res["ai_notes"] and not any("boom" in n for n in res["ai_notes"])      # a short phrase, never the raw error text
+    assert any(d["decision"] == "AI unavailable: insights" and d["why"] == "provider error" for d in res["decisions"])
     assert "AI unavailable for insights:" in res["report_md"].split("## Executive summary")[0]
     assert res["findings"] and all("insight" in f for f in res["findings"])        # the rules version of the insights was used
 

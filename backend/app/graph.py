@@ -94,7 +94,7 @@ def _ai_failed(state: dict, out: dict, stage: str, llm, cap, source_key: str | N
     notes = list(out.get("ai_notes", state.get("ai_notes") or []))
     decisions = list(out.get("decisions", state.get("decisions") or []))
     if cap.reasons:
-        line = f"AI unavailable for {stage}: {cap.reason}"
+        line = "AI unavailable for the rest of the run: daily rate limit reached" if cap.reason == llmmod.DAILY_LIMIT else f"AI unavailable for {stage}: {cap.reason}"
         if line not in notes:
             notes.append(line)
             decisions.append({"decision": f"AI unavailable: {stage}", "source": "fallback", "chosen": "the rules version of this stage", "why": cap.reason, "errors": list(dict.fromkeys(cap.reasons)), "raw_output": ""})
