@@ -1,6 +1,7 @@
 import asyncio
 import json
 import re
+import time
 
 from pydantic import BaseModel, Field
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
@@ -14,7 +15,7 @@ from .context import normalise_context
 from .dashboard import build_dashboard, list_sources, source_path, valid_source
 from .events import get_events
 from .llm import get_llm
-from .runner import DEFAULT_EXPLORE_GOAL, RUN_ID_RE, create_run, read_status, rerun_without_derived, resume_with_answers, run_dir, start_run
+from .runner import DEFAULT_EXPLORE_GOAL, RUN_ID_RE, create_run, read_status, rerun_with_answers, rerun_without_derived, resume_with_answers, run_dir, start_run
 
 app = FastAPI(title="Analyst Studio", version="1.0.0")
 app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"], allow_methods=["*"], allow_headers=["*"])
@@ -33,7 +34,7 @@ def health():
 
 @app.post("/api/runs")
 async def new_run(goal: str = Form(""), company: str = Form(""), industry: str = Form(""), description: str = Form(""), kpis: str = Form(""),
-                  audience: str = Form(""), notes: str = Form(""), currency: str = Form(""), explore: str = Form(""),
+                  audience: str = Form(""), notes: str = Form(""), currency: str = Form(""), explore: str = Form(""), review_saved: str = Form(""),
                   files: list[UploadFile] = File(default=[]), file: UploadFile | None = File(default=None)):
     """Upload one or several data files (or an Excel workbook with several sheets). Several tables are connected automatically.
     Everything except the files is optional: with no goal the agents run in exploratory mode; business context sharpens the analysis."""
@@ -60,7 +61,7 @@ async def new_run(goal: str = Form(""), company: str = Form(""), industry: str =
         if total > MAX_UPLOAD_MB * 1024 * 1024:
             raise HTTPException(413, f"The files together are larger than {MAX_UPLOAD_MB} MB.")
         items.append((up.filename, content))
-    run_id = create_run(goal[:2000], items, context=context)
+    run_id = create_run(goal[:2000], items, context=context, review_saved=review_saved.strip().lower() in ("1", "true", "on", "yes"))
     start_run(run_id)
     return {"run_id": run_id}
 
@@ -154,12 +155,69 @@ def post_answers(run_id: str, body: AnswersIn):
     if not body.skip:
         try:
             glossary.merge_answers(data.get("workspace", "default"), confirmed, {i: q["text"] for i, q in qmap.items()}, body.notes, body.definitions,
-                                   {i: clarify.option_for(q, confirmed[i])["label"] for i, q in qmap.items()})
+                                   {i: clarify.option_for(q, confirmed[i])["label"] for i, q in qmap.items()}, {i: clarify.fingerprint(q, confirmed[i]) for i, q in qmap.items()})
         except TimeoutError as e:
             raise HTTPException(503, str(e))
     if not resume_with_answers(run_id, {"answers": {} if body.skip else confirmed, "skip": body.skip, "notes": body.notes}):
         raise HTTPException(409, "This run is not waiting for answers.")
     return {"run_id": run_id, "status": "running"}
+
+
+@app.get("/api/runs/{run_id}/answers-review")
+def answers_review(run_id: str):
+    """Every question this run asked, with the answer it used, who set it and the options, so the answers can be reviewed or changed.
+    `reused` marks the ones taken from the saved glossary."""
+    _check_id(run_id)
+    data = _load_questions(run_id)
+    ws = glossary.get_workspace(data.get("workspace", "default"))
+    p, res = run_dir(run_id) / "answers.json", run_dir(run_id) / "result.json"
+    given = json.loads(p.read_text(encoding="utf-8")) if p.exists() else None
+    qs = [q for q in data["questions"] if not q.get("auto")]
+    final, source = clarify.resolve(qs, (given or {}).get("answers"), ws["answers"], skip=bool((given or {}).get("skip")))
+    if res.exists():                                       # a finished run: what it actually used, even if the glossary has changed since
+        used = {d["id"]: d for d in json.loads(res.read_text()).get("applied_definitions") or []}
+        final, source = {i: used[i]["answer"] if i in used else final[i] for i in final}, {i: used[i]["source"] if i in used else source[i] for i in source}
+    rows = []
+    for q in qs:
+        entry = ws["answers"].get(q["id"]) or {}
+        rows.append({"id": q["id"], "text": q["text"], "options": [{"value": o["value"], "label": o["label"]} for o in q["options"]], "default": q["default"],
+                     "answer": final[q["id"]], "source": source[q["id"]], "reused": source[q["id"]] == "glossary",
+                     "saved": time.strftime("%Y-%m-%d", time.localtime(entry["updated"])) if source[q["id"]] == "glossary" and entry.get("updated") else ""})
+    return {"workspace": data.get("workspace"), "status": (read_status(run_id) or {}).get("status"), "answers": rows}
+
+
+class RerunAnswersIn(BaseModel):
+    answers: dict[str, str] = Field(default_factory=dict)
+    ask_again: list[str] = Field(default_factory=list)
+
+
+@app.post("/api/runs/{run_id}/rerun-answers")
+def rerun_answers(run_id: str, body: RerunAnswersIn):
+    """Change answers of a finished run and re-run it from the cleaning step. A changed answer replaces the saved one; a question in `ask_again` is forgotten and asked again.
+    Returns the id of the new run."""
+    _check_id(run_id)
+    data = _load_questions(run_id)
+    if (read_status(run_id) or {}).get("status") not in ("done", "error"):
+        raise HTTPException(409, "Only a finished run can be re-run with other answers.")
+    qmap = {q["id"]: q for q in data["questions"] if not q.get("auto")}
+    for qid, val in body.answers.items():
+        if qid not in qmap:
+            raise HTTPException(400, f"Unknown question '{qid[:60]}'.")
+        if val not in clarify.option_values(qmap[qid]):
+            raise HTTPException(400, f"'{val[:60]}' is not an option for '{qid[:60]}'.")
+    unknown = [i for i in body.ask_again if i not in qmap]
+    if unknown:
+        raise HTTPException(400, f"Unknown question '{unknown[0][:60]}'.")
+    current = {r["id"]: r["answer"] for r in answers_review(run_id)["answers"]}
+    final = {i: body.answers.get(i) or current[i] for i in qmap if i not in body.ask_again}
+    ws_key = data.get("workspace", "default")
+    try:
+        glossary.merge_answers(ws_key, final, {i: q["text"] for i, q in qmap.items()}, labels={i: clarify.option_for(qmap[i], v)["label"] for i, v in final.items()},
+                               fingerprints={i: clarify.fingerprint(qmap[i], v) for i, v in final.items()})
+        glossary.delete_answers(ws_key, body.ask_again)
+    except TimeoutError as e:
+        raise HTTPException(503, str(e))
+    return {"run_id": rerun_with_answers(run_id, final, body.ask_again), "status": "queued"}
 
 
 class RemoveDerivedIn(BaseModel):

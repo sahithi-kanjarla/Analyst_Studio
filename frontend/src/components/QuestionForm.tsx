@@ -22,6 +22,15 @@ export default function QuestionForm({ runId, onSubmitted }: { runId: string; on
       .catch((e) => setError(e instanceof Error ? e.message : "Could not load the questions"));
   }, [runId]);
 
+  const [again, setAgain] = useState<string[]>([]);      // saved answers the user wants to be asked about: no option is pre-selected until they pick one
+  const reused = set ? set.questions.filter((q) => q.prefill_source === "glossary") : [];
+  const pending = set ? set.questions.some((q) => !picked[q.id]) : false;
+  const askAgain = (id: string) => {
+    setAgain((a) => (a.includes(id) ? a : [...a, id]));
+    setPicked((p) => ({ ...p, [id]: "" }));
+    document.getElementById(`q-${id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+
   const send = async (skip: boolean) => {
     setBusy(true);
     setError("");
@@ -45,8 +54,23 @@ export default function QuestionForm({ runId, onSubmitted }: { runId: string; on
         These things in your data are ambiguous and would change the numbers. Pick what is right for your business, or skip to use the defaults.
         {set.workspace && set.workspace !== "default" && <> Answers are saved for <b>{set.workspace}</b> and pre-filled next time.</>}
       </p>
+      {reused.length > 0 && (
+        <fieldset className="qitem">
+          <legend>Saved answers that will be reused ({reused.length})</legend>
+          {reused.map((q) => {
+            const label = q.options.find((o) => o.value === q.prefill)?.label ?? "";
+            return (
+              <div className="qdef" key={q.id}>
+                <span>{q.text} <b>{again.includes(q.id) ? "(will be asked again)" : label}</b></span>
+                <button type="button" className="chip" onClick={() => document.getElementById(`q-${q.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" })}>Change</button>
+                <button type="button" className="chip" onClick={() => askAgain(q.id)}>Ask me again</button>
+              </div>
+            );
+          })}
+        </fieldset>
+      )}
       {set.questions.map((q, i) => (
-        <fieldset key={q.id} className="qitem">
+        <fieldset key={q.id} id={`q-${q.id}`} className="qitem">
           <legend>
             <span className="qnum">{i + 1}</span> {q.text}
           </legend>
@@ -57,7 +81,7 @@ export default function QuestionForm({ runId, onSubmitted }: { runId: string; on
                 <input type="radio" name={q.id} value={o.value} checked={picked[q.id] === o.value} onChange={() => setPicked((p) => ({ ...p, [q.id]: o.value }))} />
                 <span>{o.label}</span>
                 {o.value === q.default && <em className="qtag">default</em>}
-                {q.prefill_source === "glossary" && o.value === q.prefill && <em className="qtag qtag-g">saved</em>}
+                {q.prefill_source === "glossary" && o.value === q.prefill && !again.includes(q.id) && <em className="qtag qtag-g">saved</em>}
               </label>
             ))}
           </div>
@@ -79,7 +103,7 @@ export default function QuestionForm({ runId, onSubmitted }: { runId: string; on
 
       {error && <div className="error">{error}</div>}
       <div className="qactions">
-        <button type="submit" className="primary" disabled={busy}>{busy ? "Starting…" : "Continue"}</button>
+        <button type="submit" className="primary" disabled={busy || pending} title={pending ? "Pick an answer for the question you asked to be asked again" : ""}>{busy ? "Starting…" : "Continue"}</button>
         <button type="button" className="chip" disabled={busy} onClick={() => send(true)}>Skip, use defaults</button>
       </div>
     </form>

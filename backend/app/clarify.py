@@ -50,6 +50,26 @@ def option_values(q: dict) -> list[str]:
     return [o["value"] for o in q["options"]]
 
 
+def fingerprint(q: dict, value) -> str | None:
+    """What a saved answer is about: the question's signal (kind + columns), what the question can do on which columns, and the exact action of the chosen option
+    (its type, column and values). Wording and option labels are left out, so a re-worded question still matches and a different column or value never does."""
+    o = next((o for o in q["options"] if o["value"] == value), None)
+    if o is None:
+        return None
+    blob = json.dumps({"id": q["id"], "can": sorted(map(repr, _action_signature(q))), "action": o["action"]}, sort_keys=True, default=str)
+    return hashlib.sha1(blob.encode("utf-8")).hexdigest()[:12]
+
+
+def saved_value(q: dict, entry) -> str | None:
+    """The saved answer's option value when it applies to this question, else None (the question is asked again).
+    An entry saved with a fingerprint must match it; an older entry without one can only be checked by its option value."""
+    value = entry.get("value") if isinstance(entry, dict) else entry
+    if value not in option_values(q):
+        return None
+    fp = entry.get("fp") if isinstance(entry, dict) else None
+    return value if not fp or fp == fingerprint(q, value) else None
+
+
 def option_for(q: dict, value) -> dict:
     return next((o for o in q["options"] if o["value"] == value), None) or next(o for o in q["options"] if o["value"] == q["default"])
 
@@ -394,9 +414,10 @@ def build_questions_and_ignored(df: pd.DataFrame, profile: dict, goal: str, ctx:
         if not any(sg["id"] == qid for sg in signals):
             continue
         q, value = by_id.get(qid), a.get("value") if isinstance(a, dict) else a
-        if q is None or value not in option_values(q):
+        if q is None or saved_value(q, a) is None:
             ignored.append({"id": qid, "question": (a.get("question") if isinstance(a, dict) else "") or qid, "answer": a.get("label", value) if isinstance(a, dict) else value,
-                            "reason": "the question is no longer asked for this data" if q is None else "the saved option no longer exists"})
+                            "reason": "the question is no longer asked for this data" if q is None else
+                            "the saved option no longer exists" if value not in option_values(q) else "the question now involves other columns or values, so it is asked again"})
     return qs, ignored
 
 
@@ -412,12 +433,12 @@ def resolve(questions: list[dict], user_answers: dict | None, saved: dict, skip:
     for q in questions:
         qid, valid = q["id"], option_values(q)
         mine = (user_answers or {}).get(qid)
-        gl = (saved.get(qid) or {}).get("value") if isinstance(saved.get(qid), dict) else saved.get(qid)
+        gl = saved_value(q, saved.get(qid))
         if q.get("auto"):
             final[qid], source[qid] = q["default"], q["auto"]
         elif not skip and mine in valid:
             final[qid], source[qid] = mine, "user"
-        elif gl in valid:
+        elif gl is not None:
             final[qid], source[qid] = gl, "glossary"
         else:
             final[qid], source[qid] = q["default"], "default"

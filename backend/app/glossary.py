@@ -133,28 +133,41 @@ def put_workspace(key: str, entry: dict) -> dict:
     """Replace a workspace's saved entry. Editing or deleting an item in the UI is a PUT of the entry without it."""
     now = time.time()
     answers = {}
+    before = get_workspace(key)["answers"]
     for qid, a in (entry.get("answers") or {}).items():
         a = a if isinstance(a, dict) else {"value": a}
         answers[qid] = {"value": a["value"], "label": str(a.get("label") or a["value"])[:120], "question": str(a.get("question") or "")[:300], "updated": a.get("updated") or now}
+        if a.get("fp") and (before.get(qid) or {}).get("value") == a["value"]:        # an edited value no longer has the fingerprint of the one that was saved
+            answers[qid]["fp"] = a["fp"]
     new = {"answers": answers, "definitions": {t.strip(): x.strip() for t, x in (entry.get("definitions") or {}).items()}, "notes": (entry.get("notes") or "").strip()}
     _modify(lambda d: d.__setitem__(clean_key(key), new))
     return new
 
 
 def merge_answers(key: str, answers: dict[str, str], questions: dict[str, str], notes: str = "", definitions: dict[str, str] | None = None,
-                  labels: dict[str, str] | None = None) -> dict:
-    """Add the answers given for a run to the workspace (existing items are overwritten, others kept)."""
+                  labels: dict[str, str] | None = None, fingerprints: dict[str, str] | None = None) -> dict:
+    """Add the answers given for a run to the workspace (existing items are overwritten, others kept).
+    `fingerprints` ties each answer to what it was about (clarify.fingerprint); an answer without one is matched by question id and option only."""
     now = time.time()
     ck = clean_key(key)
 
     def fn(d):
         ws = d.setdefault(ck, _empty())
-        ws.setdefault("answers", {}).update({q: {"value": v, "label": (labels or {}).get(q, v)[:120], "question": questions.get(q, "")[:300], "updated": now} for q, v in answers.items()})
+        ws.setdefault("answers", {}).update({q: {"value": v, "label": (labels or {}).get(q, v)[:120], "question": questions.get(q, "")[:300], "updated": now,
+                                                 **({"fp": fingerprints[q]} if (fingerprints or {}).get(q) else {})} for q, v in answers.items()})
         ws.setdefault("definitions", {}).update({t.strip(): x.strip() for t, x in (definitions or {}).items() if t.strip() and x.strip()})
         if notes.strip():
             ws["notes"] = notes.strip()
     _modify(fn)
     return get_workspace(ck)
+
+
+def delete_answers(key: str, qids) -> None:
+    """Forget saved answers, so those questions are asked again."""
+    def fn(d):
+        for q in qids:
+            (d.get(clean_key(key)) or {}).get("answers", {}).pop(q, None)
+    _modify(fn)
 
 
 def delete_workspace(key: str) -> bool:

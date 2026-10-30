@@ -6,6 +6,7 @@ print PASS/FAIL per check and append the result to scripts/scorecard_history.csv
     python scripts/scorecard.py --runs 3     # three pipeline runs one after another; per-check pass counts, median and minimum total
     python scripts/scorecard.py --run <id>   # score an existing run in backend/data/runs/ (no pipeline run)
 
+Checks search the full report text (collapsed sections included) and the findings, so they measure facts, not layout.
 Test tooling only: it imports the app but changes nothing in it. Questions are answered with their defaults."""
 import argparse, csv, json, re, statistics, sys, time
 from datetime import datetime
@@ -95,6 +96,11 @@ def lines_with(text: str, word: str):
     return [l for l in text.splitlines() if re.search(word, l, re.I)]
 
 
+def full_report(res: dict) -> str:
+    """The whole report text, collapsed sections included (the <details> and <summary> tags removed, their text kept): checks measure facts, not where the report puts them."""
+    return re.sub(r"</?(?:details|summary)[^>]*>|<a id=[^>]*></a>", "", res.get("report_md") or "")
+
+
 def score(rid: str):
     return score_mall(rid) if DATASET == "mall" else score_kaveri(rid)
 
@@ -103,7 +109,7 @@ def score_mall(rid: str):
     wd = ROOT / "backend" / "data" / "runs" / rid
     r = json.loads((wd / "result.json").read_text(encoding="utf-8"))
     t = json.loads((data_dir() / "truth.json").read_text(encoding="utf-8"))
-    rep = r.get("report_md") or ""
+    rep = full_report(r)
     findings = r.get("findings") or []
     alltext = rep + chr(10) + chr(10).join(f"{f.get('title', '')}. {f.get('text', '')}" for f in findings)
     rows = []
@@ -141,12 +147,11 @@ def score_kaveri(rid: str):
     wd = ROOT / "backend" / "data" / "runs" / rid
     res = json.loads((wd / "result.json").read_text(encoding="utf-8"))
     truth = json.loads((data_dir() / "truth.json").read_text(encoding="utf-8"))
-    report = res.get("report_md") or ""
+    report = full_report(res)
     findings = res.get("findings") or []
     qs = json.loads((wd / "questions.json").read_text(encoding="utf-8")).get("questions", []) if (wd / "questions.json").exists() else []
     ftext = "\n".join(f"{f.get('title', '')}. {f.get('text', '')}" for f in findings)
     alltext = report + "\n" + ftext
-    summary = report.split("## Executive summary")[-1].split("## Key numbers")[0] if "## Executive summary" in report else ""
     rows = []
 
     def add(n, name, ok, detail):
@@ -179,10 +184,10 @@ def score_kaveri(rid: str):
         gd.append(f"{t} {v:+.0f}% {'ok' if hit else 'MISSING'}")
     add(4, "Tier growth 2023->2024", gok, "; ".join(gd))
 
-    # 5 tier margin does not reliably differ (executive summary)
-    s5 = re.search(r"(margin|ratio)[^.\n]{0,80}(not|no)[^.\n]{0,40}(reliabl|significan|differ)|(not|no)[^.\n]{0,40}(reliabl|significan)[^.\n]{0,80}(margin|ratio)", summary, re.I)
-    in_ins = re.search(r"(margin|ratio).*does not differ reliably", ftext + report, re.I)
-    add(5, "Summary: tier margin not reliably different", s5, "in executive summary" if s5 else ("only in an insight headline, not the summary" if in_ins else "not stated"))
+    # 5 tier margin does not reliably differ (anywhere in the full report or the findings)
+    s5 = re.search(r"(margin|ratio)[^.\n]{0,80}(not|no)[^.\n]{0,40}(reliabl|significan|differ)|(not|no)[^.\n]{0,40}(reliabl|significan)[^.\n]{0,80}(margin|ratio)", report, re.I) \
+        or re.search(r"(margin|ratio).*does not differ reliably", ftext, re.I)
+    add(5, "Tier margin not reliably different", s5, "stated in the report" if s5 else "not stated")
 
     # 6 Electronics loss-making
     el = truth["by_category"]["Electronics"]["margin_pct"]

@@ -124,6 +124,7 @@ export interface BusinessContextInput {
   notes: string;
   currency: string;
   explore: boolean;
+  review_saved?: boolean;
 }
 
 export interface FindingTable {
@@ -212,6 +213,17 @@ export interface Question {
   prefill_source?: "glossary" | "default";
   why: string;
   columns: string[];
+}
+
+export interface AnswerRow {
+  id: string;
+  text: string;
+  options: QuestionOption[];
+  default: string;
+  answer: string;
+  source: string;
+  reused: boolean;
+  saved: string;
 }
 
 export interface QuestionSet {
@@ -379,11 +391,15 @@ export const api = {
     if (ctx) {
       (["company", "industry", "description", "kpis", "audience", "notes", "currency"] as const).forEach((k) => ctx[k] && fd.append(k, ctx[k]));
       if (ctx.explore) fd.append("explore", "true");
+      if (ctx.review_saved) fd.append("review_saved", "true");
     }
     return fetch("/api/runs", { method: "POST", body: fd }).then((r) => json<{ run_id: string }>(r));
   },
   removeDerived: (id: string, names: string[]) =>
     fetch(`/api/runs/${id}/remove-derived`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ names }) }).then((r) => json<{ run_id: string }>(r)),
+  getAnswersReview: (id: string) => fetch(`/api/runs/${id}/answers-review`).then((r) => json<{ workspace: string; status: string; answers: AnswerRow[] }>(r)),
+  rerunWithAnswers: (id: string, answers: Record<string, string>, ask_again: string[]) =>
+    fetch(`/api/runs/${id}/rerun-answers`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ answers, ask_again }) }).then((r) => json<{ run_id: string }>(r)),
   getDashboard: (id: string) => fetch(`/api/runs/${id}/dashboard`).then((r) => json<DashData>(r)),
   getSources: (id: string) => fetch(`/api/runs/${id}/sources`).then((r) => json<DataSource[]>(r)),
   downloadUrl: (id: string, source: string) => `/api/runs/${id}/data/download?source=${encodeURIComponent(source)}`,

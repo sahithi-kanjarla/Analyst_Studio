@@ -68,6 +68,7 @@ class RunState(TypedDict, total=False):
     applied_definitions: list
     ignored_definitions: list
     awaiting_input: bool
+    review_saved: bool
     remove_derived: list
     derived_metrics: dict
     goal_answer: dict
@@ -390,14 +391,15 @@ def clarify_node(state: RunState) -> dict:
         questions, over = clarify.cap_questions(pq + questions)        # placeholder questions and the others share one cap of MAX_QUESTIONS
         dropped += over
         for q in questions:
-            saved = (ws["answers"].get(q["id"]) or {}).get("value")
-            q["prefill"], q["prefill_source"] = (saved, "glossary") if saved in clarify.option_values(q) else (q["default"], "default")
+            saved = clarify.saved_value(q, ws["answers"].get(q["id"]))
+            q["prefill"], q["prefill_source"] = (saved, "glossary") if saved is not None else (q["default"], "default")
         if any(not q.get("auto") for q in questions):       # only a run that may pause needs its questions frozen
             qfile.write_text(json.dumps({"workspace": glossary.workspace_key(ctx), "questions": questions, "ignored": ignored, "dropped": dropped, "ai": ai, "concerns": concerns}), encoding="utf-8")
     asked = [q for q in questions if not q.get("auto")]
     final, sources = clarify.resolve(questions, (given or {}).get("answers"), ws["answers"], skip=bool((given or {}).get("skip")))
     covered = all(sources[q["id"]] == "glossary" for q in asked)
-    waiting = bool(asked) and given is None and not covered
+    review = bool(state.get("review_saved")) and any(sources[q["id"]] == "glossary" for q in asked)      # the user asked to see the saved answers before the run starts
+    waiting = bool(asked) and given is None and (not covered or review)
 
     out: dict = {"concerns": concerns, "ai_notes": list(dict.fromkeys([*(state.get("ai_notes") or []), *(ai.get("ai_notes") or [])])),
                  "decisions": [*(state.get("decisions") or []), *(ai.get("decisions") or [])],

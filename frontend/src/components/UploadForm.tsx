@@ -157,6 +157,10 @@ export default function UploadForm({ onStarted }: { onStarted: (id: string) => v
           <input type="checkbox" checked={ctx.explore} onChange={(e) => setC("explore", e.target.checked)} />
           <span>I'm not sure what to look for. Explore the data and tell me what matters.</span>
         </label>
+        <label className="check">
+          <input type="checkbox" checked={!!ctx.review_saved} onChange={(e) => setC("review_saved", e.target.checked)} />
+          <span>Show me my saved answers before the run starts, so I can change them or be asked again.</span>
+        </label>
         {!ctx.explore && (
           <div className="chips">
             {EXAMPLES.map((ex) => (

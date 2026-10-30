@@ -4,6 +4,7 @@ import rehypeRaw from "rehype-raw";
 import remarkGfm from "remark-gfm";
 import { api, RunResult } from "../api";
 
+import AnswersReview from "./AnswersReview";
 import DataModel from "./DataModel";
 import BIDashboard from "./BIDashboard";
 import DataViewer from "./DataViewer";
@@ -42,6 +43,7 @@ export default function Results({ run }: { run: RunResult }) {
   const [tab, setTab] = useState<Tab>("dashboard");
   const card = useRef<HTMLDivElement>(null);
   const [full, setFull] = useState(false);
+  const [review, setReview] = useState(false);
   useEffect(() => {
     const on = () => setFull(document.fullscreenElement === card.current);
     document.addEventListener("fullscreenchange", on);
@@ -64,11 +66,14 @@ export default function Results({ run }: { run: RunResult }) {
         ))}
         <span className="spacer" />
         {run.run_mode && <span className={`pill ${run.run_mode === "AI-assisted" ? "pill-ok" : run.run_mode === "mixed" ? "" : "pill-muted"}`} title="How much of this run was decided by the AI versus fixed rules">{run.run_mode}</span>}
+        <button className="chip" onClick={() => setReview((v) => !v)} title="See, change or re-ask the answers this run used">Review answers</button>
         <button className="chip" onClick={toggleFull} title="Full screen (Esc to exit)">{full ? "⤢ Exit full screen" : "⛶ Full screen"}</button>
         <a className="primary small" href={api.powerbiUrl(run.run_id)}>
           Download Power BI pack
         </a>
       </div>
+
+      {review && <AnswersReview runId={run.run_id} onClose={() => setReview(false)} />}
 
       {tab !== "dashboard" && run.key_metrics && run.key_metrics.length > 0 && (
         <div className="kpi-strip">

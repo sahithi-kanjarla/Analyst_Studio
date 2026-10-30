@@ -62,9 +62,9 @@ def _safe_filename(name: str, used: set[str]) -> str:
 DEFAULT_EXPLORE_GOAL = "Explore this data and surface the most important insights and opportunities for the business."
 
 
-def create_run(goal: str, files_or_name, content: bytes | None = None, context: dict | None = None) -> str:
+def create_run(goal: str, files_or_name, content: bytes | None = None, context: dict | None = None, review_saved: bool = False) -> str:
     """create_run(goal, [(filename, bytes), ...], context=...)  or, for one file, create_run(goal, filename, bytes).
-    An empty goal means exploratory mode."""
+    An empty goal means exploratory mode. `review_saved` pauses the run to show the saved answers it will reuse, even when they cover every question."""
     from .context import normalise_context
     items = [(files_or_name, content)] if content is not None else list(files_or_name)
     context = normalise_context(context)
@@ -79,7 +79,7 @@ def create_run(goal: str, files_or_name, content: bytes | None = None, context: 
         safe = _safe_filename(filename, used)
         (wd / "inputs" / safe).write_bytes(data)
         names.append(safe)
-    (wd / "input.json").write_text(json.dumps({"goal": goal, "files": names, "context": context}))
+    (wd / "input.json").write_text(json.dumps({"goal": goal, "files": names, "context": context, "review_saved": review_saved}))
     write_status(run_id, "queued", goal=goal, filename=", ".join(names), created=time.time())
     return run_id
 
@@ -96,7 +96,7 @@ def _execute(run_id: str) -> None:
     try:
         context = meta.get("context") or {}
         final = GRAPH.invoke({"run_id": run_id, "goal": meta["goal"], "data_paths": [str(wd / "inputs" / f) for f in meta["files"]],
-                              "workdir": str(wd), "iteration": 0, "remove_derived": meta.get("remove_derived") or [], "findings": [], "context": context, "explore": bool(context.get("explore"))})
+                              "workdir": str(wd), "iteration": 0, "remove_derived": meta.get("remove_derived") or [], "review_saved": bool(meta.get("review_saved")), "findings": [], "context": context, "explore": bool(context.get("explore"))})
         set_quiet(run_id, False)
         if final.get("awaiting_input"):
             write_status(run_id, "needs_input")
@@ -139,6 +139,31 @@ def resume_with_answers(run_id: str, payload: dict) -> bool:
         write_status(run_id, "running")
         start_run(run_id)
         return True
+
+
+def rerun_with_answers(run_id: str, answers: dict, ask_again: list[str]) -> str:
+    """Start a new run on the same files, goal and context with the given answers (question id -> option value), from the cleaning step on.
+    A question in `ask_again` has no answer: the new run pauses and asks it. The old run is untouched."""
+    import shutil
+    src = run_dir(run_id)
+    meta = json.loads((src / "input.json").read_text())
+    new_id = uuid.uuid4().hex[:12]
+    dst = run_dir(new_id)
+    shutil.copytree(src / "inputs", dst / "inputs")
+    stored = json.loads((src / "questions.json").read_text(encoding="utf-8"))
+    for q in stored["questions"]:
+        if q["id"] in ask_again:
+            q["prefill"], q["prefill_source"] = q["default"], "default"
+        elif q["id"] in answers:
+            q["prefill"], q["prefill_source"] = answers[q["id"]], "user"
+    (dst / "questions.json").write_text(json.dumps(stored), encoding="utf-8")
+    if not ask_again:
+        old = json.loads((src / "answers.json").read_text(encoding="utf-8")) if (src / "answers.json").exists() else {}
+        (dst / "answers.json").write_text(json.dumps({"answers": answers, "skip": False, "notes": old.get("notes", "")}), encoding="utf-8")
+    (dst / "input.json").write_text(json.dumps({**meta, "review_saved": False}))
+    write_status(new_id, "queued", goal=meta["goal"], filename=", ".join(meta["files"]), created=time.time())
+    start_run(new_id)
+    return new_id
 
 
 def rerun_without_derived(run_id: str, names: list[str]) -> str:
