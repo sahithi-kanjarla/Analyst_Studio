@@ -612,14 +612,17 @@ def trend(df, ctx, target, date):
         series = d["y"].resample(rule).agg(agg)
         if agg == "mean":
             series = series.dropna()
+    counts = d["y"].resample(rule).count()
+    full = series.reindex(counts.index).where(counts > 0)         # a period with no rows is a gap, not a zero
+    series = full.dropna()
     if len(series) < 4:
         return None
-    x = np.arange(len(series))
+    x = np.flatnonzero(full.notna().values)
     lr = stats.linregress(x, series.values)
     base = abs(series.mean()) or 1.0
-    change = lr.slope * (len(series) - 1) / base
+    change = lr.slope * (x[-1] - x[0]) / base
     fig, ax = plt.subplots(figsize=(7, 3.6))
-    ax.plot(series.index, series.values, color=PALETTE[0], marker="o", ms=3, lw=1.8)
+    ax.plot(full.index, full.values, color=PALETTE[0], marker="o", ms=3, lw=1.8)
     ax.plot(series.index, lr.intercept + lr.slope * x, color=PALETTE[3], ls="--", lw=1.4, label="trend")
     unit = {"D": "day", "W": "week", "MS": "month"}[rule]
     cur = _cur(target, ctx)
@@ -632,12 +635,14 @@ def trend(df, ctx, target, date):
     direction = "upward" if lr.slope > 0 else "downward"
     sig = lr.pvalue < 0.05
     _title(ax, f"{target} is trending {'up' if lr.slope > 0 else 'down'} ({change:+.0%} over the period)" if sig else f"No clear trend in {target} over time (p={lr.pvalue:.2f})")
+    gaps = full.index[full.isna()]
+    no_data = f" No data in {len(gaps)} {unit}{'s' if len(gaps) != 1 else ''} (for example {gaps[0].date()}); these are left out of the best and weakest {unit}." if len(gaps) else ""
     text = (f"**{target}** ({agg} per {unit}) shows a {'statistically significant ' if sig else 'weak, non-significant '}{direction} trend "
-            f"(about {change:+.0%} across the period, p{_pf(lr.pvalue)}). Best {unit}: {series.idxmax().date()} ({cur}{_fmt(series.max())}); weakest: {series.idxmin().date()} ({cur}{_fmt(series.min())}). "
+            f"(about {change:+.0%} across the period, p{_pf(lr.pvalue)}). Best {unit}: {series.idxmax().date()} ({cur}{_fmt(series.max())}); weakest: {series.idxmin().date()} ({cur}{_fmt(series.min())}).{no_data} "
             f"The first and last {unit}s may be partial.")
     action = (f"{target} is trending {direction} over time; find out what changed around the weakest {unit} ({series.idxmin().date()})." if sig else None)
     return finding("trend", f"{target} over time", text,
-                   {"p": _f(lr.pvalue), "slope": _f(lr.slope), "relative_change": _f(change), "periods": int(len(series)), "freq": rule, "agg": agg, "n": int(len(d))},
+                   {"p": _f(lr.pvalue), "slope": _f(lr.slope), "relative_change": _f(change), "periods": int(len(series)), "empty_periods": int(len(gaps)), "freq": rule, "agg": agg, "n": int(len(d))},
                    _save(fig, ctx, _slug("trend", target, date)), significant=bool(sig), action=action)
 
 

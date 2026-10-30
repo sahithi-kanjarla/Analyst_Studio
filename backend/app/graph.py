@@ -47,6 +47,7 @@ class RunState(TypedDict, total=False):
     profile: dict
     plan: dict
     cleaning_log: list
+    date_coverage_warning: str
     findings: list
     critique: dict
     iteration: int
@@ -528,7 +529,8 @@ def clean_node(state: RunState) -> dict:
         emit(rid, "Cleaner", f"{s['step']}: {s['detail']}")
     if not log:
         emit(rid, "Cleaner", "The data was already clean; no changes needed.")
-    return {"cleaning_log": log}
+    dc = (state.get("plan") or {}).get("date_col")
+    return {"cleaning_log": log, "date_coverage_warning": insights.coverage_warning(clean[dc]) if dc in clean.columns else ""}
 
 
 def analyze_node(state: RunState) -> dict:

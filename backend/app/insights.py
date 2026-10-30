@@ -472,6 +472,19 @@ DATE_CAUTION = "Dates may be swapped, so trend and month findings below are unre
 DATE_TAG = "date-dependent"
 
 
+COVERAGE_MIN = 0.70
+
+
+def coverage_warning(dates) -> str:
+    """'' or the warning when under 70% of the calendar days between the first and last date have a row."""
+    d = pd.to_datetime(pd.Series(dates), errors="coerce").dropna()
+    if d.empty:
+        return ""
+    days = int(d.dt.normalize().nunique())
+    span = (d.max().normalize() - d.min().normalize()).days + 1
+    return f"Only {days} of {span} days in this period have data, so trends and weekly or monthly comparisons may mislead." if days / span < COVERAGE_MIN else ""
+
+
 def dates_unconfirmed(state: dict) -> bool:
     """True when a day/month swap question was asked and was not answered with the swap."""
     answers = state.get("answers") or {}

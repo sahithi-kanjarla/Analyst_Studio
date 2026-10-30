@@ -33,8 +33,9 @@ columns: one entry for EVERY column of the table, each exactly once (the sheet's
 role: measure (a quantity you can add or average), category (a group to split by), date, id (labels a row or an entity, including codes), flag (yes/no), free_text, other.
 goal_columns: every noun or term in the goal that points at data, mapped to the column(s) holding it, as {"<term as written in the goal>": ["<column>", ...] or "none"}. A plural or a different wording still maps (a goal word "states" can be a column called ship-state).
 Use "none" only when no column holds that term. Do not list verbs or filler words.
+goal_term_kinds: for every term in goal_columns, "data" when it refers to data (a column, a group, a measure or a time period) or "descriptive" when it only describes the question (a word such as best, worst, where or how much). Descriptive terms are ignored.
 Use only the column names given, exactly as written. Never write a number.
-Return JSON: {"columns": [{"column": str, "meaning": str, "role": str, "goal_terms": [str], "expected": str}], "goal_columns": {"<term>": [str] | "none"}}"""
+Return JSON: {"columns": [{"column": str, "meaning": str, "role": str, "goal_terms": [str], "expected": str}], "goal_columns": {"<term>": [str] | "none"}, "goal_term_kinds": {"<term>": "data" | "descriptive"}}"""
 
 
 def build_view(sheet: dict, goal: str, ctx: dict | None) -> str:
@@ -100,15 +101,18 @@ def validate(obj, columns: list[str]) -> tuple[dict | None, list[str]]:
                 goal_columns[term.strip()] = list(dict.fromkeys(v))
         else:
             errors.append(f"goal term '{term}' must map to a list of columns or \"none\"")
+    kinds = obj.get("goal_term_kinds")
+    descriptive = [t.strip() for t, k in kinds.items() if isinstance(t, str) and str(k).strip().lower() == "descriptive"] if isinstance(kinds, dict) else []
+    goal_columns = {t: c for t, c in goal_columns.items() if t not in descriptive}      # a descriptive word is not data: code ignores it
     if len(goal_columns) > MAX_TERMS:
         goal_columns = dict(list(goal_columns.items())[:MAX_TERMS])
-    return ({"columns": cols, "goal_columns": goal_columns}, []) if not errors else (None, errors)
+    return ({"columns": cols, "goal_columns": goal_columns, "descriptive": descriptive[:MAX_TERMS]}, []) if not errors else (None, errors)
 
 
 def _record(source: str, parts: dict | None = None, retries: int = 0, error: str = "") -> dict:
-    parts = parts or {"columns": {}, "goal_columns": {}}
+    parts = parts or {"columns": {}, "goal_columns": {}, "descriptive": []}
     return {"source": source, "columns": parts["columns"], "goal_columns": parts["goal_columns"],
-            "unmapped": [t for t, c in parts["goal_columns"].items() if not c], "retries": retries, "error": error}
+            "descriptive": parts.get("descriptive", []), "unmapped": [t for t, c in parts["goal_columns"].items() if not c], "retries": retries, "error": error}
 
 
 def resolve(llm, df: pd.DataFrame, profile: dict, goal: str, ctx: dict | None, state: dict | None = None) -> dict:

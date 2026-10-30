@@ -383,7 +383,7 @@ def build_report(state: dict, summary: str, recs: list[str], run_mode: str = "",
     ctx = state.get("context") or {}
     view = view or state.get("report_view") or tiering.build_view(state)
     title = "# Analysis report" + (f": {ctx['company']}" if ctx.get("company") else "")
-    L = [title] + (["", f"> ⚠ {DATE_CAUTION}"] if dates_unconfirmed(state) else []) + ["", f"**Mode:** {run_mode or derive_mode(state.get('stage_sources'))}"]
+    L = [title] + (["", f"> ⚠ {DATE_CAUTION}"] if dates_unconfirmed(state) else []) + (["", f"> ⚠ {state['date_coverage_warning']}"] if state.get("date_coverage_warning") else []) + ["", f"**Mode:** {run_mode or derive_mode(state.get('stage_sources'))}"]
     cn = state.get("concerns") or {}
     if cn.get("path") == "ai":
         L.append(f"**Data concerns:** proposed by the AI, verified by code ({len(cn.get('accepted') or [])} accepted, {len(cn.get('rejected') or [])} not applied).")
