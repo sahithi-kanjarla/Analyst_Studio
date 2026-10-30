@@ -177,11 +177,75 @@ def deterministic(llm):
 
 
 def begin_run(cache: bool = False) -> None:
-    """Start of a run on this thread: forget the daily-limit stop and the cached answers of the previous run. cache=True (the runner) answers an identical call
+    """Start of a run on this thread: forget the daily-limit stop, the cached answers and the usage record of the previous run. cache=True (the runner) answers an identical call
     again from memory for the rest of this run; direct callers get no cache."""
     _tls.daily = False
     _tls.answers = {} if cache else None
+    _tls.usage = []
     aicache.reset_reused()
+
+
+def _record(stage: str, *, cache_hit: bool, ok: bool = True, reason: str = "", system: str = "", user: str = "", out=None, seconds: float = 0.0,
+            reply: str = "") -> None:
+    """One line of the run's AI usage: which stage asked, the tokens (the provider's own count when it gives one, otherwise an estimate of about 4 characters a token),
+    whether a saved or repeated answer was used, and how long the call took. Failed calls count too, with their reason."""
+    usage = getattr(out, "usage_metadata", None) or {}
+    given_in, given_out = usage.get("input_tokens"), usage.get("output_tokens")
+    estimated = not (isinstance(given_in, int) and isinstance(given_out, int))
+    if cache_hit:
+        tokens_in, tokens_out = 0, 0
+    elif estimated:
+        tokens_in, tokens_out = (len(system) + len(user)) // 4, len(reply) // 4
+    else:
+        tokens_in, tokens_out = int(given_in), int(given_out)
+    log = getattr(_tls, "usage", None)
+    if log is not None:
+        log.append({"stage": stage, "ok": ok, "reason": reason, "cache_hit": cache_hit, "input_tokens": tokens_in, "output_tokens": tokens_out,
+                    "tokens_estimated": estimated and not cache_hit, "seconds": round(seconds, 3)})
+
+
+def usage_calls() -> list[dict]:
+    """The AI calls of this run so far, in order (empty outside a run)."""
+    return list(getattr(_tls, "usage", None) or [])
+
+
+def totals(calls: list[dict]) -> dict:
+    """Calls, calls sent, calls answered from saved or repeated results, tokens (sent calls only, estimated when any of them is) and seconds."""
+    sent = [c for c in calls if not c["cache_hit"]]
+    return {"calls": len(calls), "sent": len(sent), "cached": len(calls) - len(sent), "input_tokens": sum(c["input_tokens"] for c in sent),
+            "output_tokens": sum(c["output_tokens"] for c in sent), "estimated": any(c["tokens_estimated"] for c in sent),
+            "seconds": round(sum(c["seconds"] for c in calls), 1)}
+
+
+def usage_summary() -> dict:
+    """Totals of this run so far."""
+    return totals(usage_calls())
+
+
+def by_stage(calls: list[dict]) -> list[dict]:
+    """One row per stage (the module and function that asked), in the order the stages first asked."""
+    rows: dict[str, dict] = {}
+    for c in calls:
+        r = rows.setdefault(c["stage"], {"stage": c["stage"], "calls": 0, "cached": 0, "failed": 0, "input_tokens": 0, "output_tokens": 0,
+                                         "estimated": False, "seconds": 0.0})
+        r["calls"] += 1
+        r["cached"] += c["cache_hit"]
+        r["failed"] += not c["ok"]
+        r["input_tokens"] += c["input_tokens"]
+        r["output_tokens"] += c["output_tokens"]
+        r["estimated"] |= c["tokens_estimated"]
+        r["seconds"] = round(r["seconds"] + c["seconds"], 3)
+    return list(rows.values())
+
+
+def save_usage(workdir) -> None:
+    """Append this run's AI calls to ai_usage.json in the run folder (a resumed run adds its calls after the first part's)."""
+    import json as _json
+    from pathlib import Path as _Path
+    p = _Path(workdir) / "ai_usage.json"
+    prior = _json.loads(p.read_text(encoding="utf-8")).get("calls", []) if p.exists() else []
+    calls = prior + usage_calls()
+    p.write_text(_json.dumps({"calls": calls, "totals": totals(calls)}, indent=1), encoding="utf-8")
 
 
 def reset_cache():
@@ -209,9 +273,11 @@ def _invoke(llm, system: str, user: str) -> tuple[str | None, str]:
     answers = getattr(_tls, "answers", None)
     key = (system, user, str(getattr(llm, "kwargs", "")))
     if answers is not None and key in answers:
+        _record(_stage(), cache_hit=True, system=system, user=user)
         return answers[key], ""
     reason, rate_tries, other_tries = "", 0, 0
     while True:
+        started = time.monotonic()
         try:
             SENT["calls"] += 1
             out = llm.invoke([("system", system), ("human", user)])
@@ -220,9 +286,11 @@ def _invoke(llm, system: str, user: str) -> tuple[str | None, str]:
                 content = "".join(part.get("text", "") if isinstance(part, dict) else str(part) for part in content)
             if answers is not None:
                 answers[key] = str(content)
+            _record(_stage(), cache_hit=False, system=system, user=user, out=out, seconds=time.monotonic() - started, reply=str(content))
             return str(content), ""
         except Exception as e:
             reason = classify_error(e)
+            _record(_stage(), cache_hit=False, ok=False, reason=reason, system=system, user=user, seconds=time.monotonic() - started)
             if is_daily_limit(e):
                 _tls.daily = True
                 break
@@ -259,6 +327,7 @@ def ask_text(llm, system: str, user: str) -> str | None:
     k = _disk_key(llm, system, user)
     if (hit := aicache.get(k)) is not None:
         aicache.note_reused(_stage())
+        _record(_stage(), cache_hit=True, system=system, user=user)
         return hit
     out = _invoke(llm, system, user)[0]
     if out is not None:
@@ -290,6 +359,7 @@ def ask_json_ex(llm, system: str, user: str, repair: bool = False) -> tuple[dict
     k = _disk_key(llm, system, user)
     if (hit := aicache.get(k)) is not None and (obj := _extract(hit)) is not None:
         aicache.note_reused(_stage())
+        _record(_stage(), cache_hit=True, system=system, user=user)
         return obj, ""
     raw, reason = _invoke(llm, system, user)
     if raw is None:

@@ -118,6 +118,11 @@ def _execute(run_id: str) -> None:
         emit(run_id, "System", f"The run failed: {type(e).__name__}: {e}")
         (wd / "error.txt").write_text(traceback.format_exc())
         write_status(run_id, "error", error=f"{type(e).__name__}: {e}")
+    finally:
+        try:
+            llm_mod.save_usage(wd)      # every run, finished, paused or failed, keeps its AI calls
+        except OSError:
+            pass
 
 
 def purge_expired(days: float | None = None, now: float | None = None) -> list[str]:

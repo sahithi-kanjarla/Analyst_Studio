@@ -268,6 +268,24 @@ def save(rid: str, rows) -> None:
         w.writerow([datetime.now().isoformat(timespec="seconds"), rid, sum(r[2] for r in rows), len(rows)] + [int(r[2]) for r in rows] + [DATASET])
 
 
+def ai_usage_table(rid: str) -> None:
+    """Per-stage AI usage of a run, from its ai_usage.json: calls, saved answers reused, tokens (estimated when the provider gives none) and time."""
+    f = run_dir_of(rid) / "ai_usage.json"
+    if not f.exists():
+        print("AI usage: no ai_usage.json in this run\n")
+        return
+    from app import llm as llm_mod
+    calls = json.loads(f.read_text(encoding="utf-8")).get("calls", [])
+    rows = llm_mod.by_stage(calls)
+    print(f"{'Stage':<38} {'Calls':>5} {'Saved':>5} {'Failed':>6} {'In tokens':>10} {'Out tokens':>10} {'Seconds':>8}")
+    for r in rows:
+        mark = "~" if r["estimated"] else " "
+        print(f"{r['stage'][:38]:<38} {r['calls']:>5} {r['cached']:>5} {r['failed']:>6} {mark}{r['input_tokens']:>9,} {mark}{r['output_tokens']:>9,} {r['seconds']:>8.1f}")
+    t = llm_mod.totals(calls)
+    print(f"{'Total':<38} {t['calls']:>5} {t['cached']:>5} {sum(r['failed'] for r in rows):>6} {t['input_tokens']:>10,} {t['output_tokens']:>10,} {t['seconds']:>8.1f}")
+    print("~ = estimated (the provider gave no token count; about 4 characters a token)\n")
+
+
 def run_dir_of(rid: str) -> Path:
     from app.runner import run_dir
     return run_dir(rid)
@@ -289,6 +307,7 @@ def main():
         rows = score(a.run)
         print(f"\n{DATASET} scorecard, run {a.run}\n")
         table(rows)
+        ai_usage_table(a.run)
         print(f"\nTotal: {sum(r[2] for r in rows)}/{len(rows)}")
         return
     if busy := busy_runs():
@@ -310,6 +329,7 @@ def main():
         reuse = re.search(r"Reused saved AI result: [^\n]*", rep.read_text(encoding="utf-8", errors="replace")) if rep.exists() else None
         print(f"AI requests sent in this run: {llm_mod.SENT['calls'] - sent_before}; cache {'off' if a.no_cache else 'on'}; {reuse.group(0) if reuse else 'no saved AI result reused'}\n")
         table(rows)
+        ai_usage_table(rid)
         print(f"\nTotal: {sum(r[2] for r in rows)}/{len(rows)}", flush=True)
         save(rid, rows)
     if not results:
