@@ -3,13 +3,14 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import threading
 import time
 import traceback
 import uuid
 from pathlib import Path
 
-from .config import RUNS_DIR
+from .config import RETENTION_DAYS, RUNS_DIR
 from . import reporter
 from .events import emit, set_quiet
 
@@ -117,6 +118,27 @@ def _execute(run_id: str) -> None:
         emit(run_id, "System", f"The run failed: {type(e).__name__}: {e}")
         (wd / "error.txt").write_text(traceback.format_exc())
         write_status(run_id, "error", error=f"{type(e).__name__}: {e}")
+
+
+def purge_expired(days: float | None = None, now: float | None = None) -> list[str]:
+    """Delete finished or failed runs (their status, result and uploads) older than RETENTION_DAYS. Runs still queued or running are never touched,
+    and days=0 keeps everything. Returns the ids that were deleted."""
+    import shutil
+    days = RETENTION_DAYS if days is None else days
+    if days <= 0 or not RUNS_DIR.exists():
+        return []
+    cutoff = (time.time() if now is None else now) - days * 86400
+    removed = []
+    for d in RUNS_DIR.iterdir():
+        if not re.match(RUN_ID_RE, d.name):
+            continue
+        st = read_status(d.name) or {}
+        if st.get("status") in ("queued", "running", None):
+            continue
+        if float(st.get("updated") or st.get("created") or 0) < cutoff:
+            shutil.rmtree(d, ignore_errors=True)
+            removed.append(d.name)
+    return removed
 
 
 def start_run(run_id: str) -> threading.Thread:

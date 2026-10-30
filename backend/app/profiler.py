@@ -44,12 +44,40 @@ def _tidy_headers(df: pd.DataFrame) -> pd.DataFrame:
 
 def _sniff_sep(p: Path) -> str:
     """Only real delimiters are candidates: pandas' own sniffing can pick '.' for a one-column file of decimals."""
+    return _sniff_text(p.read_bytes()[:20000].decode("utf-8", errors="replace"))
+
+
+def _sniff_text(sample: str) -> str:
     import csv
-    sample = p.read_bytes()[:20000].decode("utf-8", errors="replace")
     try:
         return csv.Sniffer().sniff(sample, delimiters=",;\t|").delimiter
     except csv.Error:
         return ","
+
+
+def too_many_rows_message(name: str, rows: int, limit: int) -> str:
+    return (f"'{name}' has {rows:,} rows. This app analyses up to {limit:,} rows per table; "
+            "please split the file or keep the most recent rows, then upload again.")
+
+
+def count_delimited_rows(content: bytes) -> int:
+    """Records in a delimited text file (the header excluded), counting a quoted line break as part of its record."""
+    import csv
+    import io
+    text = content.decode("utf-8", errors="replace")
+    reader = csv.reader(io.StringIO(text), delimiter=_sniff_text(text[:20000]))
+    count = -1  # the header is not a row
+    for _ in reader:
+        count += 1
+    return max(count, 0)
+
+
+def check_row_limit(df: pd.DataFrame, name: str, limit: int | None = None) -> None:
+    """Backstop after loading: a table over MAX_ROWS stops the run with the same clear message the upload gives."""
+    from .config import MAX_ROWS
+    limit = MAX_ROWS if limit is None else limit
+    if len(df) > limit:
+        raise ValueError(too_many_rows_message(name, len(df), limit))
 
 
 def load_table(path: str | Path) -> pd.DataFrame:
@@ -70,10 +98,15 @@ def load_tables(path: str | Path) -> dict[str, pd.DataFrame]:
     if p.suffix.lower() in (".xlsx", ".xls"):
         sheets = {k: v for k, v in pd.read_excel(p, sheet_name=None).items() if not v.dropna(how="all").empty}
         if len(sheets) > 1:
+            for k, v in sheets.items():
+                check_row_limit(v, f"{p.name} ({k})")
             return {f"{p.stem}_{k}": _tidy_headers(v) for k, v in sheets.items()}
         if len(sheets) == 1:
+            check_row_limit(next(iter(sheets.values())), p.name)
             return {p.stem: _tidy_headers(next(iter(sheets.values())))}
-    return {p.stem: load_table(p)}
+    df = load_table(p)
+    check_row_limit(df, p.name)
+    return {p.stem: df}
 
 
 def normalize_strings(df: pd.DataFrame, log: list[dict] | None = None) -> tuple[pd.DataFrame, int]:

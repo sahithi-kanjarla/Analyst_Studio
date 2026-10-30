@@ -2,6 +2,7 @@ import asyncio
 import json
 import re
 import time
+from contextlib import asynccontextmanager
 
 from pydantic import BaseModel, Field
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
@@ -9,15 +10,22 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
-from .config import ALLOWED_EXT, FRONTEND_DIST, MAX_FILES, MAX_UPLOAD_MB, RUNS_DIR
+from .config import ALLOWED_EXT, FRONTEND_DIST, MAX_FILES, MAX_ROWS, MAX_UPLOAD_MB, RUNS_DIR
 from . import clarify, glossary, tiering
+from .profiler import count_delimited_rows, too_many_rows_message
 from .context import normalise_context
 from .dashboard import build_dashboard, list_sources, source_path, valid_source
 from .events import get_events
 from .llm import get_llm
-from .runner import DEFAULT_EXPLORE_GOAL, RUN_ID_RE, create_run, read_status, rerun_with_answers, rerun_without_derived, resume_with_answers, run_dir, start_run
+from .runner import DEFAULT_EXPLORE_GOAL, RUN_ID_RE, create_run, purge_expired, read_status, rerun_with_answers, rerun_without_derived, resume_with_answers, run_dir, start_run
 
-app = FastAPI(title="Analyst Studio", version="1.0.0")
+@asynccontextmanager
+async def _lifespan(_app: FastAPI):
+    purge_expired()  # old runs are removed when the server starts, then again whenever a new run is created
+    yield
+
+
+app = FastAPI(title="Analyst Studio", version="1.0.0", lifespan=_lifespan)
 app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"], allow_methods=["*"], allow_headers=["*"])
 
 
@@ -60,7 +68,12 @@ async def new_run(goal: str = Form(""), company: str = Form(""), industry: str =
         total += len(content)
         if total > MAX_UPLOAD_MB * 1024 * 1024:
             raise HTTPException(413, f"The files together are larger than {MAX_UPLOAD_MB} MB.")
+        if ext in (".csv", ".tsv", ".txt"):
+            rows = count_delimited_rows(content)
+            if rows > MAX_ROWS:
+                raise HTTPException(413, too_many_rows_message(up.filename, rows, MAX_ROWS))
         items.append((up.filename, content))
+    purge_expired()
     run_id = create_run(goal[:2000], items, context=context, review_saved=review_saved.strip().lower() in ("1", "true", "on", "yes"))
     start_run(run_id)
     return {"run_id": run_id}
