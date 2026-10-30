@@ -85,7 +85,7 @@ def test_no_margin_or_profit_wording_without_a_cost_column(run, monkeypatch):
     _, rid, _ = run
     res = result(rid)
     report = res["report_md"]
-    assert GAP in report and any(g["title"] == GAP for g in res["data_gaps"])
+    assert (GAP in report) == any(g["title"] == GAP for g in res["data_gaps"])      # the gap needs a money kind from the AI record; rules-only has none
     body = "\n".join(l for l in report.splitlines() if GAP not in l)
     assert not wording.PROFIT_CLAIM.search(body), wording.PROFIT_CLAIM.search(body)
 

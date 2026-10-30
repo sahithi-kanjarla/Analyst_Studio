@@ -23,10 +23,10 @@ import pandas as pd
 
 from . import context as ctxmod
 from .clarify import option_for
-from . import polarity as polmod, wording
+from . import polarity as polmod, understanding as und, wording
 from .llm import ask_json
 from .brief import kinds, kpi_columns, kpi_found
-from .measures import ROWS_LABEL, has_sum_word, is_money
+from .measures import ROWS_LABEL, has_sum_word
 from .derived import ratio_of_sums
 from .tools import _fmt, to_binary
 
@@ -221,7 +221,7 @@ def _narrative(f: dict, ctx: dict, pol: dict | None = None, cols: list[str] | No
                  else f"The {target} rate does not differ reliably across {group}")
         else:
             ratio = hv / lv if (hv and lv and lv > 0 and hv > 0) else None
-            cur = ctx.get("currency", "") if is_money(target, narrow=True) else ""
+            cur = ctx.get("currency", "") if target in ctx.get("money", ()) else ""
             fig = "" if hv is None or lv is None else (f" (overall {cur}{_fmt(hv)} vs {cur}{_fmt(lv)} for {bot}, total over total)" if st.get("ratio_of_sums")
                                                        else f" (average {cur}{_fmt(hv)} per record vs {cur}{_fmt(lv)} for {bot})")
             h = (f"{group} = {top} averages {ratio:.1f}× the {target} of {bot}{fig}{eff}{note}" if sig and ratio and ratio >= 1.15
@@ -293,7 +293,7 @@ def _narrative(f: dict, ctx: dict, pol: dict | None = None, cols: list[str] | No
     elif tool == "heatmap":
         target = p["target"]
         (a1, b1), (a2, b2) = st["top_cell"], st["bottom_cell"]
-        cur = ctx.get("currency", "") if is_money(target, narrow=True) else ""
+        cur = ctx.get("currency", "") if target in ctx.get("money", ()) else ""
         fmtv = (lambda v: f"{_pct(v)} of {ROWS_LABEL}") if st.get("target_kind") == "binary" else (lambda v: f"average {cur}{_fmt(v)} per record")
         h = f"{a1} × {b1} stands out ({fmtv(st['top_value'])}); {a2} × {b2} is weakest ({fmtv(st['bottom_value'])})"
         why = "Segments can behave differently in combination, and single-column averages hide it. This shows where to look first, not what to do."
@@ -379,7 +379,7 @@ def _narrative(f: dict, ctx: dict, pol: dict | None = None, cols: list[str] | No
 
 def build_insights(state: dict) -> None:
     """Adds f['insight'] to every finding (in place)."""
-    ctx = state.get("context") or {}
+    ctx = {**(state.get("context") or {}), "money": und.money_columns(state.get("understanding"))}
     brief = state.get("brief")
     kt, kcols = ctxmod.kpi_tokens(ctx, (brief or {}).get("kpis")), kpi_columns(brief)
     for f in state["findings"]:
@@ -456,7 +456,7 @@ def key_metrics(state: dict, df: pd.DataFrame) -> list[dict]:
         else:
             x = pd.to_numeric(s, errors="coerce").dropna()
             if len(x):
-                c = cur if is_money(t, narrow=True) else ""
+                c = cur if t in und.money_columns(state.get("understanding")) else ""
                 if has_sum_word(t, overrides=kinds(state.get("brief"))):
                     m.append({"label": f"Total {t}", "value": f"{c}{_fmt(x.sum())}", "note": ""})
                 m.append({"label": f"Average {t}", "value": f"{c}{_fmt(x.mean())}", "note": f"median {c}{_fmt(x.median())}"})
@@ -560,7 +560,7 @@ def data_gaps(state: dict) -> list[dict]:
         gaps.append({"severity": "info", "title": "No segment columns used", "detail": "Without categories (region, product, plan...) results cannot be broken down by segment.",
                      "suggestion": "Add descriptive columns such as segment, region, channel or product."})
     derived_names = " ".join(f"{d['name']} {d['a']} {d['b']}" for d in plan.get("derived") or []).lower()
-    no_cost = not wording.has_profit_measure(state) and not wording.FINANCIAL.search(have) and bool(plan.get("target")) and is_money(plan["target"])
+    no_cost = not wording.has_profit_measure(state) and not wording.FINANCIAL.search(have) and bool(plan.get("target")) and plan["target"] in und.money_columns(state.get("understanding"))
     if no_cost:      # a money measure to report, and nothing that says what it cost: said once, in these words, instead of the industry's own "no cost data" line
         gaps.append({"severity": "info", "title": "Margin: not computable, no cost column", "detail": "Nothing in the data records what the sales cost, so only figures on the revenue side are reported.",
                      "suggestion": "Add a cost column (cost per unit or per line) to the data."})

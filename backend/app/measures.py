@@ -1,12 +1,10 @@
-"""One place that decides what kind of measure a column is: additive (sum it), a rate/average (mean it), or other; and whether it is money."""
+"""One place that decides what kind of measure a column is: additive (sum it), a rate/average (mean it), or other;."""
 from __future__ import annotations
 
 import re
 
 SUM_WORDS = re.compile(r"revenue|sales|amount|total|count|qty|quantity|spend|cost|profit|units|orders", re.I)
 AVG_WORDS = re.compile(r"pct|percent|rate|ratio|discount|avg|average|score|margin|price|per_|_per|age$", re.I)  # never add these up
-MONEY_COL = re.compile(r"revenue|sales|amount|price|cost|spend|profit|income|salary|fee|payment|value|gmv|mrr|arr|budget|balance", re.I)
-MONEY_COL_NARROW = re.compile(r"revenue|sales|amount|price|cost|spend|profit|income|salary|value", re.I)  # dashboard / insights KPI formatting
 
 ROWS_LABEL = "records"         # what a share of rows is a share of, and what any share falls back to when the kind of the measure is unknown
 
@@ -33,7 +31,3 @@ def has_sum_word(column_name: str, profile: dict | None = None, overrides: dict 
             return k == "additive"
     return bool(SUM_WORDS.search(column_name))
 
-
-def is_money(column_name: str, narrow: bool = False) -> bool:
-    """Money-like column name. narrow=True is the shorter word list the dashboard and insight KPIs have always used."""
-    return bool((MONEY_COL_NARROW if narrow else MONEY_COL).search(str(column_name)))

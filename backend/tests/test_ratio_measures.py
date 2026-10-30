@@ -25,7 +25,7 @@ def skewed(n=900, seed=3):
     return df
 
 
-CTX = lambda tmp: {"charts_dir": tmp, "derived": {"margin_ratio": SPEC}, "currency": "$"}      # noqa: E731
+CTX = lambda tmp: {"charts_dir": tmp, "derived": {"margin_ratio": SPEC}, "currency": "$", "money": {"profit", "sales"}}      # noqa: E731
 
 
 def ros(d):
@@ -105,7 +105,7 @@ def test_dashboard_weights_ratio_rows_by_their_denominator():
     vals, spec = dashboard._measure(df, "margin_ratio", "$", None, {"margin_ratio": SPEC})
     assert spec["agg"] == "ratio" and spec["fmt"] == "pct" and spec["den"] == "__w_margin_ratio" and spec["den_col"] == "sales"
     assert float((df["margin_ratio"] * df["sales"]).sum() / df["sales"].sum()) == pytest.approx(ros(df))      # what the page computes from value x weight
-    vals2, spec2 = dashboard._measure(df, "sales", "$", None, {"margin_ratio": SPEC})
+    vals2, spec2 = dashboard._measure(df, "sales", "$", None, {"margin_ratio": SPEC}, {"sales"})
     assert spec2["fmt"] == "money"
 
 
@@ -119,7 +119,7 @@ def test_powerbi_measure_for_a_ratio_is_divide_of_sums():
 
 # ------------------------------------------------------------------ 3. data gaps
 def gap_state(columns, derived_specs=()):
-    return {"context": {"industry_key": "ecommerce"}, "plan": {"target": "sales", "date_col": "when", "relevant_columns": columns, "derived": list(derived_specs)},
+    return {"understanding": {"source": "llm", "columns": {"sales": {"role": "measure", "measure_kind": "money"}}}, "context": {"industry_key": "ecommerce"}, "plan": {"target": "sales", "date_col": "when", "relevant_columns": columns, "derived": list(derived_specs)},
             "profile": {"rows": 5000, "cols": len(columns), "columns": [{"name": c, "role": "numeric", "missing_pct": 0.0} for c in columns]}, "brief": None}
 
 

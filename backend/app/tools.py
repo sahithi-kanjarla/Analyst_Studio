@@ -19,7 +19,7 @@ import pandas as pd
 from scipy import stats
 
 from . import derived, wording
-from .measures import is_money, measure_kind
+from .measures import measure_kind
 from .config import CHART_DPI
 
 PALETTE = ["#4F6BED", "#22A699", "#F2994A", "#E5484D", "#8E6BEE", "#3FA9F5", "#A3A847", "#C45AB3"]
@@ -89,7 +89,7 @@ def _fmt(x) -> str:
 def _cur(col, ctx) -> str:
     """Currency symbol (from the optional business context) for money-like columns, else ''."""
     sym = (ctx or {}).get("currency") or ""
-    return sym if sym and is_money(col) and _derived(ctx, col) is None else ""     # a derived ratio is a % or a plain number, never an amount
+    return sym if sym and col in ((ctx or {}).get("money") or ()) and _derived(ctx, col) is None else ""     # a derived ratio is a % or a plain number, never an amount
 
 
 def _bars(ax):

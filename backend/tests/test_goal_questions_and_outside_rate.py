@@ -52,7 +52,7 @@ def test_rate_outside_the_dominant_value_has_an_amount_and_a_percent_overall_and
     r = next(x for x in summary.ranking_facts(state, df) if x.get("kind") == "outside_rate")
     amt = df.loc[df["status"] != "ok", "revenue"].sum()
     assert r["group"] == "status" and r["measure"] == "revenue"
-    assert f"revenue outside ok: {amt:,.0f} ({amt / df['revenue'].sum():.1%} of all records)" in r["text"]
+    assert f"revenue outside ok: {amt:,.0f} ({amt / df['revenue'].sum():.1%} of the total revenue)" in r["text"]
     assert "By store, the highest rate outside ok:" in r["text"] and "the lowest:" in r["text"] and len(r["by"][0]["highest"]) == 3 and len(r["by"][0]["lowest"]) == 3
 
 

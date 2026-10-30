@@ -160,11 +160,11 @@ def test_coverage_warning_says_totals_and_shares_cover_only_the_days_present():
 # ------------------------------------------------------------------ 7. share labels
 def test_a_share_of_rows_and_of_a_quantity_are_labelled_from_what_was_computed():
     rec = {"source": "llm", "columns": {"q": {"role": "measure", "measure_kind": "quantity"}, "m": {"role": "measure", "measure_kind": "money"}, "x": {"role": "measure"}}}
-    assert und.share_label(rec, None) == "all records" and und.share_label(rec, "q") == "all units" and und.share_label(rec, "m") == "all m" and und.share_label(rec, "x") == "all records"
-    assert und.share_label(None, "q") == "all records"                                   # no record: unknown, never guessed from the column name
+    assert und.share_label(rec, None) == "all records" and und.share_label(rec, "q") == "all units" and und.share_label(rec, "m") == "all m" and und.share_label(rec, "x") == "the total x"
+    assert und.share_label(None, "q") == "the total q"                                   # no record: unknown, never guessed from the column name
     df = pd.DataFrame({"g": ["a"] * 10 + ["b"] * 10, "q": [3.0] * 10 + [1.0] * 10})
     assert "75.0% of all units" in summary._rank_additive(df, {"understanding": rec}, "g", "q", 1)["text"]
-    assert "75.0% of all records" in summary._rank_additive(df, {}, "g", "q", 1)["text"]
+    assert "75.0% of the total q" in summary._rank_additive(df, {}, "g", "q", 1)["text"]
     out = summary._outside_rate(status_df(), {}, "status", "ok", None, [], 1)           # no measure: rows are counted
     assert "of all records" in out["short"] and "of records" in out["text"] and "of all rows" not in out["text"]
 
@@ -218,7 +218,7 @@ def test_close_the_gaps_lists_the_actual_gaps_or_is_left_out():
 def test_headline_figures_carry_their_unit_and_what_they_are():
     st = {"p": 0.001, "effect": 0.2, "effect_name": "eta_squared", "best": "a", "worst": "b", "kind": "numeric", "values": {"a": 862.0, "b": 400.0}, "ratio_of_sums": False}
     f = finding(1, "group_compare", True, stats=st, target="revenue", group="seg")
-    h = insights._narrative(f, {"currency": "₹"}, None, [])["headline"]
+    h = insights._narrative(f, {"currency": "₹", "money": {"revenue"}}, None, [])["headline"]
     assert "average ₹862 per record vs ₹400 for b" in h
     binary = finding(2, "group_compare", True, stats={**st, "kind": "binary", "values": {"a": 0.75, "b": 0.5}}, target="returned", group="seg")
     assert "75% of records" in insights._narrative(binary, {}, None, [])["headline"]

@@ -547,7 +547,7 @@ def analyze_node(state: RunState) -> dict:
     df = pd.read_pickle(_wd(state) / "clean.pkl")
     todo = state["plan"]["analyses"] if it == 0 else state["critique"]["followups"]
     findings = list(state.get("findings", []))
-    ctx = {"charts_dir": _wd(state) / "charts", "currency": (state.get("context") or {}).get("currency", ""), "kinds": briefmod.kinds(state.get("brief")),
+    ctx = {"charts_dir": _wd(state) / "charts", "currency": (state.get("context") or {}).get("currency", ""), "kinds": briefmod.kinds(state.get("brief")), "money": undmod.money_columns(state.get("understanding")),
            "derived": {d["name"]: d for d in state["plan"].get("derived") or []}}
     emit(rid, "Analyst", f"{'Running the planned analyses' if it == 0 else 'Running follow-up checks requested by the Critic'} ({len(todo)})…")
     for spec in todo:

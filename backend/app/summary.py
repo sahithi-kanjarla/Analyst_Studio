@@ -22,7 +22,7 @@ from . import understanding as und
 from .brief import hierarchy_pairs, kinds
 from .clarify import named_in_goal
 from .llm import ask_json, capture, note_failure
-from .measures import ROWS_LABEL, is_money, measure_kind
+from .measures import ROWS_LABEL, measure_kind
 from .retail_roles import is_quantity
 from .tools import _fmt
 
@@ -134,7 +134,7 @@ def kpi_measures(state: dict, df) -> tuple[list[str], dict[str, dict]]:
 
 
 def _cur(col: str, state: dict) -> str:
-    return (state.get("context") or {}).get("currency", "") if is_money(col, narrow=True) else ""
+    return (state.get("context") or {}).get("currency", "") if col in und.money_columns(state.get("understanding")) else ""
 
 
 # ------------------------------------------------------------------ the question list

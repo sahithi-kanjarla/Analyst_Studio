@@ -1,8 +1,8 @@
-"""measure_kind / has_sum_word / is_money: same answers as the old per-file word lists; an override wins."""
+"""measure_kind / has_sum_word: same answers as the old per-file word lists; an override wins."""
 import pytest
 
 from app import tools
-from app.measures import has_sum_word, is_money, measure_kind
+from app.measures import has_sum_word, measure_kind
 
 
 @pytest.mark.parametrize("name,kind", [
@@ -17,12 +17,6 @@ def test_measure_kind_matches_legacy_rule(name, kind):
 
 def test_has_sum_word_is_the_looser_legacy_test():
     assert has_sum_word("total_pct") and not has_sum_word("rating")
-
-
-def test_is_money_wide_and_narrow_lists():
-    assert is_money("payment") and is_money("gmv") and is_money("revenue")
-    assert not is_money("payment", narrow=True) and is_money("revenue", narrow=True)
-    assert not is_money("quantity")
 
 
 def test_override_wins():

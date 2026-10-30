@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 
 from . import insights, understanding as und
-from .measures import is_money, measure_kind
+from .measures import measure_kind
 from .tools import to_binary
 
 MAX_ROWS = 50_000
@@ -34,7 +34,7 @@ def _eta_squared(y: pd.Series, g: pd.Series) -> float:
     return float((grp["count"] * (grp["mean"] - d["y"].mean()) ** 2).sum() / tot)
 
 
-def _measure(df: pd.DataFrame, col: str, currency: str, kinds: dict | None = None, ratios: dict | None = None):
+def _measure(df: pd.DataFrame, col: str, currency: str, kinds: dict | None = None, ratios: dict | None = None, money_cols: set | None = None):
     spec = (ratios or {}).get(col)
     if spec is not None and spec["b"] in df.columns:      # a derived ratio: the page weights each row by its denominator, so groups show sum A / sum B, never a mean of row ratios
         x = pd.to_numeric(df[col], errors="coerce")
@@ -48,7 +48,7 @@ def _measure(df: pd.DataFrame, col: str, currency: str, kinds: dict | None = Non
     if x.notna().sum() == 0:
         return None, None
     additive = measure_kind(col, overrides=kinds) == "additive"
-    money = is_money(col, narrow=True) and bool(currency)
+    money = col in (money_cols or ()) and bool(currency)
     return x, {"col": col, "label": col if additive else f"Average {col}", "agg": "sum" if additive else "avg",
                "fmt": "money" if money else "num", "note": ""}
 
@@ -67,7 +67,7 @@ def build_dashboard(wd: Path, result: dict) -> dict:
     for c in cands:
         if len(measures) >= MAX_MEASURES:
             break
-        vals, spec = _measure(df, c, currency, (result.get("brief") or {}).get("kinds"), {d["name"]: d for d in plan.get("derived") or []})
+        vals, spec = _measure(df, c, currency, (result.get("brief") or {}).get("kinds"), {d["name"]: d for d in plan.get("derived") or []}, und.money_columns(result.get("understanding")))
         if spec is not None:
             cols[c] = vals
             measures.append(spec)

@@ -195,10 +195,17 @@ def measure_kind_of(rec: dict | None, col: str | None) -> str:
     return str((((rec or {}).get("columns") or {}).get(col) or {}).get("measure_kind") or "") if usable(rec) and col else ""
 
 
+def money_columns(rec: dict | None) -> set[str]:
+    """Columns the record labels money; empty when there is no usable record, so no currency symbol is ever guessed from a name."""
+    return {c for c in ((rec or {}).get("columns") or {}) if measure_kind_of(rec, c) == "money"}
+
+
 def share_label(rec: dict | None, col: str | None) -> str:
-    """What a share of this measure is 'of': 'all units' for a quantity, 'all <column>' for money or a count, 'all records' for a count of rows or a measure of unknown kind."""
+    """What a share of this measure is 'of': 'all units' for a quantity, 'all <column>' for money or a count, 'the total <column>' when the kind is unknown, 'all records' only for a count of rows (no column)."""
+    if not col:
+        return f"all {ROWS_LABEL}"
     kind = measure_kind_of(rec, col)
-    return "all units" if kind == "quantity" else f"all {col}" if kind in ("money", "count") else f"all {ROWS_LABEL}"
+    return "all units" if kind == "quantity" else f"all {col}" if kind in ("money", "count") else f"the total {col}"
 
 
 def categories(rec: dict | None) -> set[str]:

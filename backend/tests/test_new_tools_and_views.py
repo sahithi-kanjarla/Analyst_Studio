@@ -59,7 +59,7 @@ def test_seasonality_weekday_found_and_month_needs_two_years(tmp_path):
 def test_tables_have_rows_and_no_chart(tmp_path):
     s = tools.summary_table(sales(), {"charts_dir": tmp_path}, ["age", "revenue"])
     assert s["chart"] is None and s["table"]["columns"][0] == "Column" and len(s["table"]["rows"]) == 2 and s["significant"] is None
-    g = tools.group_table(sales(), {"charts_dir": tmp_path, "currency": "₹"}, "revenue", "region")
+    g = tools.group_table(sales(), {"charts_dir": tmp_path, "currency": "₹", "money": {"revenue"}}, "revenue", "region")
     assert len(g["table"]["rows"]) == 4 and "₹" in str(g["table"]["rows"][0]) and "Share of total" in g["table"]["columns"]
 
 

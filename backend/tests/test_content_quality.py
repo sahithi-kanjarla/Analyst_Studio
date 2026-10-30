@@ -91,6 +91,6 @@ def test_a_bare_rate_figure_gets_its_percent_sign():
 
 
 def test_a_bare_money_figure_gets_its_currency():
-    st = {"context": {"currency": "₹"}}
+    st = {"context": {"currency": "₹"}, "understanding": {"source": "llm", "columns": {"revenue": {"role": "measure", "measure_kind": "money"}}}}
     assert mainview.with_unit("segment a averages 1,200", "revenue", st) == "segment a averages ₹1,200"
     assert mainview.with_unit("segment a averages ₹1,200", "revenue", st) == "segment a averages ₹1,200"
