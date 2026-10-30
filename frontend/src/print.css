@@ -1,0 +1,36 @@
+/* Print and save as PDF. Screen styles are untouched: everything here is inside print media, or on the print panel. */
+.print-wrap { position: relative; display: inline-block; }
+.print-panel { position: absolute; right: 0; top: calc(100% + var(--sp-2)); z-index: 20; width: min(440px, 92vw); background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: var(--sp-4); display: grid; gap: var(--sp-4); text-align: left; }
+.print-panel fieldset { border: 0; margin: 0; padding: 0; display: grid; gap: var(--sp-2); min-width: 0; }
+.print-panel legend { font-size: var(--fs-1); font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; padding: 0; margin-bottom: var(--sp-2); }
+.print-check { display: flex; gap: var(--sp-2); align-items: flex-start; font-size: var(--fs-2); }
+.print-check input { margin-top: 4px; }
+.print-check small { display: block; color: var(--muted); font-size: var(--fs-1); }
+.print-field { display: grid; gap: var(--sp-1); font-size: var(--fs-1); color: var(--muted); font-weight: 600; }
+.print-field input, .print-field textarea, .print-field select { font: inherit; font-size: var(--fs-2); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: var(--sp-2) var(--sp-3); min-width: 0; }
+.print-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-2); }
+.print-actions { display: flex; flex-wrap: wrap; gap: var(--sp-3); align-items: center; }
+.print-header { display: none; }
+
+@media print {
+  .no-print, .topbar, .foot, .side, .side-toggle, .tabs, .kpi-strip, .qactions, button, .print-panel { display: none !important; }
+  .shell { max-width: none; padding: 0; }
+  .results, .card { border: 0 !important; box-shadow: none !important; padding: 0 !important; background: none !important; }
+  .print-header { display: block; margin-bottom: var(--sp-5); padding-bottom: var(--sp-3); border-bottom: 1px solid #999; }
+  .print-head-title { font-size: 18pt; font-weight: 700; color: #000; }
+  .print-head-meta { font-size: 10pt; color: #444; margin-top: 2pt; }
+  .print-head-note { font-size: 10.5pt; color: #222; margin: var(--sp-2) 0 0; }
+  html, body, .shell, .home, .results, .card, .runview, .main { background: #fff !important; }
+  .report { color: #000; }
+  .report img, .report table, .report details, .report h2, .report h3, .report figure, .report blockquote { break-inside: avoid; page-break-inside: avoid; }
+  .report h2, .report h3 { break-after: avoid; page-break-after: avoid; }
+  .report img { max-width: 100%; height: auto; }
+  .print-no-summary .report [data-kind="summary"] { display: none; }
+  .print-no-numbers .report [data-kind="numbers"] { display: none; }
+  .print-no-charts .report img { display: none; }
+  .print-no-tables .report table { display: none; }
+  .print-no-setup .report details[data-kind="setup"] { display: none; }
+  .print-no-details .report details[data-kind="details"] { display: none; }
+  .print-bw .report, .print-bw .report * { color: #000 !important; background: none !important; border-color: #666 !important; }
+  .print-bw .report img { filter: grayscale(100%); }
+}

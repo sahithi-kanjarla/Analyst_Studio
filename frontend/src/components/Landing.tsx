@@ -1,154 +1,146 @@
-import AgentFlow from "./AgentFlow";
+import { useEffect, useRef, useState } from "react";
+import { api, RunResult } from "../api";
+import BIDashboard from "./BIDashboard";
+import DataViewer from "./DataViewer";
+import Tiers from "./Tiers";
+import { CleaningLog, PlanView, ReportBody } from "./Results";
 
-const BARS = [
-  { l: "South", v: 92 },
-  { l: "West", v: 71 },
-  { l: "North", v: 58 },
-  { l: "East", v: 36 },
-  { l: "Central", v: 24 },
+/** The app's real screens. Each one is the same component the results page uses, running on the bundled sample run. */
+export type TourTab = "dashboard" | "insights" | "report" | "data" | "cleaning" | "plan";
+export const TOUR: { id: TourTab; label: string; line: string }[] = [
+  { id: "dashboard", label: "Dashboard", line: "The answer to your question first, then the charts that support it." },
+  { id: "insights", label: "Insights", line: "Each finding with how far to trust it, and the actions it supports." },
+  { id: "report", label: "Report", line: "A short report you can print or save as PDF. The detail stays one click away." },
+  { id: "data", label: "Data", line: "The cleaned table the numbers come from, searchable and sortable." },
+  { id: "cleaning", label: "Cleaning log", line: "Every change made to the data, with the rows or values it touched." },
+  { id: "plan", label: "Plan", line: "The questions the analysis set out to answer, and the checks it ran." },
 ];
 
-/** A small, clearly-labelled sample of what a finished analysis looks like. */
-export function HeroPreview() {
+/** The scroll story: each step names the screen that shows it. */
+const STEPS: { tab: TourTab; title: string; text: string }[] = [
+  { tab: "data", title: "Upload", text: "Drop in a CSV, Excel or JSON export from your shop, marketplace or accounting tool. Related files are linked automatically." },
+  { tab: "plan", title: "Answer a few questions", text: "The app asks at most three short questions, and only where the answer changes what a number means. Skip them and it uses sensible defaults, and says so." },
+  { tab: "dashboard", title: "Analysis", text: "Code cleans the data, logging every change, and runs each test. The statistics use every row, not a sample." },
+  { tab: "report", title: "A short report", text: "One answer to your question, a few key numbers, and the charts that support them. Everything else is collapsed." },
+  { tab: "insights", title: "Actions", text: "Each action names what to do and the finding behind it. A finding that is not reliable does not become an action." },
+  { tab: "report", title: "Print or save as PDF", text: "Choose the sections, the title, the paper size and the orientation. Charts are never split across pages." },
+];
+
+function sampleScreen(tab: TourTab, run: RunResult) {
+  switch (tab) {
+    case "dashboard":
+      return <BIDashboard run={run} />;
+    case "insights":
+      return run.report_view ? <Tiers view={run.report_view} goalAnswer={run.goal_answer} /> : null;
+    case "report":
+      return <ReportBody md={run.report_md ?? ""} />;
+    case "data":
+      return <DataViewer runId={run.run_id} />;
+    case "cleaning":
+      return <CleaningLog run={run} />;
+    case "plan":
+      return <PlanView run={run} />;
+  }
+}
+
+/** Tabs above a framed screen. Keyboard: arrow keys move between tabs; the tab row scrolls sideways on a phone. */
+function Tour({ run, step }: { run: RunResult; step: number }) {
+  const [tab, setTab] = useState<TourTab>(STEPS[step].tab);
+  const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  // A visitor's own click overrides the scroll until the next step is reached: the screen follows the step again only when the step changes.
+  useEffect(() => setTab(STEPS[step].tab), [step]);
+  const current = TOUR.find((t) => t.id === tab) ?? TOUR[0];
+
+  function onKey(e: React.KeyboardEvent, index: number) {
+    const move = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+    if (!move) return;
+    e.preventDefault();
+    const next = TOUR[(index + move + TOUR.length) % TOUR.length];
+    setTab(next.id);
+    tabRefs.current[next.id]?.focus();
+  }
+
   return (
-    <div className="pv" aria-label="Sample of an analysis result">
-      <div className="pv-bar">
-        <i /><i /><i />
-        <span>sample result</span>
-      </div>
-      <div className="pv-goal"><small>Goal</small>Which region drives the most revenue, and is it growing?</div>
-      <div className="pv-kpis">
-        <div><small>Revenue</small><b>₹4.2M</b><em className="up">▲ 12%</em></div>
-        <div><small>Orders</small><b>18,430</b><em className="up">▲ 6%</em></div>
-        <div><small>Repeat rate</small><b>34%</b><em className="dn">▼ 2%</em></div>
-      </div>
-      <div className="pv-chart">
-        {BARS.map((b, i) => (
-          <div className="pv-row" key={b.l}>
-            <span>{b.l}</span>
-            <div><i style={{ width: `${b.v}%`, animationDelay: `${0.25 + i * 0.08}s` }} /></div>
-            <b>{b.v}%</b>
-          </div>
+    <div className="tour">
+      <div className="tour-tabs" role="tablist" aria-label="Screens of the app">
+        {TOUR.map((t, i) => (
+          <button
+            key={t.id}
+            ref={(el) => {
+              tabRefs.current[t.id] = el;
+            }}
+            role="tab"
+            id={`tour-${t.id}`}
+            aria-selected={tab === t.id}
+            aria-controls="tour-screen"
+            tabIndex={tab === t.id ? 0 : -1}
+            className={`tour-tab ${tab === t.id ? "tour-tab-on" : ""}`}
+            onClick={() => setTab(t.id)}
+            onKeyDown={(e) => onKey(e, i)}
+          >
+            {t.label}
+          </button>
         ))}
       </div>
-      <div className="pv-find">
-        <span className="pv-ok">✓ Critic approved</span>
-        <p>South earns <b>3.8×</b> Central and the gap holds after correcting for multiple tests.</p>
-        <div className="pv-meta"><span>Confidence <b>High</b></span><span>p &lt; 0.001</span><span>n = 18,430</span></div>
+      <div className="tour-frame">
+        <div className="tour-screen" role="tabpanel" id="tour-screen" aria-labelledby={`tour-${tab}`} key={tab}>
+          {sampleScreen(tab, run)}
+        </div>
       </div>
+      <p className="tour-line">{current.line}</p>
     </div>
   );
 }
 
-const STEPS = [
-  { n: "01", t: "Upload", s: "One or several CSV, Excel or JSON files." },
-  { n: "02", t: "Say why", s: "Type your goal in plain English, or ask it to explore." },
-  { n: "03", t: "Get answers", s: "A checked report, strategies and a Power BI pack." },
-];
-
-export function ThreeSteps() {
+/** Steps that read as the visitor scrolls. The screen follows the step in view, unless a tab was clicked (the next step resets that). */
+function Story({ onStep }: { onStep: (index: number) => void }) {
+  const refs = useRef<(HTMLLIElement | null)[]>([]);
+  useEffect(() => {
+    if (typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) onStep(refs.current.indexOf(e.target as HTMLLIElement));
+        }
+      },
+      { rootMargin: "-40% 0px -40% 0px" },
+    );
+    refs.current.forEach((el) => el && io.observe(el));
+    return () => io.disconnect();
+  }, [onStep]);
   return (
-    <ol className="three">
-      {STEPS.map((s) => (
-        <li key={s.n}>
-          <i>{s.n}</i>
-          <b>{s.t}</b>
-          <span>{s.s}</span>
+    <ol className="story" aria-label="How it works">
+      {STEPS.map((s, i) => (
+        <li key={i} className="story-step" ref={(el) => {
+          refs.current[i] = el;
+        }}>
+          <span className="story-n">{i + 1}</span>
+          <h3>{s.title}</h3>
+          <p>{s.text}</p>
         </li>
       ))}
     </ol>
   );
 }
 
-export function Stats() {
-  const items = [
-    { v: "11", l: "specialised agents" },
-    { v: "8", l: "files linked per run" },
-    { v: "100%", l: "of numbers computed in code" },
-    { v: "0", l: "paid services required" },
-  ];
+/** The product section: the tour and the scroll story, both on the bundled sample run. No upload and no AI call. */
+export function ProductSection() {
+  const [run, setRun] = useState<RunResult | null>(null);
+  const [error, setError] = useState("");
+  const [step, setStep] = useState(0);
+  useEffect(() => {
+    api.openDemo().then((d) => api.getRun(d.run_id)).then(setRun).catch(() => setError("The sample could not be loaded. Upload your own file to start."));
+  }, []);
   return (
-    <div className="stats">
-      {items.map((s) => (
-        <div key={s.l}>
-          <b>{s.v}</b>
-          <span>{s.l}</span>
+    <section className="product" aria-labelledby="product-title">
+      <h2 id="product-title" className="product-title">What you see when it finishes</h2>
+      <p className="product-sub">Every screen below is the real app, running on a sample store's sales. Click through them; nothing is uploaded and no AI is called.</p>
+      <div className="product-grid">
+        <Story onStep={setStep} />
+        <div className="product-screen">
+          {error && <div className="error">{error}</div>}
+          {run ? <Tour run={run} step={step} /> : !error && <div className="tour-loading" aria-live="polite">Loading the sample…</div>}
         </div>
-      ))}
-    </div>
-  );
-}
-
-export function HowItWorks() {
-  return (
-    <section className="sec" id="how">
-      <div className="sec-head">
-        <span className="kicker">How it works</span>
-        <h2>A team of agents, each with one job</h2>
-        <p>Your data moves left to right. Click any agent to see what it does, or let the tour play.</p>
-      </div>
-      <AgentFlow />
-    </section>
-  );
-}
-
-export function Bento() {
-  return (
-    <section className="sec">
-      <div className="sec-head">
-        <span className="kicker">Why you can trust it</span>
-        <h2>Built so the answer is checked, not guessed</h2>
-      </div>
-      <div className="bento">
-        <article className="bx bx-wide">
-          <h3>Code does the maths. The LLM only writes.</h3>
-          <p>Profiling, cleaning, statistics and charts are plain Python. A language model can plan and phrase things, but never supplies a number. Anything it proposes is validated against your real columns.</p>
-          <pre className="code" aria-hidden>{`mean(revenue | region=South)  →  4,812.30   # python
-"South leads"                  →  wording    # llm (optional)`}</pre>
-        </article>
-
-        <article className="bx">
-          <h3>Critic review</h3>
-          <ul className="checks">
-            <li>Multiple-testing correction</li>
-            <li>Sample-size and skew checks</li>
-            <li>Effect size, not just p-values</li>
-            <li>Follow-up re-checks when fragile</li>
-          </ul>
-        </article>
-
-        <article className="bx">
-          <h3>Many files, one model</h3>
-          <svg className="mini-er" viewBox="0 0 220 110" role="img" aria-label="Three tables linked on shared keys">
-            <path d="M62 36 L110 62 M158 36 L110 62" />
-            <g><rect x="10" y="16" width="62" height="32" rx="6" /><text x="41" y="36">orders</text></g>
-            <g><rect x="148" y="16" width="62" height="32" rx="6" /><text x="179" y="36">customers</text></g>
-            <g className="hub"><rect x="79" y="62" width="62" height="32" rx="6" /><text x="110" y="82">products</text></g>
-          </svg>
-          <p>Shared keys are found, joins are measured, and the grain follows your goal.</p>
-        </article>
-
-        <article className="bx">
-          <h3>Asks only when it matters</h3>
-          <p>Up to 6 short questions, each backed by a real signal in the data. Nothing ambiguous? It asks nothing. Skipping never changes a number.</p>
-          <div className="qpill">0 – 6 questions</div>
-        </article>
-
-        <article className="bx">
-          <h3>Power BI starter pack</h3>
-          <div className="files">
-            <span>cleaned_data.csv</span>
-            <span>measures.dax</span>
-            <span>theme.json</span>
-            <span>POWERBI_GUIDE.md</span>
-          </div>
-          <p>A zip with cleaned data, DAX measures, a theme and a step-by-step guide.</p>
-        </article>
-
-        <article className="bx">
-          <h3>Free by design</h3>
-          <p>Works with a local model, a free-tier API, or no LLM at all using the rule-based planner.</p>
-        </article>
       </div>
     </section>
   );

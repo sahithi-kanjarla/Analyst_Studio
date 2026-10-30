@@ -28,6 +28,7 @@ def test_sample_run_opens_with_all_ai_disabled(ai_off):
     assert r.status_code == 200 and r.json() == {"run_id": runner.DEMO_RUN_ID, "read_only": True}
     run = client.get(f"/api/runs/{runner.DEMO_RUN_ID}").json()
     assert run["status"] == "done" and run["report_md"].startswith("# Analysis report")
+    assert run["run_id"] == runner.DEMO_RUN_ID          # the id the page then uses for its data, not the one the run was first saved under
     assert run["report_view"]["actions"] is not None
     assert client.get(f"/api/runs/{runner.DEMO_RUN_ID}/dashboard").status_code == 200
     data = client.get(f"/api/runs/{runner.DEMO_RUN_ID}/data", params={"source": "clean", "limit": 5}).json()

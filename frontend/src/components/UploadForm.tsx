@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { api, BusinessContextInput, RunSummary } from "../api";
 import { StatusBadge, when } from "./History";
-import { Bento, HeroPreview, HowItWorks, Stats, ThreeSteps } from "./Landing";
+import { ProductSection } from "./Landing";
 
 const EXAMPLES = [
   "Which customer segment drives the most revenue, and is it growing? What should we focus on?",
@@ -87,23 +87,11 @@ export default function UploadForm({ onStarted }: { onStarted: (id: string) => v
 
   return (
     <div className="home">
-      <section className="hero2">
-        <div className="hero2-copy">
-          <span className="eyebrow rise"><i>AI</i> Data analyst agents, checked before they answer</span>
-          <h1 className="rise d1">Turn raw files into <span className="grad-text">decisions you can defend.</span></h1>
-          <p className="rise d2">
-            Upload your data and say what you want to know. A team of agents profiles it, plans the analysis, runs the statistics,
-            challenges its own findings, and hands you a report, strategies and a Power BI starter pack.
-          </p>
-          <div className="cta rise d3">
-            <a className="primary" href="#start">Start an analysis</a>
-            <a className="ghost" href="#how">See how the agents work</a>
-          </div>
-          <Stats />
-        </div>
-        <div className="hero2-art rise d2"><HeroPreview /></div>
-      </section>
-      <ThreeSteps />
+      <header className="intro">
+        <h1>Upload your sales file. Get a report you can check.</h1>
+        <p className="intro-sub">For small online sellers: upload a sales export, answer a few simple questions, and get a short report with the actions your numbers support.</p>
+        <button type="button" className="ghost sample-btn" disabled={busy} onClick={tryDemo}>Try with sample data</button>
+      </header>
 
       <form className="card form" id="start" onSubmit={submit}>
         <div
@@ -242,7 +230,6 @@ export default function UploadForm({ onStarted }: { onStarted: (id: string) => v
           <button className="primary" disabled={busy}>
             {busy ? "Starting the agents…" : files.length > 1 ? `Connect ${files.length} files and analyse` : ctx.explore ? "Explore my data" : "Analyse"}
           </button>
-          <button type="button" className="ghost" disabled={busy} onClick={tryDemo}>Try with sample data</button>
         </div>
       </form>
 
@@ -251,6 +238,39 @@ export default function UploadForm({ onStarted }: { onStarted: (id: string) => v
         <span>Related files are linked automatically</span>
         <span>Up to {MAX_FILES} files per run</span>
       </p>
+
+
+      <ProductSection />
+
+      <section className="trust-line" aria-label="How the numbers are checked">
+        <p>The AI proposes: what each column means, which questions to ask, how a finding is worded. Code does every calculation, and every figure can be checked against the data.</p>
+      </section>
+
+      <div
+        className={`drop drop-again ${drag ? "drop-active" : ""}`}
+        role="button"
+        tabIndex={0}
+        onClick={() => inputRef.current?.click()}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            inputRef.current?.click();
+          }
+        }}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDrag(true);
+        }}
+        onDragLeave={() => setDrag(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setDrag(false);
+          addFiles(e.dataTransfer.files);
+        }}
+      >
+        <span>{files.length ? `${files.length} file${files.length > 1 ? "s" : ""} ready: use “Analyse” above` : "Upload your file to start"}</span>
+        <small>CSV, Excel or JSON. Up to {MAX_FILES} files, 500,000 rows per table.</small>
+      </div>
 
       {recent.length > 0 && (
         <section className="recent">
@@ -271,9 +291,6 @@ export default function UploadForm({ onStarted }: { onStarted: (id: string) => v
           ))}
         </section>
       )}
-
-      <HowItWorks />
-      <Bento />
     </div>
   );
 }

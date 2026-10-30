@@ -11,6 +11,7 @@ import DataViewer from "./DataViewer";
 import InsightCard from "./InsightCard";
 import Tiers from "./Tiers";
 import StrategyView from "./StrategyView";
+import PrintPanel from "./PrintPanel";
 
 type Tab = "dashboard" | "report" | "insights" | "strategy" | "data" | "model" | "cleaning" | "plan" | "powerbi";
 const TABS: { id: Tab; label: string }[] = [
@@ -91,9 +92,10 @@ export default function Results({ run }: { run: RunResult }) {
       {tab === "data" && <DataViewer runId={run.run_id} />}
 
       {tab === "report" && (
-        <article className="report">
-          <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{run.report_md ?? ""}</ReactMarkdown>
-        </article>
+        <>
+          <PrintPanel run={run} />
+          <ReportBody md={run.report_md ?? ""} />
+        </>
       )}
 
       {tab === "insights" && (
@@ -110,72 +112,9 @@ export default function Results({ run }: { run: RunResult }) {
 
       {tab === "model" && run.data_model && <DataModel model={run.data_model} />}
 
-      {tab === "cleaning" && (
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Step</th>
-              <th>What was done</th>
-              <th>Rows / values</th>
-            </tr>
-          </thead>
-          <tbody>
-            {run.cleaning_log?.map((s, i) => (
-              <tr key={i}>
-                <td>{s.step}</td>
-                <td>{s.detail}</td>
-                <td>{s.count.toLocaleString()}</td>
-              </tr>
-            ))}
-            {!run.cleaning_log?.length && (
-              <tr>
-                <td colSpan={3}>No changes were needed.</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      )}
+      {tab === "cleaning" && <CleaningLog run={run} />}
 
-      {tab === "plan" && run.plan && (
-        <div className="plan">
-          <p>
-            <strong>Planned by:</strong> {run.plan.source === "llm" || run.plan.source === "repaired" ? `LLM (${run.llm_mode})` : "rule-based planner"} · <strong>Target:</strong> {run.plan.target ?? "none"} ·{" "}
-            <strong>Date column:</strong> {run.plan.date_col ?? "none"}
-          </p>
-          <h4>Questions the agent set out to answer</h4>
-          <ul>{run.plan.questions.map((q) => <li key={q}>{q}</li>)}</ul>
-          <h4>Analyses chosen (and why)</h4>
-          <p className="muted">{ORIGIN_LABEL.ai}: picked by the model. {ORIGIN_LABEL.code}: required, so the code added it when the model left it out.</p>
-          <ol>
-            {run.plan.analyses.map((a, i) => (
-              <li key={i}>
-                <code>{a.tool}</code> {Object.values(a.params).flat().map(String).join(", ")}
-                {a.origin && <span className="muted"> · <strong>{ORIGIN_LABEL[a.origin]}</strong></span>}
-                <div className="muted">{a.why}</div>
-              </li>
-            ))}
-          </ol>
-          {run.decisions && run.decisions.length > 0 && (
-            <>
-              <h4>Decisions</h4>
-              <ul>
-                {run.decisions.map((d, i) => (
-                  <li key={i}>
-                    <strong>{d.decision}</strong>: {DECISION_LABEL[d.source] ?? d.source}
-                    <div className="muted">{summariseChosen(d.chosen)}{d.why ? ` · ${d.why}` : ""}{d.source === "fallback" && d.errors.length ? ` · ${d.errors.join("; ")}` : ""}</div>
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
-          {run.plan.skipped.length > 0 && (
-            <>
-              <h4>Deliberately skipped</h4>
-              <ul>{run.plan.skipped.map((s) => <li key={s.column}><code>{s.column}</code>: {s.reason}</li>)}</ul>
-            </>
-          )}
-        </div>
-      )}
+      {tab === "plan" && run.plan && <PlanView run={run} />}
 
       {tab === "powerbi" && run.powerbi && (
         <div className="powerbi">
@@ -198,5 +137,88 @@ export default function Results({ run }: { run: RunResult }) {
         </div>
       )}
     </div>
+  );
+}
+
+/** The report as written, with its collapsed sections. Used by the results tab and the landing tour. */
+export function ReportBody({ md }: { md: string }) {
+  return (
+    <article className="report">
+      <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{md}</ReactMarkdown>
+    </article>
+  );
+}
+
+/** The cleaning log: every change made to the data, with the rows or values it touched. Used by the results tabs and the landing tour. */
+export function CleaningLog({ run }: { run: RunResult }) {
+  return (
+<table className="table">
+    <thead>
+      <tr>
+        <th>Step</th>
+        <th>What was done</th>
+        <th>Rows / values</th>
+      </tr>
+    </thead>
+    <tbody>
+      {run.cleaning_log?.map((s, i) => (
+        <tr key={i}>
+          <td>{s.step}</td>
+          <td>{s.detail}</td>
+          <td>{s.count.toLocaleString()}</td>
+        </tr>
+      ))}
+      {!run.cleaning_log?.length && (
+        <tr>
+          <td colSpan={3}>No changes were needed.</td>
+        </tr>
+      )}
+    </tbody>
+  </table>
+  );
+}
+
+/** The plan: the questions the analysis set out to answer, the analyses chosen and the decisions taken. */
+export function PlanView({ run }: { run: RunResult }) {
+  if (!run.plan) return null;
+  return (
+<div className="plan">
+    <p>
+      <strong>Planned by:</strong> {run.plan.source === "llm" || run.plan.source === "repaired" ? `LLM (${run.llm_mode})` : "rule-based planner"} · <strong>Target:</strong> {run.plan.target ?? "none"} ·{" "}
+      <strong>Date column:</strong> {run.plan.date_col ?? "none"}
+    </p>
+    <h4>Questions the agent set out to answer</h4>
+    <ul>{run.plan.questions.map((q) => <li key={q}>{q}</li>)}</ul>
+    <h4>Analyses chosen (and why)</h4>
+    <p className="muted">{ORIGIN_LABEL.ai}: picked by the model. {ORIGIN_LABEL.code}: required, so the code added it when the model left it out.</p>
+    <ol>
+      {run.plan.analyses.map((a, i) => (
+        <li key={i}>
+          <code>{a.tool}</code> {Object.values(a.params).flat().map(String).join(", ")}
+          {a.origin && <span className="muted"> · <strong>{ORIGIN_LABEL[a.origin]}</strong></span>}
+          <div className="muted">{a.why}</div>
+        </li>
+      ))}
+    </ol>
+    {run.decisions && run.decisions.length > 0 && (
+      <>
+        <h4>Decisions</h4>
+        <ul>
+          {run.decisions.map((d, i) => (
+            <li key={i}>
+              <strong>{d.decision}</strong>: {DECISION_LABEL[d.source] ?? d.source}
+              <div className="muted">{summariseChosen(d.chosen)}{d.why ? ` · ${d.why}` : ""}{d.source === "fallback" && d.errors.length ? ` · ${d.errors.join("; ")}` : ""}</div>
+            </li>
+          ))}
+        </ul>
+      </>
+    )}
+    {run.plan.skipped.length > 0 && (
+      <>
+        <h4>Deliberately skipped</h4>
+        <ul>{run.plan.skipped.map((s) => <li key={s.column}><code>{s.column}</code>: {s.reason}</li>)}</ul>
+      </>
+    )}
+  </div>
   );
 }

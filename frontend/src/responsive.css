@@ -10,9 +10,6 @@ img, svg, video { max-width: 100%; }
 @media (max-width: 900px) {
   .side { position: static; max-height: none; }
   .topbar { top: 6px; }
-  .stats { grid-template-columns: repeat(2, auto); gap: 14px 0; }
-  .stats > div:nth-child(2) { border: 0; margin: 0; padding: 0; }
-  .sec { margin-top: 56px; }
 }
 
 @media (max-width: 760px) {
@@ -32,8 +29,6 @@ img, svg, video { max-width: 100%; }
   .shell { padding: 0 14px 40px; }
   body { font-size: 14.5px; }
   h1 { font-size: 28px; }
-  .hero2 { padding-bottom: 20px; }
-  .hero2 p { font-size: 16px; }
   .hero h1 { font-size: 32px; }
   .topbar { padding: 8px 10px; margin: 8px 0 20px; border-radius: 14px; }
   .topbar .topright { gap: 2px; }
@@ -42,13 +37,7 @@ img, svg, video { max-width: 100%; }
   .form { padding: 16px; }
   .drop { padding: 22px 14px; }
   .card { padding: 16px; }
-  .cta .primary, .cta .ghost { flex: 1 1 100%; text-align: center; }
-  .stats b { font-size: 22px; }
-  .pv-kpis { grid-template-columns: 1fr 1fr 1fr; padding: 10px 12px; }
-  .pv-kpis b { font-size: 16px; }
-  .pv-row { grid-template-columns: 44px 1fr 30px; }
   .steps { grid-template-columns: 1fr; }
-  .sec { margin-top: 44px; }
   .flow-detail { padding: 14px; }
   .fd-head .tag { margin-left: 0; }
   .page-head h2 { font-size: 24px; }
@@ -82,6 +71,5 @@ img, svg, video { max-width: 100%; }
 @media (max-width: 400px) {
   .brand small { display: none; }
   .bi-kpis { grid-template-columns: 1fr; }
-  .pv-kpis { grid-template-columns: 1fr; }
   .topbar .pill { display: none; }
 }

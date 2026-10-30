@@ -120,6 +120,7 @@ def get_run(run_id: str):
             if c.get("chart"):
                 c["chart_url"] = base + c["chart"]
         out.update(data)
+        out["run_id"] = run_id      # the id in the URL, not the one the run was first saved under (a copied run keeps its original id inside result.json)
     return out
 
 
