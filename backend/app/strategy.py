@@ -285,9 +285,10 @@ def refine_with_llm(llm, state: dict, strategies: list[dict]) -> int:
             continue
         facts = [f for f in state["findings"] if f["id"] in s["evidence"]]
         own = " ".join([s["title"], s["objective"], s["how_to_test"], *s["actions"], *s["risks"], *s["kpis"]])
+        computed = cited.claims((state.get("summary_facts") or {}).get("rankings") or [])
         known = {"candidate": cited.make_fact(own + " " + ctx_txt, own)}
         for f in facts:
-            known[f["id"]] = cited.make_fact(f["text"] + " " + f.get("title", ""), f["text"] + " " + f.get("title", "") + " " + " ".join(str(v) for v in (f.get("params") or {}).values() if isinstance(v, str)))
+            known[f["id"]] = cited.make_fact(f["text"] + " " + f.get("title", ""), f["text"] + " " + f.get("title", "") + " " + " ".join(str(v) for v in (f.get("params") or {}).values() if isinstance(v, str)), cited.scope_of(f))
             known[f["id"]]["numbers"] += allowed_numbers(json.dumps(f["stats"], default=str, ensure_ascii=False))
             known[f["id"]]["subject"] |= known["candidate"]["subject"]        # the strategy is about its evidence, so its own wording names the subject of that evidence
         changed = False
@@ -298,6 +299,9 @@ def refine_with_llm(llm, state: dict, strategies: list[dict]) -> int:
             if not isinstance(v, str):
                 return None
             text, why = cited.verify(v, known)
+            wrong = None if why else cited.contradicts(text, computed)
+            if wrong:
+                why = f"disagrees with computed fact {wrong['id']}"
             if why or wording.unsupported_profit_claim(text, state):
                 state.setdefault("decisions", []).append({"decision": "strategy wording", "source": "rules", "chosen": "kept the rule-based wording", "why": f"{s['id']}: " + (why or "no cost or profit column in the data"),
                                                           "errors": [text[:200]], "raw_output": ""})

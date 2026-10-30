@@ -2,7 +2,8 @@
 The prompt makes the model write a fact id in square brackets after every figure ("Set is 49.6% of amount [r1]"). Code then checks, per figure:
   1. a fact id is given and exists;
   2. the figure equals a figure of that fact (same rounding rules as `insights.unverified_numbers`);
-  3. the words around the figure (6 either side) name the fact's subject.
+  3. the words around the figure (6 either side) name the fact's subject;
+  4. a percent figure from a growth or trend fact also has that fact's measure (and period) named near it, so a figure of another measure or period is not read as this one.
 A sentence that fails any check is dropped by the caller, and the reason is recorded. `contradicts` separately catches a share that disagrees with a computed one."""
 from __future__ import annotations
 
@@ -13,12 +14,26 @@ from .summary import _same, tokens
 
 CITE_RE = re.compile(r"\s*\[\s*([A-Za-z]\w*(?:\s*[,;]\s*[A-Za-z]\w*)*)\s*\]")
 WINDOW = 6                  # words either side of a figure that must name the cited fact's subject
+SCOPE_WINDOW = 9            # words either side of a percent figure in which the measure and period of a growth or trend fact must be named
 CITE_RULE = ("Write the id of the fact a figure comes from in square brackets right after the figure, before any full stop, e.g. 'Set is 49.6% of amount [r1]'. "
-             "Every number you write needs an id. A figure may only cite the fact it appears in, and the words around it must be about that fact's subject. ")
+             "Every number you write needs an id. A figure may only cite the fact it appears in, and the words around it must be about that fact's subject. "
+             "A percent change must name the measure it is a change of, and the periods for a first-vs-last comparison or the word 'trend' for a fitted trend, right beside the figure. ")
 
 
-def make_fact(numbers_from: str, subject_from: str) -> dict:
-    return {"numbers": allowed_numbers(numbers_from), "subject": tokens(subject_from)}
+def make_fact(numbers_from: str, subject_from: str, scope: tuple[str, str] = ("", "")) -> dict:
+    """`scope` is (measure, period words) the fact's percent figures describe, from `scope_of`."""
+    return {"numbers": allowed_numbers(numbers_from), "subject": tokens(subject_from), "measure": tokens(scope[0]), "period": tokens(scope[1])}
+
+
+def scope_of(item: dict) -> tuple[str, str]:
+    """(measure, period words) that the percent figures of a growth ranking fact or a trend finding describe; ("", "") for any other fact, whose figures need no scope."""
+    if item.get("kind") == "growth" and item.get("periods"):
+        return str(item.get("measure") or ""), " ".join(str(p) for p in item["periods"])
+    st = item.get("stats") or {}
+    if "trend" in str(st.get("kind", "")):
+        p = item.get("params") or {}
+        return str(p.get("target") or p.get("y") or p.get("col") or ""), "trend"
+    return "", ""
 
 
 def split_cites(text: str) -> tuple[str, list[tuple[int, list[str]]]]:
@@ -45,10 +60,10 @@ def _figure_end(text: str, m: re.Match) -> int:
     return end + 1 if text[end:end + 1] == "%" else end
 
 
-def _window(text: str, m: re.Match) -> set[str]:
-    words = list(re.finditer(r"[A-Za-z][A-Za-z0-9]*", text))
-    before = [w.group(0) for w in words if w.end() <= m.start()][-WINDOW:]
-    after = [w.group(0) for w in words if w.start() >= _end(m)][:WINDOW]
+def _window(text: str, m: re.Match, size: int = WINDOW) -> set[str]:
+    words = list(re.finditer(r"[A-Za-z0-9]+", text)) if size != WINDOW else list(re.finditer(r"[A-Za-z][A-Za-z0-9]*", text))
+    before = [w.group(0) for w in words if w.end() <= m.start()][-size:]
+    after = [w.group(0) for w in words if w.start() >= _end(m)][:size]
     return tokens(" ".join(before + after))
 
 
@@ -71,6 +86,12 @@ def verify(text: str, facts: dict[str, dict]) -> tuple[str, str | None]:
         win = _window(clean, m)
         if subject and win and not any(_same(w, s) for w in win for s in subject):
             return clean, f"{shown}: the words around it are not about the subject of fact {', '.join(known)}"
+        if piece.endswith("%"):
+            near = _window(clean, m, SCOPE_WINDOW)
+            for i in known:
+                for what in ("measure", "period"):
+                    if facts[i].get(what) and not all(any(_same(w, t) for w in near) for t in facts[i][what]):
+                        return clean, f"{shown}: the {what} of fact {i} ({' '.join(sorted(facts[i][what]))}) is not named next to it"
     return clean, None
 
 
@@ -83,11 +104,16 @@ def claims(rankings: list[dict]) -> list[dict]:
     """Computed shares with the words that name what they are the share of: [{names, also, values, id}]. Values are fractions."""
     out = []
     for r in rankings:
-        if r.get("kind") == "outside_rate":
+        if r.get("kind") == "growth":       # the change of one group between the first and last period: the same group, measure and periods named with another figure is a conflict
+            for x in r.get("groups") or []:
+                if x.get("pct") is not None:
+                    out.append({"id": r["id"], "names": tokens(str(x["group"])), "also": tokens(str(r["measure"])), "period": tokens(" ".join(r.get("periods") or [])), "values": [x["pct"]],
+                                "text": f"{r['measure']} by {r['group']}, {' vs '.join(r.get('periods') or [])}: {x['line']}"})
+        elif r.get("kind") == "outside_rate":
             vals = [v for v in (r.get("rate_amount"), r.get("rate_rows")) if v is not None]
             if vals:
                 out.append({"id": r["id"], "names": tokens(" ".join([str(r["group"])] + [str(v) for v in r.get("values") or []])), "also": set(), "values": vals, "text": r["text"]})
-        elif r.get("top_share") is not None and r.get("kind") != "growth":
+        elif r.get("top_share") is not None:
             out.append({"id": r["id"], "names": tokens(str(r["top"])), "also": tokens(str(r["measure"])), "values": [r["top_share"]], "text": r.get("lead") or r["text"]})
     return out
 
@@ -107,6 +133,8 @@ def contradicts(clean: str, computed: list[dict]) -> dict | None:
         win = _window(clean, m)
         for c in computed:
             if not any(_same(w, s) for w in win for s in c["names"]) or (c["also"] and not any(_same(w, s) for w in sent for s in c["also"])):
+                continue
+            if c.get("period") and not all(any(_same(w, t) for w in sent) for t in c["period"]):
                 continue
             before = clean[max(0, m.start() - 20):m.start()]
             if LESS.search(before):

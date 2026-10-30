@@ -77,7 +77,8 @@ def llm_summary(llm, state: dict) -> tuple[str, list[str], bool] | None:
     ranked = _rank(state["findings"])[:12]
     payload = [{"id": f["id"], "headline": f["insight"]["headline"], "facts": f["text"].replace("**", ""), "confidence": f["insight"]["confidence"]["label"],
                 "survives_correction": f["stats"].get("survives_correction")} for f in ranked] + [{"id": r["id"], "headline": r["text"], "facts": r["text"], "confidence": "computed from the data", "survives_correction": None} for r in rankings]
-    facts = {p["id"]: cited.make_fact(p["headline"] + " " + p["facts"], p["headline"] + " " + p["facts"]) for p in payload}
+    scopes = {x["id"]: cited.scope_of(x) for x in [*ranked, *rankings]}
+    facts = {p["id"]: cited.make_fact(p["headline"] + " " + p["facts"], p["headline"] + " " + p["facts"], scopes.get(p["id"], ("", ""))) for p in payload}
     for r in rankings:
         facts[r["id"]]["subject"] |= cited.tokens(f"{r['group']} {r['measure']} {r['top']} {r['bottom']} " + " ".join(r.get("values") or []))
     for f in ranked:
@@ -171,7 +172,7 @@ def llm_actions(llm, state: dict, view: dict, cs: list[dict], wanted: list[int],
     facts = {}
     for n, fs in offered.items():
         for i, text in fs.items():
-            facts[i] = cited.make_fact(text, text)
+            facts[i] = cited.make_fact(text, text, cited.scope_of(r_by_id.get(i) or by_id[i]))
             if i in r_by_id:
                 r = r_by_id[i]
                 facts[i]["subject"] |= cited.tokens(f"{r['group']} {r['measure']} {r['top']} {r['bottom']} " + " ".join(r.get("values") or []))
