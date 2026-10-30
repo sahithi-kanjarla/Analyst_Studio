@@ -287,3 +287,14 @@ def contradicts(text: str, state: dict) -> str | None:
     if NO_CORRECTION.search(text) and c["comparisons"] >= 2:
         return f"says no multiple-comparison correction was made, but {c['comparisons']} comparisons were corrected"
     return None
+
+
+# ------------------------------------------------------------------ who the report is for
+LEADERSHIP = re.compile(r"\b(leadership|executive team|c-suite|senior management|board of directors)\b", re.I)
+
+
+def audience_clash(text: str, state: dict) -> str:
+    """The leadership-style words in `text` when the user did not name that audience, else ''. The default reader is the business owner."""
+    stated = str(((state.get("context") or {}).get("audience")) or "")
+    m = LEADERSHIP.search(str(text))
+    return m.group(0) if m and not LEADERSHIP.search(stated) else ""

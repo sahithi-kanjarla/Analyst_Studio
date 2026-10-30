@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import re
 
-from . import summary, wording
+from . import strategy as strat_mod, summary, wording
 from . import understanding as und
 from .insights import DATE_TAG, effect_label
 from . import tiering
@@ -253,6 +253,33 @@ def _line(i: str, by_id: dict, r_by_id: dict) -> str:
     return clip((f.get("insight") or {}).get("headline") or f.get("title", ""))
 
 
+# ------------------------------------------------------------------ the "so what" code writes (the AI never picks a name or a share)
+def code_so_what(ids: list[str], by_id: dict, r_by_id: dict) -> tuple[str, bool]:
+    """(sentence, replaces the AI sentence). A loss-style answer (a measure outside its main value) says its largest part by computed share; an average comparison between groups
+    says each group's share of the total when the comparison has it. ('', False) when neither applies."""
+    for i in ids:
+        r = r_by_id.get(i) or {}
+        if r.get("kind") == "outside_rate" and r.get("largest") and r.get("largest_share") is not None:
+            return (f"The largest part of the {r['measure']} outside {r['top']} is {wording.entity(r['group'], r['largest'])}, "
+                    f"{r['largest_share']:.0%} of the outside total."), True
+    for i in ids:
+        f = by_id.get(i) or {}
+        st, p = f.get("stats") or {}, f.get("params") or {}
+        if f.get("tool") == "group_compare" and st.get("kind") != "binary" and not st.get("ratio_of_sums") and len(st.get("shares") or {}) == 2:
+            parts = [f"{wording.entity(p['group'], g)} holds {v:.0%}" for g, v in st["shares"].items() if v is not None]
+            if len(parts) == 2:
+                return f"Share of total {p['target']}: " + " and ".join(parts) + ".", False
+    return "", False
+
+
+def with_shares(ai: str, extra: str) -> str:
+    """The AI sentence, then the code's share sentence, unless the AI sentence already carries those percentages."""
+    pcts = re.findall(r"\d+%", extra)
+    if not extra or (ai and pcts and all(x in ai for x in pcts)):
+        return ai
+    return f"{ai.rstrip()} {extra}".strip()
+
+
 # ------------------------------------------------------------------ B. answer cards
 def cards(state: dict, view: dict) -> list[dict]:
     """One card per goal question: {n, num, question, text, trust, ids, so_what, action_question}. `n` is the question's place in the goal; `num` is the number shown (None for an action question:
@@ -273,8 +300,9 @@ def cards(state: dict, view: dict) -> list[dict]:
         ids = [i for i in a["ids"] if i in by_id or i in r_by_id]
         action = is_action_question(a["question"])
         shown += not action
+        mine, replaces = code_so_what(ids, by_id, r_by_id)
         card = {"n": n, "num": None if action else shown, "question": a["question"], "ids": a["ids"], "gcols": sorted(group_cols(ids, by_id, r_by_id)), "trust": trust_of(ids, by_id, r_by_id),
-                "so_what": readable(state, so_what.get(a["question"], "")), "action_question": action, "text": "", "date_tag": DATE_TAG in a["answer"]}
+                "so_what": readable(state, mine if replaces else with_shares(so_what.get(a["question"], ""), mine)), "so_what_by": "code" if replaces else "ai", "action_question": action, "text": "", "date_tag": DATE_TAG in a["answer"]}
         parts = part_facts(part_kinds(a["question"]), ids, by_id, r_by_id, main) if ids and not action else []
         parts = [i for i in parts if i not in used] if len(parts) > 1 else []
         fresh = [i for i in ids if i not in used]
@@ -353,7 +381,7 @@ def plan_actions(state: dict, view: dict, cs: list[dict]) -> dict:
     cands = []
     for s in strategies:
         sup = _support(s, state, by_id, r_by_id)
-        if not sup:
+        if not sup or strat_mod.monitor_only(s) or strat_mod.blocked(f"{s['title']}: {s['objective']}", s["evidence"], state):      # 'monitor, do not act' is not a recommendation
             continue
         links = _link(s, cs, group_cols(sup, by_id, {}))
         if links:
@@ -374,6 +402,8 @@ def plan_actions(state: dict, view: dict, cs: list[dict]) -> dict:
     for c in cs:        # a verified AI proposal for a question with an answer but no action
         if len(actions) < ACTIONS_MAX and c["question"] in ai and not any(a["n"] == c["n"] for a in actions):
             cited_ids = (state.get("ai_action_ids") or {}).get(c["question"], [])
+            if strat_mod.monitor_only({"title": ai[c["question"]]}) or strat_mod.blocked(ai[c["question"]], cited_ids, state):
+                continue
             actions.append({"n": c["n"], "text": readable(state, growth_safe(plain(ai[c["question"]]), cited_ids, by_id, r_by_id)), "ai": True, "evidence": cited_ids})
     actions.sort(key=lambda a: a["n"])
     covered = {a["n"] for a in actions}
@@ -397,9 +427,15 @@ def plan_actions(state: dict, view: dict, cs: list[dict]) -> dict:
     return {"actions": actions, "none": none, "open": open_}
 
 
+def action_lines(cs: list[dict], plan: dict) -> list[str]:
+    """The one recommendation list of the report: 'What to do' shows it, and so does the Strategy section's top recommendations (same items, same order)."""
+    num = {c["n"]: c["num"] for c in cs}
+    return [f"{i}. {a['text']}" + (f" *(question {num[a['n']]})*" if num.get(a["n"]) else "") for i, a in enumerate(plan["actions"], 1)]      # an action question has no number: its actions carry no tag
+
+
 def actions_md(cs: list[dict], plan: dict) -> list[str]:
     num = {c["n"]: c["num"] for c in cs}
-    L = [f"{i}. {a['text']}" + (f" *(question {num[a['n']]})*" if num.get(a["n"]) else "") for i, a in enumerate(plan["actions"], 1)]      # an action question has no number: its actions carry no tag
+    L = action_lines(cs, plan)
     L += [f"- No action suggested for question {num[n]}: {reason}" for n, reason in sorted(plan["none"].items()) if num.get(n)]
     return L or ["- No action suggested: no goal question has a finding with a medium or larger effect to act on."]
 

@@ -41,7 +41,7 @@ def gappy(days_present):
 
 def test_coverage_warning_under_70_percent():
     d = gappy(np.arange(100) % 2 == 0)                      # 50 of 100 days
-    assert insights.coverage_warning(d) == "Only 50 of 99 days in this period have data, so trends and weekly or monthly comparisons may mislead."
+    assert insights.coverage_warning(d) == "Only 50 of 99 days in this period have data, so trends and weekly or monthly comparisons may mislead. Totals and shares cover only the days present."
     assert insights.coverage_warning(gappy(np.arange(100) % 10 != 0)) == ""      # 90 of 100: no warning
     assert insights.coverage_warning(pd.Series([], dtype="datetime64[ns]")) == ""
 

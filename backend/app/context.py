@@ -129,6 +129,14 @@ def normalise_context(raw: dict | None) -> dict:
     return ctx
 
 
+DEFAULT_AUDIENCE = "you (the business owner)"
+
+
+def audience(ctx: dict | None) -> str:
+    """Who the results are written for: the audience the user named, else the business owner."""
+    return str((ctx or {}).get("audience") or "").strip() or DEFAULT_AUDIENCE
+
+
 def description_hint(ctx: dict | None) -> str:
     """The business description alone, trimmed and cut to DESCRIPTION_MAX; "" when absent."""
     return _clip((ctx or {}).get("description"), DESCRIPTION_MAX)

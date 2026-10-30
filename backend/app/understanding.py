@@ -18,8 +18,10 @@ from . import aicache
 from . import context as ctxmod
 from .concerns import fact_sheet
 from .llm import ask_json_ex, deterministic
+from .measures import ROWS_LABEL
 
 ROLES = ("measure", "category", "date", "id", "flag", "free_text", "other")
+MEASURE_KINDS = ("money", "quantity", "count", "rate")      # what a measure column holds; any other label is dropped (unknown)
 MAX_RETRIES = 2
 MAX_COLUMNS = 120          # a wider table is not sent: the reply would not fit
 MAX_TERMS = 20
@@ -31,13 +33,13 @@ SYSTEM = """You are a data analyst reading a FACT SHEET about each column of a t
 Write the data understanding record that every later step will read.
 
 columns: one entry for EVERY column of the table, each exactly once (the sheet's "omitted" columns too), as {"column": <name exactly as written>, "meaning": <one short line: what a value of this column is>,
-"role": one of measure|category|date|id|flag|free_text|other, "display_name": <a short readable name for a report, 1-3 words, capitalised like a label, no underscores>, "goal_terms": [the words of the goal this column answers, or an empty list], "expected": <optional one line, only when something odd is normal, for example many blanks that are expected>}.
+"role": one of measure|category|date|id|flag|free_text|other, "display_name": <a short readable name for a report, 1-3 words, capitalised like a label, no underscores>, "goal_terms": [the words of the goal this column answers, or an empty list], "expected": <optional one line, only when something odd is normal, for example many blanks that are expected>, "measure_kind": <only for a measure: one of money|quantity|count|rate>}.
 role: measure (a quantity you can add or average), category (a group to split by), date, id (labels a row or an entity, including codes), flag (yes/no), free_text, other.
 goal_columns: every noun or term in the goal that points at data, mapped to the column(s) holding it, as {"<term as written in the goal>": ["<column>", ...] or "none"}. A plural or a different wording still maps (a goal word "states" can be a column called ship-state).
 Use "none" only when no column holds that term. Do not list verbs or filler words.
 goal_term_kinds: for every term in goal_columns, "data" when it refers to data (a column, a group, a measure or a time period) or "descriptive" when it only describes the question (a word such as best, worst, where or how much). Descriptive terms are ignored.
 Use only the column names given, exactly as written. Never write a number.
-Return JSON: {"columns": [{"column": str, "meaning": str, "role": str, "display_name": str, "goal_terms": [str], "expected": str}], "goal_columns": {"<term>": [str] | "none"}, "goal_term_kinds": {"<term>": "data" | "descriptive"}}"""
+Return JSON: {"columns": [{"column": str, "meaning": str, "role": str, "display_name": str, "goal_terms": [str], "expected": str, "measure_kind": str}], "goal_columns": {"<term>": [str] | "none"}, "goal_term_kinds": {"<term>": "data" | "descriptive"}}"""
 
 
 def build_view(sheet: dict, goal: str, ctx: dict | None) -> str:
@@ -84,7 +86,9 @@ def validate(obj, columns: list[str]) -> tuple[dict | None, list[str]]:
             terms = []
         exp, shown = row.get("expected"), row.get("display_name")
         shown = " ".join(shown.split())[:DISPLAY_CHARS] if isinstance(shown, str) and re.search(r"[A-Za-z]", shown) and "_" not in shown else ""      # a name that still has an underscore is not readable: the code makes one
-        cols[name] = {**({"display_name": shown} if shown else {}), "meaning": " ".join(str(meaning or "").split())[:200], "role": row.get("role"), "goal_terms": [t.strip() for t in terms if t.strip()][:MAX_TERMS],
+        mk = str(row.get("measure_kind") or "").strip().lower()
+        mk = mk if row.get("role") == "measure" and mk in MEASURE_KINDS else ""      # checked against the list: an unknown label is no label
+        cols[name] = {**({"display_name": shown} if shown else {}), **({"measure_kind": mk} if mk else {}), "meaning": " ".join(str(meaning or "").split())[:200], "role": row.get("role"), "goal_terms": [t.strip() for t in terms if t.strip()][:MAX_TERMS],
                       **({"expected": " ".join(exp.split())[:200]} if isinstance(exp, str) and exp.strip() else {})}
     missing = [c for c in columns if c not in seen]
     if missing:
@@ -184,6 +188,17 @@ def goal_columns(rec: dict | None) -> list[str]:
 def measure_columns(rec: dict | None) -> set[str]:
     """Columns the record calls a measure: never used as a grouping category."""
     return {c for c, v in ((rec or {}).get("columns") or {}).items() if v.get("role") == "measure"} if usable(rec) else set()
+
+
+def measure_kind_of(rec: dict | None, col: str | None) -> str:
+    """money | quantity | count | rate as the record labels the column, '' when unknown."""
+    return str((((rec or {}).get("columns") or {}).get(col) or {}).get("measure_kind") or "") if usable(rec) and col else ""
+
+
+def share_label(rec: dict | None, col: str | None) -> str:
+    """What a share of this measure is 'of': 'all units' for a quantity, 'all <column>' for money or a count, 'all records' for a count of rows or a measure of unknown kind."""
+    kind = measure_kind_of(rec, col)
+    return "all units" if kind == "quantity" else f"all {col}" if kind in ("money", "count") else f"all {ROWS_LABEL}"
 
 
 def categories(rec: dict | None) -> set[str]:

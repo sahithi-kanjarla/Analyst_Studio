@@ -8,6 +8,8 @@ AVG_WORDS = re.compile(r"pct|percent|rate|ratio|discount|avg|average|score|margi
 MONEY_COL = re.compile(r"revenue|sales|amount|price|cost|spend|profit|income|salary|fee|payment|value|gmv|mrr|arr|budget|balance", re.I)
 MONEY_COL_NARROW = re.compile(r"revenue|sales|amount|price|cost|spend|profit|income|salary|value", re.I)  # dashboard / insights KPI formatting
 
+ROWS_LABEL = "records"         # what a share of rows is a share of, and what any share falls back to when the kind of the measure is unknown
+
 KINDS = ("additive", "rate", "other")
 
 

@@ -39,7 +39,7 @@ def test_every_category_ranked_and_dominant_named():
     facts = [r for r in summary.ranking_facts(st, df) if r["measure"] == "amount"]
     assert {r["group"] for r in facts} == {"kind", "region"}        # neither is named in the goal
     kind = next(r for r in facts if r["group"] == "kind")
-    assert kind["top"] == "big" and kind["dominant"] == "big" and "50.0% of all amount, dominant" in kind["text"]
+    assert kind["top"] == "big" and kind["dominant"] == "big" and "50.0% of all records, dominant" in kind["text"]
     assert next(r for r in facts if r["group"] == "region")["dominant"] is None
     heads = summary.headlines(st, {"rankings": facts}, [])
     assert any("dominant" in h["text"] for h in heads)

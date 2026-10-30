@@ -12,7 +12,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from . import understanding as und
+from . import insights, understanding as und
 from .measures import is_money, measure_kind
 from .tools import to_binary
 
@@ -122,7 +122,7 @@ def build_dashboard(wd: Path, result: dict) -> dict:
     rows = [[(v.item() if hasattr(v, "item") else v) for v in r] for r in out.itertuples(index=False, name=None)]
 
     return {"title": (result.get("context") or {}).get("company") or "", "objective": plan.get("objective", ""),
-            "currency": currency, "date": "__date" if date else None, "date_label": date,
+            "currency": currency, "date": "__date" if date else None, "date_label": date, "date_coverage": insights.coverage_fraction(df[date]) if date else None,
             "measures": [{k: v for k, v in m.items() if k != "den_col"} for m in measures], "dims": [{"col": d["col"], "unique": d["unique"], "score": round(d["score"], 3), **({"top": d["top"]} if d.get("top") else {})} for d in dims],
             "columns": columns, "rows": rows, "total_rows": total, "sampled": total > MAX_ROWS}
 

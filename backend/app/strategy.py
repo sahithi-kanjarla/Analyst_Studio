@@ -62,6 +62,43 @@ def pushes_both_ways(*texts: str) -> bool:
     return bool(DOWN_WORDS.search(texts[0]) and UP_WORDS.search(blob)) or bool(UP_WORDS.search(texts[0]) and DOWN_WORDS.search(" ".join(texts[1:])))
 
 
+# ------------------------------------------------------------------ what a recommendation may not say
+INVEST_WORDS = re.compile(r"\b(invest\w*|put more (?:behind|into)|more behind|double down|expand\w*|scale up|allocate more|direct more|(?:increase|raise) (?:the )?(?:spend|budget|investment|funding))\b", re.I)
+RANK_WORDS = re.compile(r"\b(top|best|highest|leading|largest|biggest|lowest|worst|smallest|rank\w*)\b", re.I)
+MONITOR_ONLY = re.compile(r"^\W*(?:monitor|keep (?:monitoring|watching)|watch|no action|do not act|don't act)\b", re.I)
+CONCENTRATION_RULE = ("A group is never recommended for extra investment only because it holds the largest share of a total: a concentration finding supports only 'protect' or 'diversify'. "
+                      "If a fact says the differences between groups are not statistically significant, no action may rely on ranking those groups. ")
+
+
+def _concentration(i: str, by_id: dict, r_by_id: dict) -> bool:
+    """A fact that says only where the total sits: a concentration finding, or the top group's share of a total."""
+    if i in by_id:
+        return by_id[i].get("tool") == "pareto"
+    r = r_by_id.get(i)
+    return bool(r) and r.get("basis") == "total" and not r.get("kind")
+
+
+def blocked(text: str, ids: list[str], state: dict) -> str:
+    """Why this action may not stand ('' when it may): it recommends investing in a group on a share-only finding, or it ranks groups whose differences the report itself calls not significant."""
+    by_id = {f["id"]: f for f in state.get("findings") or []}
+    r_by_id = {r["id"]: r for r in (state.get("summary_facts") or {}).get("rankings") or []}
+    ids = [i for i in ids if i in by_id or i in r_by_id]
+    if ids and INVEST_WORDS.search(text) and all(_concentration(i, by_id, r_by_id) for i in ids):
+        return "extra investment recommended only because a group holds the largest share"
+    if RANK_WORDS.search(text):
+        from .summary import names
+        for f in state.get("findings") or []:
+            g = (f.get("params") or {}).get("group")
+            if f.get("tool") == "group_compare" and f.get("significant") is False and g and names(str(g), text) == 2:
+                return f"ranks {g} groups although their differences are not statistically significant"
+    return ""
+
+
+def monitor_only(s: dict) -> bool:
+    """A strategy that only says to watch or explain a movement: not a recommendation."""
+    return bool(s.get("monitor")) or bool(MONITOR_ONLY.match(str(s.get("title", ""))))
+
+
 def _cand(**kw) -> dict:
     kw.setdefault("kind", "data")
     kw.setdefault("source", "rules")
@@ -113,7 +150,7 @@ def candidates(state: dict) -> list[dict]:
                           kpis=[f"{noun} for {top}", f"Gap between {top} and {bot}", "Pilot vs control difference"],
                           risks=["The gap may reflect other differences between the groups, not the group itself (association, not cause).", f"Focusing on {e_top} can neglect other groups; keep watching them."]))
             elif pv == "neutral":
-                add(_cand(**base, id="", title=f"Explain why {target} differs by {group}: {top} vs {bot}", theme="Understanding",
+                add(_cand(**base, monitor=True, id="", title=f"Explain why {target} differs by {group}: {top} vs {bot}", theme="Understanding",
                           objective=f"Find out why {target} is highest for {group} = {top} and lowest for {bot}, before deciding whether either is a problem.",
                           rationale=f.get("insight", {}).get("headline", ""),
                           actions=[f"Agree with the business whether a higher or lower {target} is better, and for which {wording.human(group)} values.",
@@ -161,7 +198,7 @@ def candidates(state: dict) -> list[dict]:
                 title, verb = f"Understand the {'rise' if up else 'fall'} in {target}", "explain"
             else:
                 title, verb = ((f"Understand and sustain the {'rise' if up else 'fall'} in {target}") if good else f"Find and fix what is driving {target} the wrong way"), ("extend" if good else "reverse")
-            add(_cand(**base, id="", title=title, theme="Monitoring",
+            add(_cand(**base, monitor=pv == "neutral", id="", title=title, theme="Monitoring",
                       objective=f"Explain the {'upward' if up else 'downward'} movement in {target}" + ("." if pv == "neutral" else f" and decide whether to {verb} it."),
                       rationale=f.get("insight", {}).get("headline", ""),
                       actions=["Find when the movement began and list what changed then, in the business or in how the data is recorded.",
@@ -234,8 +271,9 @@ def candidates(state: dict) -> list[dict]:
     important = [g for g in gaps if g["severity"] == "warn"][:3] or gaps[:2]
     foundations: list[dict] = []
     if important:
+        listed = "; ".join(g["title"].rstrip(".") for g in important)
         foundations.append(_cand(id="", kind="foundation", title="Close the most important data gaps", theme="Data foundation",
-                                 objective="Make the next analysis answer more of your questions with more certainty.", rationale="Gaps found while checking the data against your goal and KPIs.",
+                                 objective=f"Close these gaps from this run: {listed}.", rationale="Gaps found while checking the data against your goal and KPIs.",
                                  actions=[g["suggestion"] for g in important], effort="Low", impact="Medium", confidence="", evidence=[],
                                  how_to_test="Re-run this analysis once the data is added and compare what changes.", kpis=["Share of your KPIs measurable from the data"], risks=["Collecting data has a cost; add only what changes a decision."]))
     foundations.append(_cand(id="", kind="foundation", title="Make this repeatable: track the main KPI in Power BI", theme="Data foundation",
@@ -260,9 +298,10 @@ def prioritise(cands: list[dict]) -> list[dict]:
 REFINE_SYSTEM = """You are a senior strategy consultant adapting candidate strategies to a specific company.
 Rewrite wording so it fits the company's industry and vocabulary. You may change: title, objective, actions (3-5), risks (2-3), kpis, how_to_test.
 You may NOT add strategies, change ids, evidence, impact or effort, or introduce any number that is not already in the candidate or the facts.
+{rule}
 Write the id of the fact a figure comes from in square brackets right after the figure (e.g. "[f3]"); use "candidate" for a figure already in the candidate's own text. Every number needs an id, and the words around it must be about that fact's subject.
 Keep each action concrete and specific; do not claim cause and effect.
-Return JSON: {"strategies": [{"id": "...", "title": "...", "objective": "...", "actions": ["..."], "risks": ["..."], "kpis": ["..."], "how_to_test": "..."}]}"""
+Return JSON: {"strategies": [{"id": "...", "title": "...", "objective": "...", "actions": ["..."], "risks": ["..."], "kpis": ["..."], "how_to_test": "..."}]}""".replace("{rule}", CONCENTRATION_RULE)
 
 
 def refine_with_llm(llm, state: dict, strategies: list[dict]) -> int:
@@ -315,7 +354,7 @@ def refine_with_llm(llm, state: dict, strategies: list[dict]) -> int:
             lst = [t for x in (item.get(key) or []) if (t := clean_text(x)) is not None][:mx]
             if len(lst) >= (2 if key != "kpis" else 1):
                 s[key], changed = lst, True
-        if changed and pushes_both_ways(s["title"] + " " + s["objective"], *s["actions"]):
+        if changed and (pushes_both_ways(s["title"] + " " + s["objective"], *s["actions"]) or blocked(" ".join([s["title"], s["objective"], *s["actions"]]), s["evidence"], state)):
             s.update({k: v for k, v in before.items()})        # reducing and promoting the same thing in one strategy: keep the rule-based wording
             changed = False
         if changed:

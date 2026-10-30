@@ -22,12 +22,13 @@ from . import understanding as und
 from .brief import hierarchy_pairs, kinds
 from .clarify import named_in_goal
 from .llm import ask_json, capture, note_failure
-from .measures import is_money, measure_kind
+from .measures import ROWS_LABEL, is_money, measure_kind
 from .retail_roles import is_quantity
 from .tools import _fmt
 
 HEADLINES_MAX = 5
 MIN_GROUP_ROWS = 5            # a group with fewer rows is too small to be called the top or the bottom
+BASE_SHARE, BASE_ROWS = 0.01, 30      # a group is ranked by a rate only with at least this share of all rows or this many rows (never below MIN_GROUP_ROWS)
 MAX_GROUPS = 50
 MAX_ALL_GROUPS = 30           # the main KPI is ranked by every category column up to this many groups, not only the ones the goal names
 MAX_RANK_GROUPS = 500         # ... and up to this many, with only the top few groups written out
@@ -55,6 +56,11 @@ GENERIC = {"the", "and", "for", "which", "what", "how", "most", "are", "our", "d
 
 
 # ------------------------------------------------------------------ small helpers
+def min_base(total_rows: int) -> int:
+    """Rows a group needs before its rate is ranked: BASE_ROWS, or BASE_SHARE of all rows when that is fewer, but never fewer than MIN_GROUP_ROWS."""
+    return max(MIN_GROUP_ROWS, min(BASE_ROWS, int(np.ceil(BASE_SHARE * total_rows))))
+
+
 def _stem(w: str) -> str:
     if len(w) > 4 and w.endswith("ies"):
         return w[:-3] + "y"
@@ -185,7 +191,7 @@ def _rank_additive(df, state: dict, group: str, measure: str, n: int) -> dict | 
     cur, total = _cur(measure, state), float(d["y"].sum())
     top, bot = s.index[0], s.index[-1]
     frac = s["sum"].iloc[0] / total if total > 0 and s["sum"].iloc[0] > 0 else None
-    share = "" if frac is None else f" ({frac:.1%} of all {measure})" if frac <= 1 else f" ({frac:.1%} of the net total {measure}, because other groups lose money)"
+    share = "" if frac is None else f" ({frac:.1%} of {und.share_label(state.get("understanding"), measure)})" if frac <= 1 else f" ({frac:.1%} of the net total {measure}, because other groups lose money)"
     dominant = frac is not None and DOMINANT_SHARE < frac <= 1       # above 100% the total is net of losses and 'dominant' would mislead
     if dominant:
         share = share[:-1] + ", dominant)" if share.endswith(")") else share
@@ -206,11 +212,13 @@ def _rank_additive(df, state: dict, group: str, measure: str, n: int) -> dict | 
             "top_share": frac, "lead": lead, "text": text, "short": f"Top {min(MAIN_PICKS, len(s))} {group} by total {measure}: {brief_top}"}
 
 
-def _rank_ratio(df, spec: dict, group: str, measure: str, n: int) -> dict | None:
+def _rank_ratio(df, spec: dict, group: str, measure: str, n: int, state: dict | None = None) -> dict | None:
     g = _clean_groups(df, group)
     counts = g.value_counts()
-    r = derived.group_ratio(df, spec, g)
-    r = r[r.index.map(lambda k: counts.get(k, 0) >= MIN_GROUP_ROWS)].sort_values(ascending=False)
+    base = min_base(int(g.notna().sum()))
+    r_all = derived.group_ratio(df, spec, g)
+    r = r_all[r_all.index.map(lambda k: counts.get(k, 0) >= base)].sort_values(ascending=False)
+    small = [str(k) for k in r_all.index if counts.get(k, 0) < base]
     overall = derived.ratio_of_sums(df, spec)
     if len(r) < 2 or overall is None:
         return None
@@ -219,23 +227,38 @@ def _rank_ratio(df, spec: dict, group: str, measure: str, n: int) -> dict | None
     loss = [k for k, v in r.items() if v < 0]
     if loss:
         text += " Loss-making (negative " + measure + "): " + ", ".join(f"{wording.entity(group, k)} ({_ratio_text(r[k], overall)})" for k in loss[:5]) + "."
+    amount = pd.to_numeric(df[spec["a"]], errors="coerce").groupby(g).sum()
+    amount = amount[amount.index.isin(r.index)].sort_values(ascending=False)
+    cur = _cur(spec["a"], state or {})
+    text += (f" Ranked by rate: groups with at least {base} rows. Top by amount (total {spec['a']}, not by rate): "
+             + ", ".join(f"{wording.entity(group, k)} {full(v, cur)}" for k, v in amount.head(TOP_SHOWN).items()) + ".")
+    if small:
+        text += f" Small base (under {base} rows, not ranked): " + ", ".join(wording.entity(group, k) for k in small[:TOP_SHOWN]) + (f" and {len(small) - TOP_SHOWN} more" if len(small) > TOP_SHOWN else "") + "."
     brief = f"{measure} by {group}: highest {wording.entity(group, r.index[0])} {_ratio_text(r.iloc[0], overall)}, lowest {wording.entity(group, r.index[-1])} {_ratio_text(r.iloc[-1], overall)} (overall {_ratio_text(overall, overall)})"
-    return {"id": f"r{n}", "tool": "ranking", "basis": "ratio", "group": group, "measure": measure, "top": str(r.index[0]), "bottom": str(r.index[-1]), "text": text, "short": brief}
+    return {"id": f"r{n}", "tool": "ranking", "basis": "ratio", "group": group, "measure": measure, "top": str(r.index[0]), "bottom": str(r.index[-1]), "text": text, "short": brief,
+            "min_base": base, "small_base": small, "top_amount": [str(k) for k in amount.head(TOP_SHOWN).index]}
 
 
 # ------------------------------------------------------------------ rate outside the main value
 def _outside_rate(df, state: dict, col: str, main: str, measure: str | None, focus: list[str], n: int) -> dict:
-    """How much of the main additive KPI (or, with none, how many rows) sits outside the one value that holds most rows of `col`, overall and by each goal-named group column."""
+    """How much of the main additive KPI (or, with none, how many rows) sits outside the one value that holds most rows of `col`, split by the values outside it (each one's share of the
+    outside total), and overall and by each goal-named group column (ranked by rate and by amount; a group under the minimum base is listed as a small base)."""
     g = _clean_groups(df, col)
     valid = g.notna()
     out = valid & (g != main)
     y = pd.to_numeric(df[measure], errors="coerce").fillna(0.0) if measure else pd.Series(1.0, index=df.index)
     label, cur = measure or "rows", _cur(measure, state) if measure else ""
+    of_all = und.share_label(state.get("understanding"), measure)
     total, amt = float(y[valid].sum()), float(y[out].sum())
     rows_out = int(out.sum())
-    rate = f" ({amt / total:.1%} of all {label})" if total > 0 else ""
-    text = (f"{label} outside {main}: {full(amt, cur)}{rate}; {rows_out:,} of {int(valid.sum()):,} rows ({rows_out / valid.sum():.1%}) are outside {main}, "
-            f"which holds {1 - rows_out / valid.sum():.1%} of the rows in {col}.")
+    base = min_base(int(valid.sum()))
+    rate = f" ({amt / total:.1%} of {of_all})" if total > 0 else ""
+    text = (f"{label} outside {main}: {full(amt, cur)}{rate}; {rows_out:,} of {int(valid.sum()):,} {ROWS_LABEL} ({rows_out / valid.sum():.1%} of {ROWS_LABEL}) are outside {main}, "
+            f"which holds {1 - rows_out / valid.sum():.1%} of the {ROWS_LABEL} in {col}.")
+    parts = y[out].groupby(g[out]).sum().sort_values(ascending=False)
+    split = [{"value": str(k), "amount": float(v), "share": float(v) / amt if amt > 0 else None} for k, v in parts.items()]
+    if amt > 0 and split:
+        text += f" Split of the {label} outside {main} by {col}: " + ", ".join(f"{wording.entity(col, x['value'])} {full(x['amount'], cur)} ({x['share']:.1%} of the outside total)" for x in split[:TOP_SHOWN]) + "."
     by, clauses = [], []
     for grp in focus:
         if grp == col:
@@ -243,21 +266,27 @@ def _outside_rate(df, state: dict, col: str, main: str, measure: str | None, foc
         d = pd.DataFrame({"g": _clean_groups(df, grp), "y": y, "out": out}).dropna(subset=["g"])
         d["o"] = d["y"].where(d["out"], 0.0)
         s = d.groupby("g").agg(total=("y", "sum"), outside=("o", "sum"), rows=("y", "size"))
-        s = s[(s["rows"] >= MIN_GROUP_ROWS) & (s["total"] > 0)]
+        small = [str(k) for k in s.index[s["rows"] < base]]
+        s = s[(s["rows"] >= base) & (s["total"] > 0)]
         if len(s) < 2:
             continue
         s["rate"] = s["outside"] / s["total"]
         s = s.sort_values("rate", ascending=False)
         top, bottom = s.head(OUTSIDE_SHOWN), s.tail(OUTSIDE_SHOWN)
         bottom = bottom[~bottom.index.isin(top.index)].iloc[::-1]
+        by_amount = s.sort_values("outside", ascending=False).head(OUTSIDE_SHOWN)
         fmt = lambda t: ", ".join(f"{wording.entity(grp, k)} {full(r['outside'], cur)} ({r['rate']:.1%})" for k, r in t.iterrows())
-        text += f" By {grp}, the highest rate outside {main}: {fmt(top)}" + (f"; the lowest: {fmt(bottom)}" if len(bottom) else "") + "."
-        by.append({"group": grp, "highest": [str(k) for k in top.index], "lowest": [str(k) for k in bottom.index]})
-        clauses.append(f"highest rate by {grp}: " + ", ".join(f"{wording.entity(grp, k)} {r['rate']:.0%}" for k, r in top.iterrows()))
+        text += f" By {grp}, the highest rate outside {main}: {fmt(top)}" + (f"; the lowest: {fmt(bottom)}" if len(bottom) else "") + f" (ranked by rate, groups with at least {base} rows)."
+        text += f" Largest amount outside {main} (ranked by amount, not by rate): " + ", ".join(f"{wording.entity(grp, k)} {full(r['outside'], cur)}" for k, r in by_amount.iterrows()) + "."
+        if small:
+            text += f" Small base (under {base} rows, not ranked): " + ", ".join(wording.entity(grp, k) for k in small[:TOP_SHOWN]) + (f" and {len(small) - TOP_SHOWN} more" if len(small) > TOP_SHOWN else "") + "."
+        by.append({"group": grp, "highest": [str(k) for k in top.index], "lowest": [str(k) for k in bottom.index], "by_amount": [str(k) for k in by_amount.index], "small_base": small, "min_base": base})
+        clauses.append(f"highest rate by {grp}: " + ", ".join(f"{wording.entity(grp, k)} {r['rate']:.0%}" for k, r in top.iterrows()) + f"; largest amount by {grp}: " + ", ".join(wording.entity(grp, k) for k in by_amount.index[:2]))
     values = [str(v) for v in g.value_counts().index if str(v) != main][:VALUES_MAX]
-    brief = f"{label} outside {main}: {short(amt, cur)}" + (f" ({amt / total:.1%} of all {label})" if total > 0 else f" ({rows_out / valid.sum():.1%} of rows)") + ("; " + clauses[0] if clauses else "")
+    brief = f"{label} outside {main}: {short(amt, cur)}" + (f" ({amt / total:.1%} of {of_all})" if total > 0 else f" ({rows_out / valid.sum():.1%} of {ROWS_LABEL})")         + (f"; by {col}: " + ", ".join(f"{wording.entity(col, x['value'])} {x['share']:.0%}" for x in split[:MAIN_PICKS]) + " of the outside total" if amt > 0 and split else "") + ("; " + clauses[0] if clauses else "")
     return {"id": f"r{n}", "short": brief, "tool": "ranking", "kind": "outside_rate", "basis": "ratio", "group": col, "measure": label, "top": main, "bottom": main, "outside": amt, "by": by, "values": values, "text": text,
-            "rate_amount": amt / total if total > 0 else None, "rate_rows": rows_out / int(valid.sum())}
+            "rate_amount": amt / total if total > 0 else None, "rate_rows": rows_out / int(valid.sum()), "split": split, "largest": split[0]["value"] if amt > 0 and split else None,
+            "largest_share": split[0]["share"] if amt > 0 and split else None, "min_base": base}
 
 
 def outside_facts(state: dict, df, start: int) -> list[dict]:
@@ -363,7 +392,7 @@ def ranking_facts(state: dict, df) -> list[dict]:
             if date in df.columns and m != group and _clean_groups(df, group).nunique() <= MAX_GROUPS and (fact := _growth_fact(df, state, group, m, date, len(out) + 1)):
                 out.append({**fact, "focus": group in focus})
         for name, spec in (ratios.items() if group in focus else ()):
-            if name != group and (fact := _rank_ratio(df, spec, group, name, len(out) + 1)):
+            if name != group and (fact := _rank_ratio(df, spec, group, name, len(out) + 1, state)):
                 out.append(fact)
     return out + outside_facts(state, df, len(out) + 1)
 
@@ -591,6 +620,8 @@ def answers(state: dict, facts: dict | None) -> list[dict]:
     for q in questions(state):
         ids = [i for i in facts["picks"].get(q, []) if i in by_id or i in r_by_id or i in strat]
         ids.sort(key=lambda i: i not in r_by_id)
+        outside = {r_by_id[i]["group"] for i in ids if i in r_by_id and r_by_id[i].get("kind") == "outside_rate"}
+        ids = [i for i in ids if i not in r_by_id or r_by_id[i].get("kind") or r_by_id[i]["group"] not in outside]        # a loss-style question is answered by the split outside the main value, not by a top list that has the main value first
         if ids and all(i in strat for i in ids):
             line = "Recommended: " + "; ".join(strat[i]["title"].rstrip(".") for i in ids) + "."
         else:

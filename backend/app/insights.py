@@ -26,7 +26,7 @@ from .clarify import option_for
 from . import polarity as polmod, wording
 from .llm import ask_json
 from .brief import kinds, kpi_columns, kpi_found
-from .measures import has_sum_word, is_money
+from .measures import ROWS_LABEL, has_sum_word, is_money
 from .derived import ratio_of_sums
 from .tools import _fmt, to_binary
 
@@ -217,12 +217,15 @@ def _narrative(f: dict, ctx: dict, pol: dict | None = None, cols: list[str] | No
         eff = f" ({lab} effect)" if sig and lab else ""
         note = f"; lower is better, so {bot} performs best" if bad and sig else ""
         if st.get("kind") == "binary":
-            h = (f"{group} = {top} has the highest {target} rate ({_pct(hv)}) versus {_pct(lv)} for {bot}{eff}{note}" if sig
+            h = (f"{group} = {top} has the highest {target} rate ({_pct(hv)} of {ROWS_LABEL}) versus {_pct(lv)} for {bot}{eff}{note}" if sig
                  else f"The {target} rate does not differ reliably across {group}")
         else:
             ratio = hv / lv if (hv and lv and lv > 0 and hv > 0) else None
-            h = (f"{group} = {top} averages {ratio:.1f}× the {target} of {bot}{eff}{note}" if sig and ratio and ratio >= 1.15
-                 else f"{group} = {top} has the highest {target}, ahead of {bot}{eff}{note}" if sig else f"{target} does not differ reliably across {group}")
+            cur = ctx.get("currency", "") if is_money(target, narrow=True) else ""
+            fig = "" if hv is None or lv is None else (f" (overall {cur}{_fmt(hv)} vs {cur}{_fmt(lv)} for {bot}, total over total)" if st.get("ratio_of_sums")
+                                                       else f" (average {cur}{_fmt(hv)} per record vs {cur}{_fmt(lv)} for {bot})")
+            h = (f"{group} = {top} averages {ratio:.1f}× the {target} of {bot}{fig}{eff}{note}" if sig and ratio and ratio >= 1.15
+                 else f"{group} = {top} has the highest {target}{fig}, ahead of {bot}{eff}{note}" if sig else f"{target} does not differ reliably across {group}")
         ent_top, ent_bot = wording.entity(group, top), wording.entity(group, bot)
         what = wording.columns_phrase(cols, "the other columns")
         if sig and not small:
@@ -244,7 +247,7 @@ def _narrative(f: dict, ctx: dict, pol: dict | None = None, cols: list[str] | No
     elif tool == "outcome_compare":
         target, col, pos = p["target"], p["col"], st.get("positive", "yes")
         dirn = st.get("direction", "higher")
-        h = (f"{col} is {dirn} where {target} = {pos} (median {_fmt(st['median_outcome'])} vs {_fmt(st['median_other'])})" if sig
+        h = (f"{col} is {dirn} where {target} = {pos} (median {col}: {_fmt(st['median_outcome'])} vs {_fmt(st['median_other'])} for the rest)" if sig
              else f"{col} does not differ reliably between rows with and without {target} = {pos}")
         bad = polarity(target, pol) == "bad"
         why = (f"{col} behaves differently for {cust} with {target} = {pos}, which makes it a candidate early-warning signal: watching it could flag at-risk {cust} before the outcome happens."
@@ -290,7 +293,8 @@ def _narrative(f: dict, ctx: dict, pol: dict | None = None, cols: list[str] | No
     elif tool == "heatmap":
         target = p["target"]
         (a1, b1), (a2, b2) = st["top_cell"], st["bottom_cell"]
-        fmtv = (lambda v: _pct(v)) if st.get("target_kind") == "binary" else (lambda v: _fmt(v))
+        cur = ctx.get("currency", "") if is_money(target, narrow=True) else ""
+        fmtv = (lambda v: f"{_pct(v)} of {ROWS_LABEL}") if st.get("target_kind") == "binary" else (lambda v: f"average {cur}{_fmt(v)} per record")
         h = f"{a1} × {b1} stands out ({fmtv(st['top_value'])}); {a2} × {b2} is weakest ({fmtv(st['bottom_value'])})"
         why = "Segments can behave differently in combination, and single-column averages hide it. This shows where to look first, not what to do."
         hyp = ["A combination may reflect a specific product, channel or customer type", "Small cells can swing widely by chance"]
@@ -483,7 +487,16 @@ def coverage_warning(dates) -> str:
         return ""
     days = int(d.dt.normalize().nunique())
     span = (d.max().normalize() - d.min().normalize()).days + 1
-    return f"Only {days} of {span} days in this period have data, so trends and weekly or monthly comparisons may mislead." if days / span < COVERAGE_MIN else ""
+    return (f"Only {days} of {span} days in this period have data, so trends and weekly or monthly comparisons may mislead. "
+            "Totals and shares cover only the days present.") if days / span < COVERAGE_MIN else ""
+
+
+def coverage_fraction(dates) -> float | None:
+    """Share of the calendar days between the first and last date that have a row; None without dates."""
+    d = pd.to_datetime(pd.Series(dates), errors="coerce").dropna()
+    if d.empty:
+        return None
+    return int(d.dt.normalize().nunique()) / ((d.max().normalize() - d.min().normalize()).days + 1)
 
 
 def dates_unconfirmed(state: dict) -> bool:

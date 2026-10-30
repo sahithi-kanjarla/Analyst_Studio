@@ -78,7 +78,7 @@ def test_valid_plan_with_hallucinations(data):
     assert plan_decision["source"] == "fallback" and any("does_not_exist" in e for e in plan_decision["errors"])
     assert any("rule-based planning" in e["message"] for e in events)
     # prose from the LLM, numbers from the tools; hallucinated critic follow-up ignored
-    assert "FAKE SUMMARY" in res["report_md"] and "Prioritise Enterprise accounts." in res["report_md"]
+    assert "FAKE SUMMARY" in res["report_md"] and "Prioritise Enterprise accounts." not in res["report_md"]      # one recommendation list: the strategy-based "What to do", not the free-text recommendations
     assert "confounded with company size" in res["report_md"]
     seg = next(f for f in res["findings"] if f["tool"] == "group_compare")
     assert seg["stats"]["best"] == "Enterprise" and "Enterprise" in seg["text"]

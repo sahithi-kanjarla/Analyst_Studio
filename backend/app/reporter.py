@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import re
 
-from . import aicache, cited, context as ctxmod, mainview, summary as summary_mod, tiering, wording
+from . import aicache, cited, context as ctxmod, mainview, strategy as strat_mod, summary as summary_mod, tiering, wording
 from . import understanding as und
 from .clarify import named_in_goal
 from .llm import ask_json, capture
@@ -91,8 +91,11 @@ def llm_summary(llm, state: dict) -> tuple[str, list[str], bool] | None:
     with capture() as cap:
         out = ask_json(
             llm,
-            "You are a senior data analyst writing for a business reader. Use ONLY the facts and numbers in the findings provided; do not invent numbers. "
+            f"You are a senior data analyst writing for {ctxmod.audience(state.get('context'))}. Address the reader as 'you'; do not write 'leadership' or any other audience unless it is named here. "
+            "Use ONLY the facts and numbers in the findings provided; do not invent numbers. "
             "Be plain and concise, distinguish association from causation, and respect the caveats. If company context is given, use its vocabulary. "
+            "Every figure carries its unit and what it is (for example 'average 862 per order'). " + strat_mod.CONCENTRATION_RULE +
+            "In a 'so_what' never name which category is the largest part of a total: the report states that itself. "
             + cited.CITE_RULE + "Use the id 'counts' for a number from COUNTS, 'data' for the row or column count and 'context' for a number from the company context. "
             "Return JSON: {\"summary\": \"3-5 sentence executive summary answering the goal\", \"recommendations\": [3-5 concrete, prioritized actions tied to specific findings], "
             "\"so_what\": [{\"question\": <number of a goal question below>, \"text\": \"ONE plain sentence on why that answer matters; no statistics terms\"}]}",
@@ -114,6 +117,12 @@ def llm_summary(llm, state: dict) -> tuple[str, list[str], bool] | None:
         wrong = None if bad else cited.contradicts(clean, computed)
         if wording.unsupported_profit_claim(clean, state):
             dropped.append(f"{what} dropped (no cost or profit column in the data): {clean}")
+        elif (clash := wording.audience_clash(clean, state)):
+            dropped.append(f"{what} dropped (names '{clash}' as the audience; the reader is {ctxmod.audience(state.get('context'))}): {clean}")
+            rejected.append(f"audience {clash}")
+        elif (why_blocked := strat_mod.blocked(clean, [i for _, ids in cited.split_cites(text)[1] for i in ids] if what == "recommendation" else [], state)):
+            dropped.append(f"{what} dropped ({why_blocked}): {clean}")
+            rejected.append(why_blocked)
         elif bad:
             dropped.append(f"{what} dropped ({bad}): {clean}")
             rejected.append(bad)
@@ -182,7 +191,8 @@ def llm_actions(llm, state: dict, view: dict, cs: list[dict], wanted: list[int],
             llm,
             "You are a senior data analyst. For each goal question below propose ONE concrete business action that follows from the facts listed for that question. "
             "Use ONLY those facts and numbers; do not invent numbers. The action is a hypothesis to test, not a proven cause. " + cited.CITE_RULE +
-            "Every action must end with the id of the fact it rests on in square brackets, even when it has no number. "
+            "Every action must end with the id of the fact it rests on in square brackets, even when it has no number. " + strat_mod.CONCENTRATION_RULE +
+            f"The reader is {ctxmod.audience(state.get('context'))}; do not write 'leadership' unless it is named. "
             "Return JSON: {\"actions\": [{\"question\": <question number>, \"text\": \"one plain sentence\"}]}",
             "GOAL QUESTIONS AND THEIR FACTS: " + json.dumps({n: {"question": q_of[n], "facts": {i: t for i, t in fs.items()}} for n, fs in offered.items()}, ensure_ascii=False))
     got, dropped, rejected, none, ids_of = {}, [], [], {}, {}
@@ -207,8 +217,9 @@ def llm_actions(llm, state: dict, view: dict, cs: list[dict], wanted: list[int],
         clean, bad = cited.verify(text, facts)
         marks = {i for _, ids in cited.split_cites(text)[1] for i in ids}
         wrong = None if bad else cited.contradicts(clean, computed)
-        if bad or wrong or not marks & set(offered[n]) or wording.unsupported_profit_claim(clean, state):
-            why = bad or (f"disagrees with computed fact {wrong['id']}" if wrong else "cites no fact offered for this question" if not marks & set(offered[n]) else "no cost or profit column in the data")
+        blocked = "" if bad or wrong else strat_mod.blocked(clean, sorted(marks), state) or (f"names '{wording.audience_clash(clean, state)}' as the audience" if wording.audience_clash(clean, state) else "")
+        if bad or wrong or blocked or not marks & set(offered[n]) or wording.unsupported_profit_claim(clean, state):
+            why = bad or (f"disagrees with computed fact {wrong['id']}" if wrong else blocked if blocked else "cites no fact offered for this question" if not marks & set(offered[n]) else "no cost or profit column in the data")
             dropped.append(f"action dropped ({why}): {clean}")
             rejected.append(why)
             instead(n, "it failed the fact check")
@@ -463,8 +474,7 @@ def _setup_section(state: dict) -> list[str]:
             L.append(f"- **What they do:** {ctx['description']}")
         if ctx.get("kpis"):
             L.append(f"- **KPIs named:** {', '.join(ctx['kpis'])}. Columns matching these were prioritised; any KPI with no matching column is listed under data gaps.")
-        if ctx.get("audience"):
-            L.append(f"- **Audience:** {ctx['audience']}")
+        L.append(f"- **Audience:** {ctxmod.audience(ctx)}" + ("" if ctx.get("audience") else " (default: you did not name another audience)"))
         L.append("- This context steers what is analysed and how it is worded. It is not verified against the data.")
     L += ["", "### What we set out to answer", "", f"**Objective:** {plan['objective']}", ""] + [f"- {q}" for q in plan["questions"]]
 
@@ -613,7 +623,8 @@ def build_report(state: dict, summary: str, recs: list[str], run_mode: str = "",
     L += _details(other_title, other) if other else []
     ch = _checked_section(view)
     L += _details(f"Checked, nothing found ({len(view['checked'])})", ch) if ch else []
-    L += _details("Strategy and Recommendations", (["**Top recommendations**", ""] + [f"- {r}" for r in recs[:tiering.ACTIONS_MAX]] + [""] if recs else []) + _strategy_section(state, view))
+    top = mainview.action_lines(cs, plan)          # the same list as 'What to do', same items and order: the report has one recommendation list
+    L += _details("Strategy and Recommendations", (["**Top recommendations**", ""] + top + [""] if top else []) + _strategy_section(state, view))
     L += _details("How the data was set up (business, sources, cleaning)", _setup_section(state))
     defs = _definitions_section(state)
     L += _details("Definitions used", defs) if defs else []

@@ -149,7 +149,9 @@ export default function BIDashboard({ run }: { run: RunResult }) {
   if (lead && data.dims[0]) kpis.push({ label: `Top ${data.dims[0].col}`, value: lead.key, note: m.agg === "sum" && now ? `${trim((lead.value / now) * 100, 0)}% of ${m.label.toLowerCase()}` : fmt(lead.value) });
   if (last && prev && prev.value) {
     const ch = (last.value - prev.value) / Math.abs(prev.value);
-    kpis.push({ label: `Latest ${grain} vs previous`, value: `${ch >= 0 ? "+" : ""}${trim(ch * 100, 1)}%`, tone: ch >= 0 ? "up" : "down", note: periodLabel(last.key, grain, years.length > 1) });
+    // too few periods, or dates present on under 70% of the days, make the latest-vs-previous change unreliable: say so on the tile
+    const partial = group(rows, period, m).length < 6 || (data.date_coverage != null && data.date_coverage < 0.7);
+    kpis.push({ label: `Latest ${grain} vs previous${partial ? " (partial data)" : ""}`, value: `${ch >= 0 ? "+" : ""}${trim(ch * 100, 1)}%`, tone: ch >= 0 ? "up" : "down", note: periodLabel(last.key, grain, years.length > 1) });
   }
 
   // ---------------- visuals

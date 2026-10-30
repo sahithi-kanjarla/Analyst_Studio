@@ -344,6 +344,7 @@ export interface DashData {
   currency: string;
   date: string | null;
   date_label: string | null;
+  date_coverage?: number | null; // share of calendar days between the first and last date that have a row
   measures: DashMeasure[];
   dims: { col: string; unique: number; score: number; top?: number }[];
   columns: string[];

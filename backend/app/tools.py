@@ -374,7 +374,7 @@ def category_share(df, ctx, col):
                      "Rows", trim_note(len(top), total_groups, "values"))
     _title(ax, f"{col}: which values appear most often" + (f" (top {len(top)} of {total_groups})" if len(rest) else ""))
     share = top.iloc[0] / rows
-    text = (f"**{col}** has {total_groups} distinct values; the most common is '{top.index[0]}' ({share:.0%} of rows)."
+    text = (f"**{col}** has {total_groups} distinct values; the most common is '{top.index[0]}' ({share:.0%} of records)."
             + (f" The chart shows the top {len(top)} and pools the other {len(rest)} as Other." if len(rest) else ""))
     return finding("category_share", f"Composition of {col}", text,
                    {"distinct": total_groups, "top": {str(k): int(v) for k, v in top.head(5).items()}, "shown": [str(k) for k in top.index], "shown_n": int(len(top)),
@@ -447,6 +447,9 @@ def group_compare(df, ctx, target, group, within=None, within_value=None):
     else:
         st["target_skew"] = _f(d["y"].skew())
         st["ratio_of_sums"] = spec is not None
+        if spec is None and additive(target, ctx) and (d["y"] >= 0).all() and d["y"].sum() > 0:      # each shown group's share of the total, for the "so what" of an average comparison
+            sums = d.groupby("g")["y"].sum()
+            st["shares"] = {str(k): _f(float(sums[k] / d["y"].sum())) for k in (top, bot)}
     if within is not None:
         text = f"Within {within} = {within_value}: {text}"
         st["within"] = {"column": within, "value": str(within_value)}
