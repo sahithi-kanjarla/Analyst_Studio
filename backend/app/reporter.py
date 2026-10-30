@@ -518,7 +518,7 @@ def _warnings(state: dict) -> list[str]:
         out.append(DATE_CAUTION)
     if state.get("date_coverage_warning"):
         out.append(state["date_coverage_warning"])
-    titles = [g["title"] for g in state.get("data_gaps") or [] if g.get("severity") == "warn"] + [x.rstrip(".") for x in und.unmapped_lines(state.get("understanding"))]
+    titles = [mainview.readable(state, g["title"]) for g in state.get("data_gaps") or [] if g.get("severity") == "warn"] + [x.rstrip(".") for x in und.unmapped_lines(state.get("understanding"))]
     if titles:
         out.append(f"{GAP_TAG} " + "; ".join(titles[:2]) + (f" (and {len(titles) - 2} more under 'Data gaps')" if len(titles) > 2 else "") + ".")
     return out
@@ -531,7 +531,7 @@ def _answer_details(state: dict, view: dict, cs: list[dict], summary: str) -> li
     L: list[str] = []
     for c in cs:
         a = answers[c["question"]]
-        L += [f'<a id="answer-q{c["n"]}"></a>', "", f"**{c['n']}. {c['question']}**", "", f"- Answer: {a['answer']}"]
+        L += [f'<a id="answer-q{c["num"]}"></a>', "", f"**{c['num']}. {c['question']}**", "", f"- Answer: {a['answer']}"]
         for i in a["ids"]:
             if i in by_id:
                 f = by_id[i]
@@ -557,14 +557,15 @@ def build_report(state: dict, summary: str, recs: list[str], run_mode: str = "",
     warns = _warnings(state)
     cs = mainview.cards(state, view)
     plan = mainview.plan_actions(state, view, cs)
+    answer_cards = [c for c in cs if c["num"]]          # an action question has no card: the 'What to do' section answers it
     L = [title, "", f"**Mode:** {run_mode or derive_mode(state.get('stage_sources'))}", ""] + [f"- ⚠ {w}" for w in warns[:mainview.WARNINGS_MAX]] + ([""] if warns else [])
 
     L += ["## Executive summary", "", "### Answers", ""]          # B. one card per goal question
-    for c in cs:
+    for c in answer_cards:
         L += mainview.card_md(c)
     if not cs:
         L += ["No question was asked in the goal; the key numbers and the sections under 'view more' describe the data.", ""]
-    also = [f"**By {r['group']}** (named in your goal). {mainview.clip(r.get('short') or r.get('lead') or r['text'])}" for r in summary_mod.uncovered_groups(state, view)] + summary_mod.difference_lines(state)
+    also = [mainview.readable(state, x) for x in [f"**By {r['group']}** (named in your goal). {mainview.clip(r.get('short') or r.get('lead') or r['text'])}" for r in summary_mod.uncovered_groups(state, view)] + summary_mod.difference_lines(state)]
     if also:
         L += ["**Also named in your goal**", ""] + [f"- {x}" for x in also[:3]] + [""]
     L += ["### What to do", ""] + mainview.actions_md(cs, plan) + [""]          # C
@@ -574,7 +575,7 @@ def build_report(state: dict, summary: str, recs: list[str], run_mode: str = "",
         L += ["## Key numbers", ""] + mainview.tiles_md(ts) + [""]
 
     L += ["---", "", "**View more**", ""]          # everything else, collapsed, always in this order
-    L += _details("Answer details: exact figures, facts and statistics", _answer_details(state, view, cs, summary))
+    L += _details("Answer details: exact figures, facts and statistics", _answer_details(state, view, answer_cards, summary))
     L += _details(f"Evidence ({len(view.get('evidence') or [])} findings)", _evidence_section(view))
     L += _growth_section(view)
     outside = _outside_section(view)

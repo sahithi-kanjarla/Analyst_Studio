@@ -47,12 +47,30 @@ def _delta(e: dict):
     return d if d is not None else e.get("relative_change")
 
 
+def steep(e: dict) -> bool:
+    """A fall of 100% or more of the level, or a fitted end value below zero: a percentage would claim more than a measure can lose."""
+    rel, end = e.get("relative_change"), e.get("end")
+    return (rel is not None and rel <= -1) or (end is not None and end < 0)
+
+
+def falling_steeply(e: dict) -> bool:
+    return steep(e) and (_delta(e) or 0) < 0
+
+
+def steep_phrase(e: dict, fmt=_g) -> str:
+    """'falling steeply, from <first real value> to <last real value>' (the fitted values only when the real ones are unknown)."""
+    a, b = e.get("first", e.get("start")), e.get("last", e.get("end"))
+    return "falling steeply" + (f", from {fmt(a)} to {fmt(b)}" if a is not None and b is not None else "")
+
+
 def pct_ok(e: dict) -> bool:
-    """A percentage change is only honest when the start is clear of zero and the series does not change sign."""
-    return e.get("pct_ok", True) and e.get("relative_change") is not None
+    """A percentage change is only honest when the start is clear of zero, the series does not change sign and it does not fall by 100% or more."""
+    return e.get("pct_ok", True) and e.get("relative_change") is not None and not steep(e)
 
 
 def change_phrase(e: dict, fmt=_g) -> str:
+    if falling_steeply(e):
+        return steep_phrase(e, fmt)
     if pct_ok(e):
         return f"{e['relative_change']:+.0%}"
     d = _delta(e) or 0
@@ -120,7 +138,9 @@ def pct_change_ok(st: dict, target, state: dict) -> bool:
     """A % change in a fitted trend is shown only when it means something: never for a ratio, and not when the series is, or may be, on both sides of zero
     (the column has negative and positive values, or the fitted line itself passes through zero)."""
     rel = st.get("relative_change")
-    if rel is None or abs(rel) > 2:           # the fit moves by more than twice the level: it starts and ends on opposite sides of zero
+    if rel is None or abs(rel) > 2 or rel <= -1:           # the fit moves by more than twice the level (opposite sides of zero), or falls by 100% or more of it
+        return False
+    if st.get("fit_end") is not None and st["fit_end"] < 0:      # the fitted line ends below zero
         return False
     if st.get("agg") == "ratio of sums" or target in _ratio_names(state):
         return False
@@ -129,8 +149,15 @@ def pct_change_ok(st: dict, target, state: dict) -> bool:
     return not (lo is not None and hi is not None and lo < 0 < hi)
 
 
+def trend_falls_steeply(st: dict) -> bool:
+    return (st.get("slope") or 0) < 0 and steep({"relative_change": st.get("relative_change"), "end": st.get("fit_end")})
+
+
 def trend_size(st: dict, target, state: dict, signed: bool = False, fmt=_g) -> str:
-    """The size of the fitted change across the period: a percentage when that is honest, otherwise the absolute change in the measure's own units."""
+    """The size of the fitted change across the period: a percentage when that is honest, otherwise the absolute change in the measure's own units.
+    A fall of 100% or more of the level, or to below zero, is 'falling steeply' with the first and last real values."""
+    if trend_falls_steeply(st):
+        return steep_phrase({"first": st.get("first"), "last": st.get("last")}, fmt)
     if pct_change_ok(st, target, state):
         r = st["relative_change"]
         return f"{r:+.0%}" if signed else f"{abs(r):.0%}"

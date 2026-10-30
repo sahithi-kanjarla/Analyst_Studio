@@ -490,6 +490,8 @@ def plan_node(state: RunState) -> dict:
         extra["profile"] = prof
     ov = {**ov, "brief_roles": (state.get("brief") or {}).get("roles") or {}}
     und = state.get("understanding")
+    if kept and und:
+        extra["understanding"] = und = undmod.with_derived(und, kept)       # a short display name for every derived measure
     ov["goal_columns"] = [c for c in undmod.goal_columns(und) if c in typed.columns]
     ov["record_measures"] = [c for c in undmod.measure_columns(und) if c in typed.columns and pd.api.types.is_numeric_dtype(typed[c])]
     st: dict = {"decisions": list(state.get("decisions") or [])}

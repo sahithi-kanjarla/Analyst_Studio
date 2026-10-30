@@ -634,15 +634,19 @@ def trend(df, ctx, target, date):
     ax.legend(frameon=False)
     direction = "upward" if lr.slope > 0 else "downward"
     sig = lr.pvalue < 0.05
-    _title(ax, f"{target} is trending {'up' if lr.slope > 0 else 'down'} ({change:+.0%} over the period)" if sig else f"No clear trend in {target} over time (p={lr.pvalue:.2f})")
+    fit_end = float(lr.intercept + lr.slope * x[-1])
+    steep_fall = lr.slope < 0 and wording.steep({"relative_change": change, "end": fit_end})       # a fall of 100% or more of the level, or to below zero: no percentage
+    size = f"falling steeply, from {_fmt(series.iloc[0])} to {_fmt(series.iloc[-1])}" if steep_fall else f"{change:+.0%}"
+    _title(ax, f"{target} is trending {'up' if lr.slope > 0 else 'down'} ({size} over the period)" if sig else f"No clear trend in {target} over time (p={lr.pvalue:.2f})")
     gaps = full.index[full.isna()]
     no_data = f" No data in {len(gaps)} {unit}{'s' if len(gaps) != 1 else ''} (for example {gaps[0].date()}); these are left out of the best and weakest {unit}." if len(gaps) else ""
     text = (f"**{target}** ({agg} per {unit}) shows a {'statistically significant ' if sig else 'weak, non-significant '}{direction} trend "
-            f"(about {change:+.0%} across the period, p{_pf(lr.pvalue)}). Best {unit}: {series.idxmax().date()} ({cur}{_fmt(series.max())}); weakest: {series.idxmin().date()} ({cur}{_fmt(series.min())}).{no_data} "
+            f"({size if steep_fall else 'about ' + size} across the period, p{_pf(lr.pvalue)}). Best {unit}: {series.idxmax().date()} ({cur}{_fmt(series.max())}); weakest: {series.idxmin().date()} ({cur}{_fmt(series.min())}).{no_data} "
             f"The first and last {unit}s may be partial.")
     action = (f"{target} is trending {direction} over time; find out what changed around the weakest {unit} ({series.idxmin().date()})." if sig else None)
     return finding("trend", f"{target} over time", text,
-                   {"p": _f(lr.pvalue), "slope": _f(lr.slope), "relative_change": _f(change), "periods": int(len(series)), "empty_periods": int(len(gaps)), "freq": rule, "agg": agg, "n": int(len(d))},
+                   {"p": _f(lr.pvalue), "slope": _f(lr.slope), "relative_change": _f(change), "periods": int(len(series)), "empty_periods": int(len(gaps)), "freq": rule, "agg": agg, "n": int(len(d)),
+                    "first": _f(series.iloc[0]), "last": _f(series.iloc[-1]), "fit_end": _f(fit_end)},
                    _save(fig, ctx, _slug("trend", target, date)), significant=bool(sig), action=action)
 
 
@@ -777,8 +781,8 @@ def segment_trend(df, ctx, target, date, group):
         lr = stats.linregress(np.arange(len(s)), s.values)
         start, end, mean = float(lr.intercept), float(lr.intercept + lr.slope * (len(s) - 1)), float(abs(s.mean()))
         res[g] = {"p": float(lr.pvalue), "relative_change": float(lr.slope * (len(s) - 1) / (mean or 1.0)), "periods": int(len(s)),
-                  "start": start, "end": end, "change_abs": end - start,
-                  "pct_ok": bool(start * end > 0 and abs(start) >= wording.NEAR_ZERO * mean)}     # near zero or a sign flip: a percentage would mislead, so the absolute change is shown
+                  "start": start, "end": end, "change_abs": end - start, "first": float(s.iloc[0]), "last": float(s.iloc[-1]),
+                  "pct_ok": bool(start > 0 and end > 0 and abs(start) >= wording.NEAR_ZERO * mean)}     # near zero or a sign flip: a percentage would mislead, so the absolute change is shown
     k = len(res)
     for g in res:
         res[g]["p_adjusted"] = min(1.0, res[g]["p"] * k)

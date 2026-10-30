@@ -9,12 +9,16 @@ from __future__ import annotations
 
 import re
 
-from . import summary
+from . import summary, wording
+from . import understanding as und
 from .insights import DATE_TAG, effect_label
 from . import tiering
 from .tiering import goal_named, merge_strategies, reliable
 
 ACTIONS_MAX, ANSWER_LINES, TILES_MIN, TILES_MAX, WARNINGS_MAX = 4, 2, 4, 6, 3
+PART_LINES = 3          # a question with several parts shows the best fact for each, at most this many lines
+RANK_WORDS = re.compile(r"\b(?:which|who|whose|most|least|top|bottom|best|worst|highest|lowest|biggest|largest|smallest|rank\w*)\b", re.I)
+CLAUSES = re.compile(r",|;|\band\b|\bor\b|\bbut\b", re.I)
 LINE_CHARS = 170
 TRUST = {"high": "High", "medium": "Medium", "low": "Low", "exploratory": "Low", "descriptive": "High"}
 STRONG = ("medium", "large")
@@ -34,6 +38,54 @@ def clip(text: str, n: int = LINE_CHARS) -> str:
 
 def is_action_question(q: str) -> bool:
     return bool(summary.ACTION_Q.search(q))
+
+
+def part_kinds(q: str) -> list[str]:
+    """The kinds of fact a question asks for, one per clause, in order: 'ranking' (which, most...), 'growth' (a change over time), 'ratio' (any other clause: how well the group
+    does against a base). Fewer than two kinds means the question has one part."""
+    kinds: list[str] = []
+    for clause in CLAUSES.split(q.rstrip("? ")):
+        if len(re.findall(r"[A-Za-z]+", clause)) < 2:
+            continue
+        kind = "growth" if wording.TREND_Q.search(clause) else "ranking" if RANK_WORDS.search(clause) else "ratio"
+        if kind not in kinds:
+            kinds.append(kind)
+    return kinds if len(kinds) >= 2 else []
+
+
+def part_facts(kinds: list[str], ids: list[str], by_id: dict, r_by_id: dict, main: str) -> list[str]:
+    """The best fact for each part, picked by the kind of the fact (never by its words): the ranking of a total, the growth table (else the overall trend) of the same measure, the
+    ratio ranking of the same group. Ids, in the order of the parts; a part with no fact has none."""
+    rankings = list(r_by_id.values())
+    plain_r = [r for r in rankings if not r.get("kind") and r.get("focus", True)]
+    anchor = next((r_by_id[i] for i in ids if i in r_by_id and not r_by_id[i].get("kind") and r_by_id[i]["basis"] == "total"), None) \
+        or next((r_by_id[i] for i in ids if i in r_by_id and not r_by_id[i].get("kind")), None)
+    group = anchor["group"] if anchor else None
+    measure = anchor["measure"] if anchor and anchor["basis"] == "total" else main
+
+    def first(pool: list[dict], *tests) -> str | None:
+        for test in tests:
+            for r in pool:
+                if test(r):
+                    return r["id"]
+        return None
+    out: list[str] = []
+    for kind in kinds:
+        if kind == "ranking":
+            got = first([r_by_id[i] for i in ids if i in r_by_id] + plain_r, lambda r: r.get("kind") is None and r["basis"] == "total" and (group is None or r["group"] == group) and r["measure"] == measure,
+                        lambda r: not r.get("kind") and r["basis"] == "total" and (group is None or r["group"] == group))
+        elif kind == "growth":
+            growth = [r for r in rankings if r.get("kind") == "growth" and r.get("focus", True)]
+            got = first([r_by_id[i] for i in ids if i in r_by_id and r_by_id[i].get("kind") == "growth"] + growth,
+                        lambda r: r["group"] == group and r["measure"] == measure, lambda r: r["group"] == group, lambda r: group is None and r["measure"] == measure)
+            if not got:      # no growth table: the overall trend of the measure
+                got = next((f["id"] for f in by_id.values() if f["tool"] == "trend" and (f.get("params") or {}).get("target") == measure), None)
+        else:
+            ratio = [r for r in rankings if not r.get("kind") and r["basis"] == "ratio" and r.get("focus", True)]
+            got = first([r_by_id[i] for i in ids if i in r_by_id and r_by_id[i]["basis"] == "ratio" and not r_by_id[i].get("kind")] + ratio, lambda r: group is None or r["group"] == group)
+        if got and got not in out:
+            out.append(got)
+    return out
 
 
 # ------------------------------------------------------------------ what a fact id stands for
@@ -71,6 +123,10 @@ def action_basis(i: str, state: dict, by_id: dict, r_by_id: dict) -> bool:
     return goal_named(f, state.get("goal", "")) and f.get("significant") is not False
 
 
+def readable(state: dict, text: str) -> str:
+    return und.readable(text, state)
+
+
 def _line(i: str, by_id: dict, r_by_id: dict) -> str:
     if i in r_by_id:
         r = r_by_id[i]
@@ -81,29 +137,42 @@ def _line(i: str, by_id: dict, r_by_id: dict) -> str:
 
 # ------------------------------------------------------------------ B. answer cards
 def cards(state: dict, view: dict) -> list[dict]:
-    """One card per goal question: {n, question, text, trust, ids, so_what, action_question}. A fact is written once: a later card that rests only on facts an earlier card used points back to it."""
+    """One card per goal question: {n, num, question, text, trust, ids, so_what, action_question}. `n` is the question's place in the goal; `num` is the number shown (None for an action question:
+    'what should we do?' is answered by the 'What to do' section only, it gets no answer card). A fact is written once: a later card that rests only on facts an earlier card used points back to it."""
     by_id, r_by_id, strat = lookup(state, view)
     so_what = state.get("so_what") or {}
     growth = [r for r in r_by_id.values() if r.get("kind") == "growth" and r.get("focus")]
     main = summary.main_measure(state, list(r_by_id.values()))
-    out, used, first_card = [], set(), {}
+    out, used, first_card, shown = [], set(), {}, 0
     for n, a in enumerate(view.get("answers") or [], 1):
+        limit = ANSWER_LINES
         ids = [i for i in a["ids"] if i in by_id or i in r_by_id]
-        card = {"n": n, "question": a["question"], "ids": a["ids"], "gcols": sorted(group_cols(ids, by_id, r_by_id)), "trust": trust_of(ids, by_id, r_by_id), "so_what": so_what.get(a["question"], ""), "action_question": is_action_question(a["question"]),
-                "text": "", "date_tag": DATE_TAG in a["answer"]}
+        action = is_action_question(a["question"])
+        shown += not action
+        card = {"n": n, "num": None if action else shown, "question": a["question"], "ids": a["ids"], "gcols": sorted(group_cols(ids, by_id, r_by_id)), "trust": trust_of(ids, by_id, r_by_id),
+                "so_what": readable(state, so_what.get(a["question"], "")), "action_question": action, "text": "", "date_tag": DATE_TAG in a["answer"]}
+        parts = part_facts(part_kinds(a["question"]), ids, by_id, r_by_id, main) if ids and not action else []
+        parts = [i for i in parts if i not in used] if len(parts) > 1 else []
         fresh = [i for i in ids if i not in used]
         sids = [i for i in a["ids"] if i in strat]
         lines: list[str] = []
-        if not ids and sids and card["action_question"]:
+        if parts:        # a question with several parts: the best fact for each part, picked by the kind of the fact
+            lines = [_line(i, by_id, r_by_id) for i in parts]
+            card["ids"] = a["ids"] + [i for i in parts if i not in a["ids"]]
+            card["trust"] = trust_of(ids + parts, by_id, r_by_id)
+            ids = ids + [i for i in parts if i not in ids]
+            limit = PART_LINES
+        elif not ids and sids and card["action_question"]:
             lines = ["Answered under 'What to do' below."]
             card["trust"] = next((str(strat[i]["confidence"]).capitalize() for i in sids if strat[i].get("confidence")), "Medium")
         elif not ids:
             lines = [clip(a["answer"]) if a["answer"].startswith("Not answered") else "Not answered: no analysis in this run answers it."]
             card["trust"] = ""
-        elif not fresh:
+        elif not fresh and any(i in first_card for i in ids):
             earlier = next(first_card[i] for i in ids if i in first_card)
             lines = [f"Same figures as question {earlier}."]
         else:
+            fresh = fresh or ids
             lines = [_line(i, by_id, r_by_id) for i in fresh if i not in strat]
             if not any(r_by_id.get(i, {}).get("kind") == "growth" for i in ids):          # the biggest change of the measure this card is about: one line, from the growth table in the details
                 base = next((r_by_id[i] for i in fresh if i in r_by_id and r_by_id[i].get("kind") not in ("growth", "outside_rate")), None)
@@ -114,21 +183,22 @@ def cards(state: dict, view: dict) -> list[dict]:
                     used.add(g["id"])
         for i in ids:
             used.add(i)
-            first_card.setdefault(i, n)
-        card["text"] = lines[:ANSWER_LINES]
+            if card["num"]:
+                first_card.setdefault(i, card["num"])
+        card["text"] = [readable(state, t) for t in lines[:limit]]
         out.append(card)
     return out
 
 
 def card_md(c: dict) -> list[str]:
     tag = f" [{DATE_TAG}]" if c["date_tag"] and c["text"] and not c["text"][0].startswith("Not answered") else ""
-    L = [f"**{c['n']}. {plain(c['question'])}**", ""] + [f"{t}{tag if k == len(c['text']) - 1 else ''}  " for k, t in enumerate(c["text"])]
+    L = [f"**{c['num']}. {plain(c['question'])}**", ""] + [f"{t}{tag if k == len(c['text']) - 1 else ''}  " for k, t in enumerate(c["text"])]
     foot = []
     if c["trust"]:
         foot.append(f"Trust: **{c['trust']}**")
     if c["so_what"]:
         foot.append(f"So what: {c['so_what']}")
-    foot.append(f"[details](#answer-q{c['n']})")
+    foot.append(f"[details](#answer-q{c['num']})")
     return L + [" · ".join(foot), ""]
 
 
@@ -174,10 +244,10 @@ def plan_actions(state: dict, view: dict, cs: list[dict]) -> dict:
         if c["s"]["id"] not in taken and len(chosen) < ACTIONS_MAX:
             chosen.append((c["links"][0], c["s"]))
             taken.add(c["s"]["id"])
-    actions = [{"n": n, "text": plain(f"{s['title']}: {s['objective']}"), "ai": False, "evidence": s["evidence"]} for n, s in chosen]
+    actions = [{"n": n, "text": readable(state, plain(f"{s['title']}: {s['objective']}")), "ai": False, "evidence": s["evidence"]} for n, s in chosen]
     for c in cs:        # a verified AI proposal for a question with an answer but no action
         if len(actions) < ACTIONS_MAX and c["question"] in ai and not any(a["n"] == c["n"] for a in actions):
-            actions.append({"n": c["n"], "text": plain(ai[c["question"]]), "ai": True, "evidence": []})
+            actions.append({"n": c["n"], "text": readable(state, plain(ai[c["question"]])), "ai": True, "evidence": []})
     actions.sort(key=lambda a: a["n"])
     covered = {a["n"] for a in actions}
     none, open_ = {}, []
@@ -199,9 +269,9 @@ def plan_actions(state: dict, view: dict, cs: list[dict]) -> dict:
 
 
 def actions_md(cs: list[dict], plan: dict) -> list[str]:
-    q = {c["n"]: c for c in cs}
-    L = [f"{i}. {a['text']} *(question {a['n']})*" for i, a in enumerate(plan["actions"], 1)]
-    L += [f"- No action suggested for question {n}: {reason}" for n, reason in sorted(plan["none"].items())]
+    num = {c["n"]: c["num"] for c in cs}
+    L = [f"{i}. {a['text']}" + (f" *(question {num[a['n']]})*" if num.get(a["n"]) else "") for i, a in enumerate(plan["actions"], 1)]      # an action question has no number: its actions carry no tag
+    L += [f"- No action suggested for question {num[n]}: {reason}" for n, reason in sorted(plan["none"].items()) if num.get(n)]
     return L or ["- No action suggested: no goal question has a finding with a medium or larger effect to act on."]
 
 
@@ -217,7 +287,7 @@ def tiles(state: dict, view: dict) -> list[tuple[str, str]]:
         label = m["label"]
         return (0 if target and target in label else 1 if summary.mentions(label.replace("Total ", ""), goal) else 2)
     kpis = sorted(kpis, key=rank)
-    out = [(m["label"], m["value"]) for m in kpis[:TILES_MAX - 2]]
+    out = [(readable(state, m["label"]), m["value"]) for m in kpis[:TILES_MAX - 2]]
     if period:
         out.append((period["label"], period["value"]))
     prof = state.get("profile") or {}

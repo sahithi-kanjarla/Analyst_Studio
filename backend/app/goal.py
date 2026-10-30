@@ -39,12 +39,13 @@ def answer(state: dict) -> dict | None:
     basis = f"{st.get('periods', 0)} {unit}s"
     d = polmod.direction(target, state.get("polarity"))
     verdict = "" if d == polmod.NEUTRAL else f" This is {'favourable' if (d == polmod.HIGHER) == up else 'worrying'}, as {'higher' if d == polmod.HIGHER else 'lower'} is better for {target}."
+    fell = wording.trend_falls_steeply(st)
     if sig and up:
         sentence = f"Yes, {target} is growing: it rose about {wording.trend_size(st, target, state, fmt=_fmt)} over the period, a statistically significant upward trend ({_p(st.get('p'))}, {basis}).{verdict}"
     elif sig:
-        sentence = f"No, {target} is falling: it fell about {wording.trend_size(st, target, state, fmt=_fmt)} over the period, a statistically significant downward trend ({_p(st.get('p'))}, {basis}).{verdict}"
+        sentence = f"No, {target} is falling: it {'is ' if fell else 'fell about '}{wording.trend_size(st, target, state, fmt=_fmt)} over the period, a statistically significant downward trend ({_p(st.get('p'))}, {basis}).{verdict}"
     else:
-        sentence = f"There is no reliable growth trend in {target}: it changed about {wording.trend_size(st, target, state, signed=True, fmt=_fmt)} over the period, which is not statistically significant ({_p(st.get('p'))}, {basis})."
+        sentence = f"There is no reliable growth trend in {target}: it {'is ' if fell else 'changed about '}{wording.trend_size(st, target, state, signed=True, fmt=_fmt)} over the period, which is not statistically significant ({_p(st.get('p'))}, {basis})."
     groups = ""
     if seg is not None:
         g = seg["stats"]

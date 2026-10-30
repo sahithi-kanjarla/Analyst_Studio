@@ -261,7 +261,8 @@ def _narrative(f: dict, ctx: dict, pol: dict | None = None, cols: list[str] | No
         pv = polarity(target, pol)
         good = up != (pv == "bad")
         verdict = "a favourable" if good else "a worrying"
-        h = (f"{target} is trending {'up' if up else 'down'} ({rel:+.0%} over the period)" if sig else f"No reliable trend in {target} over time")
+        move = wording.trend_size(st, target, {}, signed=True, fmt=_fmt) if wording.trend_falls_steeply(st) else f"{rel:+.0%}"
+        h = (f"{target} is trending {'up' if up else 'down'} ({move} over the period)" if sig else f"No reliable trend in {target} over time")
         why = ((f"This is {verdict} movement that is unlikely to be random: it deserves an owner and an explanation rather than a wait-and-see." if pv != "neutral"
                 else f"This movement is unlikely to be random. Whether it is good or bad depends on what {target} means for the business, but it deserves an owner and an explanation.") if sig
                else f"{target} has been broadly flat or too noisy to call a direction, so changes in it should not be read as trends yet.")
@@ -497,6 +498,17 @@ def mapped_roles(brief: dict | None) -> str:
     return " ".join([r for r in (b.get("roles") or {}).values() if r not in ("id", "text")] + [k for k, c in (b.get("kpis") or {}).items() if c]).lower()
 
 
+def kpi_served(state: dict, kpi: str) -> bool:
+    """True when a goal term that shares a word with the KPI is mapped (data understanding record) to a column the plan uses: the plan's target, a derived measure's parts or a relevant column.
+    The KPI is then measured, under another column name, and is not 'not found'."""
+    rec, plan = state.get("understanding"), state.get("plan") or {}
+    used = {plan.get("target"), *(plan.get("relevant_columns") or [])} | {c for d in plan.get("derived") or [] for c in (d["name"], d["a"], d["b"])}
+    kt = ctxmod.kpi_tokens({"kpis": [kpi]})
+    if not kt or not rec or rec.get("source") != "llm":
+        return False
+    return any(kt & ctxmod.tokens(term) and set(cols) & used for term, cols in (rec.get("goal_columns") or {}).items())
+
+
 def data_gaps(state: dict) -> list[dict]:
     ctx, plan, prof = state.get("context") or {}, state["plan"], state["profile"]
     names = [c["name"] for c in prof["columns"]]
@@ -504,7 +516,7 @@ def data_gaps(state: dict) -> list[dict]:
     have = mapped_roles(state.get("brief"))      # a kind of data the brief's role map has a column for is never reported missing
     gaps: list[dict] = []
     for k in ctx.get("kpis", []):
-        if kpi_found(state.get("brief"), k) or any(d.get("kpi") == k for d in (state.get("derived_metrics") or {}).get("created", [])):
+        if kpi_found(state.get("brief"), k) or any(d.get("kpi") == k for d in (state.get("derived_metrics") or {}).get("created", [])) or kpi_served(state, k):
             continue
         kt = ctxmod.kpi_tokens({"kpis": [k]})
         if kt and not any(kt & ctxmod.tokens(re.sub(r"([a-z])([A-Z])", r"\1 \2", n).replace("_", " ")) for n in names):

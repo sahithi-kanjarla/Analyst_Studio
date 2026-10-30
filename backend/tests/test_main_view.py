@@ -172,11 +172,12 @@ def test_rules_only_mode_makes_no_extra_ai_call_and_still_says_why():
     assert "No action suggested for question 1: " in todo and "No action suggested for question 2: " in todo
 
 
-def test_an_action_question_is_answered_by_the_actions_not_by_a_second_copy_of_them():
+def test_an_action_question_has_no_answer_card_only_the_what_to_do_section():
     st = state_with()
     st["goal"] = f"{Q1} What should we do?"
     st["summary_facts"].pop("picks")                                               # the picks are made from the new goal
     main = main_of(render(st))
-    card = main.split("**2. What should we do?**")[1].split("[details]")[0]
-    assert "Answered under 'What to do' below." in card and "Not answered" not in card
-    assert "Trust: **" in main.split("**2. What should we do?**")[1]
+    assert "What should we do?" not in main.split("### What to do")[0]             # no card, no 'Answered under...' stub, no details link for it
+    assert "Answered under" not in main and "[details](#answer-q2)" not in main and "**1. " + Q1 + "**" in main
+    todo = what_to_do(main)
+    assert re.search(r"^1\. ", todo, re.M) and "*(question 2)*" not in todo        # its actions are listed without a question tag

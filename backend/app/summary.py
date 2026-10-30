@@ -326,20 +326,21 @@ def _growth_fact(df, state: dict, group: str, measure: str, date: str, n: int) -
         if all(len(x) >= MIN_SUB_PERIODS for x in subs):
             pv = stats.ttest_ind(subs[0], subs[1], equal_var=False).pvalue
             p_adj = min(1.0, (1.0 if np.isnan(pv) else float(pv)) * k)
-        pct_ok = a > 0 and a >= wording.NEAR_ZERO * mean_first          # a start at or near zero, or below it, makes a percentage meaningless
-        rows.append({"group": str(g), "first": a, "last": b, "change": b - a, "pct": (b - a) / a if pct_ok else None, "p_adjusted": p_adj, "reliable": bool(p_adj is not None and p_adj < 0.05)})
+        pct_ok = a > 0 and b >= 0 and a >= wording.NEAR_ZERO * mean_first          # a start at or near zero, or below it, or an end below zero, makes a percentage meaningless
+        rows.append({"group": str(g), "first": a, "last": b, "change": b - a, "pct": (b - a) / a if pct_ok else None, "steep": bool(a > 0 and b < 0), "p_adjusted": p_adj, "reliable": bool(p_adj is not None and p_adj < 0.05)})
     rows.sort(key=lambda x: -x["change"])
     parts = []
     for x in rows:
         move = f"from {full(x['first'], cur)} to {full(x['last'], cur)}"
         ch = (f"{x['pct']:+.1%} ({move})" if x["pct"] is not None
+              else f"falling steeply ({move})" if x["steep"]
               else f"{'+' if x['change'] >= 0 else '-'}{full(abs(x['change']), cur)} ({move})")
         x["line"] = f"{wording.entity(group, x['group'])} {ch}, {'statistically reliable' if x['reliable'] else 'not statistically reliable'}"
         parts.append(x["line"])
     big = max(rows, key=lambda x: abs(x["change"]))
     move = f"{short(big['first'], cur)} to {short(big['last'], cur)}"
     brief = (f"Biggest change in {measure} by {group}, {first} vs {last}: {wording.entity(group, big['group'])} "
-             + (f"{big['pct']:+.0%}" if big["pct"] is not None else f"{'+' if big['change'] >= 0 else '-'}{short(abs(big['change']), cur)}") + f" ({move}), {'statistically reliable' if big['reliable'] else 'not statistically reliable'}")
+             + (f"{big['pct']:+.0%}" if big["pct"] is not None else "falling steeply" if big["steep"] else f"{'+' if big['change'] >= 0 else '-'}{short(abs(big['change']), cur)}") + f" ({move}), {'statistically reliable' if big['reliable'] else 'not statistically reliable'}")
     head = f"Growth in total {measure} by {group}, {first} vs {last} (first and last full periods): "
     tail = f". Reliability is a Welch test on {sub_word}ly totals, corrected for {k} groups."
     text = head + "; ".join(parts) + tail

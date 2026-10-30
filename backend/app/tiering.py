@@ -96,6 +96,8 @@ def scrub_change(f: dict, text: str, state: dict) -> str:
     if wording.pct_change_ok(st, target, state):
         return text
     size = wording.trend_size(st, target, state, signed=True, fmt=_fmt)
+    if wording.trend_falls_steeply(st):
+        return ABOUT_PCT.sub(lambda m: f"{size}{m.group(2)}", text)
     return ABOUT_PCT.sub(lambda m: f"a fitted change of {size}{m.group(2)}", text)
 
 

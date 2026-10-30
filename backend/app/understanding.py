@@ -23,19 +23,20 @@ MAX_RETRIES = 2
 MAX_COLUMNS = 120          # a wider table is not sent: the reply would not fit
 MAX_TERMS = 20
 REASON_CHARS = 110
+DISPLAY_CHARS = 40
 NONE = "none"
 
 SYSTEM = """You are a data analyst reading a FACT SHEET about each column of a table (type, distinct and missing counts, the most and least common values, quartiles, date range), the user's GOAL and a short business description. You never see raw rows.
 Write the data understanding record that every later step will read.
 
 columns: one entry for EVERY column of the table, each exactly once (the sheet's "omitted" columns too), as {"column": <name exactly as written>, "meaning": <one short line: what a value of this column is>,
-"role": one of measure|category|date|id|flag|free_text|other, "goal_terms": [the words of the goal this column answers, or an empty list], "expected": <optional one line, only when something odd is normal, for example many blanks that are expected>}.
+"role": one of measure|category|date|id|flag|free_text|other, "display_name": <a short readable name for a report, 1-3 words, capitalised like a label, no underscores>, "goal_terms": [the words of the goal this column answers, or an empty list], "expected": <optional one line, only when something odd is normal, for example many blanks that are expected>}.
 role: measure (a quantity you can add or average), category (a group to split by), date, id (labels a row or an entity, including codes), flag (yes/no), free_text, other.
 goal_columns: every noun or term in the goal that points at data, mapped to the column(s) holding it, as {"<term as written in the goal>": ["<column>", ...] or "none"}. A plural or a different wording still maps (a goal word "states" can be a column called ship-state).
 Use "none" only when no column holds that term. Do not list verbs or filler words.
 goal_term_kinds: for every term in goal_columns, "data" when it refers to data (a column, a group, a measure or a time period) or "descriptive" when it only describes the question (a word such as best, worst, where or how much). Descriptive terms are ignored.
 Use only the column names given, exactly as written. Never write a number.
-Return JSON: {"columns": [{"column": str, "meaning": str, "role": str, "goal_terms": [str], "expected": str}], "goal_columns": {"<term>": [str] | "none"}, "goal_term_kinds": {"<term>": "data" | "descriptive"}}"""
+Return JSON: {"columns": [{"column": str, "meaning": str, "role": str, "display_name": str, "goal_terms": [str], "expected": str}], "goal_columns": {"<term>": [str] | "none"}, "goal_term_kinds": {"<term>": "data" | "descriptive"}}"""
 
 
 def build_view(sheet: dict, goal: str, ctx: dict | None) -> str:
@@ -80,8 +81,9 @@ def validate(obj, columns: list[str]) -> tuple[dict | None, list[str]]:
         if not isinstance(terms, list) or any(not isinstance(t, str) for t in terms):
             errors.append(f"column '{name}': goal_terms must be a list of words")
             terms = []
-        exp = row.get("expected")
-        cols[name] = {"meaning": " ".join(str(meaning or "").split())[:200], "role": row.get("role"), "goal_terms": [t.strip() for t in terms if t.strip()][:MAX_TERMS],
+        exp, shown = row.get("expected"), row.get("display_name")
+        shown = " ".join(shown.split())[:DISPLAY_CHARS] if isinstance(shown, str) and re.search(r"[A-Za-z]", shown) and "_" not in shown else ""      # a name that still has an underscore is not readable: the code makes one
+        cols[name] = {**({"display_name": shown} if shown else {}), "meaning": " ".join(str(meaning or "").split())[:200], "role": row.get("role"), "goal_terms": [t.strip() for t in terms if t.strip()][:MAX_TERMS],
                       **({"expected": " ".join(exp.split())[:200]} if isinstance(exp, str) and exp.strip() else {})}
     missing = [c for c in columns if c not in seen]
     if missing:
@@ -190,6 +192,51 @@ def columns_for_text(rec: dict | None, text: str) -> list[str]:
         return []
     tw = _words(text)
     return list(dict.fromkeys(c for term, cs in rec["goal_columns"].items() if (w := _words(term)) and w <= tw for c in cs))
+
+
+# ---------------------------------------------------------------- readable names for the main view
+def readable_name(name: str) -> str:
+    """'profit_to_amount_ratio' -> 'Profit to amount ratio': the code's own readable name when the record has none."""
+    text = re.sub(r"\s+", " ", re.sub(r"[_\-]+", " ", re.sub(r"([a-z0-9])([A-Z])", r"\1 \2", str(name)))).strip()
+    return text[:1].upper() + text[1:].lower() if text else str(name)
+
+
+def derived_display(d: dict) -> str:
+    """A derived measure is named after the KPI the user wrote ('profit margin' -> 'Profit margin'); without one, after its name."""
+    kpi = " ".join(str(d.get("kpi") or "").split())
+    return kpi[:1].upper() + kpi[1:] if kpi else readable_name(d["name"])
+
+
+def with_derived(rec: dict | None, derived: list[dict]) -> dict | None:
+    """The record with a short display name for every derived measure (made after the record was written)."""
+    if not rec or not derived:
+        return rec
+    return {**rec, "derived": {**(rec.get("derived") or {}), **{d["name"]: derived_display(d) for d in derived}}}
+
+
+def display_names(state: dict) -> dict[str, str]:
+    """{internal name: readable name} for every column and derived measure whose name is not readable as it is (underscores, camelCase). Names that already read well are left alone."""
+    rec = state.get("understanding") or {}
+    plan = state.get("plan") or {}
+    dm = list(plan.get("derived") or []) + list((state.get("derived_metrics") or {}).get("created") or [])
+    names = [c["name"] for c in (state.get("profile") or {}).get("columns", [])] + [d["name"] for d in dm]
+    out = {}
+    for n in names:
+        if not re.search(r"_|[a-z0-9][A-Z]", n):
+            continue
+        d = next((x for x in dm if x["name"] == n), None)
+        out[n] = ((rec.get("derived") or {}).get(n) or (derived_display(d) if d else "")
+                  or ((rec.get("columns") or {}).get(n) or {}).get("display_name") or readable_name(n))
+    return out
+
+
+def readable(text: str, state: dict) -> str:
+    """The text with every internal column or derived-measure name replaced by its display name (one pass, so a display name is never replaced again). Main view only: the details keep the internal names."""
+    names = display_names(state)
+    if not names or not text:
+        return text
+    rx = re.compile(r"(?<![A-Za-z0-9_])(" + "|".join(re.escape(n) for n in sorted(names, key=len, reverse=True)) + r")(?![A-Za-z0-9_])")
+    return rx.sub(lambda m: names[m.group(1)], text)
 
 
 def unmapped_lines(rec: dict | None) -> list[str]:
