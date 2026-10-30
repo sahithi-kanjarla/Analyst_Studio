@@ -13,6 +13,7 @@ from fastapi.staticfiles import StaticFiles
 from .config import ALLOWED_EXT, FRONTEND_DIST, MAX_FILES, MAX_ROWS, MAX_UPLOAD_MB, RUNS_DIR
 from . import clarify, glossary, tiering
 from .profiler import count_delimited_rows, too_many_rows_message
+from . import ask
 from .context import normalise_context
 from .dashboard import build_dashboard, list_sources, source_path, valid_source
 from .events import get_events
@@ -49,7 +50,7 @@ def open_demo():
 @app.get("/api/health")
 def health():
     _, label = get_llm()
-    return {"status": "ok", "llm": label}
+    return {"status": "ok", "llm": label, "chatbot": ask.enabled()}
 
 
 @app.post("/api/runs")
@@ -396,6 +397,27 @@ async def stream_events(run_id: str):
             await asyncio.sleep(0.4)
 
     return StreamingResponse(gen(), media_type="text/event-stream", headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
+
+class AskIn(BaseModel):
+    question: str = Field(min_length=1, max_length=300)
+
+
+@app.post("/api/runs/{run_id}/ask")
+def ask_report(run_id: str, body: AskIn):
+    """'Ask about this report', only when CHATBOT=on. The AI picks one operation; code computes and draws the answer."""
+    if not ask.enabled():
+        raise HTTPException(404, "Not found")
+    _check_id(run_id)
+    if is_demo(run_id):
+        raise HTTPException(403, "The sample run makes no AI calls, so questions are not available on it.")
+    res = run_dir(run_id) / "result.json"
+    if (read_status(run_id) or {}).get("status") != "done" or not res.exists():
+        raise HTTPException(409, "Questions can be asked once the report is ready.")
+    out = ask.answer(run_dir(run_id), json.loads(res.read_text(encoding="utf-8")), body.question)
+    if out.get("chart"):
+        out["chart_url"] = f"/api/runs/{run_id}/files/{out['chart']}"
+    return out
 
 
 @app.get("/api/runs/{run_id}/files/{path:path}")

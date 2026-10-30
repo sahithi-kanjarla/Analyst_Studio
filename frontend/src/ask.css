@@ -1,0 +1,10 @@
+/* 'Ask about this report' box on the report tab (only when CHATBOT=on). */
+.ask { margin: var(--sp-5) 0; padding: var(--sp-5); border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); }
+.ask h3 { font-size: var(--fs-3); margin: 0 0 var(--sp-3); }
+.ask-form { display: flex; gap: var(--sp-2); flex-wrap: wrap; }
+.ask-form input { flex: 1 1 260px; min-width: 0; font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: var(--sp-3) var(--sp-4); }
+.ask-answer { margin-top: var(--sp-4); display: grid; gap: var(--sp-3); }
+.ask-answer p { margin: 0; }
+.ask-chart { max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+.ask-suggest { display: flex; flex-wrap: wrap; gap: var(--sp-2); align-items: center; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

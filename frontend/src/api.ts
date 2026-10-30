@@ -386,7 +386,7 @@ export const DEMO_RUN_ID = "5a1e5d3e0001";
 export const isDemo = (id: string) => id === DEMO_RUN_ID;
 
 export const api = {
-  health: () => fetch("/api/health").then((r) => json<{ status: string; llm: string }>(r)),
+  health: () => fetch("/api/health").then((r) => json<{ status: string; llm: string; chatbot?: boolean }>(r)),
   listRuns: () => fetch("/api/runs").then((r) => json<RunSummary[]>(r)),
   getRun: (id: string) => fetch(`/api/runs/${id}`).then((r) => json<RunResult>(r)),
   createRun: (files: File[], goal: string, ctx?: BusinessContextInput) => {
@@ -400,6 +400,8 @@ export const api = {
     }
     return fetch("/api/runs", { method: "POST", body: fd }).then((r) => json<{ run_id: string }>(r));
   },
+  askReport: (id: string, question: string) =>
+    fetch(`/api/runs/${id}/ask`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question }) }).then((r) => json<{ status: "answered" | "no_fit" | "unavailable"; text: string; rows?: (string | number)[][]; chart_url?: string; suggestions: string[] }>(r)),
   openDemo: () => fetch("/api/demo", { method: "POST" }).then((r) => json<{ run_id: string; read_only: boolean }>(r)),
   removeDerived: (id: string, names: string[]) =>
     fetch(`/api/runs/${id}/remove-derived`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ names }) }).then((r) => json<{ run_id: string }>(r)),

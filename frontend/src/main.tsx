@@ -7,6 +7,7 @@ import "./landing.css";
 import "./responsive.css";
 import "./tokens.css";
 import "./print.css";
+import "./ask.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

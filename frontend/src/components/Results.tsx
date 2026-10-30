@@ -12,6 +12,7 @@ import InsightCard from "./InsightCard";
 import Tiers from "./Tiers";
 import StrategyView from "./StrategyView";
 import PrintPanel from "./PrintPanel";
+import AskReport from "./AskReport";
 
 type Tab = "dashboard" | "report" | "insights" | "strategy" | "data" | "model" | "cleaning" | "plan" | "powerbi";
 const TABS: { id: Tab; label: string }[] = [
@@ -94,6 +95,7 @@ export default function Results({ run }: { run: RunResult }) {
       {tab === "report" && (
         <>
           <PrintPanel run={run} />
+          <AskReport run={run} />
           <ReportBody md={run.report_md ?? ""} />
         </>
       )}
