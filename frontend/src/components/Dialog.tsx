@@ -3,7 +3,7 @@ import { ReactNode, useEffect, useRef } from "react";
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 /** A centred dialog on a desktop and a full-screen sheet on a phone. Closes on Escape or the Close button; focus stays inside while it is open. */
-export default function Dialog({ title, intro, onClose, children }: { title: string; intro?: string; onClose: () => void; children: ReactNode }) {
+export default function Dialog({ title, intro, onClose, children, wide = false }: { title: string; intro?: string; onClose: () => void; children: ReactNode; wide?: boolean }) {
   const box = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const before = document.activeElement as HTMLElement | null;
@@ -28,7 +28,7 @@ export default function Dialog({ title, intro, onClose, children }: { title: str
   }, [onClose]);
   return (
     <div className="dialog-back" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title" ref={box}>
+      <div className={`dialog ${wide ? "dialog-wide" : ""}`} role="dialog" aria-modal="true" aria-labelledby="dialog-title" ref={box}>
         <div className="dialog-head">
           <div>
             <h2 id="dialog-title">{title}</h2>

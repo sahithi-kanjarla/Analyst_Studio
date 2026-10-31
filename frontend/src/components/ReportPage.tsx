@@ -1,6 +1,7 @@
-import { useState } from "react";
 import { RunResult } from "../api";
-import ChatPanel from "./ChatPanel";
+import LensChat from "./lens/LensChat";
+import { LensProvider } from "./lens/LensContext";
+import LensPins from "./lens/LensPins";
 import Md from "./Md";
 import PrintPanel from "./PrintPanel";
 import { ReportBody } from "./Results";
@@ -20,12 +21,12 @@ const meaning = (caption: string) => caption.replace(/^How to read this:\s*/i, "
 /** The report as a designed page: the short answer, the key figures, what to do, the evidence, and everything else folded away. */
 export default function ReportPage({ run, embedded = false, startChat = false, startPrint = false }: { run: RunResult; embedded?: boolean; startChat?: boolean; startPrint?: boolean }) {
   const page = run.report_view?.page;
-  const [chat, setChat] = useState(startChat);
   if (!page) {
     return (
       <>
         <div className="rp-actions no-print"><PrintPanel run={run} /></div>
         <ReportBody md={run.report_md ?? ""} />
+        <LensPins target="report" />
       </>
     );
   }
@@ -35,7 +36,7 @@ export default function ReportPage({ run, embedded = false, startChat = false, s
   const rows = run.profile?.rows;
   const cols = run.profile?.cols;
   return (
-    <div className={`report-layout ${chat ? "with-chat" : ""} ${embedded ? "embedded" : ""}`}>
+    <div className={`report-layout ${startChat ? "with-chat" : ""} ${embedded ? "embedded" : ""}`}>
       <article className="report-page" aria-label="Report">
         <header className="rp-head">
           <div>
@@ -47,7 +48,6 @@ export default function ReportPage({ run, embedded = false, startChat = false, s
           </div>
           <div className="rp-buttons no-print">
             <PrintPanel run={run} startOpen={startPrint} />
-            <button className="btn" aria-expanded={chat} onClick={() => setChat((v) => !v)}>Ask about this report</button>
           </div>
         </header>
 
@@ -112,6 +112,8 @@ export default function ReportPage({ run, embedded = false, startChat = false, s
           </section>
         )}
 
+        <LensPins target="report" />
+
         <section className="rp-section behind" aria-labelledby="rp-behind">
           <h2 id="rp-behind">Behind the numbers</h2>
           <p className="muted read">Everything we worked out to get here: how the data was set up, what we cleaned, how things were calculated. Open any part you want to check.</p>
@@ -124,7 +126,11 @@ export default function ReportPage({ run, embedded = false, startChat = false, s
           <span>Made by Analyst Studio on {page.date}</span>
         </footer>
       </article>
-      {chat && <ChatPanel runId={run.run_id} onClose={() => setChat(false)} embedded={embedded} />}
+      {startChat && (
+        <aside className="lens-embedded no-print" aria-label="Lens, ask your data">
+          <LensProvider runId={run.run_id}><LensChat variant="embedded" /></LensProvider>
+        </aside>
+      )}
     </div>
   );
 }

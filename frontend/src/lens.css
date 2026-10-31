@@ -1,0 +1,80 @@
+/* Lens: the round button, the right-hand panel (a bottom sheet on a phone), the full-width Chat tab and the pinned section. Tokens only. */
+:root { --lens-w: 420px; }
+
+.lens-fab { position: fixed; right: 20px; bottom: 20px; z-index: 70; width: 64px; height: 64px; border-radius: 50%; border: 0; cursor: pointer; background: var(--brand); color: var(--brand-ink);
+  box-shadow: var(--shadow); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; font: inherit; font-size: 11px; font-weight: 700; letter-spacing: .02em; transition: transform .15s var(--ease); }
+.lens-fab:hover { transform: scale(1.06); }
+.lens-fab-on { outline: 3px solid color-mix(in srgb, var(--brand) 30%, transparent); }
+
+.lens-panel { position: fixed; top: 0; right: 0; bottom: 0; width: var(--lens-w); z-index: 65; background: var(--card); border-left: var(--border); box-shadow: var(--shadow); display: flex; flex-direction: column; }
+.lens-head { display: flex; justify-content: space-between; align-items: center; gap: var(--sp-3); padding: var(--sp-3) var(--sp-4); border-bottom: var(--border); }
+.lens-head h2 { margin: 0; font-size: var(--fs-3); }
+.lens-head p { margin: 0; font-size: var(--fs-1); }
+.lens-head-actions { display: flex; gap: var(--sp-1); }
+
+/* the report stays readable beside the panel */
+@media (min-width: 901px) {
+  body.lens-docked { padding-right: var(--lens-w); }
+  body.lens-docked .lens-fab { right: calc(var(--lens-w) + 20px); }
+}
+@media (max-width: 900px) and (min-width: 721px) {
+  :root { --lens-w: 360px; }
+  body.lens-docked { padding-right: var(--lens-w); }
+  body.lens-docked .lens-fab { right: calc(var(--lens-w) + 12px); }
+}
+@media (max-width: 720px) {
+  .lens-panel { top: auto; left: 0; right: 0; width: auto; height: 78vh; border-left: 0; border-top: var(--border); border-radius: 16px 16px 0 0; }
+  body.lens-docked .lens-fab { display: none; }
+  .lens-fab { right: 14px; bottom: 14px; width: 56px; height: 56px; }
+}
+
+.lens-chat { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.lens-chat-tab { height: min(78vh, 860px); border: var(--border); border-radius: var(--radius); background: var(--card); }
+.lens-chat-tab .lens-list { padding: var(--sp-5); }
+.lens-chat-tab .lens-msg.lens-bot { max-width: 880px; }
+.lens-embedded { position: sticky; top: var(--sp-4); height: min(640px, calc(100vh - 2 * var(--sp-4))); display: flex; flex-direction: column; background: var(--card); border: var(--border); border-radius: var(--radius); overflow: hidden; }
+.lens-list { flex: 1; overflow: auto; position: relative; padding: var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-3); }
+.lens-empty p { margin: 0 0 var(--sp-2); font-size: var(--fs-2); }
+.lens-msg { padding: var(--sp-3) var(--sp-4); border-radius: var(--radius); font-size: var(--fs-2); }
+.lens-me { margin: var(--sp-3) 0 var(--sp-2) auto; width: fit-content; max-width: 90%; background: var(--brand); color: var(--brand-ink); }
+.lens-bot { background: var(--bg); border: var(--border); display: grid; gap: var(--sp-2); }
+.lens-bot p { margin: 0; }
+.lens-no_fit, .lens-limit, .lens-unavailable { border-color: color-mix(in srgb, var(--warn) 35%, var(--line)); background: var(--warn-bg); }
+.lens-text { line-height: 1.45; }
+.lens-small { font-size: var(--fs-1); }
+.lens-label { display: inline-block; font-size: var(--fs-1); font-weight: 600; color: var(--muted); margin-right: var(--sp-2); }
+.lens-pic { display: block; width: 100%; padding: 0; border: 0; background: #fff; border-radius: 8px; cursor: zoom-in; }
+.lens-pic:disabled { cursor: default; }
+.lens-pic img, .lens-pin img, .lens-big { width: 100%; height: auto; display: block; border-radius: 8px; background: #fff; }
+.lens-chat-tab .lens-pic img { max-height: 440px; width: auto; max-width: 100%; margin: 0 auto; }
+.lens-big { margin-bottom: var(--sp-4); border: var(--border); }
+.lens-table-wrap { overflow-x: auto; }
+.lens-table { font-size: var(--fs-1); width: 100%; }
+.lens-details { border-top: var(--border); padding-top: var(--sp-2); font-size: var(--fs-1); }
+.lens-details summary { cursor: pointer; font-weight: 600; }
+.lens-how ul { margin: var(--sp-2) 0; padding-left: 18px; }
+.lens-how .lens-sub { list-style: circle; color: var(--muted); }
+.lens-controls { display: grid; gap: var(--sp-2); margin-top: var(--sp-2); }
+.lens-controls .chip, .lens-chips .chip { text-align: left; }
+.lens-chat .chip-on { border-color: var(--brand); color: var(--brand); background: color-mix(in srgb, var(--brand) 10%, transparent); }
+.lens-chat .chip { color: var(--ink); }
+.lens-chips { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.lens-next { display: grid; gap: var(--sp-1); border-top: var(--border); padding-top: var(--sp-2); }
+.lens-tools { display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-4); font-size: var(--fs-1); }
+.lens-tools a.link { text-decoration: none; }
+.lens-tools .link[aria-pressed="true"] { font-weight: 700; }
+.lens-input { display: flex; gap: var(--sp-2); padding: var(--sp-3) var(--sp-4); border-top: var(--border); }
+.lens-input input { flex: 1; min-width: 0; font: inherit; font-size: var(--fs-2); color: var(--ink); background: var(--bg); border: var(--border); border-radius: 999px; padding: var(--sp-2) var(--sp-4); }
+.lens-limit { margin: 0; padding: 0 var(--sp-4) var(--sp-3); background: none; border: 0; }
+.typing { display: flex; gap: var(--sp-1); align-items: center; width: fit-content; }
+.typing i { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); animation: blink 1s infinite; }
+.typing i:nth-child(2) { animation-delay: .15s; } .typing i:nth-child(3) { animation-delay: .3s; }
+@keyframes blink { 0%, 80%, 100% { opacity: .25; } 40% { opacity: 1; } }
+
+.dialog.dialog-wide { width: min(1040px, 100%); }
+.lens-pins { margin-top: var(--sp-6); padding-top: var(--sp-5); border-top: var(--border); }
+.lens-pins h3 { font-size: var(--fs-3); margin: 0 0 var(--sp-2); }
+.lens-pin { margin: 0; display: grid; gap: var(--sp-2); align-content: start; }
+.lens-pin p { margin: 0; }
+@media print { .lens-fab, .lens-panel { display: none !important; } body.lens-docked { padding-right: 0 !important; } }
+.lens-pin .link { justify-self: start; }

@@ -109,17 +109,38 @@ export interface ReportPageData {
   behind_md: string;
 }
 
-export interface ChatAnswer {
-  status: "answered" | "no_fit" | "unavailable";
-  text: string;
-  rows?: (string | number)[][];
-  chart_url?: string;
-  suggestions: string[];
-  op?: string;
-  how?: { operation: string; columns: string[]; detail: string };
+export interface LensTable { columns: string[]; rows: (string | number | null)[][]; shown: string[][]; total_rows: number; truncated: boolean }
+export interface LensChart { type: string; path: string | null; url: string; note: string }
+export interface LensHow {
+  operation: string;
+  columns: { name: string; label: string; role: string }[];
+  filters: string[];
+  rows_total: number;
+  rows_used: number;
+  rows_left_out: number;
+  left_out: { reason: string; rows: number }[];
+  groups_not_shown: number;
+  notes: string[];
 }
-export interface ChatEntry { id: string; question: string; answer: ChatAnswer; pinned: boolean; at: number }
-export interface AskInfo { enabled: boolean; ai: boolean; chips: { id: string; text: string }[]; history: ChatEntry[] }
+export interface LensControls { chart_types: string[]; grains: string[]; can_top_n: boolean; chart: string }
+export interface LensChip { id: string; text: string }
+export interface LensAnswer {
+  status: "answered" | "clarify" | "no_fit" | "unavailable" | "limit";
+  text: string;
+  query?: Record<string, unknown>;
+  table?: LensTable;
+  chart?: LensChart;
+  controls?: LensControls;
+  how?: LensHow;
+  chips: LensChip[];
+  clarify?: { question: string; choices: { id: string; label: string }[] };
+  ai_calls: number;
+  source?: string;
+}
+export interface LensTurn { id: string; at: number; question: string; tab: string; answer: LensAnswer }
+export interface LensPin { id: string; turn_id: string; target: "report" | "dashboard"; title: string; text: string; table?: LensTable; chart?: LensChart; how?: LensHow; created: number }
+export interface LensInfo { enabled: boolean; ai: boolean; chips: LensChip[]; history: LensTurn[]; pins: LensPin[]; limit: { asked: number; max: number } }
+export type LensAsk = { question?: string; chip?: string; choice?: { turn: string; choice: string }; patch?: { turn: string; set: Record<string, unknown> }; tab?: string };
 
 export interface DataGap {
   severity: "warn" | "info";
@@ -432,11 +453,12 @@ export const api = {
     }
     return fetch("/api/runs", { method: "POST", body: fd }).then((r) => json<{ run_id: string }>(r));
   },
-  askInfo: (id: string) => fetch(`/api/runs/${id}/ask`).then((r) => json<AskInfo>(r)),
-  ask: (id: string, body: { question?: string; chip?: string }) =>
-    fetch(`/api/runs/${id}/ask`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }).then((r) => json<ChatEntry>(r)),
-  pin: (id: string, entry: string, pinned: boolean) =>
-    fetch(`/api/runs/${id}/ask/pin`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: entry, pinned }) }).then((r) => json<ChatEntry>(r)),
+  lensInfo: (id: string) => fetch(`/api/runs/${id}/lens`).then((r) => json<LensInfo>(r)),
+  lensAsk: (id: string, body: LensAsk) =>
+    fetch(`/api/runs/${id}/lens/ask`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }).then((r) => json<LensTurn>(r)),
+  lensPin: (id: string, turn: string, target: "report" | "dashboard") =>
+    fetch(`/api/runs/${id}/lens/pins`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ turn, target }) }).then((r) => json<LensPin>(r)),
+  lensUnpin: (id: string, pin: string) => fetch(`/api/runs/${id}/lens/pins/${pin}`, { method: "DELETE" }).then((r) => json<{ removed: string }>(r)),
   openDemo: () => fetch("/api/demo", { method: "POST" }).then((r) => json<{ run_id: string; read_only: boolean }>(r)),
   removeDerived: (id: string, names: string[]) =>
     fetch(`/api/runs/${id}/remove-derived`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ names }) }).then((r) => json<{ run_id: string }>(r)),

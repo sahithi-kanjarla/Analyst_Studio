@@ -200,14 +200,29 @@ The start page is a product page: a headline, two buttons, then a framed window 
 
 Each run also keeps `ai_usage.json`: every AI call with its stage, input and output tokens (flagged as estimated when the provider gives no count), whether it was answered from a saved result, and its time. The report's data section has one line with the totals, and `scripts/scorecard.py` prints a per-stage table.
 
-## Ask about this report
+## Lens: ask your data
 
-On the report page, **Ask about this report** opens a chat panel docked on the right (a bottom sheet on a phone), so you can read and ask at once. Above the input are 4 to 6 **suggested questions written from this report's own data** (for example "Which Segment earns the most revenue?", "Is revenue growing?", "Compare Enterprise and SMB").
+A round **Lens** button sits at the bottom right of every tab of a finished run. It opens a panel docked on the right (a bottom sheet on a phone), so the report stays readable beside it. **Expand** opens the same conversation as a full-width **Chat** tab; the two share one conversation. The conversation, its pins and the question count are saved with the run (`lens.json` in the run folder), so a reload brings them back.
 
-- A suggested question runs **without an AI model**: code maps it straight to one operation. That is why the chat works for real on the sample report, and on any report when no API key is set. Typed text is answered only when it clearly matches a suggestion; otherwise the panel offers the suggestions.
-- With an AI model, typed questions work too. The AI picks **one** operation from a closed list (top N by a measure, compare two groups, trend of a measure, share of the total, or filter then total) and its parameters. Code checks them against the run's real columns and values, runs the operation on the cleaned data and draws the chart. A question that fits none of them is said so plainly, with two questions the report can answer.
-- Every answer has a plain sentence, a small table or chart, and a **How this was calculated** toggle that names the operation and the columns. Every figure comes from code. Answers can be pinned or copied, and each run keeps its chat history (`chat.json` in the run folder).
-- `CHATBOT=auto` (default): on when an AI model is available, and always on for the sample run. `CHATBOT=on` shows it on every report; `CHATBOT=off` hides it. The sample run never calls a model, even when one is configured.
+![Lens on the sample report: the panel beside the report, with an answer, its chart and how it was calculated](docs/screenshots/lens-answer-desktop.png)
+
+**The AI chooses, code computes, every figure comes from code.** For each typed question the AI gets the data understanding record (column meanings, roles, display names, units), the date span of each date column, the name of the tab you are on and the last 6 turns, never rows and never values. It returns a structured query from a closed list: *aggregate* (sum, average, count, count distinct, with filters, group by and split by), *top or bottom N*, *share of total*, *compare two groups*, *change between two periods*, *trend over time*, *distribution* and *relationship between two measures*. Code then:
+
+1. **checks** the query: the columns exist, their roles fit the operation (nothing numeric is grouped, nothing categorical is added up), values and periods exist in the data. A value the user named ("delhi") is matched to the real value; one that is in two columns becomes a clarifying question. A query that fails is rejected with a plain sentence (the AI gets one corrected try);
+2. **runs** it on the whole cleaned table and counts every row it used or left out;
+3. **writes the sentence** from the computed numbers (each figure is recorded, so what is shown can be compared with what was computed) and **draws the chart**.
+
+The AI never writes a sentence that is shown as a result. Its only free text is a clarifying question with 2 or 3 choices (each choice is a complete query, so choosing one needs no further AI call), and, for an unsupported question, one short reason (dropped if it contains a number).
+
+- **Each answer** is one plain sentence, the chart or table inside the message, and a **How this was calculated** toggle (the operation, the columns, the filters, rows in the data / used / left out and why, groups not shown). Each chart has **Expand**, **Pin to report**, **Pin to dashboard** and **Download image**. Pins appear in a section **Added by you from Lens** on the report page or the dashboard; they are copies kept in `lens.json`, the original report is never changed, and each can be removed.
+- **Chart controls** in plain language: chart type (bar, line, stacked bar, share, histogram, scatter, table), time grain, top N, sort, filters and comparing periods. Say it ("make it monthly", "as a line", "top 5", "and for Delhi?") or use the **Change the chart** buttons under an answer; the buttons are applied by code with no AI call. A chart that does not fit the result ("scatter" for a total by city) gets a plain note and the sensible chart instead.
+- **What to ask next**: after each answer, 2 or 3 suggested questions written from this run's own columns and values, each carrying its complete query.
+- **Unsupported questions** are said plainly, with two questions that can be answered. If margin or profit is asked and the data has no cost column (and no profit or margin column), Lens says that margin can't be computed because the data has no cost column, before any AI call.
+- **No-AI mode** (the sample report, or no key): the suggested questions map straight to queries; typed text is answered only when it IS a suggestion (same words, or a typo away), otherwise the suggestions are offered. Chart controls still work.
+- **Cost**: Lens uses the same rate-limit handling and AI cache as the rest of the app, at most **2 AI calls per question** (the second only repairs a reply that was not JSON or a query that failed the checks), and a per-run cap of `LENS_MAX_QUESTIONS` (default 50) questions that use the AI. At the cap Lens says so; the suggested questions and chart controls still work. A per-day provider limit stops AI questions for ten minutes, says so, and then tries again.
+- **Flag** `CHATBOT=auto` (default): on when an AI model is available, and always on for the sample run. `CHATBOT=on` shows it on every report (suggestions only without a model); `CHATBOT=off` hides it. The sample run never calls a model, even when one is configured.
+
+The code is in `backend/app/lens/`: `context.py` (what the AI may see), `query.py` (the closed list and the checks), `engine.py` (the calculations and sentences), `render.py` (charts), `chips.py`, `chat.py` (the only place that talks to the AI), `store.py` (saved state). A new operation is one function in `engine.RUNNERS` and one entry in `query.OP_HELP`. `python scripts/lens_kaveri_check.py` asks the real model eight Kaveri questions and compares each answer with pandas (`scripts/lens_kaveri_check_out.txt`); `node scripts/lens_screenshots.js` drives the panel in a browser.
 
 ## Quick start
 
@@ -263,7 +278,7 @@ registration and a Power BI Pro licence, so it is not part of the free path).
 ## Tests
 
 ```bash
-cd backend && pytest -q        # 701 tests: pipeline, API, edge cases, multi-table joins, clarifying questions and glossary, derived metrics, report tiers, run safety, LLM failure modes (fake model, no network)
+cd backend && pytest -q        # 737 tests: pipeline, API, edge cases, multi-table joins, clarifying questions and glossary, derived metrics, report tiers, run safety, LLM failure modes (fake model, no network)
 ```
 
 **Scorecard.** `python scripts/scorecard.py [--dataset mall] [--runs N]` runs the real pipeline on a built-in test dataset (Kaveri, 3 files; or mall, 40 000 rows) and checks the report against a known answer in 12 checks. Both datasets were built for this project. Latest recorded results: Kaveri 12/12 and mall 12/12 (25 Oct 2026). See `docs/facts.md` for measured limits, timings and storage.
@@ -274,8 +289,8 @@ cd backend && pytest -q        # 701 tests: pipeline, API, edge cases, multi-tab
 backend/app/   profiler.py  relations.py  brief.py  signals.py  placeholders.py  clarify.py  directives.py  glossary.py  planner.py  derived.py  derived_check.py
                measures.py  polarity.py  retail_roles.py  cleaner.py  tools.py  critic.py  insights.py  strategy.py  summary.py  tiering.py  goal.py
                wording.py  reporter.py  powerbi.py  dashboard.py  graph.py (LangGraph)  llm.py (providers)  runner.py  events.py  main.py (FastAPI)
-backend/tests/ 701 tests        scripts/  scorecard.py  make_mall.py        docs/  facts.md  decision_points.md  flow_audit.md
-frontend/src/  App.tsx  tokens.css (colours, type and spacing: the only values new code uses)  layout.css (the grid)  components/ (StartPage = the product page, Dialog, UploadForm, QuestionForm, RunView, Results, ReportPage, ChatPanel, PrintPanel, BIDashboard, InsightCard, StrategyView, DataViewer, DataModel, Glossary, History, ...)
+backend/tests/ 737 tests        scripts/  scorecard.py  make_mall.py        docs/  facts.md  decision_points.md  flow_audit.md
+frontend/src/  App.tsx  tokens.css (colours, type and spacing: the only values new code uses)  layout.css (the grid)  components/ (StartPage = the product page, Dialog, UploadForm, QuestionForm, RunView, Results, ReportPage, lens/ (the Lens button, panel, Chat tab and pins), PrintPanel, BIDashboard, InsightCard, StrategyView, DataViewer, DataModel, Glossary, History, ...)
 sample_data/   sales.csv  churn.csv  shop/{customers,orders,products}.csv  mall/ (40 000-row scorecard dataset with truth.json)  demo/sales_run/ (the read-only sample run)
 scripts/       report_check.py  scorecard.py  landing_screenshots.js  design_notes.md  build_log.md
 ```
@@ -289,9 +304,10 @@ Everything stays on the machine running the server.
 | Your uploaded files (a copy, as received) | `backend/data/runs/<run id>/inputs/` | `RETENTION_DAYS` (30) |
 | Cleaned and joined tables, the report, charts, Power BI pack, status and timeline | `backend/data/runs/<run id>/` | `RETENTION_DAYS` (30) |
 | Answers and business context you typed | the run folder, and the company's entry in `backend/data/glossary.json` (`GLOSSARY_PATH`) | glossary: until you delete it |
+| Lens conversation, pins and question count | `backend/data/runs/<run id>/lens.json` | with the run |
 | Saved AI replies (keyed by the full prompt, model and temperature) | `backend/data/ai_cache/` (`AI_CACHE_DIR`; `AI_CACHE=off` turns it off) | until you delete the folder |
 
-If an LLM is configured, only aggregated metadata is sent to it: column names, types, summary statistics, findings and the business context you typed. Raw rows are never sent. Your business context is sent as-is, so leave out anything confidential. With no LLM configured nothing leaves the machine.
+If an LLM is configured, only aggregated metadata is sent to it: column names, types, summary statistics, findings and the business context you typed. Raw rows are never sent. Lens sends your question, the column descriptions and the date spans (no rows, no values), the tab name and the last 6 turns of the conversation; the figures in an answer are never sent. Your business context is sent as-is, so leave out anything confidential. With no LLM configured nothing leaves the machine.
 
 To delete everything, stop the server and remove `backend/data/`. To keep runs for less time, set `RETENTION_DAYS` (for example `7`); `0` keeps them forever.
 

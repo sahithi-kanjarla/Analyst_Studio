@@ -4,6 +4,8 @@ import Timeline from "./Timeline";
 import Results from "./Results";
 import AgentFlow from "./AgentFlow";
 import QuestionForm from "./QuestionForm";
+import { LensProvider } from "./lens/LensContext";
+import LensDock from "./lens/LensDock";
 
 export default function RunView({ runId }: { runId: string }) {
   const [events, setEvents] = useState<AgentEvent[]>([]);
@@ -76,7 +78,12 @@ export default function RunView({ runId }: { runId: string }) {
         )}
         {run?.status === "needs_input" && <QuestionForm runId={runId} onSubmitted={() => setAttempt((a) => a + 1)} />}
         {run?.status === "error" && <div className="error">The analysis failed: {run.error}</div>}
-        {run?.status === "done" && <Results run={run} />}
+        {run?.status === "done" && (
+          <LensProvider runId={runId}>
+            <Results run={run} />
+            <LensDock />
+          </LensProvider>
+        )}
       </section>
     </div>
   );

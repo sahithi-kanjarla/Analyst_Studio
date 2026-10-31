@@ -15,7 +15,8 @@ from fastapi.staticfiles import StaticFiles
 from .config import ALLOWED_EXT, FRONTEND_DIST, MAX_FILES, MAX_ROWS, MAX_UPLOAD_MB, RUNS_DIR
 from . import clarify, glossary, tiering
 from .profiler import count_delimited_rows, too_many_rows_message
-from . import ask
+from . import lens
+from .lens import chat as lenschat, store as lensstore
 from .context import normalise_context
 from .dashboard import build_dashboard, list_sources, source_path, valid_source
 from .events import get_events
@@ -52,7 +53,7 @@ def open_demo():
 @app.get("/api/health")
 def health():
     _, label = get_llm()
-    return {"status": "ok", "llm": label, "chatbot": ask.mode()}
+    return {"status": "ok", "llm": label, "chatbot": lens.mode()}
 
 
 @app.post("/api/runs")
@@ -408,59 +409,83 @@ async def stream_events(run_id: str):
     return StreamingResponse(gen(), media_type="text/event-stream", headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
 
 
-class AskIn(BaseModel):
+class LensAskIn(BaseModel):
     question: str = Field(default="", max_length=300)
     chip: str | None = None
+    choice: dict | None = None      # {"turn": <id of the clarifying turn>, "choice": <id of the option>}
+    patch: dict | None = None       # {"turn": <id of an answer>, "set": {"chart": "line"}}: a chart control, applied by code with no AI
+    tab: str = Field(default="", max_length=40)
 
 
-class PinIn(BaseModel):
-    id: str
-    pinned: bool
+class LensPinIn(BaseModel):
+    turn: str
+    target: str = Field(pattern="^(report|dashboard)$")
 
 
-def _chat_context(run_id: str) -> tuple[Path, dict]:
+def _lens_run(run_id: str) -> tuple[Path, dict]:
     _check_id(run_id)
-    if not ask.enabled(is_demo(run_id)):
+    if not lens.enabled(is_demo(run_id)):
         raise HTTPException(404, "Not found")
     res = run_dir(run_id) / "result.json"
-    if (read_status(run_id) or {}).get("status") != "done" or not res.exists():
+    if (read_status(run_id) or {}).get("status") != "done" or not res.exists() or not (run_dir(run_id) / "clean.pkl").exists():
         raise HTTPException(409, "Questions can be asked once the report is ready.")
     return run_dir(run_id), json.loads(res.read_text(encoding="utf-8"))
 
 
-@app.get("/api/runs/{run_id}/ask")
-def ask_info(run_id: str):
-    """Whether 'Ask about this report' is available for this run, its suggested questions and its chat history."""
+def _wire_chart(c: dict | None, run_id: str) -> dict | None:
+    return {**c, "url": f"/api/runs/{run_id}/files/{c['path']}" if c.get("path") else ""} if c else c
+
+
+def _wire_turn(t: dict, run_id: str) -> dict:
+    a = t["answer"]
+    return {**t, "answer": {**a, "chart": _wire_chart(a.get("chart"), run_id)}}
+
+
+def _wire_pin(p: dict, run_id: str) -> dict:
+    return {**p, "chart": _wire_chart(p.get("chart"), run_id)}
+
+
+@app.get("/api/runs/{run_id}/lens")
+def lens_info(run_id: str):
+    """Lens for this run: whether it is on, whether an AI model is behind it, the suggested questions, the saved conversation and the pins."""
     _check_id(run_id)
-    if not ask.enabled(is_demo(run_id)):
-        return {"enabled": False, "ai": False, "chips": [], "history": []}
-    wd, result = _chat_context(run_id)
-    return {"enabled": True, "ai": ask.ai_available() and not is_demo(run_id), "chips": ask.chips(wd, result), "history": ask.history(wd)}
+    if not lens.enabled(is_demo(run_id)):
+        return {"enabled": False, "ai": False, "chips": [], "history": [], "pins": [], "limit": {"asked": 0, "max": lens.max_questions()}}
+    wd, result = _lens_run(run_id)
+    out = lenschat.info(wd, result, is_demo(run_id))
+    return {**out, "ai": lens.ai_available() and not is_demo(run_id), "history": [_wire_turn(t, run_id) for t in out["history"]], "pins": [_wire_pin(p, run_id) for p in out["pins"]]}
 
 
-@app.post("/api/runs/{run_id}/ask")
-def ask_report(run_id: str, body: AskIn):
-    """'Ask about this report'. A suggested question runs without an AI model; free text goes to the model (never for the sample run). Code computes every figure."""
-    wd, result = _chat_context(run_id)
-    out = ask.answer(wd, result, body.question, chip=body.chip, allow_ai=not is_demo(run_id))
-    if out.get("chart"):
-        out["chart_url"] = f"/api/runs/{run_id}/files/{out['chart']}"
-    items = ask.history(wd)
-    entry = {"id": uuid.uuid4().hex[:8], "question": body.question or next((c["text"] for c in ask.chips(wd, result) if c["id"] == body.chip), ""), "answer": out, "pinned": False, "at": time.time()}
-    ask.save_history(wd, items + [entry])
-    return {**entry}
+@app.post("/api/runs/{run_id}/lens/ask")
+def lens_ask(run_id: str, body: LensAskIn):
+    """One question to Lens: a suggested question or chart control (no AI), or typed text (the AI picks a query, code checks, runs and draws it). Code computes every figure."""
+    wd, result = _lens_run(run_id)
+    demo = is_demo(run_id)
+    turn = lenschat.ask(wd, result, question=body.question, chip=body.chip, choice=body.choice, patch=body.patch, tab=body.tab,
+                        llm=None if demo else lens_llm(), allow_ai=not demo)
+    return _wire_turn(turn, run_id)
 
 
-@app.patch("/api/runs/{run_id}/ask/pin")
-def pin_answer(run_id: str, body: PinIn):
-    wd, _ = _chat_context(run_id)
-    items = ask.history(wd)
-    hit = next((e for e in items if e["id"] == body.id), None)
-    if hit is None:
-        raise HTTPException(404, "Answer not found")
-    hit["pinned"] = body.pinned
-    ask.save_history(wd, items)
-    return hit
+def lens_llm():
+    return get_llm()[0]
+
+
+@app.post("/api/runs/{run_id}/lens/pins")
+def lens_pin(run_id: str, body: LensPinIn):
+    """Pin an answer to the report page or the dashboard, in a section of its own. The report itself is not changed."""
+    wd, _ = _lens_run(run_id)
+    pin = lensstore.add_pin(wd, body.turn, body.target)
+    if pin is None:
+        raise HTTPException(404, "Only an answered question can be pinned.")
+    return _wire_pin(pin, run_id)
+
+
+@app.delete("/api/runs/{run_id}/lens/pins/{pin_id}")
+def lens_unpin(run_id: str, pin_id: str):
+    wd, _ = _lens_run(run_id)
+    if not lensstore.remove_pin(wd, pin_id):
+        raise HTTPException(404, "Pin not found")
+    return {"removed": pin_id}
 
 
 @app.get("/api/runs/{run_id}/files/{path:path}")

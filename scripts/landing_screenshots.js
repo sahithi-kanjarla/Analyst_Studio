@@ -96,13 +96,13 @@ async function set(browser, name, viewport, mobile, scheme) {
   await settle(page, 500);
   await shot("report-charts");
   await page.evaluate(() => window.scrollTo(0, 0));
-  await page.getByRole("button", { name: "Ask about this report" }).click();
-  await page.waitForSelector(".chat-chips .chip");
-  await page.locator(".chat-chips .chip").first().click();
-  await page.waitForSelector(".msg.bot img, .msg.bot p");
+  await page.locator(".lens-fab").click();         // Lens: the round button opens the panel (bottom sheet on a phone)
+  await page.waitForSelector(".lens-panel .lens-chips .chip");
+  await page.locator(".lens-panel .lens-chips .chip").first().click();
+  await page.waitForSelector(".lens-panel .lens-bot img, .lens-panel .lens-bot .lens-table");
   await settle(page, 1200);
   await shot("chat");
-  await page.getByRole("button", { name: "Close the chat" }).click();
+  await page.locator(".lens-panel").getByRole("button", { name: "Close Lens" }).click();
 
   // the Insights tab and the print view
   await page.locator("button.tab", { hasText: "Insights" }).first().click();

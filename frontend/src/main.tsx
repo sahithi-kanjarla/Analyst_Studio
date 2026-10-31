@@ -9,7 +9,7 @@ import "./tokens.css";
 import "./layout.css";
 import "./ui.css";
 import "./report.css";
-import "./chat.css";
+import "./lens.css";
 import "./print.css";
 import "./start.css";
 import "./theme.css";

@@ -83,10 +83,35 @@ cd ../frontend && npm ci && npm run build
 cd ../backend && python -m uvicorn app.main:app --port 8000
 ```
 
-Open http://127.0.0.1:8000. Press **Try with sample data**, then **Ask about this report** and pick a suggested question (no API key needed).
+Open http://127.0.0.1:8000. Press **Try with sample data**, then the round **Lens** button and pick a suggested question (no API key needed).
 
 ```bash
 python scripts/report_check.py sample_data/demo/sales_run     # the seven report rules
 cd backend && pytest tests -q                                  # the full suite
 node scripts/landing_screenshots.js docs/screenshots both     # retake the screenshots (server running)
 ```
+
+
+## Lens, Stage 1 (the chatbot over the run's whole cleaned data)
+
+Replaces the earlier five-operation "Ask about this report" (`ask.py`, `ChatPanel`). Principle kept: the AI chooses, code computes, every figure comes from code.
+
+- **Where it lives:** `backend/app/lens/` (context, query, engine, render, chips, chat, store, rules) and `frontend/src/components/lens/` (context, chat, answer, dock, pins). Saved state is `lens.json` in the run folder, versioned, with room for later stages (summaries, ranking, view edits, memory). A new operation is one function in `engine.RUNNERS` plus one entry in `query.OP_HELP`.
+- **Operations (closed list):** aggregate (sum, average, count, count distinct; filters, group by, split by), top or bottom N, share of total, compare two groups, change between two periods, trend over time (day to year), distribution, relationship between two measures. A derived ratio (for example a profit margin) is always a ratio of totals, never a sum or average of row ratios.
+- **What the AI sees:** the understanding record (meanings, roles, display names, units), date spans, the tab name, the last 6 turns. No rows and no values; code finds the real value for what the user typed, and asks which column when a value is in two.
+- **Cost:** at most 2 AI calls per question (the second only to repair), the existing rate-limit handling and AI cache, a per-run cap (`LENS_MAX_QUESTIONS`, 50), a ten-minute stop after a per-day provider limit. Suggested questions and chart-control buttons never call the AI.
+- **Decisions worth knowing:**
+  - Typed text runs a suggested question only when it is that question (same words in any order, or a typo away). A looser match ran "amount and quantity" for "amount and discount" in a test, so it was tightened.
+  - The reply's `action` label is read by what it carries: the real model once wrote `"action":"top"`; the query inside was valid, so it is run (the checks decide, not the label).
+  - The margin rule runs before any AI call: a margin or profit question with no profit or margin column and no cost column gets "Margin can't be computed because the data has no cost column." A cost column without a profit column is said plainly too (margin from a cost column is not built yet, because it is unclear whether the column is per unit or a total).
+  - Charts that do not fit a result fall back to the sensible chart with a one-line note instead of an error.
+  - Partial periods (the data ends mid-month, or a compared period is only partly covered) are said in the answer and in the calculation notes.
+  - Pins are copies in `lens.json`; `result.json` and `report.md` are never written (a test hashes both).
+- **Checks:** `backend/tests/test_lens.py` (fake AI: each operation against pandas, invalid queries, follow-up, clarifying question, chip without AI, margin rule, pins leave the report unchanged, history after reload, every shown figure equals the computed value, call limits, cap, rate limits, cache); `scripts/lens_kaveri_check.py` (real model, 8 Kaveri questions against pandas, output in `scripts/lens_kaveri_check_out.txt`); `scripts/lens_screenshots.js` (browser flow, desktop and phone).
+
+**Results at the end of Stage 1**
+
+- Full suite: 737 passed (`scripts/lens_full_suite_out.txt`; 44 of them are the new `test_lens.py`).
+- Real-AI check, 8 Kaveri questions (2 follow-ups, 2 chart controls), every answer against pandas: 8 of 8 match (`scripts/lens_kaveri_check_out.txt`, one real AI call per question). The first run on `openai/gpt-oss-120b` scored 7 of 8: the model labelled its reply `"action":"top"` and Lens refused a valid query; that is fixed and tested. The second run on 120b scored 8 of 8, and then the key's 200,000-token daily limit was used up, so the saved file and the scorecard below were produced on `openai/gpt-oss-20b` (set with `LLM_MODEL`). Lens itself reported that limit plainly ("The AI has reached its daily limit...") and made no further calls.
+- Kaveri scorecard on the same model: 12 of 12 (`scripts/scorecard_kaveri_out.txt`).
+- Note: `llm.DEFAULTS["groq"]` (`llama-3.3-70b-versatile`) is not available to this Groq organisation (404); the `.env` `LLM_MODEL` is what makes Groq work here.

@@ -1,0 +1,59 @@
+Run 076c29d62f62: 6,400 rows. Model: groq:openai/gpt-oss-20b
+
+Q1: Which city has the highest total revenue?
+   status: answered   AI calls: 1   chart: bar
+   answer: Top City by total Amount: Mumbai (10,546,886, 23.2% of the total).
+   query:  {"op": "top", "filters": [], "chart": "auto", "agg": "sum", "measure": "amount", "group_by": ["city"], "n": 1, "direction": "top"}
+   pandas: Mumbai = 10,546,885.50
+   MATCH:  YES
+
+Q2 (follow-up): And for Gold tier customers?
+   status: answered   AI calls: 1   chart: bar
+   answer: Top City by total Amount: Mumbai (4,040,393, 23.1% of the total).
+   query:  {"op": "top", "filters": [{"column": "tier", "op": "eq", "value": "Gold"}], "chart": "auto", "agg": "sum", "measure": "amount", "group_by": ["city"], "n": 1, "direction": "top"}
+   pandas: Gold only: Mumbai = 4,040,392.74
+   MATCH:  YES
+
+Q3: How has revenue changed month by month?
+   status: answered   AI calls: 1   chart: line
+   answer: Total Amount by month: from 1,428,829 in 2023-01 to 1,906,402 in 2024-12; highest in 2023-10 at 3,437,576 and lowest in 2024-08 at 1,304,947.
+   query:  {"op": "trend", "filters": [], "chart": "auto", "agg": "sum", "measure": "amount", "date": "order_date", "grain": "month", "split_by": []}
+   pandas: 24 months, first 1,428,829.01, last 1,906,401.82, peak 3,437,576.18
+   MATCH:  YES
+
+Q4 (follow-up, chart control): Show it as bars instead
+   status: answered   AI calls: 1   chart: bar
+   answer: Total Amount by month: from 1,428,829 in 2023-01 to 1,906,402 in 2024-12; highest in 2023-10 at 3,437,576 and lowest in 2024-08 at 1,304,947.
+   query:  {"op": "trend", "filters": [], "chart": "bar", "agg": "sum", "measure": "amount", "date": "order_date", "grain": "month", "split_by": []}
+   pandas: same 24 months, drawn as bars (chart type: bar)
+   MATCH:  YES
+
+Q5: What is the profit margin by category?
+   status: answered   AI calls: 1   chart: bar
+   answer: Profit margin by Category: Furniture (20.3%), Home Decor (13.7%), Clothing (7.5%), and 1 more shown.
+   query:  {"op": "aggregate", "filters": [], "chart": "auto", "agg": "ratio", "measure": "profit_to_amount_ratio", "group_by": ["category"], "split_by": [], "n": 10, "sort": {"by": "value", "dir": "desc"}}
+   pandas: Furniture 20.3%; Home Decor 13.7%; Clothing 7.5%; Electronics -5.0%
+   MATCH:  YES
+
+Q6: Compare Mumbai and Delhi on average order value
+   status: answered   AI calls: 1   chart: bar
+   answer: Average Amount: Mumbai is 6,943 against Delhi's 6,961, so Mumbai is 0.3% lower.
+   query:  {"op": "compare", "filters": [], "chart": "auto", "agg": "average", "measure": "amount", "by": "city", "a": "Mumbai", "b": "Delhi"}
+   pandas: Mumbai 6,943.31, Delhi 6,960.72
+   MATCH:  YES
+
+Q7 (chart control): What share of revenue comes from each payment mode? Show it as a share chart.
+   status: answered   AI calls: 1   chart: share
+   answer: UPI makes up 46.2% of the total Amount, followed by Card 25.3% and COD 18.3%.
+   query:  {"op": "share", "filters": [], "chart": "share", "agg": "sum", "measure": "amount", "group_by": ["payment_mode"], "n": 10}
+   pandas: UPI 46.2%; Card 25.3%; COD 18.3%; NetBanking 10.3% (chart type: share)
+   MATCH:  YES
+
+Q8 (follow-up): Now only for 2024
+   status: answered   AI calls: 1   chart: share
+   answer: UPI makes up 46.1% of the total Amount, followed by Card 26.6% and COD 18.3%.
+   query:  {"op": "share", "filters": [{"column": "order_date", "op": "period", "value": "2024"}], "chart": "share", "agg": "sum", "measure": "amount", "group_by": ["payment_mode"], "n": 10}
+   pandas: 2024 only: UPI 46.1%; Card 26.6%; COD 18.3%; NetBanking 9.0%
+   MATCH:  YES
+
+8 of 8 answers match pandas.

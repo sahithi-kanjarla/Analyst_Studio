@@ -11,8 +11,10 @@ import Tiers from "./Tiers";
 import StrategyView from "./StrategyView";
 import Md from "./Md";
 import ReportPage from "./ReportPage";
+import LensChat from "./lens/LensChat";
+import { useLens } from "./lens/LensContext";
 
-const TABS: { id: Tab; label: string }[] = (["report", "dashboard", "insights", "strategy", "data", "model", "cleaning", "plan", "powerbi"] as Tab[]).map((id) => ({ id, label: TAB_LABEL[id] }));
+const TABS: { id: Tab; label: string }[] = (["report", "dashboard", "insights", "strategy", "data", "model", "cleaning", "plan", "powerbi", "chat"] as Tab[]).map((id) => ({ id, label: TAB_LABEL[id] }));
 
 const DECISION_LABEL: Record<string, string> = {
   llm: "chosen by AI",
@@ -29,7 +31,16 @@ function summariseChosen(v: unknown): string {
 }
 
 export default function Results({ run }: { run: RunResult }) {
-  const [tab, setTab] = useState<Tab>("report");
+  const [picked, setPicked] = useState<Tab>("report");
+  const lens = useLens();
+  const tab: Tab = lens?.expanded ? "chat" : picked;       // "Expand" in the Lens panel opens the same conversation as this tab
+  const setTab = (t: Tab) => {
+    lens?.setExpanded(t === "chat");
+    if (t === "chat") lens?.setOpen(false);
+    else setPicked(t);
+  };
+  const setTabName = lens?.setTabName;
+  useEffect(() => { setTabName?.(TAB_LABEL[tab]); }, [tab, setTabName]);
   const card = useRef<HTMLDivElement>(null);
   const [full, setFull] = useState(false);
   const [review, setReview] = useState(false);
@@ -49,7 +60,7 @@ export default function Results({ run }: { run: RunResult }) {
         <a className="btn" href={api.powerbiUrl(run.run_id)}>Download Power BI pack</a>
       </div>
       <div className="tabs">
-        {TABS.filter((t) => (t.id !== "model" || run.data_model) && (t.id !== "strategy" || run.strategies?.length)).map((t) => (
+        {TABS.filter((t) => (t.id !== "model" || run.data_model) && (t.id !== "strategy" || run.strategies?.length) && (t.id !== "chat" || lens?.enabled)).map((t) => (
           <button key={t.id} className={`tab ${tab === t.id ? "tab-active" : ""}`} onClick={() => setTab(t.id)}>
             {t.label}
             {t.id === "insights" && <span className="count">{run.report_view ? run.report_view.evidence.length : (run.findings ?? []).filter((f) => f.insight).length}</span>}
@@ -61,7 +72,7 @@ export default function Results({ run }: { run: RunResult }) {
 
       {review && <AnswersReview runId={run.run_id} onClose={() => setReview(false)} />}
 
-      {tab !== "dashboard" && tab !== "report" && run.key_metrics && run.key_metrics.length > 0 && (
+      {tab !== "dashboard" && tab !== "report" && tab !== "chat" && run.key_metrics && run.key_metrics.length > 0 && (
         <div className="kpi-strip">
           {run.key_metrics.map((m) => (
             <div className="kpi" key={m.label} title={m.note}>
@@ -166,6 +177,8 @@ export function TabBody({ run, tab, embedded = false, startChat = false, startPr
   return (
     <>
       {tab === "dashboard" && <BIDashboard run={run} />}
+
+      {tab === "chat" && <LensChat variant="tab" />}
 
       {tab === "data" && <DataViewer runId={run.run_id} />}
 

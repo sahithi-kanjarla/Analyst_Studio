@@ -16,7 +16,7 @@ const STORY: { view: SampleView; title: string; text: string }[] = [
   { view: "plan", title: "It asks before it assumes", text: "When something is unclear, like two date columns or a value such as 999 that may mean “missing”, it asks you a short question. It never guesses quietly." },
   { view: "data", title: "Every figure is calculated by code", text: "The AI helps read your columns and word the report. The numbers come from code, on every row of your file, so you can check them in your own data." },
   { view: "report", title: "Only what matters", text: "You get the short answer, a few key figures and what to do. Tables, cleaning notes and settings stay folded away until you want them." },
-  { view: "ask", title: "Ask questions about your report", text: "Pick a suggested question, such as which segment earns the most. The answer, the chart and how it was worked out all come from your data." },
+  { view: "ask", title: "Ask Lens about your data", text: "Pick a suggested question, such as which segment earns the most. The answer, the chart and how it was worked out all come from your data, never from the AI." },
   { view: "print", title: "Print or save as PDF", text: "Choose what to include, add a title and a note, and pick the paper size. Charts and cards never split across two pages." },
 ];
 

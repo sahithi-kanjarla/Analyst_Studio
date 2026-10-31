@@ -1,5 +1,5 @@
 /** The app's real tabs, with plain names (two or three words that say what the tab does). Shared by the results page and the start page tour. */
-export type Tab = "dashboard" | "report" | "insights" | "strategy" | "data" | "model" | "cleaning" | "plan" | "powerbi";
+export type Tab = "dashboard" | "report" | "insights" | "strategy" | "data" | "model" | "cleaning" | "plan" | "powerbi" | "chat";
 export const TAB_LABEL: Record<Tab, string> = {
   report: "Report",
   dashboard: "Dashboard",
@@ -10,6 +10,7 @@ export const TAB_LABEL: Record<Tab, string> = {
   cleaning: "What we cleaned",
   plan: "How we analysed",
   powerbi: "Power BI export",
+  chat: "Chat",
 };
 export const TAB_LINE: Record<Tab, string> = {
   report: "A short report with the answer and what to do. Print it or save it as a PDF.",
@@ -21,4 +22,5 @@ export const TAB_LINE: Record<Tab, string> = {
   cleaning: "Every change made to your data, with the rows it touched.",
   plan: "The questions we set out to answer, and the checks we ran.",
   powerbi: "Everything you need to rebuild the charts in Power BI.",
+  chat: "Ask Lens anything about your data, in full width.",
 };
