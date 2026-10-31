@@ -1,0 +1,56 @@
+/* One look for the whole app. Loaded last: it replaces the older dark dashboard, glass header, grid backdrop and blue accents. */
+body::before, body::after { display: none; }
+.modal { -webkit-backdrop-filter: none; backdrop-filter: none; }
+.modal-card { box-shadow: var(--shadow); }
+.er-head { fill: var(--brand); }
+
+/* header: plain, on the grid, one line under it */
+.topbar { position: static; margin: 0 0 var(--sp-6); padding: var(--sp-4) 0; border: 0; border-bottom: var(--border); border-radius: 0; background: none; box-shadow: none; }
+.brand { font-weight: 650; font-size: var(--fs-3); color: var(--ink); gap: var(--sp-3); }
+.logo-mark { width: var(--sp-6); height: var(--sp-6); border-radius: 8px; box-shadow: none; }
+.topbar .topright { gap: var(--sp-1); }
+.navlink { font-size: var(--fs-2); color: var(--muted); padding: var(--sp-2) var(--sp-3); border-radius: 999px; }
+.navlink:hover, .navlink-on { background: none; color: var(--ink); }
+.navlink-on { font-weight: 600; text-decoration: underline; text-decoration-color: var(--brand); text-decoration-thickness: 2px; text-underline-offset: 8px; }
+.foot { margin-top: var(--sp-8); padding-top: var(--sp-4); font-size: var(--fs-1); }
+.shell:has(.side-closed) { max-width: calc(var(--col) + 2 * var(--gutter)); }
+
+/* results card: the tab row, light and quiet */
+.results { padding: var(--card-pad); }
+.tabs { gap: var(--sp-1); margin-bottom: var(--sp-5); border-bottom: var(--border); padding-bottom: 0; flex-wrap: wrap; }
+.tab { font-size: var(--fs-2); color: var(--muted); background: none; border: 0; border-bottom: 2px solid transparent; border-radius: 0; padding: var(--sp-2) var(--sp-3); margin-bottom: -1px; }
+.tab:hover { color: var(--ink); background: none; }
+.tab-active { color: var(--ink); font-weight: 600; border-bottom-color: var(--brand); background: none; }
+.count { font-size: var(--fs-1); background: var(--bg); color: var(--muted); border: var(--border); }
+.kpi-strip { display: none; }
+
+/* the dashboard in the same light look (it used to be a dark canvas) */
+.bi { --b-ink: var(--ink); --b-mute: var(--muted); --b-line: var(--line); --b-card: var(--card);
+  background: var(--bg); border: var(--border); border-radius: var(--radius); box-shadow: none; padding: var(--card-pad); color: var(--ink); }
+.bi::before { display: none; }
+.bi h3 { font-size: var(--fs-4); }
+.bi-card, .bi-kpi, .bi-take { border-radius: var(--radius); border: var(--border); background: var(--card); }
+.bi-kpi b { font-size: var(--fs-5); }
+.bi-kpi em { color: var(--muted); }
+.bi-card h4 { text-align: left; font-size: var(--fs-2); }
+.bi-slicer > span, .bi-take h4 { font-family: var(--font-ui); text-transform: none; letter-spacing: 0; font-size: var(--fs-1); }
+.bi-slicer select { background: var(--card); color: var(--ink); border-radius: 8px; }
+.bi-slicer select option { color: var(--ink); background: var(--card); }
+.bi-btns button.on { background: var(--brand); color: var(--brand-ink); }
+.bi-chip { background: color-mix(in srgb, var(--brand) 12%, var(--card)); color: var(--ink); border-color: color-mix(in srgb, var(--brand) 40%, var(--line)); }
+.bi-table th { text-transform: none; letter-spacing: 0; font-size: var(--fs-1); }
+.bi-table td { border-bottom: 1px solid color-mix(in srgb, var(--line) 60%, transparent); }
+.bi-table tbody tr:hover, .bi-table tr.sel { background: color-mix(in srgb, var(--brand) 9%, transparent); }
+.bi-tag { background: var(--bg); color: var(--muted); }
+.bi-tag.high { background: var(--ok-bg); color: var(--ok); } .bi-tag.medium { background: var(--warn-bg); color: var(--warn); }
+.bi-reco { color: var(--ink); }
+.c-label, .c-value, .c-axis, .bar-g text, svg text { font-family: var(--font-ui); }
+.c-label, .c-value { fill: var(--ink); } .c-axis { fill: var(--muted); }
+
+/* tables and chart titles everywhere use the UI font; no monospace */
+code, pre, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .92em; }
+.kicker, .tag, .hist-when, .files span { font-family: var(--font-ui) !important; }
+
+.results-actions { display: flex; justify-content: flex-end; align-items: center; gap: var(--sp-2); flex-wrap: wrap; margin-bottom: var(--sp-3); }
+.results-actions .btn-quiet, .results-actions .btn { min-height: 36px; font-size: var(--fs-1); }
+.side-toggle { background: none; border: 0; color: var(--muted); font-size: var(--fs-1); box-shadow: none; padding: var(--sp-2) 0; cursor: pointer; }

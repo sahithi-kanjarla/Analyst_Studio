@@ -1,0 +1,40 @@
+/* The report as a designed page. Everything sits on the 12-column grid inside the 1120px column; reading text stops at 720px. */
+.report-layout { display: block; }
+.report-layout.with-chat { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: var(--gutter); align-items: start; }
+.report-page { display: grid; gap: var(--sp-7); min-width: 0; }
+.rp-head { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--sp-5); flex-wrap: wrap; }
+.rp-title { font-size: var(--fs-5); font-weight: 650; margin: 0 0 var(--sp-2); }
+.rp-meta { margin: 0; display: flex; gap: var(--sp-3); align-items: center; flex-wrap: wrap; color: var(--muted); font-size: var(--fs-2); }
+.rp-buttons { display: flex; gap: var(--sp-2); flex-wrap: wrap; align-items: center; position: relative; }
+.rp-headline { max-width: var(--read); }
+.rp-kicker { margin: 0 0 var(--sp-2); font-size: var(--fs-1); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--brand); }
+.rp-big { margin: 0; font-size: var(--fs-4); line-height: 1.3; font-weight: 600; letter-spacing: -.01em; }
+.rp-more { margin: var(--sp-3) 0 0; color: var(--muted); font-size: var(--fs-3); }
+.rp-tiles { margin: 0; }
+.rp-tile { background: var(--card); border: var(--border); border-radius: var(--radius); padding: var(--card-pad); display: flex; flex-direction: column; justify-content: space-between; gap: var(--sp-2); min-height: 112px; }
+.rp-tile-value { font-size: var(--fs-5); font-weight: 650; letter-spacing: -.02em; line-height: 1.1; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.rp-tile-value.long { font-size: var(--fs-4); white-space: normal; }
+.with-chat .rp-tile-value { font-size: var(--fs-4); }
+.rp-tile-label { font-size: var(--fs-1); color: var(--muted); }
+.rp-section { min-width: 0; }
+.rp-section h2 { font-size: var(--fs-4); margin: 0 0 var(--sp-4); }
+.rp-todo { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--sp-3); max-width: var(--read); }
+.rp-action { display: grid; grid-template-columns: var(--sp-6) 1fr; column-gap: var(--sp-3); background: var(--card); border: var(--border); border-radius: var(--radius); padding: var(--card-pad); }
+.rp-num { width: var(--sp-6); height: var(--sp-6); border-radius: 50%; background: var(--brand); color: var(--brand-ink); display: grid; place-items: center; font-weight: 650; font-size: var(--fs-2); }
+.rp-action h3 { margin: 0 0 var(--sp-1); font-size: var(--fs-3); font-weight: 600; }
+.rp-action p { margin: 0; }
+.rp-support { margin-top: var(--sp-2) !important; font-size: var(--fs-1); color: var(--muted); }
+.rp-chart { margin: 0; display: flex; flex-direction: column; gap: var(--sp-3); min-width: 0; }
+.rp-chart h3 { margin: 0; font-size: var(--fs-2); font-weight: 600; }
+.rp-chart img { width: 100%; aspect-ratio: 16 / 10; object-fit: contain; border-radius: 8px; background: #fff; }
+.rp-chart figcaption { font-size: var(--fs-2); color: var(--ink); }
+.rp-chart details, .behind details { border-top: var(--border); padding-top: var(--sp-3); }
+.rp-chart summary, .behind summary { cursor: pointer; font-weight: 600; font-size: var(--fs-2); }
+.rp-chart ul { margin: var(--sp-2) 0 0; padding-left: var(--sp-5); color: var(--muted); font-size: var(--fs-1); }
+.behind details { margin-top: var(--sp-3); background: var(--card); border: var(--border); border-radius: var(--radius); padding: var(--sp-3) var(--sp-4); }
+.behind details > :not(summary) { margin-top: var(--sp-3); }
+.behind img { max-width: 100%; height: auto; }
+.behind hr { display: none; }
+.behind .md > p:first-child strong { display: none; }
+.rp-foot { display: flex; flex-wrap: wrap; gap: var(--sp-5); color: var(--muted); font-size: var(--fs-1); border-top: var(--border); padding-top: var(--sp-4); }
+@media (max-width: 1000px) { .report-layout.with-chat { grid-template-columns: 1fr; } }

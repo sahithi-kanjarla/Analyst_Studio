@@ -779,7 +779,7 @@ def _page(state: dict, run_mode: str, cs: list[dict], plan: dict, ts: list, answ
     cp = state.get("chart_plan") or {}
     ans = state.get("goal_answer") or {}
     cards = [{"num": c["num"], "question": mainview.plain(c["question"]), "lines": list(c["text"]), "trust": c.get("trust") or "", "trust_why": c.get("trust_why") or "",
-              "so_what": c.get("so_what") or "", "charts": [{"title": ch["title"], "path": ch["path"], "caption": ch["caption"]} for ch in (cp.get("cards") or {}).get(c["question"]) or []]}
+              "so_what": c.get("so_what") or "", "charts": [{"title": ch["title"], "path": ch["path"], "caption": ch["caption"], "details": list(c["text"])} for ch in (cp.get("cards") or {}).get(c["question"]) or []]}
              for c in answer_cards]
     support = cp.get("actions") or {}
     num = {c["n"]: c["num"] for c in cs}
@@ -788,7 +788,7 @@ def _page(state: dict, run_mode: str, cs: list[dict], plan: dict, ts: list, answ
         s = support.get(k) or {}
         actions.append({"text": a["text"], "question": num.get(a["n"]), "chart": s.get("chart") or "", "chart_title": s.get("title") or "", "figure": s.get("figure") or ""})
     charts, seen = [], set()
-    for ch in [x for c in cards for x in c["charts"]] + [{"title": a["chart_title"], "path": a["chart"], "caption": a["figure"]} for a in actions if a["chart"]]:
+    for ch in [x for c in cards for x in c["charts"]] + [{"title": a["chart_title"], "path": a["chart"], "caption": a["figure"], "details": [a["figure"]] if a["figure"] else []} for a in actions if a["chart"]]:
         if ch["path"] and ch["path"] not in seen and len(charts) < 6:
             seen.add(ch["path"])
             charts.append(ch)

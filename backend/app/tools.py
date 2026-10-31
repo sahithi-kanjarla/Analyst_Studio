@@ -23,10 +23,11 @@ from .measures import measure_kind
 from .config import CHART_DPI
 
 # The first colour is the app accent (the highlight); other bars are a neutral warm grey, so the highlight is the one colour that stands out.
-PALETTE = ["#A4461F", "#22A699", "#F2994A", "#E5484D", "#8E6BEE", "#3FA9F5", "#A3A847", "#C45AB3"]
+PALETTE = ["#A4461F", "#6B675E", "#9A9486", "#8D887C", "#B8B1A3", "#7A4C0C", "#2D6A3E", "#D4CEC2"]
+NEUTRAL = "#CFC7B9"      # every bar that is not the highlight
 plt.rcParams.update({
     "axes.spines.top": False, "axes.spines.right": False, "axes.grid": True, "axes.grid.axis": "y", "grid.alpha": 0.25,
-    "font.size": 10, "axes.titlesize": 12, "axes.titleweight": "bold", "figure.dpi": 100,
+    "font.size": 10, "axes.titlesize": 12, "axes.titleweight": "bold", "axes.titlelocation": "left", "figure.dpi": 100,
     "axes.prop_cycle": matplotlib.cycler(color=PALETTE),
     # fallbacks so non-English column names (Hindi, Tamil, Chinese, Arabic...) render wherever the system has such a font
     "font.family": "sans-serif",
@@ -189,7 +190,7 @@ TABLE_ROWS = 10     # table rows shown before "Show all"
 MONTH_CYCLE_MIN_DAYS = 700   # under two years of dates a month-of-year pattern cannot be told apart from a trend
 TABLE_CAP = 500     # most rows a table finding carries
 LONG_LABEL = 12     # labels longer than this switch ranking bars to horizontal
-OTHER_COLOR = "#C9CED8"
+OTHER_COLOR = "#D4CEC2"
 
 
 def pick_shown(order: list, must: list, n: int) -> list:
@@ -1012,7 +1013,7 @@ def seasonality(df, ctx, target, date):
     for ax, (nm, rr) in zip(axes[0], results.items()):
         m = rr["means"]
         names = [rr["labels"][int(i) - (1 if nm == "month" else 0)] for i in m.index]
-        bars = ax.bar(names, m.values, color=[PALETTE[1] if v == m.max() else PALETTE[3] if v == m.min() else "#C9D3F8" for v in m.values])
+        bars = ax.bar(names, m.values, color=[PALETTE[0] if v == m.max() else PALETTE[3] if v == m.min() else NEUTRAL for v in m.values])
         ax.bar_label(bars, labels=[(f"{v:.0%}" if kind == "binary" else f"{v:.1%}" if _pct_ratio(df, spec) else _fmt(v)) for v in m.values], padding=2, fontsize=7)
         ax.axhline(rr["grand"], color="#888", ls="--", lw=1)
         ax.margins(y=0.15)

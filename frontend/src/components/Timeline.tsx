@@ -2,24 +2,24 @@ import { useEffect, useRef } from "react";
 import { AgentEvent } from "../api";
 
 const COLORS: Record<string, string> = {
-  Profiler: "#3FA9F5",
-  Joiner: "#D6609B",
-  Planner: "#8E6BEE",
-  Cleaner: "#22A699",
-  Analyst: "#4F6BED",
-  Critic: "#E5484D",
-  Insights: "#0EA5A4",
-  Strategist: "#B45309",
-  Reporter: "#F2994A",
-  "Power BI": "#C9A400",
-  System: "#6B7280",
+  Profiler: "#6B675E",
+  Joiner: "#6B675E",
+  Planner: "#6B675E",
+  Cleaner: "#6B675E",
+  Analyst: "#6B675E",
+  Critic: "#6B675E",
+  Insights: "#6B675E",
+  Strategist: "#6B675E",
+  Reporter: "#6B675E",
+  "Power BI": "#6B675E",
+  System: "#6B675E",
 };
 
 export default function Timeline({ events, running }: { events: AgentEvent[]; running: boolean }) {
   const end = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    end.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  }, [events.length]);
+    if (running) end.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });      // follow the run while it works; a finished or sample timeline never moves the page
+  }, [events.length, running]);
 
   return (
     <div className="timeline">

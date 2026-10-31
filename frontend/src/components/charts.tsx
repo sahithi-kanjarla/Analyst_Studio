@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 
-export const PALETTE = ["#3b82f6", "#f4c542", "#ef5b6b", "#22c1b0", "#f08a3c", "#a78bfa", "#7dd3fc", "#94a3b8"];
-export const NEG = "#f08a3c";
+/** One chart style everywhere: the accent for the highlight, warm neutral greys for everything else. */
+export const ACCENT = "#a4461f";
+export const NEUTRAL = "#b8b1a3";
+export const PALETTE = [ACCENT, "#6b675e", "#8d887c", "#b8b1a3", "#d4cec2", "#a4461f"];
+export const NEG = "#7a4c0c";
 
 export interface Item {
   key: string;
@@ -56,7 +59,7 @@ export function HBar({ items, selected, onToggle, fmt }: ChartProps) {
                 <title>{`${it.label}: ${fmt(it.value)}${it.n !== undefined ? ` (n=${it.n.toLocaleString()})` : ""}`}</title>
                 <rect x={0} y={0} width={w} height={row - 4} fill="transparent" />
                 <text x={labelW - 8} y={(row - 4) / 2 + 4} textAnchor="end" className="c-label">{clip(it.label, Math.floor(labelW / 6.0))}</text>
-                <rect x={labelW} y={3} width={bw} height={row - 10} rx={4} fill={it.other ? "#c9ced8" : PALETTE[i % PALETTE.length]} className="bar" />
+                <rect x={labelW} y={3} width={bw} height={row - 10} rx={4} fill={it.other ? "#d4cec2" : i === 0 ? ACCENT : NEUTRAL} className="bar" />
                 <text x={labelW + bw + 6} y={(row - 4) / 2 + 4} className="c-value">{fmt(it.value)}{it.n !== undefined && <tspan className="c-axis" dx={6}>n={it.n.toLocaleString()}</tspan>}</text>
               </g>
             );
@@ -76,6 +79,7 @@ export function Columns({ items, selected, onToggle, fmt, height = 230 }: ChartP
   const span = max - min || 1;
   const innerW = Math.max(10, w - padL - padR);
   const innerH = height - padT - padB;
+  const peak = Math.max(...items.map((i) => i.value));
   const y = (v: number) => padT + ((max - v) / span) * innerH;
   const slot = innerW / Math.max(items.length, 1);
   const bw = Math.max(3, Math.min(46, slot * 0.68));
@@ -102,7 +106,7 @@ export function Columns({ items, selected, onToggle, fmt, height = 230 }: ChartP
               <g key={it.key} className="bar-g" opacity={dim(on, anySel)} onClick={() => onToggle(it.key)}>
                 <title>{`${it.label}: ${fmt(it.value)}`}</title>
                 <rect x={padL + i * slot} y={padT} width={slot} height={innerH} fill="transparent" />
-                <rect x={x} y={top} width={bw} height={h} rx={3} fill={it.value < 0 ? NEG : PALETTE[0]} className="bar" />
+                <rect x={x} y={top} width={bw} height={h} rx={3} fill={it.value < 0 ? NEG : it.value === peak ? ACCENT : NEUTRAL} className="bar" />
                 {it.value === max && max > 0 && <text x={x + bw / 2} y={top - 4} textAnchor="middle" className="c-value">{fmt(it.value)}</text>}
                 {i % every === 0 && <text x={x + bw / 2} y={height - 8} textAnchor="middle" className="c-axis">{it.label}</text>}
               </g>

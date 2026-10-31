@@ -1,0 +1,28 @@
+/* Buttons, pills, dialog: one set for the whole app. Colours, sizes and spacing come from tokens.css. */
+.btn, .btn-primary, .btn-quiet { font: inherit; font-size: var(--fs-2); font-weight: 600; border-radius: 999px; padding: var(--sp-2) var(--sp-4); cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2); line-height: 1.2; min-height: 40px; }
+.btn { background: var(--card); color: var(--ink); border: var(--border); }
+.btn:hover:not(:disabled) { border-color: var(--ink); }
+.btn-primary { background: var(--brand); color: var(--brand-ink); border: 1px solid var(--brand); }
+.btn-primary:hover:not(:disabled) { filter: brightness(.94); }
+.btn-quiet { background: none; color: var(--muted); border: 1px solid transparent; }
+.btn-quiet:hover { color: var(--ink); }
+.btn:disabled, .btn-primary:disabled { opacity: .5; cursor: default; }
+.btn-lg { font-size: var(--fs-3); padding: var(--sp-3) var(--sp-5); min-height: 48px; }
+.chip { font: inherit; font-size: var(--fs-1); color: var(--ink); background: var(--bg); border: var(--border); border-radius: 999px; padding: var(--sp-2) var(--sp-3); cursor: pointer; text-align: left; }
+.chip:hover:not(:disabled) { border-color: var(--brand); color: var(--brand); }
+.chip:disabled { opacity: .55; cursor: default; }
+.link { background: none; border: 0; padding: 0; font: inherit; color: var(--brand); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.rp-pill { display: inline-block; font-size: var(--fs-1); font-weight: 600; padding: var(--sp-1) var(--sp-3); border-radius: 999px; background: var(--bg); border: var(--border); color: var(--ink); }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.error { background: var(--err-bg); color: var(--err); border-radius: var(--radius); padding: var(--sp-3) var(--sp-4); font-size: var(--fs-2); }
+
+/* dialog: a centred panel on a desktop, a full-screen sheet on a phone */
+.dialog-back { position: fixed; inset: 0; background: rgba(27, 26, 23, .45); display: grid; place-items: center; z-index: 100; padding: var(--sp-5); }
+.dialog { background: var(--card); border: var(--border); border-radius: 16px; box-shadow: var(--shadow); width: min(680px, 100%); max-height: calc(100vh - 2 * var(--sp-5)); overflow: auto; padding: var(--sp-6); position: relative; }
+.dialog-head { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--sp-4); margin-bottom: var(--sp-5); }
+.dialog-head h2 { margin: 0; font-size: var(--fs-4); }
+.dialog-head p { margin: var(--sp-1) 0 0; color: var(--muted); }
+@media (max-width: 720px) {
+  .dialog-back { padding: 0; place-items: stretch; }
+  .dialog { width: 100%; max-height: none; height: 100%; border-radius: 0; border: 0; padding: var(--sp-5) var(--sp-4); }
+}

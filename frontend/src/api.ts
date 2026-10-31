@@ -88,7 +88,38 @@ export interface ReportView {
   checked: { id: string; line: string; check: string }[];
   profile: { distributions: { id: string; line: string }[]; outliers: { id: string; line: string }[]; composition: { id: string; line: string }[]; tables: CardTable[] };
   strategies: { strategies: Strategy[]; foundation: { id: string; title: string; line: string }[]; dropped: number };
+  page?: ReportPageData;
 }
+
+/** The main view of the report as data: the same cards, actions and figures as the markdown, in the same words. */
+export interface ReportPageData {
+  title: string;
+  company: string;
+  date: string;
+  mode: string;
+  goal: string;
+  trust: string;
+  headline: string;
+  headline_more: string;
+  tiles: { label: string; value: string }[];
+  cards: { num: number; question: string; lines: string[]; trust: string; trust_why: string; so_what: string }[];
+  actions: { text: string; question: number | null; chart: string; chart_title: string; figure: string; chart_url?: string }[];
+  charts: { title: string; path: string; caption: string; details: string[]; url?: string }[];
+  no_action: string[];
+  behind_md: string;
+}
+
+export interface ChatAnswer {
+  status: "answered" | "no_fit" | "unavailable";
+  text: string;
+  rows?: (string | number)[][];
+  chart_url?: string;
+  suggestions: string[];
+  op?: string;
+  how?: { operation: string; columns: string[]; detail: string };
+}
+export interface ChatEntry { id: string; question: string; answer: ChatAnswer; pinned: boolean; at: number }
+export interface AskInfo { enabled: boolean; ai: boolean; chips: { id: string; text: string }[]; history: ChatEntry[] }
 
 export interface DataGap {
   severity: "warn" | "info";
@@ -268,6 +299,7 @@ export interface Decision {
 }
 
 export interface RunResult {
+  profile?: { rows: number; cols: number };
   decisions?: Decision[];
   run_mode?: string;
   stage_sources?: Record<string, string>;
@@ -386,7 +418,7 @@ export const DEMO_RUN_ID = "5a1e5d3e0001";
 export const isDemo = (id: string) => id === DEMO_RUN_ID;
 
 export const api = {
-  health: () => fetch("/api/health").then((r) => json<{ status: string; llm: string; chatbot?: boolean }>(r)),
+  health: () => fetch("/api/health").then((r) => json<{ status: string; llm: string; chatbot?: string }>(r)),
   listRuns: () => fetch("/api/runs").then((r) => json<RunSummary[]>(r)),
   getRun: (id: string) => fetch(`/api/runs/${id}`).then((r) => json<RunResult>(r)),
   createRun: (files: File[], goal: string, ctx?: BusinessContextInput) => {
@@ -400,8 +432,11 @@ export const api = {
     }
     return fetch("/api/runs", { method: "POST", body: fd }).then((r) => json<{ run_id: string }>(r));
   },
-  askReport: (id: string, question: string) =>
-    fetch(`/api/runs/${id}/ask`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question }) }).then((r) => json<{ status: "answered" | "no_fit" | "unavailable"; text: string; rows?: (string | number)[][]; chart_url?: string; suggestions: string[] }>(r)),
+  askInfo: (id: string) => fetch(`/api/runs/${id}/ask`).then((r) => json<AskInfo>(r)),
+  ask: (id: string, body: { question?: string; chip?: string }) =>
+    fetch(`/api/runs/${id}/ask`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }).then((r) => json<ChatEntry>(r)),
+  pin: (id: string, entry: string, pinned: boolean) =>
+    fetch(`/api/runs/${id}/ask/pin`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: entry, pinned }) }).then((r) => json<ChatEntry>(r)),
   openDemo: () => fetch("/api/demo", { method: "POST" }).then((r) => json<{ run_id: string; read_only: boolean }>(r)),
   removeDerived: (id: string, names: string[]) =>
     fetch(`/api/runs/${id}/remove-derived`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ names }) }).then((r) => json<{ run_id: string }>(r)),

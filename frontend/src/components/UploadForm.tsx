@@ -1,7 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { api, BusinessContextInput, RunSummary } from "../api";
-import { StatusBadge, when } from "./History";
-import { ProductSection } from "./Landing";
+import { useRef, useState } from "react";
+import { api, BusinessContextInput } from "../api";
 
 const EXAMPLES = [
   "Which customer segment drives the most revenue, and is it growing? What should we focus on?",
@@ -33,12 +31,7 @@ export default function UploadForm({ onStarted }: { onStarted: (id: string) => v
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [drag, setDrag] = useState(false);
-  const [recent, setRecent] = useState<RunSummary[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    api.listRuns().then(setRecent).catch(() => undefined);
-  }, []);
 
   const setC = <K extends keyof BusinessContextInput>(k: K, v: BusinessContextInput[K]) => setCtx((c) => ({ ...c, [k]: v }));
   const ctxFilled = ["company", "industry", "description", "kpis", "audience", "notes"].filter((k) => (ctx as unknown as Record<string, string>)[k].trim()).length;
@@ -53,19 +46,6 @@ export default function UploadForm({ onStarted }: { onStarted: (id: string) => v
       return next.slice(0, MAX_FILES);
     });
     setError("");
-  }
-
-  /** The shipped sample run: read-only, no upload and no AI call. */
-  async function tryDemo() {
-    setBusy(true);
-    setError("");
-    try {
-      const { run_id } = await api.openDemo();
-      onStarted(run_id);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "The sample could not be opened");
-      setBusy(false);
-    }
   }
 
   async function submit(e: React.FormEvent) {
@@ -86,15 +66,8 @@ export default function UploadForm({ onStarted }: { onStarted: (id: string) => v
   const totalKb = files.reduce((s, f) => s + f.size, 0) / 1024;
 
   return (
-    <div className="home">
-      <header className="intro">
-        <h1>Upload your sales file. Get a report you can check.</h1>
-        <p className="intro-sub">For small online sellers: upload a sales export, answer a few simple questions, and get a short report with the actions your numbers support.</p>
-        <button type="button" className="ghost sample-btn" disabled={busy} onClick={tryDemo}>Try with sample data</button>
-      </header>
-
-      <form className="card form" id="start" onSubmit={submit}>
-        <div
+      <form className="start-form" onSubmit={submit}>
+      <div
           className={`drop ${drag ? "drop-active" : ""} ${files.length ? "drop-has" : ""}`}
           onClick={() => inputRef.current?.click()}
           onDragOver={(e) => {
@@ -123,7 +96,7 @@ export default function UploadForm({ onStarted }: { onStarted: (id: string) => v
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 16V4M7 9l5-5 5 5M5 20h14" /></svg>
           </span>
           <strong>{files.length ? "Add more files" : "Drag files here or click to browse"}</strong>
-          <span>One or several CSV / Excel / JSON files (an Excel workbook's sheets count as separate tables). Related files are connected automatically.</span>
+          <span>One or more CSV, Excel or JSON files. If you add several, we link them for you.</span>
           <span className="fmts"><em>.csv</em><em>.xlsx</em><em>.json</em><em>.tsv</em></span>
         </div>
 
@@ -152,7 +125,7 @@ export default function UploadForm({ onStarted }: { onStarted: (id: string) => v
           value={goal}
           disabled={ctx.explore}
           onChange={(e) => setGoal(e.target.value)}
-          placeholder={ctx.explore ? "Exploratory mode: the agents will decide what matters most." : "e.g. We need to decide which segment to invest in next quarter. Which one drives the most revenue and is it growing?"}
+          placeholder={ctx.explore ? "We'll look at the whole file and tell you what matters most." : "e.g. We need to decide which segment to invest in next quarter. Which one drives the most revenue and is it growing?"}
         />
         <label className="check">
           <input type="checkbox" checked={ctx.explore} onChange={(e) => setC("explore", e.target.checked)} />
@@ -160,7 +133,7 @@ export default function UploadForm({ onStarted }: { onStarted: (id: string) => v
         </label>
         <label className="check">
           <input type="checkbox" checked={!!ctx.review_saved} onChange={(e) => setC("review_saved", e.target.checked)} />
-          <span>Show me my saved answers before the run starts, so I can change them or be asked again.</span>
+          <span>Show me my saved answers first, so I can change them.</span>
         </label>
         {!ctx.explore && (
           <div className="chips">
@@ -197,7 +170,7 @@ export default function UploadForm({ onStarted }: { onStarted: (id: string) => v
                 placeholder="e.g. We sell fabrics and ready-made garments to boutiques and direct consumers across India." />
             </div>
             <div className="field wide">
-              <label htmlFor="kpis">Which numbers matter most to you? (KPIs, comma-separated)</label>
+              <label htmlFor="kpis">Which numbers matter most to you? (separate with commas)</label>
               <input id="kpis" value={ctx.kpis} onChange={(e) => setC("kpis", e.target.value)} placeholder="e.g. revenue, repeat purchase rate, customer satisfaction" />
             </div>
             <div className="field">
@@ -215,7 +188,7 @@ export default function UploadForm({ onStarted }: { onStarted: (id: string) => v
               </select>
             </div>
             <div className="field wide">
-              <label htmlFor="notes">Anything else the agents should know? (constraints, recent changes, known problems)</label>
+              <label htmlFor="notes">Anything else we should know? (for example, a price change or a known problem)</label>
               <textarea id="notes" rows={2} value={ctx.notes} maxLength={1500} onChange={(e) => setC("notes", e.target.value)}
                 placeholder="e.g. We changed pricing in July. Budget for new initiatives is limited." />
             </div>
@@ -232,65 +205,5 @@ export default function UploadForm({ onStarted }: { onStarted: (id: string) => v
           </button>
         </div>
       </form>
-
-      <p className="trust">
-        <span>CSV, Excel and JSON supported</span>
-        <span>Related files are linked automatically</span>
-        <span>Up to {MAX_FILES} files per run</span>
-      </p>
-
-
-      <ProductSection />
-
-      <section className="trust-line" aria-label="How the numbers are checked">
-        <p>The AI proposes: what each column means, which questions to ask, how a finding is worded. Code does every calculation, and every figure can be checked against the data.</p>
-      </section>
-
-      <div
-        className={`drop drop-again ${drag ? "drop-active" : ""}`}
-        role="button"
-        tabIndex={0}
-        onClick={() => inputRef.current?.click()}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            inputRef.current?.click();
-          }
-        }}
-        onDragOver={(e) => {
-          e.preventDefault();
-          setDrag(true);
-        }}
-        onDragLeave={() => setDrag(false)}
-        onDrop={(e) => {
-          e.preventDefault();
-          setDrag(false);
-          addFiles(e.dataTransfer.files);
-        }}
-      >
-        <span>{files.length ? `${files.length} file${files.length > 1 ? "s" : ""} ready: use “Analyse” above` : "Upload your file to start"}</span>
-        <small>CSV, Excel or JSON. Up to {MAX_FILES} files, 500,000 rows per table.</small>
-      </div>
-
-      {recent.length > 0 && (
-        <section className="recent">
-          <div className="recent-head">
-            <h3>Recent analyses</h3>
-            <a className="link" href="#/history">View all history →</a>
-          </div>
-          {recent.slice(0, 4).map((r) => (
-            <a key={r.run_id} className="hist-row" href={`#/run/${r.run_id}`}>
-              <div className="hist-main">
-                <span className="hist-goal">{r.goal || "Exploratory analysis"}</span>
-                <span className="hist-sub">{r.filename || "Uploaded data"}</span>
-              </div>
-              <StatusBadge status={r.status} />
-              <span className="hist-when">{when(r.created)}</span>
-              <span className="hist-go" aria-hidden>›</span>
-            </a>
-          ))}
-        </section>
-      )}
-    </div>
   );
 }

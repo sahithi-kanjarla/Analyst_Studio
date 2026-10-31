@@ -18,13 +18,13 @@ export default function Tiers({ view, goalAnswer }: { view: ReportView; goalAnsw
         {view.headlines.length > 0 && (
           <>
             <h5>Headline findings</h5>
-            <ul className="tight">{view.headlines.map((h) => <li key={h.id}>{h.text} <span className="muted">({h.id})</span></li>)}</ul>
+            <ul className="tight">{view.headlines.map((h) => <li key={h.id} title={`Reference ${h.id}`}>{h.text}</li>)}</ul>
           </>
         )}
         {view.actions.length > 0 && (
           <>
             <h5>What to do</h5>
-            <ul className="tight">{view.actions.map((a, i) => <li key={i}>{a.text} <span className="muted">({a.evidence.join(", ")})</span></li>)}</ul>
+            <ul className="tight">{view.actions.map((a, i) => <li key={i} title={a.evidence.length ? `Based on ${a.evidence.join(", ")}` : undefined}>{a.text}</li>)}</ul>
           </>
         )}
       </section>
@@ -36,7 +36,7 @@ export default function Tiers({ view, goalAnswer }: { view: ReportView; goalAnsw
       {view.checked.length > 0 && (
         <section>
           <h3>Checked, nothing found</h3>
-          <ul className="tight">{view.checked.map((c) => <li key={c.id}>{c.line}{c.check ? ` ${c.check}` : ""} <span className="muted">({c.id})</span></li>)}</ul>
+          <ul className="tight">{view.checked.map((c) => <li key={c.id} title={`Reference ${c.id}`}>{c.line}{c.check ? ` ${c.check}` : ""}</li>)}</ul>
         </section>
       )}
 
@@ -50,7 +50,7 @@ export default function Tiers({ view, goalAnswer }: { view: ReportView; goalAnsw
               items.length > 0 && (
                 <section key={title}>
                   <h5>{title}</h5>
-                  <ul className="tight">{items.map((x) => <li key={x.id}>{x.line.replace(/\*\*/g, "")} <span className="muted">({x.id})</span></li>)}</ul>
+                  <ul className="tight">{items.map((x) => <li key={x.id} title={`Reference ${x.id}`}>{x.line.replace(/\*\*/g, "")}</li>)}</ul>
                 </section>
               ))}
           </details>

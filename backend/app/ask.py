@@ -121,32 +121,39 @@ def _run(op: dict, df: pd.DataFrame, chart_path: Path) -> dict:
         peak = s.idxmax()
         text = (f"Total {m} by {'month' if op['freq'] == 'M' else 'quarter'}: from {_money(float(s.iloc[0]))} in {s.index[0]} to "
                 f"{_money(float(s.iloc[-1]))} in {s.index[-1]}; the highest period is {peak} at {_money(float(s.max()))}.")
-        ax.plot([str(p) for p in s.index], s.values, color="#a4461f", linewidth=2)
+        ax.plot([str(p) for p in s.index], s.values, color="#a4461f", linewidth=2, marker="o", markersize=3)
         ax.tick_params(axis="x", labelrotation=45, labelsize=8)
     elif op["op"] == "top_n":
         s = df.groupby(op["group"])[m].sum().sort_values(ascending=False)
         head = s.head(op["n"])
         rows = [[str(k), float(v), float(v) / total * 100 if total else 0.0] for k, v in head.items()]
         text = f"Top {op['n']} {op['group']} by total {m}: " + ", ".join(f"{k} {_money(v)} ({p:.1f}%)" for k, v, p in rows) + "."
-        ax.barh([str(r[0]) for r in rows][::-1], [r[1] for r in rows][::-1], color="#a4461f")
+        ax.barh([str(r[0]) for r in rows][::-1], [r[1] for r in rows][::-1], color=["#cfc7b9"] * (len(rows) - 1) + ["#a4461f"])
+        for k, r in enumerate(rows[::-1]):
+            ax.text(r[1], k, f" {_money(r[1])}", va="center", fontsize=8)
     elif op["op"] == "compare":
         s = df[df[op["group"]] == op["a"]][m].sum(), df[df[op["group"]] == op["b"]][m].sum()
         rows = [[op["a"], float(s[0])], [op["b"], float(s[1])]]
         diff = (s[0] - s[1]) / s[1] * 100 if s[1] else 0.0
         text = f"Total {m}: {op['a']} {_money(s[0])} against {op['b']} {_money(s[1])}, {op['a']} is {abs(diff):.1f}% {'higher' if diff >= 0 else 'lower'}."
-        ax.bar([op["a"], op["b"]], [s[0], s[1]], color=["#a4461f", "#8c867a"])
+        ax.bar([op["a"], op["b"]], [s[0], s[1]], color=["#a4461f", "#cfc7b9"])
+        for k, v in enumerate((s[0], s[1])):
+            ax.text(k, v, _money(v), ha="center", va="bottom", fontsize=8)
     elif op["op"] == "share":
         part = float(df[df[op["group"]] == op["value"]][m].sum())
         share = part / total * 100 if total else 0.0
         rows = [[op["value"], part, share]]
         text = f"{op['value']} accounts for {_money(part)} of the total {m} ({share:.1f}%)."
-        ax.bar([op["value"], "all other"], [part, total - part], color=["#a4461f", "#8c867a"])
+        ax.bar([op["value"], "all other"], [part, total - part], color=["#a4461f", "#cfc7b9"])
+        for k, v in enumerate((part, total - part)):
+            ax.text(k, v, _money(v), ha="center", va="bottom", fontsize=8)
     else:  # filter_total
         sel = df[df[op["column"]] == op["value"]]
         part = float(sel[m].sum())
         rows = [[op["value"], part, len(sel)]]
         text = f"For {op['column']} = {op['value']}: {len(sel):,} rows with a total {m} of {_money(part)}."
         ax.bar([str(op["value"])], [part], color="#a4461f")
+        ax.text(0, part, _money(part), ha="center", va="bottom", fontsize=8)
     ax.set_title(m if op["op"] != "trend" else f"{m} over time", fontsize=10, loc="left")
     ax.spines[["top", "right"]].set_visible(False)
     fig.tight_layout()

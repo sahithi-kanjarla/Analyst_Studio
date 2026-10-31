@@ -21,16 +21,16 @@
   .print-head-meta { font-size: 10pt; color: #444; margin-top: 2pt; }
   .print-head-note { font-size: 10.5pt; color: #222; margin: var(--sp-2) 0 0; }
   html, body, .shell, .home, .results, .card, .runview, .main { background: #fff !important; }
-  .report { color: #000; }
-  .report img, .report table, .report details, .report h2, .report h3, .report figure, .report blockquote { break-inside: avoid; page-break-inside: avoid; }
-  .report h2, .report h3 { break-after: avoid; page-break-after: avoid; }
-  .report img { max-width: 100%; height: auto; }
-  .print-no-summary .report [data-kind="summary"] { display: none; }
-  .print-no-numbers .report [data-kind="numbers"] { display: none; }
-  .print-no-charts .report img { display: none; }
-  .print-no-tables .report table { display: none; }
-  .print-no-setup .report details[data-kind="setup"] { display: none; }
-  .print-no-details .report details[data-kind="details"] { display: none; }
-  .print-bw .report, .print-bw .report * { color: #000 !important; background: none !important; border-color: #666 !important; }
-  .print-bw .report img { filter: grayscale(100%); }
+  .report-page { color: #000; }
+  .report-page img, .report-page table, .report-page details, .report-page h2, .report-page h3, .report-page figure, .report-page blockquote { break-inside: avoid; page-break-inside: avoid; }
+  .report-page h2, .report-page h3 { break-after: avoid; page-break-after: avoid; }
+  .report-page img { max-width: 100%; height: auto; }
+  .print-no-summary .report-page [data-kind="summary"] { display: none; }
+  .print-no-numbers .report-page [data-kind="numbers"] { display: none; }
+  .print-no-charts .report-page img { display: none; }
+  .print-no-tables .report-page table { display: none; }
+  .print-no-setup .report-page details[data-kind="setup"] { display: none; }
+  .print-no-details .report-page details[data-kind="details"] { display: none; }
+  .print-bw .report-page, .print-bw .report-page * { color: #000 !important; background: none !important; border-color: #666 !important; }
+  .print-bw .report-page img { filter: grayscale(100%); }
 }

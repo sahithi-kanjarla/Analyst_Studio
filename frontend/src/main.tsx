@@ -6,8 +6,13 @@ import "./polish.css";
 import "./landing.css";
 import "./responsive.css";
 import "./tokens.css";
+import "./layout.css";
+import "./ui.css";
+import "./report.css";
+import "./chat.css";
 import "./print.css";
-import "./ask.css";
+import "./start.css";
+import "./theme.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

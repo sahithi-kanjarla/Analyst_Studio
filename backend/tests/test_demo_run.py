@@ -77,3 +77,16 @@ def test_a_changed_shipped_copy_replaces_the_stale_one(monkeypatch):
     stale.write_text("{}")                                   # an older copy from before the shipped run changed
     runner.ensure_demo_run()
     assert stale.read_bytes() == (DEMO_DIR / "result.json").read_bytes()
+
+
+def test_the_designed_report_page_is_saved_with_the_run():
+    runner.ensure_demo_run()
+    rid = runner.DEMO_RUN_ID
+    run = client.get(f"/api/runs/{rid}").json()
+    page = run["report_view"]["page"]
+    assert page["headline"] and page["company"] == "Sample Store" and page["mode"]
+    assert 1 <= len(page["charts"]) <= 6                                              # at most 6 charts on the page
+    assert [a["text"] for a in page["actions"]] == [a["text"] for a in run["report_view"]["actions"]]      # the same actions as 'What to do'
+    assert all(c["url"].startswith(f"/api/runs/{rid}/files/charts/") for c in page["charts"])
+    assert all(c["caption"] for c in page["charts"])                                  # every chart has its one-line "what this means"
+    assert "](/api/runs/" in page["behind_md"] or "![" not in page["behind_md"]       # images in the folded part point at real addresses

@@ -1,0 +1,20 @@
+/* One layout for every page: a centred column (1120px, 720px for reading text), 12 columns on desktop, 4 on a phone, 24px gutters. */
+.shell { max-width: calc(var(--col) + 2 * var(--gutter)); margin: 0 auto; padding: 0 var(--gutter) var(--sp-8); }
+.grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter); row-gap: var(--gutter); }
+.read { max-width: var(--read); }
+.span-12 { grid-column: span 12; } .span-8 { grid-column: span 8; } .span-6 { grid-column: span 6; } .span-4 { grid-column: span 4; } .span-3 { grid-column: span 3; }
+@media (max-width: 860px) { .span-8, .span-6, .span-4 { grid-column: span 12; } .span-3 { grid-column: span 6; } }
+@media (max-width: 720px) {
+  .shell { padding: 0 var(--sp-4) var(--sp-7); }
+  .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: var(--sp-4); row-gap: var(--sp-4); }
+  .span-12, .span-8, .span-6, .span-4 { grid-column: span 4; } .span-3 { grid-column: span 2; }
+}
+/* one card: same padding, radius and border everywhere */
+.card, .surface { background: var(--card); border: var(--border); border-radius: var(--radius); padding: var(--card-pad); box-shadow: none; }
+.surface-flush { padding: 0; overflow: hidden; }
+/* one table: light row lines, no heavy borders, numbers right-aligned, header sticks */
+.table, .report-page table, .md table { width: 100%; border-collapse: collapse; font-size: var(--fs-2); }
+.table th, .report-page th, .md th { position: sticky; top: 0; z-index: 1; background: var(--card); text-align: left; font-size: var(--fs-1); font-weight: 600; color: var(--muted); padding: var(--sp-2) var(--sp-3); border: 0; border-bottom: var(--border); }
+.table td, .report-page td, .md td { padding: var(--sp-2) var(--sp-3); border: 0; border-bottom: 1px solid color-mix(in srgb, var(--line) 60%, transparent); vertical-align: top; }
+.table th.num, .table td.num, .report-page th.num, .report-page td.num, .md th.num, .md td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.table tr:last-child td, .report-page tr:last-child td { border-bottom: 0; }

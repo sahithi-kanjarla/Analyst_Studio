@@ -21,7 +21,7 @@ import pandas as pd  # noqa: E402
 from . import summary  # noqa: E402
 from . import understanding as und  # noqa: E402
 from .config import CHART_DPI  # noqa: E402
-from .tools import PALETTE  # noqa: E402
+from .tools import NEUTRAL, PALETTE  # noqa: E402
 
 MAX_CHARTS = 8          # distinct charts on the page
 PER_CARD = 2
@@ -123,14 +123,15 @@ def draw(spec: dict, charts_dir) -> str:
     fmt, label = _axis(spec), _value_fmt(spec)
     look = {"text.color": INK, "axes.labelcolor": MUTED, "xtick.color": MUTED, "ytick.color": MUTED, "axes.edgecolor": LINE, "figure.facecolor": PANEL, "axes.facecolor": PANEL}
     with plt.rc_context(look):
-        fig, ax = plt.subplots(figsize=(6.4, 3.0 if spec["kind"] == "series" else max(2.2, 0.32 * len(spec["data"]) + 0.9)))
+        fig, ax = plt.subplots(figsize=(6.4, 3.0 if spec["kind"] == "series" else max(3.0, 0.32 * len(spec["data"]) + 0.9)))
         if spec["kind"] == "series":
             idx = pd.to_datetime([d for d, _ in spec["data"]])
             s = pd.Series([v for _, v in spec["data"]], index=idx, dtype="float64")
             monthly = spec.get("freq", "MS") == "MS"
             s = s.reindex(pd.date_range(idx.min(), idx.max(), freq=spec.get("freq", "MS")))          # periods with no rows become NaN: blank, never zero
             if monthly:
-                bars = ax.bar(range(len(s)), s.values, color=PALETTE[0], width=0.7)          # a month with no data has no bar
+                peak = s.max()
+                bars = ax.bar(range(len(s)), s.values, color=[PALETTE[0] if v == peak else NEUTRAL for v in s.values], width=0.7)          # a month with no data has no bar
                 step = max(1, len(s) // 8)
                 ax.set_xticks(range(0, len(s), step), [d.strftime("%Y-%m") for d in s.index[::step]], rotation=30, ha="right", fontsize=8)
                 if len(s) <= LABELS_MAX:
@@ -144,7 +145,7 @@ def draw(spec: dict, charts_dir) -> str:
         else:
             labels = [str(g) for g, _ in spec["data"]][::-1]
             vals = [v for _, v in spec["data"]][::-1]
-            bars = ax.barh(labels, vals, color=PALETTE[0])
+            bars = ax.barh(labels, vals, color=[PALETTE[0] if v == max(vals) else NEUTRAL for v in vals])
             ax.bar_label(bars, labels=[label(v) for v in vals], fontsize=8, color=INK, padding=3)          # the value at the end of each bar
             ax.xaxis.set_major_formatter(fmt)
             ax.tick_params(axis="y", labelsize=8)

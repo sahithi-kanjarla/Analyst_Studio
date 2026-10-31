@@ -64,8 +64,8 @@ export function tagReport(root: HTMLElement) {
 
 const KIND_OF_SECTION: [keyof PrintOptions, string][] = [["summary", "summary"], ["numbers", "numbers"], ["setup", "setup"], ["details", "details"]];
 
-export default function PrintPanel({ run }: { run: RunResult }) {
-  const [open, setOpen] = useState(false);
+export default function PrintPanel({ run, startOpen = false }: { run: RunResult; startOpen?: boolean }) {
+  const [open, setOpen] = useState(startOpen);
   const [o, setO] = useState<PrintOptions>(() => loadOptions(run));
   const set = <K extends keyof PrintOptions>(k: K, v: PrintOptions[K]) => {
     setO((prev) => {
@@ -78,7 +78,7 @@ export default function PrintPanel({ run }: { run: RunResult }) {
   // Apply the choices to the page: classes the print CSS reads, and the page size.
   useEffect(() => {
     const body = document.body;
-    const report = document.querySelector<HTMLElement>(".report");
+    const report = document.querySelector<HTMLElement>(".report-page");
     if (report) tagReport(report);
     body.classList.toggle("print-no-charts", !o.charts);
     body.classList.toggle("print-no-tables", !o.tables);
@@ -97,7 +97,7 @@ export default function PrintPanel({ run }: { run: RunResult }) {
   useEffect(() => {
     const before: [HTMLDetailsElement, boolean][] = [];
     const openAll = () => {
-      document.querySelectorAll<HTMLDetailsElement>(".report details").forEach((d) => {
+      document.querySelectorAll<HTMLDetailsElement>(".report-page details").forEach((d) => {
         before.push([d, d.open]);
         d.open = true; // the print CSS hides the sections that are not chosen
       });
@@ -124,7 +124,7 @@ export default function PrintPanel({ run }: { run: RunResult }) {
   return (
     <>
     <div className="print-wrap no-print">
-      <button className="chip" aria-expanded={open} aria-controls="print-panel" onClick={() => setOpen((v) => !v)}>Print / Save as PDF</button>
+      <button className="btn" aria-expanded={open} aria-controls="print-panel" onClick={() => setOpen((v) => !v)}>Print / Save as PDF</button>
       {open && (
         <section id="print-panel" className="print-panel" aria-label="Print options">
           <fieldset>

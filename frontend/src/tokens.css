@@ -28,6 +28,11 @@
 
   --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px; --sp-6: 32px; --sp-7: 48px; --sp-8: 64px;
   --radius: 12px;
+  --col: 1120px;          /* page column */
+  --read: 720px;          /* reading column */
+  --gutter: 24px;
+  --card-pad: var(--sp-5);
+  --border: 1px solid var(--line);
   --ease: cubic-bezier(.2, .6, .2, 1);
 }
 @media (prefers-color-scheme: dark) {
