@@ -20,3 +20,8 @@ Thumbs.db
 
 # the sample run needs its two pickles to open (dashboard, data viewer)
 !sample_data/demo/**/*.pkl
+
+# scorecard and test-run result files
+scripts/*_out.txt
+scripts/final_full_suite.txt
+backend/full_suite*.txt

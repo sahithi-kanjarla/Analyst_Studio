@@ -21,7 +21,7 @@ from .llm import ask_json_ex, deterministic
 from .measures import ROWS_LABEL
 
 ROLES = ("measure", "category", "date", "id", "flag", "free_text", "other")
-MEASURE_KINDS = ("money", "quantity", "count", "rate")      # what a measure column holds; any other label is dropped (unknown)
+MEASURE_KINDS = ("money", "cost", "quantity", "count", "rate")      # what a measure column holds; any other label is dropped (unknown)
 MAX_RETRIES = 2
 MAX_COLUMNS = 120          # a wider table is not sent: the reply would not fit
 MAX_TERMS = 20
@@ -33,7 +33,7 @@ SYSTEM = """You are a data analyst reading a FACT SHEET about each column of a t
 Write the data understanding record that every later step will read.
 
 columns: one entry for EVERY column of the table, each exactly once (the sheet's "omitted" columns too), as {"column": <name exactly as written>, "meaning": <one short line: what a value of this column is>,
-"role": one of measure|category|date|id|flag|free_text|other, "display_name": <a short readable name for a report, 1-3 words, capitalised like a label, no underscores>, "goal_terms": [the words of the goal this column answers, or an empty list], "expected": <optional one line, only when something odd is normal, for example many blanks that are expected>, "measure_kind": <only for a measure: one of money|quantity|count|rate>}.
+"role": one of measure|category|date|id|flag|free_text|other, "display_name": <a short readable name for a report, 1-3 words, capitalised like a label, no underscores>, "goal_terms": [the words of the goal this column answers, or an empty list], "expected": <optional one line, only when something odd is normal, for example many blanks that are expected>, "measure_kind": <only for a measure: one of money|cost|quantity|count|rate; cost is money spent to make or buy what was sold (cost of goods, unit cost), money is everything else paid or earned>}.
 role: measure (a quantity you can add or average), category (a group to split by), date, id (labels a row or an entity, including codes), flag (yes/no), free_text, other.
 goal_columns: every noun or term in the goal that points at data, mapped to the column(s) holding it, as {"<term as written in the goal>": ["<column>", ...] or "none"}. A plural or a different wording still maps (a goal word "states" can be a column called ship-state).
 Use "none" only when no column holds that term. Do not list verbs or filler words.
@@ -197,7 +197,12 @@ def measure_kind_of(rec: dict | None, col: str | None) -> str:
 
 def money_columns(rec: dict | None) -> set[str]:
     """Columns the record labels money; empty when there is no usable record, so no currency symbol is ever guessed from a name."""
-    return {c for c in ((rec or {}).get("columns") or {}) if measure_kind_of(rec, c) == "money"}
+    return {c for c in ((rec or {}).get("columns") or {}) if measure_kind_of(rec, c) in ("money", "cost")}
+
+
+def cost_columns(rec: dict | None) -> set[str]:
+    """Columns the record labels as what the sales cost; empty when there is no usable record."""
+    return {c for c in ((rec or {}).get("columns") or {}) if measure_kind_of(rec, c) == "cost"}
 
 
 def share_label(rec: dict | None, col: str | None) -> str:

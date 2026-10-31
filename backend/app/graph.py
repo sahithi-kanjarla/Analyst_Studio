@@ -330,7 +330,9 @@ def understand_node(state: RunState) -> dict:
         stored = json.loads(ufile.read_text(encoding="utf-8"))
         rec, decisions, notes = stored["record"], [*(state.get("decisions") or []), *stored.get("decisions", [])], [*(state.get("ai_notes") or []), *stored.get("ai_notes", [])]
     else:
-        llm, _ = get_llm()
+        llm, _label = get_llm()
+        if line := llmmod.package_notice(_label):
+            emit(rid, "System", line)
         emit(rid, "Data understanding", "Writing down what each column means and which column each word of the goal points at…" if llm else "No LLM configured, so the name and data rules decide this.")
         raw = pd.read_pickle(wd / "raw.pkl")
         typed, _ = coerce_types(raw, state["profile"])
@@ -341,6 +343,8 @@ def understand_node(state: RunState) -> dict:
         if rec.get("cached"):
             emit(rid, "Data understanding", f"{aicache.REUSED} (same data, goal, description, saved answers, model and prompt).")
         notes = list(state.get("ai_notes") or [])
+        if line := llmmod.package_notice(_label):
+            notes.append(line)
         if line := undmod.notice(rec):
             notes.append(line)
         decisions = [*(state.get("decisions") or []), *st["decisions"]]

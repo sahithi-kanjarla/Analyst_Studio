@@ -133,3 +133,18 @@ def test_data_gaps_do_not_deny_margin_or_cost_data_that_exists():
     assert not any("no cost column" in t for t in titles(gap_state(["sales", "when", "gross_profit"])))
     derived_only = {**SPEC, "a": "earnings", "b": "sales", "name": "earnings_to_sales_ratio"}
     assert not any("no cost column" in t for t in titles(gap_state(["sales", "when", "earnings"], [{**derived_only, "name": "margin_ratio"}])))     # a derived margin ratio exists
+
+
+def kind_state(kinds, goal="", target="qty"):
+    cols = list(kinds)
+    return {"goal": goal, "understanding": {"source": "llm", "columns": {c: {"role": "measure", "measure_kind": k} for c, k in kinds.items()}}, "context": {"industry_key": "retail"},
+            "plan": {"target": target, "date_col": "when", "relevant_columns": cols, "derived": []},
+            "profile": {"rows": 5000, "cols": len(cols), "columns": [{"name": c, "role": "numeric", "missing_pct": 0.0} for c in cols]}, "brief": None}
+
+
+def test_gap_line_comes_from_the_understanding_kinds_not_the_target_or_names():
+    mall = {"qty": "quantity", "mrp": "money", "sale_price": "money"}          # money columns, none named revenue, the target is a quantity
+    assert any("no cost column" in t for t in titles(kind_state(mall)))
+    assert not any("no cost column" in t for t in titles(kind_state({**mall, "landed": "cost"})))        # a cost-kind column: no gap line, whatever it is called
+    assert not any("no cost column" in t for t in titles(kind_state({"qty": "quantity"})))               # no money, no mention: nothing to say
+    assert any("no cost column" in t for t in titles(kind_state({"qty": "quantity"}, goal="Which stores have the best profit?")))   # the goal asks about profit

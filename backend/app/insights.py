@@ -560,7 +560,9 @@ def data_gaps(state: dict) -> list[dict]:
         gaps.append({"severity": "info", "title": "No segment columns used", "detail": "Without categories (region, product, plan...) results cannot be broken down by segment.",
                      "suggestion": "Add descriptive columns such as segment, region, channel or product."})
     derived_names = " ".join(f"{d['name']} {d['a']} {d['b']}" for d in plan.get("derived") or []).lower()
-    no_cost = not wording.has_profit_measure(state) and not wording.FINANCIAL.search(have) and bool(plan.get("target")) and plan["target"] in und.money_columns(state.get("understanding"))
+    rec = state.get("understanding")
+    asks_profit = bool(wording.PROFIT_CLAIM.search(str(state.get("goal") or "")))      # the user's own goal talks about margin or profit
+    no_cost = not wording.has_profit_measure(state) and not wording.FINANCIAL.search(have) and not und.cost_columns(rec) and bool(und.money_columns(rec) or asks_profit)
     if no_cost:      # a money measure to report, and nothing that says what it cost: said once, in these words, instead of the industry's own "no cost data" line
         gaps.append({"severity": "info", "title": "Margin: not computable, no cost column", "detail": "Nothing in the data records what the sales cost, so only figures on the revenue side are reported.",
                      "suggestion": "Add a cost column (cost per unit or per line) to the data."})

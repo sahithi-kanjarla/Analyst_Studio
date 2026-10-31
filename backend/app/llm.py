@@ -41,6 +41,14 @@ DEFAULTS = {
 }
 
 
+PACKAGES = {"gemini": "langchain-google-genai", "groq": "langchain-groq", "ollama": "langchain-ollama"}
+
+
+def package_notice(label: str) -> str:
+    """The header / run-log line when the AI package is missing, else ''."""
+    return f"AI unavailable: {label.split('(', 1)[1].rstrip(')')}" if "AI package missing" in (label or "") else ""
+
+
 def _ollama_up() -> bool:
     host = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
     try:
@@ -83,7 +91,10 @@ def get_llm():
                              base_url=os.environ.get("OLLAMA_HOST", "http://localhost:11434"))
         if llm is not None:
             label = f"{provider}:{model}"
-    except Exception as e:  # missing package / bad key format
+    except ImportError as e:  # the provider's package is not installed: say so, never a silent rules-only run
+        pkg = PACKAGES.get(provider, provider)
+        llm, label = None, f"rules-only (AI package missing: {pkg} is not installed, run: pip install {pkg})"
+    except Exception as e:  # bad key format
         llm, label = None, f"rules-only ({provider} unavailable: {type(e).__name__})"
     _cache["llm"] = (llm, label)
     return _cache["llm"]
