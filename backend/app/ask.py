@@ -21,8 +21,19 @@ OP_TEXT = {
 }
 
 
-def enabled() -> bool:
-    return os.environ.get("CHATBOT", "off").strip().lower() in ("on", "1", "true", "yes")
+def mode() -> str:
+    """CHATBOT=auto (default), on or off. auto: on when an AI model is available, and always on for the sample run; on: always on; off: never."""
+    v = os.environ.get("CHATBOT", "auto").strip().lower()
+    return "on" if v in ("on", "1", "true", "yes") else "off" if v in ("off", "0", "false", "no") else "auto"
+
+
+def ai_available() -> bool:
+    return llmmod.get_llm()[0] is not None
+
+
+def enabled(demo: bool = False) -> bool:
+    m = mode()
+    return m == "on" or (m == "auto" and (demo or ai_available()))
 
 
 def _money(v: float) -> str:
@@ -143,29 +154,119 @@ def _run(op: dict, df: pd.DataFrame, chart_path: Path) -> dict:
     return {"text": text, "rows": rows, "figures": {"total": total}}
 
 
-def answer(workdir: Path, result: dict, question: str, llm=None) -> dict:
-    """The answer to one question about a finished run. `llm` defaults to the configured model; tests pass a fake one."""
-    question = " ".join(question.split())[:300]
-    if not question:
-        return {"status": "no_fit", "text": "Type a question about this report.", "suggestions": []}
+def _prepare(workdir: Path, result: dict):
     df = pd.read_pickle(workdir / "clean.pkl")
     measures, groups, dates = _columns(result, df)
     values = {g: sorted(str(v) for v in df[g].dropna().unique()) for g in groups}
-    suggestions = _suggestions(measures, groups, dates)
+    return df, measures, groups, dates, values
+
+
+def _main_measure(result: dict, measures: list[str]) -> str:
+    target = (result.get("plan") or {}).get("target")
+    return target if target in measures else measures[0]
+
+
+def chips(workdir: Path, result: dict) -> list[dict]:
+    """4 to 6 suggested questions written from this report's own data. Each carries the operation it maps to, so it runs without an AI model."""
+    df, measures, groups, dates, _ = _prepare(workdir, result)
     if not measures:
-        return {"status": "no_fit", "text": "This data has no number column to ask about.", "suggestions": []}
-    model = llm if llm is not None else llmmod.get_llm()[0]
-    if model is None:
-        return {"status": "unavailable", "text": "Questions need an AI model. None is configured on this server, so no question can be answered.", "suggestions": []}
-    system, user = _prompt(measures, groups, dates, values)
-    choice, reason = llmmod.ask_json_ex(model, system, user.format(q=question), repair=True)
-    if choice is None:
-        return {"status": "unavailable", "text": f"The AI model could not read the question ({reason or 'no answer'}). Try again in a moment.", "suggestions": []}
-    op, why = _check(choice, measures, groups, dates, values)
-    if op is None:
-        return {"status": "no_fit", "text": f"That question does not fit what this report can compute: {why}. Try one of these instead.", "suggestions": suggestions}
+        return []
+    m = _main_measure(result, measures)
+    out = []
+    if groups:
+        g = groups[0]
+        order = df.groupby(g)[m].sum().sort_values(ascending=False)
+        out.append({"text": f"Which {g} earns the most {m}?", "op": {"op": "top_n", "measure": m, "group": g, "n": 3}})
+        if dates:
+            out.append({"text": f"Is {m} growing?", "op": {"op": "trend", "measure": m, "freq": "M", "date": dates[0]}})
+        if len(order) >= 2:
+            a, b = str(order.index[0]), str(order.index[1])
+            out.append({"text": f"Compare {a} and {b}", "op": {"op": "compare", "measure": m, "group": g, "a": a, "b": b}})
+            out.append({"text": f"How much of the {m} comes from {a}?", "op": {"op": "share", "measure": m, "group": g, "value": a}})
+        if len(groups) > 1:
+            g2 = groups[1]
+            order2 = df.groupby(g2)[m].sum().sort_values(ascending=False)
+            out.append({"text": f"Which {g2} earns the most {m}?", "op": {"op": "top_n", "measure": m, "group": g2, "n": 3}})
+            if len(order2):
+                v2 = str(order2.index[0])
+                out.append({"text": f"What is the total {m} for {g2} {v2}?", "op": {"op": "filter_total", "measure": m, "column": g2, "value": v2}})
+    elif dates:
+        out.append({"text": f"Is {m} growing?", "op": {"op": "trend", "measure": m, "freq": "M", "date": dates[0]}})
+    for k, c in enumerate(out[:6]):
+        c["id"] = f"c{k + 1}"
+    return out[:6]
+
+
+def _how(op: dict) -> dict:
+    names = {"top_n": "Top groups by total", "compare": "Two groups compared by total", "trend": "Total over time", "share": "Share of the total", "filter_total": "Total for matching rows"}
+    cols = [op["measure"]] + [op[k] for k in ("group", "column", "date") if op.get(k)]
+    detail = {"top_n": f"Added up {op['measure']} for each {op.get('group')} and ranked them.", "compare": f"Added up {op['measure']} for {op.get('a')} and for {op.get('b')} in {op.get('group')}.",
+              "trend": f"Added up {op['measure']} for each {'month' if op.get('freq') == 'M' else 'quarter'} of {op.get('date')}.",
+              "share": f"Added up {op['measure']} for {op.get('value')} in {op.get('group')} and divided by the total.",
+              "filter_total": f"Added up {op['measure']} for the rows where {op.get('column')} is {op.get('value')}."}[op["op"]]
+    return {"operation": names[op["op"]], "columns": cols, "detail": detail + " Every figure is calculated by code from the cleaned data."}
+
+
+def _execute(workdir: Path, df: pd.DataFrame, op: dict) -> dict:
     key = hashlib.sha1(repr(sorted(op.items())).encode()).hexdigest()[:12]
     chart = workdir / "charts" / f"ask_{key}.png"
     chart.parent.mkdir(exist_ok=True)
     out = _run(op, df, chart)
-    return {"status": "answered", "op": op["op"], "text": out["text"], "rows": out["rows"], "chart": f"charts/{chart.name}", "suggestions": []}
+    return {"status": "answered", "op": op["op"], "text": out["text"], "rows": out["rows"], "chart": f"charts/{chart.name}", "how": _how(op), "suggestions": []}
+
+
+def _norm(t: str) -> str:
+    return " ".join("".join(ch.lower() if ch.isalnum() else " " for ch in t).split())
+
+
+def match_chip(question: str, all_chips: list[dict]) -> dict | None:
+    """A typed question that clearly matches a chip (same words, or very close) runs that chip; anything else does not."""
+    import difflib
+    q = _norm(question)
+    best, score = None, 0.0
+    for c in all_chips:
+        r = difflib.SequenceMatcher(None, q, _norm(c["text"])).ratio()
+        if r > score:
+            best, score = c, r
+    return best if score >= 0.8 else None
+
+
+def answer(workdir: Path, result: dict, question: str, llm=None, chip: str | None = None, allow_ai: bool = True) -> dict:
+    """The answer to one question about a finished run. A chip, or a typed question that clearly matches one, runs without an AI model.
+    Free text goes to the model only when allow_ai is true. `llm` defaults to the configured model; tests pass a fake one."""
+    question = " ".join(question.split())[:300]
+    if not question and not chip:
+        return {"status": "no_fit", "text": "Type a question about this report.", "suggestions": []}
+    df, measures, groups, dates, values = _prepare(workdir, result)
+    if not measures:
+        return {"status": "no_fit", "text": "This data has no number column to ask about.", "suggestions": []}
+    cs = chips(workdir, result)
+    picked = next((c for c in cs if c["id"] == chip), None) if chip else match_chip(question, cs)
+    if picked is not None:
+        return _execute(workdir, df, picked["op"])
+    suggestions = [c["text"] for c in cs[:2]] or _suggestions(measures, groups, dates)
+    model = (llm if llm is not None else llmmod.get_llm()[0]) if allow_ai else None
+    if model is None:
+        return {"status": "unavailable", "text": "Without an AI model I can answer the suggested questions only. Pick one of these.", "suggestions": [c["text"] for c in cs]}
+    system, user = _prompt(measures, groups, dates, values)
+    choice, reason = llmmod.ask_json_ex(model, system, user.format(q=question), repair=True)
+    if choice is None:
+        return {"status": "unavailable", "text": "I could not read that question just now. Please try again in a moment.", "suggestions": suggestions}
+    op, why = _check(choice, measures, groups, dates, values)
+    if op is None:
+        return {"status": "no_fit", "text": f"I can't answer that from this report: {why}. Here are two questions I can answer.", "suggestions": suggestions}
+    return _execute(workdir, df, op)
+
+
+def history(workdir: Path) -> list[dict]:
+    import json
+    p = workdir / "chat.json"
+    try:
+        return json.loads(p.read_text(encoding="utf-8")) if p.exists() else []
+    except (OSError, ValueError):
+        return []
+
+
+def save_history(workdir: Path, items: list[dict]) -> None:
+    import json
+    (workdir / "chat.json").write_text(json.dumps(items[-50:]), encoding="utf-8")

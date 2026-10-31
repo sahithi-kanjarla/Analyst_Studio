@@ -2,6 +2,8 @@
 The LLM (if available) only writes the executive summary and top recommendations from those findings."""
 from __future__ import annotations
 
+import time
+
 import json
 import re
 
@@ -767,7 +769,35 @@ def build_report(state: dict, summary: str, recs: list[str], run_mode: str = "",
     L += _details("Power BI", ["A ready-to-load Power BI pack (cleaned data, data model, DAX measures and visual specs) was generated alongside this report."])
     if len(warns) > mainview.WARNINGS_MAX:
         L += _details("More notices", [f"- ⚠ {w}" for w in warns[mainview.WARNINGS_MAX:]])
+    view["page"] = _page(state, run_mode, cs, plan, ts, answer_cards, L)
     return "\n".join(L)
+
+
+def _page(state: dict, run_mode: str, cs: list[dict], plan: dict, ts: list, answer_cards: list[dict], lines: list[str]) -> dict:
+    """The main view as data, for the designed report page: the same cards, actions and figures the markdown shows, in the same words."""
+    ctx = state.get("context") or {}
+    cp = state.get("chart_plan") or {}
+    ans = state.get("goal_answer") or {}
+    cards = [{"num": c["num"], "question": mainview.plain(c["question"]), "lines": list(c["text"]), "trust": c.get("trust") or "", "trust_why": c.get("trust_why") or "",
+              "so_what": c.get("so_what") or "", "charts": [{"title": ch["title"], "path": ch["path"], "caption": ch["caption"]} for ch in (cp.get("cards") or {}).get(c["question"]) or []]}
+             for c in answer_cards]
+    support = cp.get("actions") or {}
+    num = {c["n"]: c["num"] for c in cs}
+    actions = []
+    for k, a in enumerate(plan["actions"]):
+        s = support.get(k) or {}
+        actions.append({"text": a["text"], "question": num.get(a["n"]), "chart": s.get("chart") or "", "chart_title": s.get("title") or "", "figure": s.get("figure") or ""})
+    charts, seen = [], set()
+    for ch in [x for c in cards for x in c["charts"]] + [{"title": a["chart_title"], "path": a["chart"], "caption": a["figure"]} for a in actions if a["chart"]]:
+        if ch["path"] and ch["path"] not in seen and len(charts) < 6:
+            seen.add(ch["path"])
+            charts.append(ch)
+    first = cards[0] if cards else {}
+    i = lines.index("**View more**") if "**View more**" in lines else len(lines)
+    return {"title": "Analysis report", "company": ctx.get("company", ""), "date": time.strftime("%d %b %Y"), "mode": run_mode or derive_mode(state.get("stage_sources")),
+            "goal": state.get("goal", ""), "trust": first.get("trust", ""), "headline": ans.get("sentence") or (first.get("lines") or [""])[0], "headline_more": ans.get("groups_sentence") or "",
+            "tiles": [{"label": l, "value": v} for l, v in ts][:4], "cards": cards, "actions": actions, "charts": charts,
+            "no_action": [r for n, r in sorted(plan["none"].items()) if num.get(n)], "behind_md": "\n".join(lines[i + 1:]).strip()}
 
 
 def write_report(state: dict, llm) -> tuple[str, str]:

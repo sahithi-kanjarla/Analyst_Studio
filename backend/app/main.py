@@ -2,6 +2,8 @@ import asyncio
 import json
 import re
 import time
+import uuid
+from pathlib import Path
 from contextlib import asynccontextmanager
 
 from pydantic import BaseModel, Field
@@ -50,7 +52,7 @@ def open_demo():
 @app.get("/api/health")
 def health():
     _, label = get_llm()
-    return {"status": "ok", "llm": label, "chatbot": ask.enabled()}
+    return {"status": "ok", "llm": label, "chatbot": ask.mode()}
 
 
 @app.post("/api/runs")
@@ -117,6 +119,13 @@ def get_run(run_id: str):
                 f["chart_url"] = base + f["chart"]
         view = data.get("report_view") or tiering.build_view(data)       # runs made before the tiers existed get them computed from the saved findings
         data["report_view"] = view
+        pg = view.get("page")
+        if pg:      # the designed report page: its charts need addresses, like the markdown's
+            for ch in pg["charts"] + [x for c in pg["cards"] for x in c["charts"]]:
+                ch["url"] = base + ch["path"]
+            for a in pg["actions"]:
+                a["chart_url"] = base + a["chart"] if a.get("chart") else ""
+            pg["behind_md"] = pg["behind_md"].replace("](charts/", f"]({base}charts/")
         for c in view["evidence"] + view["appendix"]:
             if c.get("chart"):
                 c["chart_url"] = base + c["chart"]
@@ -400,24 +409,58 @@ async def stream_events(run_id: str):
 
 
 class AskIn(BaseModel):
-    question: str = Field(min_length=1, max_length=300)
+    question: str = Field(default="", max_length=300)
+    chip: str | None = None
+
+
+class PinIn(BaseModel):
+    id: str
+    pinned: bool
+
+
+def _chat_context(run_id: str) -> tuple[Path, dict]:
+    _check_id(run_id)
+    if not ask.enabled(is_demo(run_id)):
+        raise HTTPException(404, "Not found")
+    res = run_dir(run_id) / "result.json"
+    if (read_status(run_id) or {}).get("status") != "done" or not res.exists():
+        raise HTTPException(409, "Questions can be asked once the report is ready.")
+    return run_dir(run_id), json.loads(res.read_text(encoding="utf-8"))
+
+
+@app.get("/api/runs/{run_id}/ask")
+def ask_info(run_id: str):
+    """Whether 'Ask about this report' is available for this run, its suggested questions and its chat history."""
+    _check_id(run_id)
+    if not ask.enabled(is_demo(run_id)):
+        return {"enabled": False, "ai": False, "chips": [], "history": []}
+    wd, result = _chat_context(run_id)
+    return {"enabled": True, "ai": ask.ai_available() and not is_demo(run_id), "chips": ask.chips(wd, result), "history": ask.history(wd)}
 
 
 @app.post("/api/runs/{run_id}/ask")
 def ask_report(run_id: str, body: AskIn):
-    """'Ask about this report', only when CHATBOT=on. The AI picks one operation; code computes and draws the answer."""
-    if not ask.enabled():
-        raise HTTPException(404, "Not found")
-    _check_id(run_id)
-    if is_demo(run_id):
-        raise HTTPException(403, "The sample run makes no AI calls, so questions are not available on it.")
-    res = run_dir(run_id) / "result.json"
-    if (read_status(run_id) or {}).get("status") != "done" or not res.exists():
-        raise HTTPException(409, "Questions can be asked once the report is ready.")
-    out = ask.answer(run_dir(run_id), json.loads(res.read_text(encoding="utf-8")), body.question)
+    """'Ask about this report'. A suggested question runs without an AI model; free text goes to the model (never for the sample run). Code computes every figure."""
+    wd, result = _chat_context(run_id)
+    out = ask.answer(wd, result, body.question, chip=body.chip, allow_ai=not is_demo(run_id))
     if out.get("chart"):
         out["chart_url"] = f"/api/runs/{run_id}/files/{out['chart']}"
-    return out
+    items = ask.history(wd)
+    entry = {"id": uuid.uuid4().hex[:8], "question": body.question or next((c["text"] for c in ask.chips(wd, result) if c["id"] == body.chip), ""), "answer": out, "pinned": False, "at": time.time()}
+    ask.save_history(wd, items + [entry])
+    return {**entry}
+
+
+@app.patch("/api/runs/{run_id}/ask/pin")
+def pin_answer(run_id: str, body: PinIn):
+    wd, _ = _chat_context(run_id)
+    items = ask.history(wd)
+    hit = next((e for e in items if e["id"] == body.id), None)
+    if hit is None:
+        raise HTTPException(404, "Answer not found")
+    hit["pinned"] = body.pinned
+    ask.save_history(wd, items)
+    return hit
 
 
 @app.get("/api/runs/{run_id}/files/{path:path}")
