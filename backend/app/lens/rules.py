@@ -25,3 +25,56 @@ def margin_gap(question: str, ctx: Ctx) -> str | None:
                 "I can show the cost and the sales separately.")
     return ("Margin can't be computed because the data has no cost column." if margin
             else "Profit can't be worked out because the data has no cost column, so margin can't be computed either.")
+
+
+# ------------------------------------------------------------------ questions that are about the app or the report, not about a calculation. Plain patterns on the user's own words.
+WHY_RE = re.compile(r"\bwhy\b|\bhow come\b|\bwhat (?:is |was )?(?:causing|behind|the reason|the cause)\b|\breason for\b|\bwhat caused\b", re.I)
+SUMMARY_RE = re.compile(r"\b(?:summari[sz]e|summari[sz]ing|shorten|tl;?\s?dr|condense|in a nutshell|executive summary|short(?:er)? version|brief(?:er)? version|key takeaways?)\b"
+                        r"|\bsummary of (?:the |this |my )?(?:report|analysis|findings|results|insights)\b|\bmake (?:it|this|the report) (?:shorter|brief|more concise)\b|\bgive me the (?:short|quick) (?:version|summary)\b", re.I)
+SHORT_RE = re.compile(r"\b(?:shorten|tl;?\s?dr|condense|in a nutshell|short(?:er)? version|brief(?:er)? version|shorter|very short|one[- ]minute)\b", re.I)
+VIEW_RE = re.compile(r"\b(?:dark|light) mode\b|\b(?:change|switch|toggle|swap|set|make|turn)\b[^.?]{0,30}\b(?:view|layout|theme|colou?rs?|font|fonts|sidebar|navigation|language|display)\b"
+                     r"|\b(?:go to|switch to|open|jump to|navigate to|take me to)\b[^.?]{0,25}\b(?:tab|page|dashboard|insights|report|chat)\b", re.I)
+DATA_WORDS = re.compile(r"\b(?:chart|graph|line|bar|pie|monthly|weekly|daily|quarterly|yearly|top \d+|bottom \d+|as a|stacked|histogram|scatter)\b", re.I)
+APP_PATTERNS = (
+    ("tab", re.compile(r"\bwhat (?:does|do|is|are)\b[^.?]{0,40}\b(?:tab|page|screen|section)\b[^.?]{0,25}\b(?:show|do|for|mean|contain|about|has)\b|\bwhat(?:'s| is) (?:on|in) (?:this|the) (?:tab|page|screen)\b|\bexplain (?:this|the) (?:tab|page|screen)\b", re.I)),
+    ("trust", re.compile(r"\btrust\w*\b|\bhow (?:reliable|confident)\b|\bhow (?:much )?can i rely\b", re.I)),
+    ("cleaning", re.compile(r"\bwhat (?:did|have) (?:you|we) (?:clean|change|fix|remove|drop|do to)\b|\bwhat (?:was|got|has been) (?:cleaned|changed|fixed|removed|dropped)\b|\bhow did you clean\b|\bcleaning (?:log|steps?)\b|\bwhat (?:cleaning|changes)\b[^.?]{0,25}\b(?:made|done|applied)\b", re.I)),
+    ("definitions", re.compile(r"\bdefinitions?\b|\bwhat (?:assumptions?|rules?) (?:did|were|was)\b|\bwhich assumptions?\b|\bhow (?:did|do) you (?:define|treat)\b", re.I)),
+    ("understanding", re.compile(r"\bhow did you (?:understand|read|interpret)\b[^.?]{0,20}\b(?:data|columns?)\b|\bwhat does (?:the )?(?:\w+ )?column\b[^.?]{0,30}\bmean\b|\bunderstanding record\b|\bcolumn meanings?\b", re.I)),
+    ("data_gaps", re.compile(r"\bdata gaps?\b|\bwhat(?:'s| is) missing from (?:the |my )?data\b", re.I)),
+)
+PRIORITY_RE = re.compile(r"\bwhat matters most\b|\bwhat should i (?:focus|look|care)\b|\bi (?:care|worry) (?:most )?about\b|\b(?:my|our) (?:main |top )?(?:priority|priorities)\b|\bfocus(?:ed|ing)? on\b|\bmost important (?:for|to) (?:me|us)\b|\bwhat matters (?:for|to) (?:me|us)\b|\bi(?:'m| am) (?:interested|concerned) in\b", re.I)
+PRIORITY_PHRASE = re.compile(r"(?:care about|worry about|focus(?:ed|ing)? on|priority is|priorities are|interested in|concerned (?:about|with|in)|matters? (?:most )?(?:is|are|to me is)|important (?:for|to) (?:me|us) (?:is|are))\s+(?P<p>[^.?!]{2,80})", re.I)
+GENERIC_STOP = set("the a an and or of to in on for is are was be my our i we me it its with about most more matters matter care really that this what how much many".split())
+
+
+def is_why(question: str) -> bool:
+    return bool(WHY_RE.search(question or ""))
+
+
+def wants_view_change(question: str) -> bool:
+    return bool(VIEW_RE.search(question or "")) and not DATA_WORDS.search(question or "")
+
+
+def route(question: str) -> dict | None:
+    """The question's destination when plain words settle it (no AI needed), else None: {"kind": "view"|"summary"|"app"|"priority", ...}."""
+    q = question or ""
+    if wants_view_change(q):
+        return {"kind": "view"}
+    if SUMMARY_RE.search(q):
+        return {"kind": "summary", "length": "short" if SHORT_RE.search(q) else "standard"}
+    for topic, rx in APP_PATTERNS:
+        if rx.search(q):
+            return {"kind": "app", "topic": topic}
+    if PRIORITY_RE.search(q):
+        return {"kind": "priority", "terms": priority_terms(q)}
+    return None
+
+
+def priority_terms(question: str) -> list[str]:
+    """The words after "I care about ..." and the like. Used when no AI picked the framing."""
+    m = PRIORITY_PHRASE.search(question or "")
+    if not m:
+        return []
+    words = [w for w in re.findall(r"[A-Za-z][A-Za-z\-]+", m.group("p")) if w.lower() not in GENERIC_STOP]
+    return words[:5]

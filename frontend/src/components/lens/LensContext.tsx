@@ -1,5 +1,5 @@
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { api, LensAsk, LensChip, LensInfo, LensPin, LensTurn } from "../../api";
+import { api, LensAsk, LensChip, LensInfo, LensPin, LensTurn, LensView } from "../../api";
 
 /** One conversation per run, shared by the side panel, the bottom sheet and the full-width Chat tab. The server keeps the history and the pins, so a reload brings them back. */
 export interface LensApi {
@@ -9,6 +9,9 @@ export interface LensApi {
   ai: boolean;
   turns: LensTurn[];
   pins: LensPin[];
+  shortView: LensView | null;
+  saveShort: (turn: string) => Promise<void>;
+  removeShort: () => Promise<void>;
   chips: LensChip[];
   busy: boolean;
   pending: string;
@@ -32,6 +35,7 @@ export function LensProvider({ runId, children }: { runId: string; children: Rea
   const [info, setInfo] = useState<LensInfo | null>(null);
   const [turns, setTurns] = useState<LensTurn[]>([]);
   const [pins, setPins] = useState<LensPin[]>([]);
+  const [shortView, setShortView] = useState<LensView | null>(null);
   const [busy, setBusy] = useState(false);
   const [pending, setPending] = useState("");
   const [error, setError] = useState("");
@@ -48,6 +52,7 @@ export function LensProvider({ runId, children }: { runId: string; children: Rea
       setInfo(i);
       setTurns(i.history);
       setPins(i.pins);
+      setShortView(i.views?.short ?? null);
     }).catch(() => alive && setInfo(null));
     return () => { alive = false; };
   }, [runId]);
@@ -86,10 +91,27 @@ export function LensProvider({ runId, children }: { runId: string; children: Rea
     }
   }, [runId]);
 
+  const saveShort = useCallback(async (turn: string) => {
+    try {
+      setShortView(await api.lensSaveView(runId, turn));
+    } catch {
+      setError("Could not keep that short version.");
+    }
+  }, [runId]);
+
+  const removeShort = useCallback(async () => {
+    try {
+      await api.lensRemoveView(runId);
+      setShortView(null);
+    } catch {
+      setError("Could not remove the short version.");
+    }
+  }, [runId]);
+
   const value = useMemo<LensApi>(() => ({
-    runId, info, enabled: !!info?.enabled, ai: !!info?.ai, turns, pins, chips: info?.chips ?? [], busy, pending, error, open, expanded, tabName,
+    runId, info, enabled: !!info?.enabled, ai: !!info?.ai, turns, pins, shortView, saveShort, removeShort, chips: info?.chips ?? [], busy, pending, error, open, expanded, tabName,
     setOpen, setExpanded, setTabName, send, pin, unpin, pinOf: (turn, target) => pins.find((p) => p.turn_id === turn && p.target === target),
-  }), [runId, info, turns, pins, busy, pending, error, open, expanded, tabName, send, pin, unpin]);
+  }), [runId, info, turns, pins, shortView, saveShort, removeShort, busy, pending, error, open, expanded, tabName, send, pin, unpin]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

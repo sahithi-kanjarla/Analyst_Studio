@@ -224,6 +224,24 @@ The AI never writes a sentence that is shown as a result. Its only free text is 
 
 The code is in `backend/app/lens/`: `context.py` (what the AI may see), `query.py` (the closed list and the checks), `engine.py` (the calculations and sentences), `render.py` (charts), `chips.py`, `chat.py` (the only place that talks to the AI), `store.py` (saved state). A new operation is one function in `engine.RUNNERS` and one entry in `query.OP_HELP`. `python scripts/lens_kaveri_check.py` asks the real model eight Kaveri questions and compares each answer with pandas (`scripts/lens_kaveri_check_out.txt`); `node scripts/lens_screenshots.js` drives the panel in a browser.
 
+### Lens, Stage 2A: the report and the app
+
+Lens also answers questions about the report itself. With each question it is given the current tab, the report's checked fact list (with fact ids), the insights, the strategies, the cleaning log, the definitions used and the understanding record (`lens/records.py`), never rows. The AI chooses what kind of answer it is and the framing words; code quotes, ranks and checks.
+
+- **A premise the data contradicts is corrected first.** "Why is Electronics the top?" when Clothing is top gets "Correction first: Electronics is not the top category by total amount: Clothing is, at ... Electronics is second, at ...", with the computed figures, and then the rest of the question is answered.
+- **"Why" questions are not refused, and no cause is ever claimed.** Lens says plainly that the data alone can't show why, then shows what is behind the number, calculated by code and drawn: the share of the total, a split by the most relevant other column (the one whose groups differ most), or what changed between two periods. Two follow-up questions come from that breakdown.
+- **Fewer groups than asked for** ("top 10 cities" with 4 cities) says "There are only 4 cities".
+- **Refusals** now offer 2 questions that fit the topic and were not just offered. A request to change the view ("dark mode", "switch the layout") is answered as such: view changes are coming, and what is available now is listed.
+- **How this was calculated** is written once on the server (`lens/howtext.py`) and is never empty: the operation, columns, filters, rows in / used / left out for a calculation; the sources and fact ids for an answer quoted from the report.
+- **App and report questions** ("what does this tab show?", "why is trust Medium?", "what did you clean?", "which definitions did you use?") are quoted from the run's saved records, with the toggle showing which record.
+- **Summarise / shorten** gives at most 5 lines (3 for "shorten") plus the report's top 3 actions. The AI words the lines; each must state a figure and cite the fact it came from, and goes through the report's own citation checks (`cited.verify`: the figure must be the fact's, near the fact's subject; no causal wording); a line that fails is dropped, and if fewer than 2 survive (or there is no AI) the report's own sentences are used. **Use as my short version** keeps it as an alternative view in `lens.json` (shown on the report page as "Your short version"); the original report is never changed.
+- **"What matters most for me?" / "I care about returns"**: the AI picks the framing words; code ranks the report's existing insights and actions by how closely they match and shows the top 3 with their figures. Nothing relevant is said plainly. With no priority named, Lens asks.
+- **Strategy questions** reuse the report's strategies and their checks (`strategy.blocked`): labelled **Suggestion**, or **No suggestion: <reason>**.
+- **General questions** not about the data are answered briefly and labelled "General knowledge, not from your data"; a sentence with a figure is dropped.
+- After every answer, 2 or 3 **what to ask next** chips. Plain-word questions (summaries, app questions, view changes) and all chips run with no AI; the summary then uses the report's own sentences.
+
+Cost is unchanged: at most 2 AI calls per question, the AI cache and rate-limit handling, the per-run cap. `python scripts/lens_stage2a_check.py` asks the real model nine Kaveri questions and compares each answer with pandas or with the saved report records (`scripts/lens_stage2a_check_out.txt`). New code: `records.py`, `reports.py`, `reasoning.py`, `howtext.py`; tests in `backend/tests/test_lens_stage2a.py`.
+
 ## Quick start
 
 ```bash

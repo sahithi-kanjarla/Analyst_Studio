@@ -128,3 +128,30 @@ def follow_ups(ctx: Ctx, df: pd.DataFrame, result: dict, last: dict | None) -> l
         if len(out) == 3:
             break
     return out
+
+
+def _stems(text: str) -> set[str]:
+    from .records import stems
+    return stems(text)
+
+
+def relevant(ctx: Ctx, df: pd.DataFrame, result: dict, question: str, last: dict | None, exclude: set[str], n: int = 2, extra: list[dict] | None = None) -> list[dict]:
+    """The n suggested questions that best fit what the user was just talking about, never one that was just offered (unless nothing else is left).
+    A question fits when it shares words with what was typed, or uses the measure or grouping of the last answer."""
+    q_words = _stems(question)
+    topic = {c for c in (last.get("measure"), *(last.get("group_by") or []), *(last.get("split_by") or []), last.get("by"), last.get("column")) if c} if last else set()
+    pool = (follow_ups(ctx, df, result, last) if last else []) + start(ctx, df, result) + list(extra or [])
+    scored, seen = [], set()
+    for i, c in enumerate(pool):
+        if c["id"] in seen or (c.get("query") and not qmod.check(c["query"], ctx, df).query):
+            continue
+        seen.add(c["id"])
+        qry = c.get("query") or {}
+        cols = {x for x in (qry.get("measure"), qry.get("by"), qry.get("column"), *(qry.get("group_by") or []), *(qry.get("split_by") or [])) if x}
+        words = _stems(c["text"]) | {w for x in cols for w in _stems(ctx.label(x))}
+        score = 3 * len(q_words & words) + 2 * len(topic & cols) + (1 if i < 3 and last else 0)
+        scored.append((-score, i, c))
+    scored.sort(key=lambda t: (t[0], t[1]))
+    fresh = [c for _, _, c in scored if c["id"] not in exclude]
+    stale = [c for _, _, c in scored if c["id"] in exclude]
+    return (fresh + stale)[:n]

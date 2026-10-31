@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 
 from . import query as qmod
+from . import howtext
 from .context import Ctx, fmt_num, fmt_value
 
 MAX_POINTS = 400
@@ -113,9 +114,9 @@ class Frame:
     def how(self, operation: str, cols: list[str], extra: list[str] | None = None, hidden: int = 0) -> dict:
         used = len(self.df)
         out = int(self.total - used)
-        return {"operation": operation, "columns": [{"name": c, "label": self.ctx.label(c), "role": self.ctx.cols[c].role} for c in dict.fromkeys(cols) if c in self.ctx.cols],
-                "filters": self.filters, "rows_total": int(self.total), "rows_used": int(used), "rows_left_out": out, "left_out": self.left_out,
-                "groups_not_shown": int(hidden), "notes": self.notes + (extra or [])}
+        return howtext.with_lines({"operation": operation, "columns": [{"name": c, "label": self.ctx.label(c), "role": self.ctx.cols[c].role} for c in dict.fromkeys(cols) if c in self.ctx.cols],
+                                   "filters": self.filters, "rows_total": int(self.total), "rows_used": int(used), "rows_left_out": out, "left_out": self.left_out,
+                                   "groups_not_shown": int(hidden), "notes": self.notes + (extra or [])})
 
 
 # ------------------------------------------------------------------ aggregation
@@ -157,6 +158,14 @@ def vfmt(q: dict, ctx: Ctx):
     """How one calculated value of this query is written."""
     col = ctx.cols.get(q.get("measure")) if q.get("agg") in ("sum", "average", "ratio") else None
     return lambda v: fmt_value(v, col, ctx)
+
+
+def plural(label: str) -> str:
+    """'Category' -> 'categories', 'City' -> 'cities', 'Tier' -> 'tiers' (lower case, for a sentence)."""
+    w = label if any(x.isupper() and len(x) > 1 for x in label.split()) else label.lower()
+    if w.endswith("y") and len(w) > 1 and w[-2] not in "aeiou":
+        return w[:-1] + "ies"
+    return w + ("es" if w.endswith(("s", "x", "ch", "sh")) else "s")
 
 
 def cap(s: str) -> str:
@@ -282,7 +291,10 @@ def run_groups(df, ctx, q, ranked: bool = False) -> Result:
         if R.additive and total_all and i == 0:
             t += f", {R.fig('share of total', v / total_all * 100, f'{v / total_all * 100:.1f}%')} of the total"
         parts.append(t + ")")
-    if ranked:
+    if ranked and len(allv) < q["n"]:
+        R.sentence = (f"There are only {R.fig('groups', len(allv), fmt_num(len(allv)))} {plural(lab_g)}, so here are all of them by {ph}, {'highest' if q['direction'] == 'top' else 'lowest'} first: "
+                      + ", ".join(parts) + (f", and {R.fig('more groups', len(names) - 3, fmt_num(len(names) - 3))} more." if len(names) > 3 else "."))
+    elif ranked:
         word = "Top" if q["direction"] == "top" else "Bottom"
         R.sentence = f"{word} {lab_g if len(names) == 1 else str(len(names)) + ' ' + lab_g} by {ph}: " + ", ".join(parts) + (f", and {R.fig('more groups', len(names) - 3, fmt_num(len(names) - 3))} more." if len(names) > 3 else ".")
     else:
@@ -536,4 +548,5 @@ def run(q: dict, df: pd.DataFrame, ctx: Ctx) -> Result:
     resolve_chart(R)
     if R.chart_note:
         R.how.setdefault("notes", []).append(R.chart_note)
+    R.how = howtext.with_lines(R.how)          # the lines are written last, so they always match the record
     return R

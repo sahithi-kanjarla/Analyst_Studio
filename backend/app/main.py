@@ -16,7 +16,7 @@ from .config import ALLOWED_EXT, FRONTEND_DIST, MAX_FILES, MAX_ROWS, MAX_UPLOAD_
 from . import clarify, glossary, tiering
 from .profiler import count_delimited_rows, too_many_rows_message
 from . import lens
-from .lens import chat as lenschat, store as lensstore
+from .lens import chat as lenschat, howtext as lenshow, reports as lensreports, store as lensstore
 from .context import normalise_context
 from .dashboard import build_dashboard, list_sources, source_path, valid_source
 from .events import get_events
@@ -438,11 +438,14 @@ def _wire_chart(c: dict | None, run_id: str) -> dict | None:
 
 def _wire_turn(t: dict, run_id: str) -> dict:
     a = t["answer"]
-    return {**t, "answer": {**a, "chart": _wire_chart(a.get("chart"), run_id)}}
+    out = {**a, "chart": _wire_chart(a.get("chart"), run_id)}
+    if a.get("how"):
+        out["how"] = lenshow.with_lines(a["how"])          # the box is never empty, including for answers saved before it was written on the server
+    return {**t, "answer": out}
 
 
 def _wire_pin(p: dict, run_id: str) -> dict:
-    return {**p, "chart": _wire_chart(p.get("chart"), run_id)}
+    return {**p, "chart": _wire_chart(p.get("chart"), run_id), **({"how": lenshow.with_lines(p["how"])} if p.get("how") else {})}
 
 
 @app.get("/api/runs/{run_id}/lens")
@@ -478,6 +481,28 @@ def lens_pin(run_id: str, body: LensPinIn):
     if pin is None:
         raise HTTPException(404, "Only an answered question can be pinned.")
     return _wire_pin(pin, run_id)
+
+
+class LensViewIn(BaseModel):
+    turn: str
+
+
+@app.post("/api/runs/{run_id}/lens/views")
+def lens_save_view(run_id: str, body: LensViewIn):
+    """Keep a short version of the report that Lens wrote as an alternative view. The original report is never changed."""
+    wd, _ = _lens_run(run_id)
+    v = lensreports.save_view(wd, body.turn)
+    if v is None:
+        raise HTTPException(404, "Only a summary can be kept as a short version.")
+    return v
+
+
+@app.delete("/api/runs/{run_id}/lens/views/short")
+def lens_remove_view(run_id: str):
+    wd, _ = _lens_run(run_id)
+    if not lensstore.remove_view(wd, "short"):
+        raise HTTPException(404, "No short version is saved.")
+    return {"removed": "short"}
 
 
 @app.delete("/api/runs/{run_id}/lens/pins/{pin_id}")

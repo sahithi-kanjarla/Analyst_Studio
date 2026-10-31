@@ -1,7 +1,7 @@
-run 808d4bed086f started...
+run ac0c238561f0 started...
 
-kaveri scorecard, run 1/1 (808d4bed086f); ratio KPI path: profit margin: llm
-AI requests sent in this run: 34; cache on; Reused saved AI result: relations.llm_review, critic.review.
+kaveri scorecard, run 1/1 (ac0c238561f0); ratio KPI path: profit margin: llm
+AI requests sent in this run: 0; cache on; Reused saved AI result: relations.llm_review, derived.propose, propose.propose, critic.review, insights.enrich_with_llm, strategy.refine_with_llm, summary.llm_pick, reporter.llm_summary, reporter.plan_charts.
 
  #  Result  Check                                     Detail
  1  PASS    Revenue total                             truth 45,422,281; found 45,422,281
@@ -10,28 +10,25 @@ AI requests sent in this run: 34; cache on; Reused saved AI result: relations.ll
  4  PASS    Tier growth 2023->2024                    Bronze -18% ok; Gold +41% ok; Silver -9% ok
  5  PASS    Tier margin not reliably different        stated in the report
  6  PASS    Electronics loss-making (~-5.0%)          found
- 7  PASS    Discount vs margin (r~-0.83)              finding f9
+ 7  PASS    Discount vs margin (r~-0.83)              finding f11
  8  PASS    Seasonality: Oct high, Aug low            found
  9  PASS    <=3 questions, none scope                 3 asked
 10  PASS    999 delivery_days handled                 asked
 11  PASS    Pincode not a measure                     not used in any finding
 12  PASS    Ratios are sum/sum                        1 ratio(s), all consistent
 Stage                                  Calls Saved Failed  In tokens Out tokens  Seconds
-relations.llm_review                       2     1      0        434        122      0.6
-propose.propose                            6     0      2 ~   10,382 ~    5,706     20.6
-understanding.resolve                      2     0      1 ~    3,252 ~    2,048      2.8
-concerns.ask_concerns                      4     0      2 ~    6,305 ~    3,040      4.8
-clarify.llm_questions                      2     0      1 ~    3,477 ~      999      1.8
-derived.propose                            1     0      0        370        260      0.7
-critic.review                              2     1      0      1,638        730      1.8
-insights.enrich_with_llm                   2     0      0      3,225      2,161      4.5
-strategy.refine_with_llm                   6     0      4 ~   16,302 ~    4,096      9.1
-summary.llm_pick                           2     0      1 ~    4,955 ~      478      1.8
-reporter.llm_summary                       3     0      2 ~   14,745 ~    1,435      5.0
-reporter.plan_charts                       4     0      2 ~    1,657 ~    3,238      6.3
-Total                                     36     2     15     66,742     24,313     59.7
+relations.llm_review                       2     2      0          0          0      0.0
+propose.propose                            3     3      0          0          0      0.0
+clarify.llm_questions                      1     1      0          0          0      0.0
+derived.propose                            1     1      0          0          0      0.0
+critic.review                              2     2      0          0          0      0.0
+insights.enrich_with_llm                   1     1      0          0          0      0.0
+strategy.refine_with_llm                   1     1      0          0          0      0.0
+summary.llm_pick                           1     1      0          0          0      0.0
+reporter.llm_summary                       1     1      0          0          0      0.0
+reporter.plan_charts                       1     1      0          0          0      0.0
+Total                                     14    14      0          0          0      0.0
 ~ = estimated (the provider gave no token count; about 4 characters a token)
 
 
 Total: 12/12
-exit done

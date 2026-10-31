@@ -113,19 +113,32 @@ export interface LensTable { columns: string[]; rows: (string | number | null)[]
 export interface LensChart { type: string; path: string | null; url: string; note: string }
 export interface LensHow {
   operation: string;
-  columns: { name: string; label: string; role: string }[];
-  filters: string[];
-  rows_total: number;
-  rows_used: number;
-  rows_left_out: number;
-  left_out: { reason: string; rows: number }[];
-  groups_not_shown: number;
-  notes: string[];
+  /** The lines the box shows, written once on the server so it is never empty. */
+  lines?: string[];
+  columns?: { name: string; label: string; role: string }[];
+  filters?: string[];
+  rows_total?: number;
+  rows_used?: number;
+  rows_left_out?: number;
+  left_out?: { reason: string; rows: number }[];
+  groups_not_shown?: number;
+  notes?: string[];
+  sources?: string[];
+  fact_ids?: string[];
 }
 export interface LensControls { chart_types: string[]; grains: string[]; can_top_n: boolean; chart: string }
 export interface LensChip { id: string; text: string }
 export interface LensAnswer {
   status: "answered" | "clarify" | "no_fit" | "unavailable" | "limit";
+  /** data (default) | why | app | summary | priority | strategy | general | view */
+  kind?: string;
+  /** A short label above the answer: "Suggestion", "General knowledge, not from your data", ... */
+  label?: string;
+  lines?: string[];
+  actions?: string[];
+  fact_ids?: string[];
+  view_offer?: { name: string; label: string };
+  premise?: { text: string };
   text: string;
   query?: Record<string, unknown>;
   table?: LensTable;
@@ -139,7 +152,8 @@ export interface LensAnswer {
 }
 export interface LensTurn { id: string; at: number; question: string; tab: string; answer: LensAnswer }
 export interface LensPin { id: string; turn_id: string; target: "report" | "dashboard"; title: string; text: string; table?: LensTable; chart?: LensChart; how?: LensHow; created: number }
-export interface LensInfo { enabled: boolean; ai: boolean; chips: LensChip[]; history: LensTurn[]; pins: LensPin[]; limit: { asked: number; max: number } }
+export interface LensView { name: string; title: string; lines: string[]; actions: string[]; fact_ids: string[]; from_turn: string; created: number }
+export interface LensInfo { enabled: boolean; ai: boolean; chips: LensChip[]; history: LensTurn[]; pins: LensPin[]; views?: Record<string, LensView>; limit: { asked: number; max: number } }
 export type LensAsk = { question?: string; chip?: string; choice?: { turn: string; choice: string }; patch?: { turn: string; set: Record<string, unknown> }; tab?: string };
 
 export interface DataGap {
@@ -458,6 +472,9 @@ export const api = {
     fetch(`/api/runs/${id}/lens/ask`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }).then((r) => json<LensTurn>(r)),
   lensPin: (id: string, turn: string, target: "report" | "dashboard") =>
     fetch(`/api/runs/${id}/lens/pins`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ turn, target }) }).then((r) => json<LensPin>(r)),
+  lensSaveView: (id: string, turn: string) =>
+    fetch(`/api/runs/${id}/lens/views`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ turn }) }).then((r) => json<LensView>(r)),
+  lensRemoveView: (id: string) => fetch(`/api/runs/${id}/lens/views/short`, { method: "DELETE" }).then((r) => json<{ removed: string }>(r)),
   lensUnpin: (id: string, pin: string) => fetch(`/api/runs/${id}/lens/pins/${pin}`, { method: "DELETE" }).then((r) => json<{ removed: string }>(r)),
   openDemo: () => fetch("/api/demo", { method: "POST" }).then((r) => json<{ run_id: string; read_only: boolean }>(r)),
   removeDerived: (id: string, names: string[]) =>

@@ -78,3 +78,8 @@
 .lens-pin p { margin: 0; }
 @media print { .lens-fab, .lens-panel { display: none !important; } body.lens-docked { padding-right: 0 !important; } }
 .lens-pin .link { justify-self: start; }
+
+.lens-badge { display: inline-block; width: fit-content; margin: 0; padding: 2px 10px; border-radius: 999px; font-size: var(--fs-1); font-weight: 700; color: var(--brand); background: color-mix(in srgb, var(--brand) 10%, transparent); }
+.lens-lines, .lens-actions ol { margin: 0; padding-left: 20px; display: grid; gap: var(--sp-1); line-height: 1.45; }
+.lens-actions { display: grid; gap: var(--sp-1); }
+.lens-short { margin-bottom: var(--sp-4); }

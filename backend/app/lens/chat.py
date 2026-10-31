@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import difflib
 import json
+import re
 import threading
 import time
 from pathlib import Path
@@ -13,11 +14,12 @@ import pandas as pd
 from .. import llm as llmmod
 from . import chips as chipmod
 from . import context as ctxmod
-from . import engine, render, rules, store
+from . import engine, howtext, reasoning, records, render, reports, rules, store
 from . import max_questions
 from . import query as qmod
 
 MAX_AI_CALLS = 2
+REPORT_KINDS = ("app", "summary", "priority", "strategy", "general")      # answers about the report and the app, not calculations on the table
 HISTORY_TO_AI = 6
 MAX_TABLE_ROWS = 60
 CHIP_MATCH = 0.95          # typed text runs a suggested question only when it is that question (same words, or a typo away): a near miss with another column name must not be answered with the wrong one
@@ -26,11 +28,16 @@ _DAILY = {"until": 0.0}        # a per-day AI limit stops every run's AI questio
 
 SYSTEM = """You are Lens, the part of a data report that answers questions. You never calculate and never write a number: you choose ONE action as JSON and code does everything else.
 Reply with exactly one of:
-{"action":"query","query":{...}}
+{"action":"query","query":{...}}                    a question answered by calculating on the data
 {"action":"clarify","question":"<one short question>","choices":[{"label":"<2-4 words>","query":{...}},{"label":"...","query":{...}}]}   (2 or 3 choices, each a complete query)
 {"action":"unsupported","reason":"<one plain sentence, no numbers>"}
+{"action":"app","topic":"tab|trust|cleaning|definitions|understanding|goal|data_gaps|insights|strategies"}   about the app or the report itself ("what does this tab show?", "why is trust Medium?", "what did you clean?")
+{"action":"summary","length":"short|standard"}      "summarise" or "shorten" the report
+{"action":"priority","priority":"<what the user cares about, 1-4 words>","terms":["<up to 5 words or close synonyms a report would use for it>"]}   "what matters most for me?", "I care about returns" (terms empty if no priority is named)
+{"action":"strategy","focus":"<what to act on, 1-4 words, or empty>"}   "what should we do about X?"
+{"action":"general","answer":"<at most 3 short sentences, no numbers>"}   a question that is not about this data or report (how a term is defined, how something works in general)
 
-"action" is exactly one of the words query, clarify or unsupported (never an operation name). Example: {"action":"query","query":{"op":"top","measure":"<col>","agg":"sum","group_by":["<col>"],"n":3,"direction":"top"}}
+"action" is exactly one of those words (never an operation name). Example: {"action":"query","query":{"op":"top","measure":"<col>","agg":"sum","group_by":["<col>"],"n":3,"direction":"top"}}
 A query is one of these operations. Every "filters" entry looks like: """ + qmod.FILTER_HELP + """
 """ + "\n".join(f"- {h}" for h in qmod.OP_HELP.values()) + """
 "chart" is optional: auto|bar|line|stacked_bar|share|histogram|scatter|table. "n" is how many groups to show.
@@ -40,8 +47,10 @@ Rules:
 - A value the user names (a city, a tier) goes in a filter or in "a"/"b" exactly as the user wrote it. Code finds the real value.
 - A follow-up ("and for Delhi?", "make it monthly", "as a line", "top 5") changes only what the user asked in the previous query (see PREVIOUS TURNS) and keeps the rest.
 - "last month", "this year" and similar mean the latest period in DATE SPANS, written as a period such as "2023-11" or "2023".
+- A "why" question ("why is X the top?"): return the "query" for the number being asked about (use the main measure when none is named; "revenue" means the money column). Never clarify a "why" question and never explain a cause yourself: code shows what is behind the number. If the question assumes something ("why is X the top?"), still return the query; code checks the assumption.
 - Ask to clarify only when two readings give different answers (for example two columns could be "sales"); one short question with 2 or 3 choices. Never ask to confirm something obvious.
-- Use "unsupported" for forecasts, causes ("why"), opinions, anything that needs a column that is not listed, or changing data. If margin or profit is asked and no column holds it, that is unsupported.
+- Use "unsupported" for forecasts, opinions, anything that needs a column that is not listed, or changing data. If margin or profit is asked and no column holds it, that is unsupported.
+- For app and report questions use REPORT RECORDS; for anything else about the data use COLUMNS. Never put a number from your own knowledge in any field.
 - Return the JSON object only."""
 
 
@@ -76,44 +85,58 @@ def _table(R: engine.Result) -> dict:
     return {"columns": R.columns, "rows": R.rows[:MAX_TABLE_ROWS], "shown": R.shown[:MAX_TABLE_ROWS], "total_rows": len(R.rows), "truncated": len(R.rows) > MAX_TABLE_ROWS}
 
 
-def _answered(wd: Path, R: engine.Result, ctx, df, result, source_ai_calls: int) -> tuple[dict, list[dict]]:
+def _answered(wd: Path, R: engine.Result, ctx, df, result, source_ai_calls: int, chips: list[dict] | None = None) -> tuple[dict, list[dict]]:
     png = render.chart_file(wd, R.query, R.chart)
     drawn = render.draw(R, png)
-    nxt = chipmod.follow_ups(ctx, df, result, R.query)
+    nxt = chips if chips else chipmod.follow_ups(ctx, df, result, R.query)
     ans = {"status": "answered", "text": R.sentence, "query": R.query, "table": _table(R), "chart": {"type": R.chart, "path": f"charts/{png.name}" if drawn else None, "note": R.chart_note},
            "controls": R.controls, "how": R.how, "figures": R.figures, "chips": [{"id": c["id"], "text": c["text"]} for c in nxt], "ai_calls": source_ai_calls}
     return ans, nxt
 
 
-def _plain(status: str, text: str, wd, ctx, df, result, ai_calls: int = 0) -> tuple[dict, list[dict]]:
-    """A reply that is not a calculation (cannot answer, AI not available, limit reached): the message and two questions that can be answered."""
-    cs = chipmod.start(ctx, df, result)
-    pick = cs[:2] if status != "unavailable" else cs
+def _last_query(wd: Path) -> dict | None:
+    for t in reversed(store.load(wd)["turns"]):
+        if t["answer"].get("status") == "answered" and t["answer"].get("query"):
+            return t["answer"]["query"]
+    return None
+
+
+def _starter_intents(result: dict) -> list[dict]:
+    """The two report questions offered next to the opening data questions; they run without any AI."""
+    return [reports.ichip("Summarise this report", {"kind": "summary", "length": "standard"}), reports.ichip("What matters most for me?", {"kind": "priority", "terms": []})]
+
+
+def _plain(status: str, text: str, wd, ctx, df, result, ai_calls: int = 0, question: str = "") -> tuple[dict, list[dict]]:
+    """A reply that is not a calculation (cannot answer, AI not available, limit reached): the message and two questions that fit the topic and were not just offered."""
+    if status == "unavailable":
+        pick = chipmod.start(ctx, df, result) + _starter_intents(result)
+    else:
+        pick = chipmod.relevant(ctx, df, result, question, _last_query(wd), reports.prev_chip_ids(wd), 2)
     return {"status": status, "text": text, "chips": [{"id": c["id"], "text": c["text"]} for c in pick], "ai_calls": ai_calls}, pick
 
 
-def _run_checked(wd: Path, ch: qmod.Checked, ctx, df, result, ai_calls: int):
+def _run_checked(wd: Path, ch: qmod.Checked, ctx, df, result, ai_calls: int, asked: str = ""):
     if ch.ambiguity:
-        return _clarify(ch.ambiguity["question"], ch.ambiguity["choices"], wd, ctx, df, result, ai_calls)
+        return _clarify(ch.ambiguity["question"], ch.ambiguity["choices"], wd, ctx, df, result, ai_calls, asked)
     if not ch.query:
-        return _plain("no_fit", "I can't run that: " + " ".join(ch.errors[:2]) + " Here are two questions I can answer.", wd, ctx, df, result, ai_calls)
+        return _plain("no_fit", "I can't run that: " + " ".join(ch.errors[:2]) + " Here are two questions I can answer.", wd, ctx, df, result, ai_calls, asked)
     try:
         R = engine.run(ch.query, df, ctx)
     except engine.Cannot as e:
-        return _plain("no_fit", f"{e} Here are two questions I can answer.", wd, ctx, df, result, ai_calls)
+        return _plain("no_fit", f"{e} Here are two questions I can answer.", wd, ctx, df, result, ai_calls, asked)
     return _answered(wd, R, ctx, df, result, ai_calls)
 
 
-def _clarify(question: str, choices: list[dict], wd, ctx, df, result, ai_calls: int):
+def _clarify(question: str, choices: list[dict], wd, ctx, df, result, ai_calls: int, asked: str = ""):
     good = []
     for c in choices[:3]:
         ch = qmod.check(c.get("query"), ctx, df)
         if ch.query and isinstance(c.get("label"), str) and c["label"].strip():
             good.append({"id": "k" + store.new_id()[:6], "label": c["label"].strip()[:60], "query": c["query"]})
     if len(good) == 1:
-        return _run_checked(wd, qmod.check(good[0]["query"], ctx, df), ctx, df, result, ai_calls)
+        return _run_checked(wd, qmod.check(good[0]["query"], ctx, df), ctx, df, result, ai_calls, asked)
     if len(good) < 2:
-        return _plain("no_fit", "I wasn't sure what you meant, and I can't narrow it down. Here are two questions I can answer.", wd, ctx, df, result, ai_calls)
+        return _plain("no_fit", "I wasn't sure what you meant, and I can't narrow it down. Here are two questions I can answer.", wd, ctx, df, result, ai_calls, asked)
     q = " ".join(str(question).split())[:200]
     return {"status": "clarify", "text": q, "clarify": {"question": q, "choices": good}, "chips": [], "ai_calls": ai_calls}, []
 
@@ -135,10 +158,11 @@ def _history(wd: Path) -> list[dict]:
     return out
 
 
-def build_prompt(ctx, question: str, hist: list[dict], tab: str) -> str:
+def build_prompt(ctx, question: str, hist: list[dict], tab: str, result: dict | None = None) -> str:
     spans = {ctx.label(k): list(v) for k, v in ctx.spans.items()}
     return ("CURRENT TAB: " + (tab or "unknown") + f"\nTABLE: {ctx.rows} rows" + (f", amounts in {ctx.currency}" if ctx.currency else "")
             + "\nDATE SPANS: " + json.dumps(spans, ensure_ascii=False) + "\nCOLUMNS: " + json.dumps(ctxmod.for_prompt(ctx), ensure_ascii=False)
+            + ("\nREPORT RECORDS (no rows): " + records.for_prompt(result, tab) if result is not None else "")
             + "\nPREVIOUS TURNS (oldest first, at most 6): " + json.dumps(hist, ensure_ascii=False, default=str) + "\n\nQUESTION: " + question)
 
 
@@ -160,10 +184,10 @@ def _safe_reason(text) -> str:
     return t[:160] if t and not any(ch.isdigit() for ch in t) else ""
 
 
-def translate(llm, wd: Path, ctx, df, question: str, tab: str):
+def translate(llm, wd: Path, ctx, df, question: str, tab: str, result: dict | None = None):
     """(action, ai_calls, failure reason). At most MAX_AI_CALLS calls: the second is used only to repair a reply that was not JSON or a query that failed the checks."""
     model = llmmod.deterministic(llm)
-    user = build_prompt(ctx, question, _history(wd), tab)
+    user = build_prompt(ctx, question, _history(wd), tab, result)
     feedback, calls = "", 0
     with llmmod.capture() as cap:
         for attempt in range(MAX_AI_CALLS):
@@ -186,6 +210,8 @@ def translate(llm, wd: Path, ctx, df, question: str, tab: str):
                 return {"kind": "clarify", "question": obj.get("question"), "choices": obj.get("choices") if isinstance(obj.get("choices"), list) else []}, calls, ""
             if act == "unsupported":
                 return {"kind": "unsupported", "reason": _safe_reason(obj.get("reason"))}, calls, ""
+            if act in REPORT_KINDS:
+                return {"kind": act, "obj": obj}, calls, ""
             if attempt == 0 and calls < MAX_AI_CALLS:
                 feedback = "\n\nYour previous reply did not have a valid \"action\". Answer again with only the JSON object."
                 continue
@@ -196,8 +222,10 @@ def translate(llm, wd: Path, ctx, df, question: str, tab: str):
 def _action_of(obj: dict) -> str | None:
     """query | clarify | unsupported. A reply that carries a query (or is one) is a query even when its "action" is an operation name or missing: the checks decide, not the label."""
     a = str(obj.get("action") or "").lower()
-    if a in ("clarify", "unsupported"):
+    if a in ("clarify", "unsupported") or a in REPORT_KINDS:
         return a
+    if a == "why" and isinstance(obj.get("query"), dict):
+        return "query"
     if isinstance(obj.get("query"), dict):
         return "query"
     if obj.get("op") in qmod.OPS:
@@ -236,11 +264,94 @@ def _patch_label(s: dict) -> str:
 
 def info(wd: Path, result: dict, demo: bool, enabled: bool = True) -> dict:
     d = store.load(wd)
-    out = {"enabled": enabled, "ai": False, "chips": [], "history": d["turns"], "pins": d["pins"], "limit": {"asked": d["asked"], "max": max_questions()}}
+    out = {"enabled": enabled, "ai": False, "chips": [], "history": d["turns"], "pins": d["pins"], "views": d["views"], "limit": {"asked": d["asked"], "max": max_questions()}}
     if enabled and (Path(wd) / "clean.pkl").exists():
         df, ctx = load_data(wd, result)
-        out["chips"] = [{"id": c["id"], "text": c["text"]} for c in chipmod.start(ctx, df, result)]
+        out["chips"] = [{"id": c["id"], "text": c["text"]} for c in chipmod.start(ctx, df, result) + _starter_intents(result)]
     return out
+
+
+# ------------------------------------------------------------------ a calculation, with the checks and the "why" breakdown
+def _with_premise(ans: dict, prem: dict) -> dict:
+    """The correction goes first; its figures are added to the answer's own, and the box that says how it was calculated says what was checked."""
+    ans["text"] = prem["text"] + " " + ans["text"]
+    ans["premise"] = {"text": prem["text"], "claims": prem["claims"]}
+    ans["figures"] = prem["figures"] + ans.get("figures", [])
+    if ans.get("how"):
+        notes = [f"Checked your question's assumption that {c['value']} is the {'top' if c['direction'] == 'up' else 'lowest'} {ctx_label(c)}: ranked every group by the same calculation." for c in prem["claims"]]
+        ans["how"] = howtext.with_lines({**{k: v for k, v in ans["how"].items() if k != "lines"}, "notes": notes + list(ans["how"].get("notes") or [])})
+    return ans
+
+
+def ctx_label(c: dict) -> str:
+    return str(c.get("column", "group")).replace("_", " ")
+
+
+def _fallback_base(wd: Path, ctx, df, result, prem: dict | None) -> dict | None:
+    if prem and prem.get("query"):
+        return prem["query"]
+    return _last_query(wd)
+
+
+def _data_reply(wd: Path, question: str, ch: qmod.Checked | None, ctx, df, result, ai_calls: int, ai_said_no: bool = False):
+    """Runs a checked query for a typed question. A premise the data contradicts is corrected first; a 'why' gets the breakdown behind the number (never a cause)."""
+    base = ch.query if ch is not None else None
+    prem = reasoning.check_premise(question, df, ctx, result, base)
+    why = rules.is_why(question)
+    ans = nxt = None
+    periods = list(dict.fromkeys(re.findall(r"\b(?:19|20)\d\d(?:-Q[1-4])?\b", question)))
+    if why and base and ctx.date_col and len(periods) >= 2 and base.get("op") != "period_change":     # "why did it change between A and B?" is about those two periods
+        pc = qmod.check({**{k: base[k] for k in ("measure", "agg", "filters") if k in base}, "op": "period_change", "date": ctx.date_col, "a": periods[0], "b": periods[1]}, ctx, df)
+        base = pc.query or base
+    named = reasoning.claims(question, df, ctx)
+    if why and base and named:        # "why is X the top?" is about X's place among its column: not about X alone, whatever filter the AI chose
+        col = named[0]["column"]
+        keep = [f for f in base.get("filters") or [] if f.get("column") != col]
+        if len(keep) != len(base.get("filters") or []) or col not in (base.get("group_by") or []):
+            fixed = qmod.check({**base, "op": "top", "filters": keep, "group_by": [col], "n": 3, "direction": "top", "split_by": []}, ctx, df).query
+            base = fixed or base
+    if why and not (ch is not None and ch.ambiguity):
+        wq = base or (_fallback_base(wd, ctx, df, result, prem) if (ai_said_no or ch is None or not ch.query) and (prem or _last_query(wd)) else None)
+        wq = qmod.check(wq, ctx, df).query if wq else None
+        out = reasoning.run_why(wq, df, ctx, result) if wq else None
+        if out:
+            R, wchips = out
+            ans, nxt = _answered(wd, R, ctx, df, result, ai_calls, wchips)
+            ans["kind"] = "why"
+    if ans is None and ch is not None and not ai_said_no:
+        ans, nxt = _run_checked(wd, ch, ctx, df, result, ai_calls, question)
+    if prem and (ans is None or ans.get("status") != "answered"):
+        pq = qmod.check(prem["query"], ctx, df).query
+        if pq:
+            try:
+                ans, nxt = _answered(wd, engine.run(pq, df, ctx), ctx, df, result, ai_calls)
+            except engine.Cannot:
+                pass
+    if ans is None:
+        return None
+    if prem and ans.get("status") == "answered":
+        _with_premise(ans, prem)
+    return ans, nxt
+
+
+# ------------------------------------------------------------------ the report and app answers
+def _report_answer(wd: Path, result: dict, ctx, df, kind: str, spec: dict, question: str, tab: str, llm, ai_ok: bool, ai_calls: int):
+    """(answer, chips, AI calls used here, failure reason). `spec` is what the AI chose, or what a plain rule or a suggested question stands for."""
+    if kind == "view":
+        return (*reports.answer_view(result, wd), 0, "")
+    if kind == "app":
+        topic = spec.get("topic") if spec.get("topic") in records.APP_TOPICS else "tab"
+        return (*reports.answer_app(topic, result, tab, question, wd, ai_calls), 0, "")
+    if kind == "priority":
+        terms = [str(t) for t in (spec.get("terms") or []) if isinstance(t, (str, int))] or rules.priority_terms(question)
+        phrase = str(spec.get("priority") or "").strip() or " ".join(terms)
+        return (*reports.answer_priority(result, ctx, terms, phrase, wd, ai_calls), 0, "")
+    if kind == "strategy":
+        return (*reports.answer_strategy(result, ctx, str(spec.get("focus") or ""), wd, ai_calls), 0, "")
+    if kind == "general":
+        return (*reports.answer_general(spec.get("answer"), result, wd, ai_calls), 0, "")
+    length = spec.get("length") if spec.get("length") in reports.SUMMARY_LINES else "standard"
+    return reports.answer_summary(result, wd, llm, length, MAX_AI_CALLS - ai_calls, ai_ok, ai_calls)
 
 
 def ask(wd: Path, result: dict, *, question: str = "", chip: str | None = None, choice: dict | None = None, patch: dict | None = None, tab: str = "",
@@ -248,14 +359,18 @@ def ask(wd: Path, result: dict, *, question: str = "", chip: str | None = None, 
     """Answers one question and saves the turn. Exactly one of question / chip / choice / patch is used (in that order of the checks below)."""
     question = " ".join((question or "").split())[:300]
     df, ctx = load_data(wd, result)
-    ai_calls, count_ai, label, raw = 0, False, question, None
+    ai_calls, count_ai, label, raw, route = 0, False, question, None, None
     ans, nxt = None, []
+    asked = store.load(wd)["asked"]
+    ai_ok = llm is not None and allow_ai and asked < max_questions() and time.time() >= _DAILY["until"]
 
     if chip:
-        known = chipmod.start(ctx, df, result)
+        known = chipmod.start(ctx, df, result) + _starter_intents(result)
         hit = next((c for c in known if c["id"] == chip), None) or store.known_chip(wd, chip) and {**store.known_chip(wd, chip), "id": chip}
         if not hit:
             ans, nxt = _plain("no_fit", "That suggestion is no longer available. Here are two questions I can answer.", wd, ctx, df, result)
+        elif hit.get("intent"):
+            label, route = hit["text"], hit["intent"]
         else:
             label, raw = hit["text"], hit["query"]
     elif choice:
@@ -275,38 +390,64 @@ def ask(wd: Path, result: dict, *, question: str = "", chip: str | None = None, 
             label, raw = _patch_label(s), {**base, **s}
     elif question:
         gap = rules.margin_gap(question, ctx)
-        pool = chipmod.start(ctx, df, result) + [{"id": k, **v} for k, v in store.load(wd)["chips"].items()]
+        pool = chipmod.start(ctx, df, result) + _starter_intents(result) + [{"id": k, **v} for k, v in store.load(wd)["chips"].items()]
         hit = match_chip(question, pool)
+        found = (hit or {}).get("intent") or rules.route(question)
+        if found and found["kind"] == "priority" and ai_ok and not (hit or {}).get("intent"):
+            found = None          # the AI picks the framing of "what matters to me": it is asked below
         if gap:
-            ans, nxt = _plain("no_fit", gap + " Here are two questions I can answer.", wd, ctx, df, result)
-        elif hit:
+            ans, nxt = _plain("no_fit", gap + " Here are two questions I can answer.", wd, ctx, df, result, 0, question)
+        elif found:
+            route = found
+        elif hit and hit.get("query"):
             raw = hit["query"]
         elif llm is None or not allow_ai:
-            ans, nxt = _plain("unavailable", "Without an AI model I can answer the suggested questions only. Pick one of these.", wd, ctx, df, result)
-        elif store.load(wd)["asked"] >= max_questions():
+            out = _data_reply(wd, question, None, ctx, df, result, 0) if reasoning.claims(question, df, ctx) else None
+            ans, nxt = out if out else _plain("unavailable", "Without an AI model I can answer the suggested questions only. Pick one of these.", wd, ctx, df, result)
+        elif asked >= max_questions():
             ans, nxt = _plain("limit", f"You've reached this run's limit of {max_questions()} questions that use the AI. The suggested questions still work.", wd, ctx, df, result)
         elif time.time() < _DAILY["until"]:
             ans, nxt = _plain("unavailable", _fail_text("daily limit"), wd, ctx, df, result)
         else:
             llmmod.begin_run()       # this request starts clean: no stop or call record left over from another request on the same thread
             count_ai = True
-            act, ai_calls, why = translate(llm, wd, ctx, df, question, tab)
+            act, ai_calls, why = translate(llm, wd, ctx, df, question, tab, result)
             if act is None:
                 if "daily" in why:
                     _DAILY["until"] = time.time() + DAILY_PAUSE_S
                 ans, nxt = _plain("unavailable", _fail_text(why), wd, ctx, df, result, ai_calls)
             elif act["kind"] == "checked":
-                ans, nxt = _run_checked(wd, act["checked"], ctx, df, result, ai_calls)
+                out = _data_reply(wd, question, act["checked"], ctx, df, result, ai_calls)
+                ans, nxt = out if out else _run_checked(wd, act["checked"], ctx, df, result, ai_calls, question)
             elif act["kind"] == "clarify":
-                ans, nxt = _clarify(act["question"], act["choices"], wd, ctx, df, result, ai_calls)
+                first = next((qmod.check(c.get("query"), ctx, df) for c in act["choices"] if isinstance(c, dict)), None)
+                out = (_data_reply(wd, question, first, ctx, df, result, ai_calls) if first is not None and first.query and (rules.is_why(question) or reasoning.claims(question, df, ctx)) else None)
+                ans, nxt = out if out else _clarify(act["question"], act["choices"], wd, ctx, df, result, ai_calls, question)       # a 'why' is never answered with a question: the first reading is used
+            elif act["kind"] in REPORT_KINDS:
+                route = {**act["obj"], "kind": act["kind"]}
             else:
-                lead = "I can't answer that from this data" + (f": {act['reason'].rstrip('.')}." if act["reason"] else ".")
-                ans, nxt = _plain("no_fit", lead + " Here are two questions I can answer.", wd, ctx, df, result, ai_calls)
+                out = _data_reply(wd, question, None, ctx, df, result, ai_calls, ai_said_no=True) if (rules.is_why(question) or reasoning.claims(question, df, ctx)) else None
+                if out:
+                    ans, nxt = out
+                else:
+                    lead = "I can't answer that from this data" + (f": {act['reason'].rstrip('.')}." if act["reason"] else ".")
+                    ans, nxt = _plain("no_fit", lead + " Here are two questions I can answer.", wd, ctx, df, result, ai_calls, question)
     else:
         ans, nxt = _plain("no_fit", "Type a question about your data, or pick one of these.", wd, ctx, df, result)
 
+    if ans is None and route is not None:
+        if route["kind"] == "summary" and ai_ok and not count_ai:
+            llmmod.begin_run()
+        ans, nxt, used, fail = _report_answer(wd, result, ctx, df, route["kind"], route, label or question, tab, llm, ai_ok, ai_calls)
+        ai_calls += used
+        if used:
+            count_ai = True
+        if "daily" in fail:
+            _DAILY["until"] = time.time() + DAILY_PAUSE_S
+        ans["ai_calls"] = ai_calls
+        ans["source"] = "chip" if chip else "ai" if count_ai else "code"
     if ans is None:
-        ans, nxt = _run_checked(wd, qmod.check(raw, ctx, df), ctx, df, result, ai_calls)
+        ans, nxt = _run_checked(wd, qmod.check(raw, ctx, df), ctx, df, result, ai_calls, label)
         ans["source"] = "chip" if chip else "choice" if choice else "patch" if patch else "typed-chip"
     ans.setdefault("source", "ai" if count_ai else "code")
     turn = {"id": store.new_id(), "at": time.time(), "question": label or "(no question)", "tab": tab, "answer": ans}

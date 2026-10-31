@@ -302,7 +302,7 @@ def test_a_suggested_question_is_answered_without_the_ai(run, monkeypatch):
     rid, wd, result, df = run
     cs = chat.info(wd, result, False)["chips"]
     assert len(cs) >= 6
-    for c in cs:
+    for c in [c for c in cs if c["id"].startswith("c_")]:         # the opening data questions; the report questions (i_...) are tested in test_lens_stage2a
         t = chat.ask(wd, result, chip=c["id"], llm=None, allow_ai=False)
         assert t["answer"]["status"] == "answered", (c, t["answer"]["text"])
         assert t["answer"]["how"]["columns"] and t["answer"]["ai_calls"] == 0 and 2 <= len(t["answer"]["chips"]) <= 3

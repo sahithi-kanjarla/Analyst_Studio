@@ -23,19 +23,17 @@ export function LensTableView({ table, max = 6 }: { table: LensTable; max?: numb
   );
 }
 
+/** The lines come from the server (one place writes them), so the box can never be empty. */
 export function LensHowView({ how }: { how: LensHow }) {
+  const lines = how.lines?.length ? how.lines : [`${how.operation || "Answered from this run's saved records"}.`];
+  const [first, ...rest] = lines;
+  const foot = rest.length > 1 ? rest[rest.length - 1] : "";
+  const body = foot ? rest.slice(0, -1) : rest;
   return (
     <div className="lens-how">
-      <p><strong>{how.operation}.</strong></p>
-      <ul>
-        <li>Columns used: {how.columns.map((c) => c.label).join(", ") || "none (rows were counted)"}</li>
-        <li>Filters: {how.filters.length ? how.filters.join("; ") : "none"}</li>
-        <li>Rows: {how.rows_total.toLocaleString()} in the data, {how.rows_used.toLocaleString()} used, {how.rows_left_out.toLocaleString()} left out</li>
-        {how.left_out.filter((l) => l.rows > 0).map((l, i) => <li key={i} className="lens-sub">{l.rows.toLocaleString()} rows: {l.reason}</li>)}
-        {how.groups_not_shown > 0 && <li>{how.groups_not_shown.toLocaleString()} more groups are not shown</li>}
-        {how.notes.map((n, i) => <li key={i}>{n}</li>)}
-      </ul>
-      <p className="muted lens-small">Every figure is calculated by code from your cleaned data. The AI only chose what to calculate.</p>
+      <p><strong>{first}</strong></p>
+      {body.length > 0 && <ul>{body.map((l, i) => <li key={i}>{l}</li>)}</ul>}
+      {foot && <p className="muted lens-small">{foot}</p>}
     </div>
   );
 }
@@ -67,7 +65,24 @@ export default function LensAnswerView({ turn, last }: { turn: LensTurn; last: b
   };
   return (
     <div className={`lens-msg lens-bot lens-${a.status}`}>
+      {a.label && <p className="lens-badge">{a.label}</p>}
       <p className="lens-text">{a.status === "clarify" ? a.clarify?.question : a.text}</p>
+      {a.status === "answered" && !a.table && (
+        <>
+          {a.lines && a.lines.length > 0 && <ul className="lens-lines">{a.lines.map((l, i) => <li key={i}>{l}</li>)}</ul>}
+          {a.actions && a.actions.length > 0 && (
+            <div className="lens-actions"><span className="lens-label">Top actions</span><ol>{a.actions.map((l, i) => <li key={i}>{l}</li>)}</ol></div>
+          )}
+          {a.how && <details className="lens-details"><summary>How this was calculated</summary><LensHowView how={a.how} /></details>}
+          {a.kind === "summary" && a.view_offer && (
+            <div className="msg-tools lens-tools no-print">
+              {lens.shortView?.from_turn === turn.id
+                ? <span className="muted lens-small">Kept as your short version. The original report is unchanged.</span>
+                : <button className="link" disabled={lens.busy} onClick={() => lens.saveShort(turn.id)}>{a.view_offer.label}</button>}
+            </div>
+          )}
+        </>
+      )}
       {a.status === "clarify" && a.clarify && (
         <div className="lens-chips" role="group" aria-label="Choose one">
           {a.clarify.choices.map((c) => <button key={c.id} className="chip" disabled={!last || lens.busy} onClick={() => lens.send({ choice: { turn: turn.id, choice: c.id } }, c.label)}>{c.label}</button>)}

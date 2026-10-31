@@ -30,6 +30,7 @@ def load(wd: Path) -> dict:
     d.setdefault("pins", [])
     d.setdefault("chips", {})
     d.setdefault("asked", 0)
+    d.setdefault("views", {})
     return d
 
 
@@ -58,7 +59,7 @@ def add_turn(wd: Path, turn: dict, chips: list[dict] | None = None, count_ai: bo
         d = load(wd)
         d["turns"].append(turn)
         for c in chips or []:
-            d["chips"][c["id"]] = {"text": c["text"], "query": c["query"]}
+            d["chips"][c["id"]] = {k: c[k] for k in ("text", "query", "intent") if k in c}
         if count_ai:
             d["asked"] += 1
         save(wd, d)
@@ -98,5 +99,24 @@ def remove_pin(wd: Path, pin_id: str) -> bool:
         if len(keep) == len(d["pins"]):
             return False
         d["pins"] = keep
+        save(wd, d)
+        return True
+
+
+def set_view(wd: Path, name: str, view: dict) -> dict:
+    """An alternative view the user chose to keep (for example the short version of the report). The original report is never changed."""
+    with LOCK:
+        d = load(wd)
+        d["views"][name] = view
+        save(wd, d)
+        return view
+
+
+def remove_view(wd: Path, name: str) -> bool:
+    with LOCK:
+        d = load(wd)
+        if name not in d["views"]:
+            return False
+        del d["views"][name]
         save(wd, d)
         return True
