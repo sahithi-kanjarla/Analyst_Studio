@@ -71,7 +71,11 @@ export default function ChatPanel({ runId, onClose, embedded = false }: { runId:
     api.askInfo(runId).then((i) => { setInfo(i); setItems(i.history); }).catch(() => setError("Questions are not available for this report."));
   }, [runId]);
   useEffect(() => {
-    if (list.current) list.current.scrollTop = list.current.scrollHeight;      // new messages show at the bottom of the list; the page itself does not move
+    const l = list.current;
+    if (!l) return;
+    const all = l.querySelectorAll<HTMLElement>("[data-entry]");
+    const last = all[all.length - 1];      // show the start of the newest answer; the page itself does not move
+    l.scrollTop = busy ? l.scrollHeight : last ? last.offsetTop - 8 : 0;
   }, [items, busy]);
 
   async function send(body: { question?: string; chip?: string }) {
@@ -113,7 +117,7 @@ export default function ChatPanel({ runId, onClose, embedded = false }: { runId:
           </p>
         )}
         {items.map((e) => (
-          <div key={e.id}>
+          <div key={e.id} data-entry>
             <div className="msg me">{e.question}</div>
             <Answer entry={e} runId={runId} onAsk={ask} onPin={pin} />
           </div>

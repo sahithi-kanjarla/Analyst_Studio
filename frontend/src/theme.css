@@ -54,3 +54,11 @@ code, pre, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, m
 .results-actions { display: flex; justify-content: flex-end; align-items: center; gap: var(--sp-2); flex-wrap: wrap; margin-bottom: var(--sp-3); }
 .results-actions .btn-quiet, .results-actions .btn { min-height: 36px; font-size: var(--fs-1); }
 .side-toggle { background: none; border: 0; color: var(--muted); font-size: var(--fs-1); box-shadow: none; padding: var(--sp-2) 0; cursor: pointer; }
+
+@media (max-width: 720px) {
+  .tabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { flex: 0 0 auto; white-space: nowrap; }
+  .results-actions { justify-content: flex-start; }
+  .hide-phone { display: none; }
+}

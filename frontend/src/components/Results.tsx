@@ -45,7 +45,7 @@ export default function Results({ run }: { run: RunResult }) {
     <div className={`card results ${full ? "is-full" : ""}`} ref={card}>
       <div className="results-actions">
         <button className="btn-quiet" onClick={() => setReview((v) => !v)} title="See, change or re-ask the answers this run used">Review answers</button>
-        <button className="btn-quiet" onClick={toggleFull} title="Full screen (Esc to exit)">{full ? "Exit full screen" : "Full screen"}</button>
+        <button className="btn-quiet hide-phone" onClick={toggleFull} title="Full screen (Esc to exit)">{full ? "Exit full screen" : "Full screen"}</button>
         <a className="btn" href={api.powerbiUrl(run.run_id)}>Download Power BI pack</a>
       </div>
       <div className="tabs">

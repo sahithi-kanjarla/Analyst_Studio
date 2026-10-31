@@ -29,7 +29,7 @@ function Scaled({ children, design = 1040, height }: { children: React.ReactNode
     if (!el || typeof ResizeObserver === "undefined") return;
     const ro = new ResizeObserver(() => {
       const w = el.clientWidth;
-      setZoom(w >= 640 && w < design ? w / design : 1);
+      setZoom(w >= 520 && w < design ? w / design : 1);
     });
     ro.observe(el);
     return () => ro.disconnect();

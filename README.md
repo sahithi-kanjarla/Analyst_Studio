@@ -7,7 +7,7 @@ its own conclusions, and gives you a report plus a **Power BI starter pack**.
 **Free to build and run.** The heavy lifting (profiling, cleaning, statistics, charts) is plain Python. The LLM only
 plans, critiques and writes prose, and it can be a free local model, a free-tier API, or nothing at all.
 
-![The Analyst Studio start page, with the sample run](docs/screenshots/landing-top-desktop.png)
+![The Analyst Studio start page, with the product tour on the sample report](docs/screenshots/start-top-desktop.png)
 
 ```
  React UI ──upload + goal──▶ FastAPI ──▶ LangGraph workflow
@@ -103,9 +103,7 @@ data -> signals.py (neutral facts) -> question writer -> validator -> you answer
 
 > **The glossary API has no authentication.** Anyone who can reach the server can read, change or delete saved definitions, like the rest of this local-only app.
 
-![Question form](docs/screenshots/question-form.png)
-![Definitions used in the report](docs/screenshots/report-definitions.png)
-![Glossary page](docs/screenshots/glossary-page.png)
+![Glossary page](docs/screenshots/glossary-desktop.png)
 
 ## Derived metrics (ratios) are proposed, then checked against the data
 
@@ -150,8 +148,8 @@ Only the picture is trimmed. Every test, effect size, best/worst group and total
 | Tables | 10 rows, **Show all N** |
 | Dashboard | the goal answer first, then the four highest-scoring findings; the rest under **More charts** |
 
-![Dashboard on 17 regions](docs/screenshots/dash-17-top.png)
-![Goal answer and key findings](docs/screenshots/dash-17-gallery.png)
+![The dashboard, on the sample report](docs/screenshots/tour-dashboard-desktop.png)
+![The report page: the short answer, key figures and what to do](docs/screenshots/report-top-desktop.png)
 
 ## Insights and strategies
 
@@ -188,10 +186,13 @@ Try `sample_data/shop/` (customers + orders + products) with *"Why do customers 
 
 ## Try it without uploading anything
 
-Press **Try with sample data** on the start page. It opens a finished run of a small sales file (`sample_data/demo/sales_run/`, about 600 rows, a sample store): the same report, dashboard, data viewer, cleaning log and plan as a real run. The sample is **read-only**, makes **no AI calls** and needs no API key. The start page's product tour runs the same screens on it.
+Press **Try with sample data** on the start page. It opens a finished run of a small sales file (`sample_data/demo/sales_run/`, about 600 rows, a sample store): the same report, dashboard, data viewer, cleaning log and plan as a real run. The sample is **read-only**, makes **no AI calls** and needs no API key. **Try it yourself** opens a panel with the upload flow.
 
-- The tour shows the app's real screens: **Dashboard**, **Insights**, **Report**, **Data**, **Cleaning log** and **Plan**. Click a tab, or scroll the steps; a click overrides the scroll until the next step.
-- **Print / Save as PDF** (on the report tab) includes or leaves out the summary, key numbers, charts, tables, data-quality notes and evidence; sets the title, company, date and an optional note; and chooses A4 or Letter, portrait or landscape, colour or black and white. Your last choices are remembered in this browser only.
+The start page is a product page: a headline, two buttons, then a framed window running the real app on the sample. Its tabs are the app's real tabs: **Report**, **Dashboard**, **Insights**, **Ideas to try**, **Your data**, **What we cleaned** and **How we analysed** (plus **How files connect** and **Power BI export** on runs that have them). Below it are a four-step "How it works" flow, a scroll story whose window follows the text, three trust statements, and what it can and can't do. A click on a tab overrides the scroll until the next step; with reduced motion the story is a plain list.
+
+- **The report page** has the title, date and a "How sure we are" label; the short answer in large type; up to four key figures; **What to do** as numbered cards; **The evidence** (at most six charts, each with a one-line "What this means" and a Details toggle); and **Behind the numbers**, where everything else is folded away. The footer shows the mode (rules only, or AI-assisted).
+- **Print / Save as PDF** includes or leaves out the summary and actions, key numbers, charts, tables, data-quality notes and evidence; sets the title, company, date and an optional note; and chooses A4 or Letter, portrait or landscape, colour or black and white. Your last choices are remembered in this browser only.
+- **One look**: colours, six type sizes and the 4-point spacing scale are in `frontend/src/tokens.css`; the 1120 px / 720 px column and 12-column (4 on a phone) grid are in `layout.css`. Charts, tables and the dashboard share one style: the accent for the highlighted bar, warm greys for the rest, numbers right-aligned.
 
 ## Checking a report
 
@@ -199,9 +200,14 @@ Press **Try with sample data** on the start page. It opens a finished run of a s
 
 Each run also keeps `ai_usage.json`: every AI call with its stage, input and output tokens (flagged as estimated when the provider gives no count), whether it was answered from a saved result, and its time. The report's data section has one line with the totals, and `scripts/scorecard.py` prints a per-stage table.
 
-## Ask about this report (optional, off by default)
+## Ask about this report
 
-With `CHATBOT=on`, the report tab shows **Ask about this report**. The AI chooses **one** operation from a closed list (top N by a measure, compare two groups, trend of a measure, share of the total, or filter then total) and its parameters. Code checks those parameters against the run's real columns and values, computes the answer on the cleaned data and draws the chart. Every figure comes from code. A question that fits none of the operations is said so plainly, with two questions the report can answer. The sample run never answers questions, since it makes no AI calls.
+On the report page, **Ask about this report** opens a chat panel docked on the right (a bottom sheet on a phone), so you can read and ask at once. Above the input are 4 to 6 **suggested questions written from this report's own data** (for example "Which Segment earns the most revenue?", "Is revenue growing?", "Compare Enterprise and SMB").
+
+- A suggested question runs **without an AI model**: code maps it straight to one operation. That is why the chat works for real on the sample report, and on any report when no API key is set. Typed text is answered only when it clearly matches a suggestion; otherwise the panel offers the suggestions.
+- With an AI model, typed questions work too. The AI picks **one** operation from a closed list (top N by a measure, compare two groups, trend of a measure, share of the total, or filter then total) and its parameters. Code checks them against the run's real columns and values, runs the operation on the cleaned data and draws the chart. A question that fits none of them is said so plainly, with two questions the report can answer.
+- Every answer has a plain sentence, a small table or chart, and a **How this was calculated** toggle that names the operation and the columns. Every figure comes from code. Answers can be pinned or copied, and each run keeps its chat history (`chat.json` in the run folder).
+- `CHATBOT=auto` (default): on when an AI model is available, and always on for the sample run. `CHATBOT=on` shows it on every report; `CHATBOT=off` hides it. The sample run never calls a model, even when one is configured.
 
 ## Quick start
 
@@ -257,7 +263,7 @@ registration and a Power BI Pro licence, so it is not part of the free path).
 ## Tests
 
 ```bash
-cd backend && pytest -q        # 699 tests: pipeline, API, edge cases, multi-table joins, clarifying questions and glossary, derived metrics, report tiers, run safety, LLM failure modes (fake model, no network)
+cd backend && pytest -q        # 701 tests: pipeline, API, edge cases, multi-table joins, clarifying questions and glossary, derived metrics, report tiers, run safety, LLM failure modes (fake model, no network)
 ```
 
 **Scorecard.** `python scripts/scorecard.py [--dataset mall] [--runs N]` runs the real pipeline on a built-in test dataset (Kaveri, 3 files; or mall, 40 000 rows) and checks the report against a known answer in 12 checks. Both datasets were built for this project. Latest recorded results: Kaveri 12/12 and mall 12/12 (25 Oct 2026). See `docs/facts.md` for measured limits, timings and storage.
@@ -268,8 +274,8 @@ cd backend && pytest -q        # 699 tests: pipeline, API, edge cases, multi-tab
 backend/app/   profiler.py  relations.py  brief.py  signals.py  placeholders.py  clarify.py  directives.py  glossary.py  planner.py  derived.py  derived_check.py
                measures.py  polarity.py  retail_roles.py  cleaner.py  tools.py  critic.py  insights.py  strategy.py  summary.py  tiering.py  goal.py
                wording.py  reporter.py  powerbi.py  dashboard.py  graph.py (LangGraph)  llm.py (providers)  runner.py  events.py  main.py (FastAPI)
-backend/tests/ 699 tests        scripts/  scorecard.py  make_mall.py        docs/  facts.md  decision_points.md  flow_audit.md
-frontend/src/  App.tsx  tokens.css (colours, type and spacing: the only values new code uses)  components/ (Landing = product tour, UploadForm, QuestionForm, RunView, Results, PrintPanel, AskReport, BIDashboard, InsightCard, StrategyView, DataViewer, DataModel, Glossary, History, ...)
+backend/tests/ 701 tests        scripts/  scorecard.py  make_mall.py        docs/  facts.md  decision_points.md  flow_audit.md
+frontend/src/  App.tsx  tokens.css (colours, type and spacing: the only values new code uses)  layout.css (the grid)  components/ (StartPage = the product page, Dialog, UploadForm, QuestionForm, RunView, Results, ReportPage, ChatPanel, PrintPanel, BIDashboard, InsightCard, StrategyView, DataViewer, DataModel, Glossary, History, ...)
 sample_data/   sales.csv  churn.csv  shop/{customers,orders,products}.csv  mall/ (40 000-row scorecard dataset with truth.json)  demo/sales_run/ (the read-only sample run)
 scripts/       report_check.py  scorecard.py  landing_screenshots.js  design_notes.md  build_log.md
 ```
@@ -293,7 +299,6 @@ To delete everything, stop the server and remove `backend/data/`. To keep runs f
 
 - The sample run is built from `sample_data/sales.csv`, not the Kaveri dataset named in the design brief: Kaveri is not in this repository.
 - Printing covers the report tab only. The cleaning log and plan are separate tabs and are not part of the printed report.
-- The product tour shows the dashboard as the app draws it, which is still the dark dashboard style; the rest of the landing page uses the light palette.
 - Charts are static images (PNG), not interactive: you can click to enlarge but not filter them. Power BI is the place for interactive slicing; the pack is built for that.
 - Non-English column names need a system font that has those letters (Nirmala UI on Windows, Noto Sans elsewhere).
 

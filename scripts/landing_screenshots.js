@@ -72,7 +72,7 @@ async function set(browser, name, viewport, mobile, scheme) {
       await page.waitForTimeout(120);
     }
   };
-  for (const [i, tag] of [[0, "story-1"], [3, "story-4"]]) {
+  for (const [i, tag] of [[0, "story-1"], [3, "story-4"], [4, "story-5"]]) {
     await toStep(i);
     await settle(page, 1300);
     await shot(tag);
@@ -89,6 +89,8 @@ async function set(browser, name, viewport, mobile, scheme) {
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.waitForSelector(".report-page");
   await settle(page);
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.waitForTimeout(300);
   await shot("report-top");
   await page.locator(".rp-chart").first().evaluate((el) => el.scrollIntoView({ block: "start" }));
   await settle(page, 500);
@@ -111,6 +113,11 @@ async function set(browser, name, viewport, mobile, scheme) {
   await page.emulateMedia({ media: "print" });
   await page.waitForTimeout(300);
   await shot("print-view");
+  await page.emulateMedia({ media: "screen" });
+  await page.goto(`${BASE}/#/glossary`, { waitUntil: "networkidle" });
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await settle(page, 600);
+  await shot("glossary");
   await ctx.close();
 }
 

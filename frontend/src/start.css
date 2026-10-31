@@ -1,8 +1,8 @@
 /* The start page. Sections are on the 1120px column; reading text stops at 720px. */
 .start { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-8); }
 .start > * { min-width: 0; }
-.start h2 { font-size: var(--fs-5); font-weight: 650; margin: 0 0 var(--sp-5); }
-.start h3 { margin: 0; font-size: var(--fs-3); font-weight: 600; }
+.start > section > h2 { font-size: var(--fs-5); font-weight: 650; margin: 0 0 var(--sp-5); }
+.how-flow h3, .trust h3, .limits h3, .story-steps h3 { margin: 0; font-size: var(--fs-3); font-weight: 600; }
 .hero { text-align: center; padding: var(--sp-6) 0 0; display: flex; flex-direction: column; align-items: center; gap: var(--sp-4); }
 .hero h1 { font-size: var(--fs-6); font-weight: 650; margin: 0; letter-spacing: -.025em; line-height: var(--lh-tight); max-width: none; text-wrap: balance; }
 .hero-sub { font-size: var(--fs-3); color: var(--muted); max-width: 52ch; margin: 0; }
@@ -34,7 +34,8 @@
 .how-flow h3 { margin-top: var(--sp-2); }
 .how-flow p { margin: 0 0 var(--sp-3); color: var(--muted); font-size: var(--fs-2); }
 .preview .drop { min-height: 300px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-.preview .plan ul { list-style: disc; padding-left: var(--sp-5); }
+.preview .plan ul { list-style: disc outside !important; padding-left: var(--sp-6) !important; margin: 0; }
+.preview .plan li { display: list-item; }
 .preview .plan h4 { margin: 0 0 var(--sp-2); }
 .preview { margin-top: auto; height: 200px; overflow: hidden; border: var(--border); border-radius: var(--radius); background: var(--card); pointer-events: none; }
 .preview-in { transform: scale(.5); transform-origin: top left; width: 200%; padding: var(--sp-4); }
@@ -65,9 +66,10 @@
   .story { grid-template-columns: 1fr; }
 }
 
-.trust { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: var(--gutter); }
+.trust { font-size: var(--fs-2); color: var(--ink); margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: var(--gutter); }
 .trust > div { border-top: 1px solid var(--ink); padding-top: var(--sp-4); }
-.trust p { margin: var(--sp-2) 0 0; color: var(--muted); }
+.trust h3 { font-size: var(--fs-3); }
+.trust p { margin: var(--sp-2) 0 0; color: var(--muted); font-size: var(--fs-2); }
 .limits-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--gutter); }
 .limits-cols > div { border-top: var(--border); padding-top: var(--sp-4); }
 .limits ul { margin: var(--sp-3) 0 0; padding-left: var(--sp-5); display: grid; gap: var(--sp-2); color: var(--muted); }
@@ -78,7 +80,7 @@
   .hero-sub { font-size: var(--fs-2); }
   .trust, .limits-cols { grid-template-columns: 1fr; row-gap: var(--sp-5); }
   .start { gap: var(--sp-7); }
-  .start h2 { font-size: var(--fs-4); }
+  .start > section > h2 { font-size: var(--fs-4); }
   .window-body { padding: var(--sp-3); }
 }
 
@@ -90,3 +92,6 @@
 .start-form input[type="text"], .start-form input:not([type]), .start-form select, .start-form textarea { font: inherit; font-size: var(--fs-2); color: var(--ink); background: var(--bg); border: var(--border); border-radius: 10px; padding: var(--sp-3) var(--sp-4); width: 100%; }
 .start-form .primary { background: var(--brand); color: var(--brand-ink); border: 0; border-radius: 999px; padding: var(--sp-3) var(--sp-5); font: inherit; font-weight: 600; cursor: pointer; }
 .start-form .primary:disabled { opacity: .55; }
+
+/* the story window is a picture that follows the text: it must not take the scroll wheel from the page */
+.story-window .scaled { overflow: hidden; }
