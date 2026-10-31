@@ -24,7 +24,7 @@ export default function LensPins({ target }: { target: "report" | "dashboard" })
           <figure className="lens-pin surface span-6" key={p.id}>
             <h3>{p.title}</h3>
             <p>{p.text}</p>
-            {p.chart?.url ? <img src={p.chart.url} alt={p.text} loading="lazy" /> : p.table && <LensTableView table={p.table} max={12} />}
+            {p.chart?.url ? <img src={p.chart.url} alt="" loading="lazy" /> : p.table && <LensTableView table={p.table} max={12} />}
             {p.how && <details><summary>How this was calculated</summary><LensHowView how={p.how} /></details>}
             <button className="link no-print" onClick={() => lens.unpin(p.id)}>Remove from {target}</button>
           </figure>

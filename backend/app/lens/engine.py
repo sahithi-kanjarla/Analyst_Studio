@@ -14,14 +14,19 @@ from .context import Ctx, fmt_num, fmt_value
 
 MAX_POINTS = 400
 MAX_SPLITS = 6
+MAX_SPLITS_NESTED = 12        # a split whose values each belong to one group only (sub-categories of categories) is a hierarchy: every combination has to be able to show
+LIST_ALL = 8                  # up to this many groups are all named in the sentence, never summarised as "and N more"
+MIN_ROWS_PER_PERIOD = 5
+BIG_CHANGE_PCT = 40.0
+MAD_LIMIT = 3.0
 SCATTER_SAMPLE = 2000
 FREQ = {"day": "D", "week": "W-SUN", "month": "M", "quarter": "Q", "year": "Y"}
 NEXT_GRAIN = {"day": "week", "week": "month", "month": "quarter", "quarter": "year"}
 CHART_TYPES = {"scalar": ["table"], "groups": ["bar", "share", "line", "table"], "split": ["stacked_bar", "bar", "line", "table"], "time": ["line", "bar", "table"],
                "time_split": ["line", "stacked_bar", "bar", "table"], "change": ["bar", "table"], "pair": ["bar", "table"], "hist": ["histogram", "table"],
-               "categories": ["bar", "share", "table"], "scatter": ["scatter", "table"], "shares": ["share", "bar", "table"]}
+               "categories": ["bar", "share", "table"], "scatter": ["scatter", "table"], "shares": ["share", "bar", "table"], "unusual": ["line", "bar", "table"]}
 DEFAULT_CHART = {"scalar": "table", "groups": "bar", "split": "stacked_bar", "time": "line", "time_split": "line", "change": "bar", "pair": "bar", "hist": "histogram",
-                 "categories": "bar", "scatter": "scatter", "shares": "share"}
+                 "categories": "bar", "scatter": "scatter", "shares": "share", "unusual": "line"}
 
 
 class Cannot(Exception):
@@ -43,6 +48,7 @@ class Result:
     chart_note: str = ""
     controls: dict = field(default_factory=dict)
     additive: bool = False
+    negative: list = field(default_factory=list)      # the groups whose value is below zero (the chat offers "Show groups that lose money")
 
     def fig(self, label: str, value, shown: str) -> str:
         self.figures.append({"label": label, "value": None if value is None else float(value), "shown": shown})
@@ -232,6 +238,71 @@ def _ordered(s: pd.Series, q: dict, default_desc=True) -> pd.Series:
     return s.sort_values(ascending=srt["dir"] == "asc", kind="mergesort")
 
 
+def _soft(label: str) -> str:
+    return label if any(x.isupper() and len(x) > 1 for x in label.split()) else label.lower()
+
+
+def _group_parts(R: Result, shown_s: pd.Series, ph: str, V, total_all, allv: pd.Series) -> tuple[list[str], int]:
+    """The groups written into the sentence: all of them when there are LIST_ALL or fewer (a negative one is marked), else the first three."""
+    count = len(shown_s) if len(shown_s) <= LIST_ALL else 3
+    parts = []
+    for i, (k, v) in enumerate(shown_s.head(count).items()):
+        t = f"{k} ({R.fig(ph, v, V(v))}"
+        if v < 0:
+            t += ", negative"
+        elif R.additive and total_all and total_all > 0 and i == 0:
+            t += f", {R.fig('share of total', v / total_all * 100, f'{v / total_all * 100:.1f}%')} of the total"
+        parts.append(t + ")")
+    return parts, count
+
+
+def _negative_note(R: Result, allv: pd.Series, q: dict, ctx: Ctx, ph: str, shares: bool) -> str:
+    """Says plainly which groups are negative (all of them, not only the ones shown) and that shares can then add up to more than 100%."""
+    neg = [str(k) for k, v in allv.items() if v < 0]
+    if not neg:
+        return ""
+    lab = _soft(ctx.label(q["measure"])) if q.get("measure") else ph
+    who = ", ".join(neg[:LIST_ALL]) + (f" and {len(neg) - LIST_ALL} more" if len(neg) > LIST_ALL else "")
+    text = f"{who} {'has' if len(neg) == 1 else 'have'} negative {lab if q.get('agg') != 'average' else 'average ' + lab}"
+    if shares:
+        text += f"; shares can add up to more than {R.fig('share limit', 100, '100')}%"
+    return text + "."
+
+
+def drawn_vs_table(R: Result) -> list[str]:
+    """Plain-language mismatches between the values the chart is drawn from and the computed table (empty = the chart shows exactly what the table says). Used by the 'graph is wrong' re-check and by tests."""
+    P, out = R.plot or {}, []
+    if not P or R.chart == "table":
+        return out
+    rows = R.rows
+
+    def same(a, b):
+        return (a is None and b is None) or (a is not None and b is not None and abs(float(a) - float(b)) <= 1e-9 * max(1.0, abs(float(b))))
+
+    def check(name, values, col, label_col=0):
+        if len(values) != len(rows):
+            out.append(f"{name}: the chart has {len(values)} marks but the table has {len(rows)} rows")
+            return
+        for v, r in zip(values, rows):
+            if not same(v, r[col]):
+                out.append(f"{name} at {r[label_col]}: the chart uses {v} but the table says {r[col]}")
+    kind, shape = P["kind"], R.shape
+    if kind == "share":
+        check("Share chart", P["values"], 1)
+    elif kind in ("bars", "series") and shape == "pair":
+        check(str(P["series"][0]["name"]), P["series"][0]["values"], 1)
+    elif kind in ("bars", "series") and shape == "change" and not R.query.get("group_by"):
+        for i, v in enumerate(P["series"][0]["values"]):
+            if not same(v, rows[0][1 + i]):
+                out.append(f"{P['series'][0]['name']}: bar {i + 1} uses {v} but the table says {rows[0][1 + i]}")
+    elif kind in ("bars", "series"):
+        for k, s in enumerate(P["series"]):
+            check(str(s["name"]), s["values"], 1 + k if shape in ("split", "time_split", "change") else 1)
+    elif kind == "hist":
+        check("Histogram", P["counts"], 1)
+    return out
+
+
 def run_groups(df, ctx, q, ranked: bool = False) -> Result:
     """aggregate (with or without a group) and top/bottom N."""
     F = Frame(df, ctx, q)
@@ -251,6 +322,12 @@ def run_groups(df, ctx, q, ranked: bool = False) -> Result:
         R.how = F.how(how_op(q, ctx), cols)
         return R
     allv = agg_by(d, [g], q, ctx).dropna()
+    only_neg = bool(q.get("only_negative")) and ranked
+    if only_neg:
+        allv = allv[allv < 0]
+        if not len(allv):
+            raise Cannot(f"No {plural(ctx.label(g))} lose money: every one has a {ph} of zero or more.")
+        R.additive = False
     total_all = float(allv.sum()) if R.additive else None
     if ranked:
         shown_s = allv.sort_values(ascending=q["direction"] == "bottom", kind="mergesort").head(q["n"])
@@ -260,20 +337,29 @@ def run_groups(df, ctx, q, ranked: bool = False) -> Result:
     lab_g = ctx.label(g)
     if s2:
         keep = list(shown_s.index)
-        cells = agg_by(d[d[g].isin(keep)], [g, s2], q, ctx).unstack(s2)
-        order = (cells.fillna(0).sum() if R.additive else d[d[g].isin(keep)][s2].value_counts()).sort_values(ascending=False).index[:MAX_SPLITS] if len(cells.columns) else []
-        cells = cells.reindex(index=keep, columns=list(order))
-        extra_splits = d[s2].nunique() - len(order)
+        full = agg_by(d[d[g].isin(keep)], [g, s2], q, ctx).unstack(s2).reindex(index=keep)
+        flat = full.stack()
+        top = flat.idxmax()          # the largest combination of ALL combinations, not of the ones that fit on the chart
+        nested = bool(len(full.columns)) and bool((full.notna().sum() <= 1).all())
+        limit = MAX_SPLITS_NESTED if nested else MAX_SPLITS
+        weight = full.fillna(0).abs().sum() if R.additive else full.abs().max()
+        order = list(weight.sort_values(ascending=False, kind="mergesort").index[:limit]) if len(full.columns) else []
+        if order and top[1] not in order:
+            order = order[:limit - 1] + [top[1]]
+        cells = full.reindex(columns=order)
+        extra_splits = len(full.columns) - len(order)
         R.shape = "split"
         R.columns = [lab_g] + [str(c) for c in cells.columns] + (["Total"] if R.additive else [])
         for k in keep:
             raw = [str(k)] + [None if pd.isna(x) else float(x) for x in cells.loc[k]] + ([float(allv[k])] if R.additive else [])
             R.add(raw, [str(k)] + ["–" if x is None else V(x) for x in raw[1:1 + len(cells.columns)]] + ([V(allv[k])] if R.additive else []))
-        flat = cells.stack()
-        top = flat.idxmax()
         lead = shown_s.index[0]
         R.sentence = (f"{cap(ph)} by {lab_g} and {ctx.label(s2)}: {lead} is highest overall at {R.fig(ph, shown_s.iloc[0], V(shown_s.iloc[0]))}; "
                       f"the largest single combination is {top[0]} / {top[1]} at {R.fig('largest combination', flat.max(), V(flat.max()))}.")
+        neg = _negative_note(R, allv, q, ctx, ph, False)
+        if neg:
+            R.sentence += " " + neg
+        R.negative = [str(k) for k, v in allv.items() if v < 0]
         R.plot = {"kind": "bars", "labels": [str(k) for k in keep], "series": [{"name": str(c), "values": [None if pd.isna(x) else float(x) for x in cells[c]]} for c in cells.columns],
                   "fmt": V, "title": f"{cap(ph)} by {lab_g}, split by {ctx.label(s2)}", "stackable": R.additive}
         R.how = F.how(how_op(q, ctx, f" for each {lab_g} and {ctx.label(s2)}"), cols + [g, s2], ([f"{extra_splits} other {ctx.label(s2)} values are not shown."] if extra_splits > 0 else []), hidden)
@@ -282,25 +368,28 @@ def run_groups(df, ctx, q, ranked: bool = False) -> Result:
     heads = [lab_g, cap(ph)] + (["Share of total"] if R.additive else [])
     R.columns = heads
     for k, v in shown_s.items():
-        share = v / total_all * 100 if total_all else None
+        share = v / total_all * 100 if total_all and total_all > 0 else None
         R.add([str(k), float(v)] + ([share] if R.additive else []), [str(k), V(v)] + ([f"{share:.1f}%"] if R.additive and share is not None else ["–"] if R.additive else []))
     names = list(shown_s.index)
-    parts = []
-    for i, (k, v) in enumerate(shown_s.head(3).items()):
-        t = f"{k} ({R.fig(ph, v, V(v))}"
-        if R.additive and total_all and i == 0:
-            t += f", {R.fig('share of total', v / total_all * 100, f'{v / total_all * 100:.1f}%')} of the total"
-        parts.append(t + ")")
-    if ranked and len(allv) < q["n"]:
+    parts, listed = _group_parts(R, shown_s, ph, V, total_all, allv)
+    rest = len(names) - listed
+    more = f", and {R.fig('more groups', rest, fmt_num(rest))} more" if rest > 0 else ""
+    if only_neg:
+        R.sentence = f"{cap(plural(lab_g))} that lose money, by {ph}: " + ", ".join(parts) + more + "."
+    elif ranked and len(allv) < q["n"]:
         R.sentence = (f"There are only {R.fig('groups', len(allv), fmt_num(len(allv)))} {plural(lab_g)}, so here are all of them by {ph}, {'highest' if q['direction'] == 'top' else 'lowest'} first: "
-                      + ", ".join(parts) + (f", and {R.fig('more groups', len(names) - 3, fmt_num(len(names) - 3))} more." if len(names) > 3 else "."))
+                      + ", ".join(parts) + more + ".")
     elif ranked:
         word = "Top" if q["direction"] == "top" else "Bottom"
-        R.sentence = f"{word} {lab_g if len(names) == 1 else str(len(names)) + ' ' + lab_g} by {ph}: " + ", ".join(parts) + (f", and {R.fig('more groups', len(names) - 3, fmt_num(len(names) - 3))} more." if len(names) > 3 else ".")
+        R.sentence = f"{word} {lab_g if len(names) == 1 else str(len(names)) + ' ' + lab_g} by {ph}: " + ", ".join(parts) + more + "."
     else:
-        R.sentence = f"{cap(ph)} by {lab_g}: " + ", ".join(parts) + (f", and {R.fig('more groups', len(names) - 3, fmt_num(len(names) - 3))} more shown." if len(names) > 3 else ".")
+        R.sentence = f"{cap(ph)} by {lab_g}: " + ", ".join(parts) + (more + " shown" if more else "") + "."
+    neg = _negative_note(R, allv, q, ctx, ph, R.additive and bool(total_all)) if not only_neg else ""
+    if neg:
+        R.sentence += " " + neg
+    R.negative = [str(k) for k, v in allv.items() if v < 0]
     R.plot = {"kind": "bars", "labels": [str(k) for k in names], "series": [{"name": cap(ph), "values": [float(v) for v in shown_s.values]}], "fmt": V, "title": f"{cap(ph)} by {lab_g}", "horizontal": True,
-              "shares": ([float(v / total_all * 100) for v in shown_s.values] if total_all else None)}
+              "shares": ([float(v / total_all * 100) for v in shown_s.values] if total_all and total_all > 0 else None)}
     R.how = F.how(how_op(q, ctx, f" for each {lab_g}" + (", then kept the " + ("highest" if q.get("direction") != "bottom" else "lowest") + f" {q['n']}" if ranked else "")), cols + [g], None, hidden)
     return R
 
@@ -311,11 +400,9 @@ def run_share(df, ctx, q) -> Result:
     F.need(needed(q, ctx) + [g], "left out")
     d, V, ph = F.df, vfmt(q, ctx), phrase(q, ctx)
     allv = agg_by(d, [g], q, ctx).dropna()
-    if (allv < 0).any():
-        raise Cannot(f"{cap(ph)} has negative values, so shares of the total would be misleading. Try a table of totals instead.")
     total = float(allv.sum())
-    if not total:
-        raise Cannot("The total is zero, so there are no shares to show.")
+    if total <= 0:
+        raise Cannot("The total is zero or negative, so there are no shares to show." + (" Try a table of totals instead." if total < 0 else ""))
     srt = allv.sort_values(ascending=False, kind="mergesort")
     top = srt.head(q["n"])
     rest = float(srt.iloc[q["n"]:].sum())
@@ -324,9 +411,14 @@ def run_share(df, ctx, q) -> Result:
         R.add([str(k), float(v), v / total * 100], [str(k), V(v), f"{v / total * 100:.1f}%"])
     if len(srt) > len(top):
         R.add(["All others", rest, rest / total * 100], [f"All others ({len(srt) - len(top)})", V(rest), f"{rest / total * 100:.1f}%"])
-    lead = [f"{k} {R.fig('share', v / total * 100, f'{v / total * 100:.1f}%')}" for k, v in top.head(3).items()]
+    n_lead = len(top) if len(top) <= LIST_ALL and len(srt) <= LIST_ALL else 3
+    lead = [f"{k} {R.fig('share', v / total * 100, f'{v / total * 100:.1f}%')}" + (" (negative)" if v < 0 else "") for k, v in top.head(n_lead).items()]
     R.sentence = (f"{top.index[0]} makes up {R.fig('share of total', top.iloc[0] / total * 100, f'{top.iloc[0] / total * 100:.1f}%')} of the {ph}"
                   + (", followed by " + " and ".join([", ".join(lead[1:-1])] + [lead[-1]] if len(lead) > 2 else lead[1:]) if len(lead) > 1 else "") + ".")
+    neg = _negative_note(R, allv, q, ctx, ph, True)
+    if neg:
+        R.sentence += " " + neg
+    R.negative = [str(k) for k, v in allv.items() if v < 0]
     labels = [str(k) for k in top.index] + (["All others"] if len(srt) > len(top) else [])
     vals = [float(v) for v in top.values] + ([rest] if len(srt) > len(top) else [])
     R.plot = {"kind": "share", "labels": labels, "values": vals, "fmt": V, "title": f"Share of {ph} by {ctx.label(g)}", "bar_series": {"name": cap(ph), "values": vals}}
@@ -456,6 +548,68 @@ def run_trend(df, ctx, q) -> Result:
     return R
 
 
+def run_unusual(df, ctx, q) -> Result:
+    """Period-over-period change of a number, with the unusual ones flagged. Robust rule: a change is unusual when it is more than MAD_LIMIT median absolute deviations away from the
+    typical change (and at least 10%), or at least BIG_CHANGE_PCT percent; either way both periods need MIN_ROWS rows. Partial periods at the ends are left out."""
+    F = Frame(df, ctx, q)
+    date = q["date"]
+    F.need(needed(q, ctx) + [date], "left out")
+    d, V, ph = F.df, vfmt(q, ctx), phrase(q, ctx)
+    notes: list[str] = []
+    grain, ser = time_series(d, date, "month" if q["grain"] == "auto" else q["grain"], q, ctx, None, notes)
+    per = d[date].dt.to_period(FREQ[grain])
+    rows_in = per.value_counts().reindex(ser.index).fillna(0).astype(int)
+    lo, hi = d[date].min(), d[date].max()
+    keep = pd.Series(True, index=ser.index)
+    if grain != "day":
+        if lo > ser.index[0].start_time:
+            keep.iloc[0] = False
+            notes.append(f"Left out the first {grain} ({plabel(ser.index[0], grain)}): it is incomplete, the data starts on {lo:%Y-%m-%d}.")
+        if hi < ser.index[-1].end_time.normalize():
+            keep.iloc[-1] = False
+            notes.append(f"Left out the last {grain} ({plabel(ser.index[-1], grain)}): it is incomplete, the data ends on {hi:%Y-%m-%d}.")
+    ser, rows_in = ser[keep], rows_in[keep]
+    if len(ser.dropna()) < 3:
+        raise Cannot(f"There are fewer than 3 full {grain}s of data, so there is no usual change to compare with. Try a shorter time grouping.")
+    prev, prev_rows = ser.shift(1), rows_in.shift(1)
+    diff = ser - prev
+    pct = (diff / prev.abs().where(prev != 0)) * 100
+    ok = pct.notna() & (rows_in >= MIN_ROWS_PER_PERIOD) & (prev_rows >= MIN_ROWS_PER_PERIOD)
+    base = pct.dropna()
+    med = float(base.median()) if len(base) else 0.0
+    scale = 1.4826 * float((base - med).abs().median()) if len(base) else 0.0
+    spread = (pct - med).abs() > MAD_LIMIT * scale if scale > 0 and len(base) >= 5 else pd.Series(False, index=pct.index)
+    flag = ok & (((spread) & (pct.abs() >= 10)) | (pct.abs() >= BIG_CHANGE_PCT))
+    R = Result(q, shape="unusual", columns=["Period", cap(ph), "Change", "Change %", "Flag"])
+    labels = [plabel(p, grain) for p in ser.index]
+    for i, p in enumerate(ser.index):
+        v = ser.iloc[i]
+        has = pd.notna(pct.iloc[i])
+        word = "" if not flag.iloc[i] else "Rise" if diff.iloc[i] > 0 else "Drop"
+        R.add([labels[i], None if pd.isna(v) else float(v), float(diff.iloc[i]) if has else None, float(pct.iloc[i]) if has else None, word],
+              [labels[i], "–" if pd.isna(v) else V(v), V(diff.iloc[i]) if has else "–", f"{pct.iloc[i]:+.1f}%" if has else "–", word or "–"])
+    hits = [i for i in range(len(ser)) if flag.iloc[i]]
+    word_of = lambda i: "rose" if diff.iloc[i] > 0 else "fell"
+    if hits:
+        shown = hits[:LIST_ALL]
+        items = [f"{plabel(ser.index[i], grain)} {word_of(i)} {R.fig('change %', abs(pct.iloc[i]), f'{abs(pct.iloc[i]):.1f}%')}, from {R.fig('before', prev.iloc[i], V(prev.iloc[i]))} to {R.fig('after', ser.iloc[i], V(ser.iloc[i]))}"
+                 for i in shown]
+        n = len(hits)
+        R.sentence = (f"{cap(ph)} had {R.fig('unusual changes', n, fmt_num(n))} unusual {'change' if n == 1 else 'changes'} from one {grain} to the next: " + "; ".join(items)
+                      + (f"; and {R.fig('more', n - len(shown), fmt_num(n - len(shown)))} more" if n > len(shown) else "") + ".")
+    else:
+        j = int(pct.abs().fillna(-1).values.argmax())
+        R.sentence = (f"No unusual changes: {ph} stayed within its usual range from one {grain} to the next over {R.fig('periods', len(ser), fmt_num(len(ser)))} full {grain}s; "
+                      f"the biggest move was {plabel(ser.index[j], grain)}, which {word_of(j)} {R.fig('biggest change %', abs(pct.iloc[j]), f'{abs(pct.iloc[j]):.1f}%')}.")
+    R.plot = {"kind": "series", "x": labels, "series": [{"name": cap(ph), "values": [None if pd.isna(v) else float(v) for v in ser.values]}], "marks": hits,
+              "fmt": V, "title": f"{cap(ph)} by {grain}" + (", unusual changes marked" if hits else ""), "stackable": False}
+    notes.append(f"A change counts as unusual when it is more than {MAD_LIMIT:g} median absolute deviations away from the typical {grain}-to-{grain} change (and at least 10%), or at least {BIG_CHANGE_PCT:g}%. "
+                 f"Both {grain}s need at least {MIN_ROWS_PER_PERIOD} rows, so a change between thin {grain}s is not flagged.")
+    R.how = F.how(how_op(q, ctx, f" for each {grain} of {ctx.label(date)}, then took the change from each {grain} to the next and flagged the unusual ones"), needed(q, ctx) + [date], notes)
+    R.query = {**q, "grain": grain}
+    return R
+
+
 def run_distribution(df, ctx, q) -> Result:
     F = Frame(df, ctx, q)
     c = ctx.cols[q["column"]]
@@ -516,6 +670,7 @@ RUNNERS = {
     "compare": run_compare,
     "period_change": run_period_change,
     "trend": run_trend,
+    "unusual_changes": run_unusual,
     "distribution": run_distribution,
     "relationship": run_relationship,
 }
@@ -529,17 +684,19 @@ def resolve_chart(R: Result) -> None:
         allowed = [c for c in allowed if c != "stacked_bar"]
     if R.shape in ("groups",) and not R.additive:
         allowed = [c for c in allowed if c != "share"]
+    if R.shape == "shares" and any(r[1] < 0 for r in R.rows):
+        allowed = [c for c in allowed if c != "share"]
     if R.shape == "time_split" and not R.additive:
         allowed = [c for c in allowed if c != "stacked_bar"]
     default = DEFAULT_CHART[R.shape] if DEFAULT_CHART[R.shape] in allowed else allowed[0]
     R.chart = want if want in allowed else default
     if want not in ("auto", R.chart) and want in qmod.CHARTS:
-        why = {"line": "A line needs time along the bottom.", "stacked_bar": "A stacked bar needs the numbers split by a second column and added together.", "share": "A share chart needs totals or counts of two or more groups.",
+        why = {"line": "A line needs time along the bottom.", "stacked_bar": "A stacked bar needs the numbers split by a second column and added together.", "share": "A share chart needs totals or counts of two or more groups, none of them negative.",
                "histogram": "A histogram shows how one number column is spread.", "scatter": "A scatter chart needs two number columns."}.get(want, "That chart doesn't fit this result.")
         R.chart_note = f"{why} I used a {R.chart.replace('_', ' ')} instead."
     if R.chart == "share" and R.plot.get("kind") == "bars" and len(R.plot["series"]) == 1:
         R.plot = {"kind": "share", "labels": R.plot["labels"], "values": R.plot["series"][0]["values"], "fmt": R.plot["fmt"], "title": R.plot["title"], "bar_series": R.plot["series"][0]}
-    R.controls = {"chart_types": allowed, "grains": list(qmod.GRAINS) if R.query["op"] == "trend" else [], "can_top_n": R.query["op"] in ("top", "aggregate", "share", "period_change") and bool(R.query.get("group_by")),
+    R.controls = {"chart_types": allowed, "grains": list(qmod.GRAINS) if R.query["op"] in ("trend", "unusual_changes") else [], "can_top_n": R.query["op"] in ("top", "aggregate", "share", "period_change") and bool(R.query.get("group_by")),
                   "chart": R.chart}
 
 

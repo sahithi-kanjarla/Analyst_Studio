@@ -46,7 +46,7 @@ function csv(t: LensTable) {
 function Picture({ chart, text, onOpen }: { chart: LensChart; text: string; onOpen?: () => void }) {
   return (
     <button type="button" className="lens-pic" onClick={onOpen} aria-label="Open the chart larger" disabled={!onOpen}>
-      <img src={chart.url} alt={text} loading="lazy" />
+      <img src={chart.url} alt="" loading="lazy" />
     </button>
   );
 }
@@ -123,7 +123,7 @@ export default function LensAnswerView({ turn, last }: { turn: LensTurn; last: b
           </div>
           {big && (
             <Dialog title={turn.question} intro={a.text} onClose={() => setBig(false)} wide>
-              {hasPic && <img className="lens-big" src={a.chart!.url} alt={a.text} />}
+              {hasPic && <img className="lens-big" src={a.chart!.url} alt="" />}
               <LensTableView table={a.table} max={200} />
               {a.how && <LensHowView how={a.how} />}
             </Dialog>

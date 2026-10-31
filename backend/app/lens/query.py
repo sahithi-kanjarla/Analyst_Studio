@@ -12,7 +12,7 @@ import pandas as pd
 
 from .context import Ctx
 
-OPS = ("aggregate", "top", "share", "compare", "period_change", "trend", "distribution", "relationship")
+OPS = ("aggregate", "top", "share", "compare", "period_change", "trend", "unusual_changes", "distribution", "relationship")
 AGGS = ("sum", "average", "count", "count_distinct")
 GRAINS = ("day", "week", "month", "quarter", "year")
 CHARTS = ("auto", "bar", "line", "stacked_bar", "share", "histogram", "scatter", "table")
@@ -22,11 +22,12 @@ MAX_FILTERS, MAX_N, DEFAULT_N = 6, 50, 5
 # What the AI is told about each operation. A later stage adds its operations here and in engine.RUNNERS; nothing else changes.
 OP_HELP = {
     "aggregate": '{"op":"aggregate","measure":<col>,"agg":"sum|average|count|count_distinct","group_by":[<category col>],"split_by":[<category col>],"n":<groups shown>,"sort":{"by":"value|label","dir":"asc|desc"},"filters":[...],"chart":...}  one number, or one number per group. group_by and split_by are optional. count needs no measure; count_distinct takes the column to count in "measure".',
-    "top": '{"op":"top","measure":<col>,"agg":"sum|average|count|count_distinct","group_by":[<category col>],"n":<how many>,"direction":"top|bottom","filters":[...]}  the highest (top) or lowest (bottom) N groups.',
+    "top": '{"op":"top","measure":<col>,"agg":"sum|average|count|count_distinct","group_by":[<category col>],"n":<how many>,"direction":"top|bottom","only_negative":<true to keep only the groups whose value is below zero>,"filters":[...]}  the highest (top) or lowest (bottom) N groups. "Which groups lose money?" is direction "bottom" with "only_negative":true.',
     "share": '{"op":"share","measure":<col>,"agg":"sum|count","group_by":[<category col>],"n":<groups shown>,"filters":[...]}  each group\'s share of the total.',
     "compare": '{"op":"compare","measure":<col>,"agg":"sum|average|count","by":<category col>,"a":<value>,"b":<value>,"filters":[...]}  two groups of one column side by side.',
     "period_change": '{"op":"period_change","measure":<col>,"agg":...,"date":<date col, optional>,"a":<period>,"b":<period>,"group_by":[<category col, optional>],"filters":[...]}  the change from period a to period b. A period is "2023", "2023-Q2", "2023-05" or "2023-05-14".',
     "trend": '{"op":"trend","measure":<col>,"agg":...,"date":<date col, optional>,"grain":"day|week|month|quarter|year","split_by":[<category col, optional>],"filters":[...]}  the number over time.',
+    "unusual_changes": '{"op":"unusual_changes","measure":<col>,"agg":...,"date":<date col, optional>,"grain":"day|week|month|quarter|year (month if not asked)","filters":[...]}  any sudden drop or rise: the change from each period to the next, with the unusual ones flagged and marked on the line. Use it for "any sudden drop?", "any spikes?", "anything unusual over time?".',
     "distribution": '{"op":"distribution","column":<measure col, or category col to count its values>,"bins":<5-30, optional>,"filters":[...]}  how the values are spread.',
     "relationship": '{"op":"relationship","x":<measure col>,"y":<measure col>,"filters":[...]}  whether two measures move together.',
 }
@@ -264,7 +265,7 @@ def check(raw, ctx: Ctx, df: pd.DataFrame) -> Checked:
             names = _as_list(raw.get("group_by"))
             if len(names) == 1 and (c := ctx.find(names[0])) is not None and c.role == "date" and not _as_list(raw.get("split_by")):
                 return check({**raw, "op": "trend", "date": c.name, "group_by": None}, ctx, df)       # "revenue by order date" is a trend
-        if op in ("aggregate", "top", "share", "trend", "period_change"):
+        if op in ("aggregate", "top", "share", "trend", "period_change", "unusual_changes"):
             _measure(ctx, raw, q, ("sum", "count") if op == "share" else AGGS)
         if op == "compare":
             _measure(ctx, raw, q, ("sum", "average", "count", "ratio"))
@@ -280,7 +281,9 @@ def check(raw, ctx: Ctx, df: pd.DataFrame) -> Checked:
             if not g:
                 raise Reject("Which column should I rank? For example the top 5 cities.")
             q.update(group_by=g[:1], n=_int(raw.get("n"), 1, MAX_N, DEFAULT_N),
-                     direction="bottom" if str(raw.get("direction")).lower() in ("bottom", "lowest", "asc") else "top")
+                     direction="bottom" if str(raw.get("direction")).lower() in ("bottom", "lowest", "asc") or raw.get("only_negative") else "top")
+            if raw.get("only_negative") is True and q["agg"] in ("sum", "average"):
+                q["only_negative"] = True
         elif op == "share":
             g = _groups(ctx, raw)
             if not g:
@@ -314,6 +317,10 @@ def check(raw, ctx: Ctx, df: pd.DataFrame) -> Checked:
             grain = str(raw.get("grain") or raw.get("time_grain") or "").lower().strip()
             grain = {"daily": "day", "weekly": "week", "monthly": "month", "quarterly": "quarter", "yearly": "year", "annual": "year", "days": "day", "weeks": "week", "months": "month", "quarters": "quarter", "years": "year"}.get(grain, grain)
             q.update(date=_date(ctx, raw), grain=grain if grain in GRAINS else "auto", split_by=(_groups(ctx, raw, "split_by") or _groups(ctx, raw))[:1])
+        elif op == "unusual_changes":
+            grain = str(raw.get("grain") or "").lower().strip()
+            grain = {"daily": "day", "weekly": "week", "monthly": "month", "quarterly": "quarter", "yearly": "year", "annual": "year", "days": "day", "weeks": "week", "months": "month", "quarters": "quarter", "years": "year"}.get(grain, grain)
+            q.update(date=_date(ctx, raw), grain=grain if grain in GRAINS else "month")
         elif op == "distribution":
             c = _col(ctx, raw.get("column") or raw.get("measure"), ("measure", "category", "flag"), "a distribution")
             if c.ratio:

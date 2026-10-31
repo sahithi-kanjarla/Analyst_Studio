@@ -48,6 +48,38 @@ PRIORITY_PHRASE = re.compile(r"(?:care about|worry about|focus(?:ed|ing)? on|pri
 GENERIC_STOP = set("the a an and or of to in on for is are was be my our i we me it its with about most more matters matter care really that this what how much many".split())
 
 
+# a request to change what a tab or chart shows ("make the ideas tab shorter", "simplify this tab", "remove this chart"): not a summary and not a data question
+EDIT_VERB = r"(?:shorten|simplif(?:y|ies)|declutter|tidy(?: up)?|clean up|condense|trim|cut down|reduce|rearrange|reorder|resize|rename|hide|remove|delete|get rid of|drop|collapse|minimi[sz]e)"
+EDIT_TARGET = (r"(?:tab|tabs|page|section|chart|graph|card|panel|widget|dashboard|ideas|insights|layout|screen|"
+               r"(?:report|ideas to try|your data|what we cleaned|how we analysed|power bi export|how files connect)\s+(?:tab|page|section))")
+VIEW_EDIT_RE = re.compile(rf"\b{EDIT_VERB}\s+(?:up\s+)?(?:this|the|that|my|our|these|those)\s+(?:\w+\s+){{0,3}}?{EDIT_TARGET}\b"
+                          rf"|\bmake\s+(?:this|the|that|my|our)\s+(?:\w+\s+){{0,3}}?{EDIT_TARGET}\s+(?:shorter|simpler|smaller|cleaner|less busy|more compact|more concise|brief|briefer)\b"
+                          rf"|\b(?:shorter|simpler|cleaner)\s+(?:ideas|insights|dashboard|report)\s+(?:tab|page)\b", re.I)
+CHART_CHECK_RE = re.compile(r"\b(?:graph|chart|plot|visual|visuali[sz]ation|diagram)\b[^.?!]{0,50}\b(?:wrong|incorrect|not (?:right|correct|proper\w*|plotted|drawn|showing|accurate|working)|isn'?t (?:right|correct|proper\w*|plotted|drawn|accurate)|"
+                            r"looks? (?:wrong|off|odd|weird|broken)|broken|inaccurate|mis-?plotted|plotted (?:wrong|incorrectly|badly)|drawn (?:wrong|incorrectly))"
+                            r"|\b(?:wrong|incorrect|bad|broken|inaccurate)\s+(?:graph|chart|plot)\b|\b(?:not|isn'?t|wasn'?t)\s+(?:been\s+)?(?:plotted|drawn)\s+(?:properly|correctly|right)\b"
+                            r"|\b(?:plotted|drawn)\s+(?:wrong|incorrectly|badly)\b", re.I)
+UNUSUAL_RE = re.compile(r"\b(?:sudden|suddenly|spikes?|spiked|abrupt|unusual|anomal\w+|outliers?|sharp (?:drop|rise|fall|increase|decrease|jump)|any (?:big|large|major|huge) (?:drop|rise|jump|fall|change)s?|(?:drop|rise|jump|fall|dip|surge)s?\s+or\s+(?:drop|rise|jump|fall|dip|surge)s?)\b", re.I)
+CHOICE_RE = re.compile(r"\bwhy\b[^.?!]{0,25}\b(?:choose|chose|pick(?:ed)?|select(?:ed)?|recommend(?:ed)?|rank(?:ed)?|suggest(?:ed)?|prefer(?:red)?|put)\b[^.?!]{0,30}\b(?:it|that|this|first|top|one|idea|strategy)\b"
+                       r"|\bwhy (?:is|was) (?:it|that|this)(?: one| idea| strategy)? (?:the )?(?:best|first|top|number one|#1)\b|\bhow did you (?:choose|pick|rank|decide)\b", re.I)
+
+
+def wants_view_edit(question: str) -> bool:
+    return bool(VIEW_EDIT_RE.search(question or ""))
+
+
+def wants_chart_check(question: str) -> bool:
+    return bool(CHART_CHECK_RE.search(question or ""))
+
+
+def asks_unusual(question: str) -> bool:
+    return bool(UNUSUAL_RE.search(question or ""))
+
+
+def asks_choice(question: str) -> bool:
+    return bool(CHOICE_RE.search(question or ""))
+
+
 def is_why(question: str) -> bool:
     return bool(WHY_RE.search(question or ""))
 
@@ -59,8 +91,10 @@ def wants_view_change(question: str) -> bool:
 def route(question: str) -> dict | None:
     """The question's destination when plain words settle it (no AI needed), else None: {"kind": "view"|"summary"|"app"|"priority", ...}."""
     q = question or ""
-    if wants_view_change(q):
+    if wants_view_edit(q) or wants_view_change(q):
         return {"kind": "view"}
+    if wants_chart_check(q):
+        return {"kind": "recheck"}
     if SUMMARY_RE.search(q):
         return {"kind": "summary", "length": "short" if SHORT_RE.search(q) else "standard"}
     for topic, rx in APP_PATTERNS:

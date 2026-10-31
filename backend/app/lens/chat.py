@@ -49,6 +49,9 @@ Rules:
 - "last month", "this year" and similar mean the latest period in DATE SPANS, written as a period such as "2023-11" or "2023".
 - A "why" question ("why is X the top?"): return the "query" for the number being asked about (use the main measure when none is named; "revenue" means the money column). Never clarify a "why" question and never explain a cause yourself: code shows what is behind the number. If the question assumes something ("why is X the top?"), still return the query; code checks the assumption.
 - Ask to clarify only when two readings give different answers (for example two columns could be "sales"); one short question with 2 or 3 choices. Never ask to confirm something obvious.
+- "Any sudden drop or rise?", "any spikes?", "anything unusual over time?" is the unusual_changes operation (use the main measure when none is named).
+- "Which groups lose money?" is a top query with direction "bottom" and "only_negative":true.
+- A request for the best idea or strategy, with or without "and why", is {"action":"strategy"}. A request to change what a tab, a chart or the report shows or looks like ("make the ideas tab shorter", "remove this chart") is "unsupported".
 - Use "unsupported" for forecasts, opinions, anything that needs a column that is not listed, or changing data. If margin or profit is asked and no column holds it, that is unsupported.
 - For app and report questions use REPORT RECORDS; for anything else about the data use COLUMNS. Never put a number from your own knowledge in any field.
 - Return the JSON object only."""
@@ -89,6 +92,9 @@ def _answered(wd: Path, R: engine.Result, ctx, df, result, source_ai_calls: int,
     png = render.chart_file(wd, R.query, R.chart)
     drawn = render.draw(R, png)
     nxt = chips if chips else chipmod.follow_ups(ctx, df, result, R.query)
+    lose = chipmod.loses_money(R.query, ctx, df) if R.negative and not R.query.get("only_negative") else None
+    if lose:
+        nxt = [lose] + [c for c in nxt if c["id"] != lose["id"]][:2]
     ans = {"status": "answered", "text": R.sentence, "query": R.query, "table": _table(R), "chart": {"type": R.chart, "path": f"charts/{png.name}" if drawn else None, "note": R.chart_note},
            "controls": R.controls, "how": R.how, "figures": R.figures, "chips": [{"id": c["id"], "text": c["text"]} for c in nxt], "ai_calls": source_ai_calls}
     return ans, nxt
@@ -99,6 +105,18 @@ def _last_query(wd: Path) -> dict | None:
         if t["answer"].get("status") == "answered" and t["answer"].get("query"):
             return t["answer"]["query"]
     return None
+
+
+def _last_turn_kind(wd: Path) -> str:
+    t = store.load(wd)["turns"]
+    return (t[-1]["answer"].get("kind") or "") if t else ""
+
+
+def _last_strategy_focus(wd: Path) -> str:
+    for t in reversed(store.load(wd)["turns"]):
+        if t["answer"].get("kind") == "strategy":
+            return str(t["answer"].get("focus") or "")
+    return ""
 
 
 def _starter_intents(result: dict) -> list[dict]:
@@ -278,7 +296,7 @@ def _with_premise(ans: dict, prem: dict) -> dict:
     ans["premise"] = {"text": prem["text"], "claims": prem["claims"]}
     ans["figures"] = prem["figures"] + ans.get("figures", [])
     if ans.get("how"):
-        notes = [f"Checked your question's assumption that {c['value']} is the {'top' if c['direction'] == 'up' else 'lowest'} {ctx_label(c)}: ranked every group by the same calculation." for c in prem["claims"]]
+        notes = [c.get("note") or f"Checked your question's assumption that {c['value']} is the {'top' if c['direction'] == 'up' else 'lowest'} {ctx_label(c)}: ranked every group by the same calculation." for c in prem["claims"]]
         ans["how"] = howtext.with_lines({**{k: v for k, v in ans["how"].items() if k != "lines"}, "notes": notes + list(ans["how"].get("notes") or [])})
     return ans
 
@@ -334,11 +352,46 @@ def _data_reply(wd: Path, question: str, ch: qmod.Checked | None, ctx, df, resul
     return ans, nxt
 
 
+# ------------------------------------------------------------------ "this graph is wrong": re-check the most recent chart against its computed table
+def _recheck(wd: Path, ctx, df, result):
+    """(answer, chips) re-checking the latest drawn chart, or a question about which chart when none was drawn."""
+    turn = next((t for t in reversed(store.load(wd)["turns"]) if t["answer"].get("status") == "answered" and t["answer"].get("query") and (t["answer"].get("chart") or {}).get("path")), None)
+    if turn is None:
+        return _plain("no_fit", "Which chart do you mean? I haven't drawn one in this chat yet. Ask a question about your data first, then I can check its chart.", wd, ctx, df, result)
+    try:
+        R = engine.run(turn["answer"]["query"], df, ctx)
+    except engine.Cannot as e:
+        return _plain("no_fit", f"I couldn't re-check that chart: {e}", wd, ctx, df, result)
+    drawn = sum(1 for sr in (R.plot.get("series") or [{"values": R.plot.get("values") or R.plot.get("counts") or []}]) for v in sr["values"] if v is not None)
+    bad = engine.drawn_vs_table(R)
+    if bad:
+        verdict = (f"I re-checked the chart for “{turn['question']}” and found {len(bad)} mismatch{'es' if len(bad) != 1 else ''} between what is drawn and the computed table: " + "; ".join(bad[:3])
+                   + ". I have redrawn it from the computed table below.")
+    else:
+        verdict = (f"I re-checked the chart for “{turn['question']}”: it draws {R.fig('values drawn', drawn, ctxmod.fmt_num(drawn))} values, and every one matches the computed table. Nothing is plotted wrongly.")
+    caveats = [n for n in R.how.get("notes") or [] if any(w in n for w in ("incomplete", "not shown", "too many", "only part"))]
+    if R.how.get("groups_not_shown"):
+        caveats.append(f"{R.how['groups_not_shown']} more groups are in the table but not drawn.")
+    if R.chart_note:
+        caveats.append(R.chart_note)
+    if caveats:
+        verdict += " What may look odd, and why: " + " ".join(dict.fromkeys(caveats))
+    verdict += " If something specific still looks off, tell me what (the order, the chart type or the time grouping) or use Change the chart under the answer."
+    R.sentence = verdict
+    R.how = howtext.with_lines({**R.how, "operation": "Re-ran the same calculation, then compared the values the chart is drawn from with the computed table, value by value",
+                                "notes": list(R.how.get("notes") or []) + ["Nothing was recalculated differently: the chart and the table come from the same numbers."]})
+    ans, nxt = _answered(wd, R, ctx, df, result, 0)
+    ans["kind"], ans["label"] = "recheck", "Chart re-check"
+    return ans, nxt
+
+
 # ------------------------------------------------------------------ the report and app answers
 def _report_answer(wd: Path, result: dict, ctx, df, kind: str, spec: dict, question: str, tab: str, llm, ai_ok: bool, ai_calls: int):
     """(answer, chips, AI calls used here, failure reason). `spec` is what the AI chose, or what a plain rule or a suggested question stands for."""
     if kind == "view":
         return (*reports.answer_view(result, wd), 0, "")
+    if kind == "recheck":
+        return (*_recheck(wd, ctx, df, result), 0, "")
     if kind == "app":
         topic = spec.get("topic") if spec.get("topic") in records.APP_TOPICS else "tab"
         return (*reports.answer_app(topic, result, tab, question, wd, ai_calls), 0, "")
@@ -347,7 +400,9 @@ def _report_answer(wd: Path, result: dict, ctx, df, kind: str, spec: dict, quest
         phrase = str(spec.get("priority") or "").strip() or " ".join(terms)
         return (*reports.answer_priority(result, ctx, terms, phrase, wd, ai_calls), 0, "")
     if kind == "strategy":
-        return (*reports.answer_strategy(result, ctx, str(spec.get("focus") or ""), wd, ai_calls), 0, "")
+        return (*reports.answer_strategy(result, ctx, str(spec.get("focus") or ""), wd, ai_calls, explain=rules.is_why(question)), 0, "")
+    if kind == "strategy_why":
+        return (*reports.answer_strategy_why(result, ctx, _last_strategy_focus(wd), wd, ai_calls), 0, "")
     if kind == "general":
         return (*reports.answer_general(spec.get("answer"), result, wd, ai_calls), 0, "")
     length = spec.get("length") if spec.get("length") in reports.SUMMARY_LINES else "standard"
@@ -393,6 +448,8 @@ def ask(wd: Path, result: dict, *, question: str = "", chip: str | None = None, 
         pool = chipmod.start(ctx, df, result) + _starter_intents(result) + [{"id": k, **v} for k, v in store.load(wd)["chips"].items()]
         hit = match_chip(question, pool)
         found = (hit or {}).get("intent") or rules.route(question)
+        if not found and rules.asks_choice(question) and _last_turn_kind(wd) in ("strategy",):
+            found = {"kind": "strategy_why"}
         if found and found["kind"] == "priority" and ai_ok and not (hit or {}).get("intent"):
             found = None          # the AI picks the framing of "what matters to me": it is asked below
         if gap:
@@ -401,8 +458,11 @@ def ask(wd: Path, result: dict, *, question: str = "", chip: str | None = None, 
             route = found
         elif hit and hit.get("query"):
             raw = hit["query"]
+        elif (llm is None or not allow_ai) and ctx.date_col and rules.asks_unusual(question):
+            m = chipmod.main_measure(ctx, result)
+            raw = {"op": "unusual_changes", "agg": "sum" if m else "count", "measure": m.name if m else None, "date": ctx.date_col, "grain": "month"}
         elif llm is None or not allow_ai:
-            out = _data_reply(wd, question, None, ctx, df, result, 0) if reasoning.claims(question, df, ctx) else None
+            out = _data_reply(wd, question, None, ctx, df, result, 0) if reasoning.asserts(question, df, ctx) else None
             ans, nxt = out if out else _plain("unavailable", "Without an AI model I can answer the suggested questions only. Pick one of these.", wd, ctx, df, result)
         elif asked >= max_questions():
             ans, nxt = _plain("limit", f"You've reached this run's limit of {max_questions()} questions that use the AI. The suggested questions still work.", wd, ctx, df, result)
@@ -421,12 +481,12 @@ def ask(wd: Path, result: dict, *, question: str = "", chip: str | None = None, 
                 ans, nxt = out if out else _run_checked(wd, act["checked"], ctx, df, result, ai_calls, question)
             elif act["kind"] == "clarify":
                 first = next((qmod.check(c.get("query"), ctx, df) for c in act["choices"] if isinstance(c, dict)), None)
-                out = (_data_reply(wd, question, first, ctx, df, result, ai_calls) if first is not None and first.query and (rules.is_why(question) or reasoning.claims(question, df, ctx)) else None)
+                out = (_data_reply(wd, question, first, ctx, df, result, ai_calls) if first is not None and first.query and (rules.is_why(question) or reasoning.asserts(question, df, ctx)) else None)
                 ans, nxt = out if out else _clarify(act["question"], act["choices"], wd, ctx, df, result, ai_calls, question)       # a 'why' is never answered with a question: the first reading is used
             elif act["kind"] in REPORT_KINDS:
                 route = {**act["obj"], "kind": act["kind"]}
             else:
-                out = _data_reply(wd, question, None, ctx, df, result, ai_calls, ai_said_no=True) if (rules.is_why(question) or reasoning.claims(question, df, ctx)) else None
+                out = _data_reply(wd, question, None, ctx, df, result, ai_calls, ai_said_no=True) if (rules.is_why(question) or reasoning.asserts(question, df, ctx)) else None
                 if out:
                     ans, nxt = out
                 else:

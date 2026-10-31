@@ -45,6 +45,16 @@ def _periods(ctx: Ctx, df: pd.DataFrame):
     return None
 
 
+def loses_money(query: dict, ctx: Ctx, df: pd.DataFrame) -> dict | None:
+    """"Show groups that lose money": the groups of the answer's own calculation whose value is below zero. Offered only when there are some."""
+    g = (query.get("group_by") or [None])[0]
+    if not g or query.get("op") not in ("aggregate", "top", "share") or query.get("agg") not in ("sum", "average") or not query.get("measure"):
+        return None
+    c = chip("Show groups that lose money", {"op": "top", "agg": query["agg"], "measure": query["measure"], "group_by": [g], "n": 10, "direction": "bottom", "only_negative": True,
+                                            "filters": query.get("filters") or []})
+    return c if qmod.check(c["query"], ctx, df).query else None
+
+
 def start(ctx: Ctx, df: pd.DataFrame, result: dict) -> list[dict]:
     if "start" not in ctx.memo:
         ctx.memo["start"] = _start(ctx, df, result)
@@ -65,6 +75,17 @@ def _start(ctx: Ctx, df: pd.DataFrame, result: dict) -> list[dict]:
         out.append(chip(f"How has the {ph} changed over time?", {"op": "trend", **base, "date": ctx.date_col, "grain": "auto"}))
     if gs and (not m or m.kind != "rate"):
         out.append(chip(f"How is the {ph} split by {soft(gs[0].display)}?", {"op": "share", **{**base, "agg": "sum" if m else "count"}, "group_by": [gs[0].name], "n": 6}))
+    if gs:
+        found = False
+        for mm in ([m] if m else []) + [c for c in ctx.measures() if not c.ratio and c.kind == "money" and (not m or c.name != m.name)][:3]:
+            for g in gs[:3]:
+                if (df.groupby(g.name, observed=True)[mm.name].sum() < 0).any():
+                    found = loses_money({"op": "top", "agg": "sum", "measure": mm.name, "group_by": [g.name]}, ctx, df) is not None
+                    if found:
+                        out.append(loses_money({"op": "top", "agg": "sum", "measure": mm.name, "group_by": [g.name]}, ctx, df))
+                    break
+            if found:
+                break
     pr = _periods(ctx, df)
     if pr:
         out.append(chip(f"How did the {ph} change from {pr[0]} to {pr[1]}?", {"op": "period_change", **base, "date": ctx.date_col, "a": pr[0], "b": pr[1]}))

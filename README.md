@@ -242,6 +242,19 @@ Lens also answers questions about the report itself. With each question it is gi
 
 Cost is unchanged: at most 2 AI calls per question, the AI cache and rate-limit handling, the per-run cap. `python scripts/lens_stage2a_check.py` asks the real model nine Kaveri questions and compares each answer with pandas or with the saved report records (`scripts/lens_stage2a_check_out.txt`). New code: `records.py`, `reports.py`, `reasoning.py`, `howtext.py`; tests in `backend/tests/test_lens_stage2a.py`.
 
+### Lens, fix pack (from real testing)
+
+- **Split by**: "the largest single combination" is now the largest of *all* combinations. Before, only the 6 most common split values were kept, so for sub-categories nested inside categories a whole category (Furniture) could be dropped and a smaller combination named the largest. A nested split now shows up to 12 columns, and the column holding the largest combination is always shown. `engine.drawn_vs_table` compares the values a chart is drawn from with the computed table; the tests use it for every split-by answer.
+- **Negative values**: a negative group is named ("Electronics has negative profit; shares can add up to more than 100%"), shares are shown even when they pass 100%, a negative slice is never drawn as a pie, up to 8 groups are all listed (negative ones marked) instead of "and N more", and the chip **Show groups that lose money** appears when some group is below zero.
+- **"This graph is wrong"** re-checks the most recent chart (draws nothing new, compares the drawn values with the computed table, says the result in plain words, and says what may look odd, such as an incomplete last month). It asks which chart only when none was drawn.
+- **View changes** ("make the ideas tab shorter", "simplify this tab", "remove this chart") are never turned into a summary: Lens says view changes are coming and lists what works now.
+- **Unusual changes** (`unusual_changes`): the change from each period (month by default) to the next, flagged when it is more than 3 median absolute deviations from the typical change (and at least 10%), or at least 40%, with at least 5 rows in both periods. Partial periods are left out; flagged points are marked on the line chart and listed with their figures; if none, Lens says so.
+- **Premise checks** now also catch "it should be X", "X is higher than Y" and "sales went down in March", by computing them; the correction and its figures come first.
+- **Summaries** are one plain sentence per line, at most 20 words, no column labels or repeated words, and still cite and pass the figure checks. **Why did you choose it?** explains a suggested idea from the report's own ratings (impact, confidence, effort, the fact it rests on) and names the runner-up and why it ranked lower.
+- A chart's alt text no longer repeats the answer sentence above it.
+
+Tests: `backend/tests/test_lens_fixpack.py`. `python scripts/lens_fixpack_check.py` asks the real model eight Kaveri questions and compares each answer with pandas.
+
 ## Quick start
 
 ```bash

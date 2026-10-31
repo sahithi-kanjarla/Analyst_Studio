@@ -112,6 +112,10 @@ def draw(R: Result, path: Path) -> bool:
                 for i in (0, len(x) - 1, max(range(len(vals)), key=lambda j: -1e30 if vals[j] is None else vals[j])):
                     if vals[i] is not None:
                         ax.annotate(fmt(vals[i]), (x[i], vals[i]), textcoords="offset points", xytext=(0, 6), ha="center", fontsize=8.5, color=INK)
+        for i in P.get("marks") or []:
+            v = P["series"][0]["values"][i]
+            ax.scatter([x[i]], [v], s=110, facecolors="none", edgecolors="#c0392b", linewidths=2, zorder=5)
+            ax.annotate(P["x"][i], (x[i], v), textcoords="offset points", xytext=(0, 11), ha="center", fontsize=8.5, color="#c0392b", fontweight="bold")
         step = max(1, len(x) // 10)
         ax.set_xticks(x[::step])
         ax.set_xticklabels(P["x"][::step], rotation=40 if len(x) > 6 else 0, ha="right" if len(x) > 6 else "center")
