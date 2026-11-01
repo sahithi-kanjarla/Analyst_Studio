@@ -25,6 +25,8 @@ First run: 5 of the 9 files failed at least one check (two crashed). Now all 9 p
 - A "-" or "N/A" in a text column keeps its earlier behaviour (a label unless the column is otherwise numeric or a date; the existing placeholder question covers frequent ones).
 - Fees, waivers and refunds are not netted: totals match the file; netting needs a model of what each column means (see the compatibility doc).
 
+**Final run:** the full suite ran once, 1202 passed and 1 failed in 8 min 53 s (533 s): an existing test (`test_brief.py::test_pincode_becomes_an_id_in_the_profile`) expects the rules to read a pincode column as a number until the brief calls it an id. My phone-like name rule had also covered pincode, zip and postal, so I took those three out of that rule (they stay in the data card's personal-looking words) and re-ran `test_brief.py` and `test_varied_data.py` (54 passed). The full suite was not run a second time.
+
 ## Skipped
 
 - Real vendor files; Devanagari-script headers; legacy `.xls` (needs `xlrd`); netting fees with waivers; restoring lost leading zeros and rounded order numbers. Reasons in `docs/compatibility.md`.

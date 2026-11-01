@@ -15,7 +15,7 @@ CODE_MIN_UNIQUE = 50
 CODE_FILL = 0.5      # share of the min..max range the distinct values occupy; below it the integers are labels, not quantities
 
 
-CONTACT_NAME = re.compile(r"(?i)\b(?:phone|mobile|mob|contact|tel|telephone|whatsapp|cell|fax|pin\s*code|pincode|zip|postal|aadhaar|aadhar)\b|(?:phone|mobile)(?:_?no|_?number)?$")
+CONTACT_NAME = re.compile(r"(?i)\b(?:phone|mobile|mob|contact|tel|telephone|whatsapp|cell|fax|aadhaar|aadhar)\b|(?:phone|mobile)(?:_?no|_?number)?$")
 SCI_ID = re.compile(r"^\s*\d(?:\.\d+)?[eE]\+?\d{6,}\s*$")      # 2.90285E+11: a long number a spreadsheet wrote in scientific notation
 
 
