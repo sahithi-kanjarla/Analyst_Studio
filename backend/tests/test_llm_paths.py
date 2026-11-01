@@ -93,3 +93,9 @@ def test_garbage_llm_output_falls_back_to_rules(data):
     assert res is not None and res["plan"]["source"] == "rules"
     assert any("unusable" in e["message"] for e in events)
     assert "Recommendations" in res["report_md"]
+
+
+def test_groq_default_model_matches_one_this_account_can_use():
+    """The Groq default must be a model that exists for us (llama-3.3-70b-versatile returned model_not_found); it must also agree with the documented .env LLM_MODEL."""
+    assert llm_mod.DEFAULTS["groq"] == "openai/gpt-oss-120b"
+    assert "llama-3.3-70b-versatile" not in llm_mod.DEFAULTS.values()

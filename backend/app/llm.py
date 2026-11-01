@@ -36,7 +36,7 @@ DAILY_LIMIT = "rate limit (daily limit reached)"
 
 DEFAULTS = {
     "gemini": "gemini-flash-latest",
-    "groq": "llama-3.3-70b-versatile",
+    "groq": "openai/gpt-oss-120b",
     "ollama": "qwen2.5:7b",
 }
 
