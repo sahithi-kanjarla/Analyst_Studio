@@ -111,8 +111,18 @@ export interface ReportPageData {
 
 export interface LensTable { columns: string[]; rows: (string | number | null)[][]; shown: string[][]; total_rows: number; truncated: boolean }
 export interface LensChart { type: string; path: string | null; url: string; note: string }
+export interface BriefLine { text: string; ids: string[]; edited?: boolean }
+export interface Brief {
+  id: string; title: string; audience: string; focus: string; source: string; no_info: string; edited: number;
+  headline: BriefLine | null; key_figures: BriefLine[]; recommendations: BriefLine[]; charts: { path: string; title: string }[];
+  quality: { trust: string; notes: string[] };
+}
 export interface LensHow {
   operation: string;
+  /** Custom analysis: the SQL (shown collapsed) and its plain description. */
+  sql?: string;
+  plain?: string;
+  steps?: { n: number; tool: string; summary: string; ok: boolean }[];
   /** The lines the box shows, written once on the server so it is never empty. */
   lines?: string[];
   columns?: { name: string; label: string; role: string }[];
@@ -129,6 +139,13 @@ export interface LensHow {
 export interface LensControls { chart_types: string[]; grains: string[]; can_top_n: boolean; chart: string }
 export interface LensChip { id: string; text: string }
 export interface LensAnswer {
+  briefs?: Brief[];
+  export?: { what: string; label: string; url: string; browser: boolean; text?: string };
+  second_method?: { label: string; text: string; table: LensTable };
+  disagree?: boolean;
+  unmet?: boolean;
+  feedback?: "up" | "down";
+  agent?: { plan: { tool: string; args: Record<string, unknown> }[]; tools: string[]; steps: { n: number; tool: string; summary: string; ok: boolean }[]; calls: number };
   view?: { changed: boolean; commands?: ViewCommand[]; undo?: boolean; state?: ViewState };
   focus?: { id: string; title: string };
   status: "answered" | "clarify" | "no_fit" | "unavailable" | "limit";
@@ -504,6 +521,8 @@ export const api = {
   viewGet: (id: string) => fetch(`/api/runs/${id}/view`).then((r) => json<ViewData>(r)),
   viewApply: (id: string, body: { command?: ViewCommand; commands?: ViewCommand[]; state?: ViewState }) =>
     fetch(`/api/runs/${id}/view`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }).then((r) => json<ViewData>(r)),
+  lensFeedback: (id: string, turn: string, vote: "up" | "down") =>
+    fetch(`/api/runs/${id}/lens/feedback`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ turn, vote }) }).then((r) => json<{ recorded: string }>(r)),
   lensInfo: (id: string) => fetch(`/api/runs/${id}/lens`).then((r) => json<LensInfo>(r)),
   lensAsk: (id: string, body: LensAsk) =>
     fetch(`/api/runs/${id}/lens/ask`, { method: "POST", headers: JSON_HEADERS(), body: JSON.stringify(body) }).then((r) => json<LensTurn>(r)),

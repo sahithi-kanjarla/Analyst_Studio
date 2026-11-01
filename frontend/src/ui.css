@@ -65,3 +65,19 @@
   li.view-hidden.view-print { display: list-item !important; }
   .view-more { border: 0; padding: 0; }
 }
+
+/* ---------- Lens agent: briefs, export, custom analysis, thumbs ---------- */
+.lens-brief { border: 1px solid var(--line, #d9d4c8); border-radius: 12px; padding: 12px 14px; margin: 10px 0; background: var(--surface, #fff); }
+.lens-brief h4 { margin: 0 0 6px; font-size: 15px; }
+.lens-brief h5 { margin: 10px 0 4px; font-size: 13px; }
+.lens-brief-head { font-weight: 600; margin: 6px 0; }
+.lens-brief-figs, .lens-brief ol { margin: 4px 0 4px 18px; padding: 0; }
+.lens-brief figure { margin: 8px 0; } .lens-brief img { max-width: 100%; border-radius: 8px; }
+.lens-brief-quality { margin-top: 10px; background: var(--bg-soft, #f6f3ec); border: 1px solid var(--line, #d9d4c8); border-radius: 8px; padding: 8px 10px; font-size: 13px; }
+.lens-brief-quality ul { margin: 4px 0 0 18px; padding: 0; }
+.lens-sql pre { white-space: pre-wrap; word-break: break-word; font-size: 12px; background: var(--bg-soft, #f6f3ec); padding: 8px; border-radius: 8px; }
+.lens-second { border-left: 3px solid var(--warn, #b4691f); padding-left: 10px; margin: 8px 0; }
+.lens-export { display: inline-block; text-decoration: none; }
+.lens-export-text { white-space: pre-wrap; font-size: 12px; background: var(--bg-soft, #f6f3ec); padding: 8px; border-radius: 8px; width: 100%; }
+.lens-thumbs { display: flex; gap: 6px; margin-top: 8px; }
+.lens-thumbs .chip { padding: 2px 10px; }

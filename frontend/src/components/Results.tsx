@@ -13,6 +13,8 @@ import Md from "./Md";
 import ReportPage from "./ReportPage";
 import LensChat from "./lens/LensChat";
 import { useLens } from "./lens/LensContext";
+import { TabViewBar } from "./view/ViewUI";
+import { useView } from "./view/ViewContext";
 
 const TABS: { id: Tab; label: string }[] = (["report", "dashboard", "insights", "strategy", "data", "model", "cleaning", "plan", "powerbi", "chat"] as Tab[]).map((id) => ({ id, label: TAB_LABEL[id] }));
 
@@ -99,7 +101,11 @@ export function ReportBody({ md }: { md: string }) {
 
 /** The cleaning log: every change made to the data, with the rows or values it touched. Used by the results tabs and the landing tour. */
 export function CleaningLog({ run }: { run: RunResult }) {
+  const v = useView();
+  const shown = (run.cleaning_log ?? []).map((s, i) => ({ s, i })).filter(({ i }) => !v?.isHidden(`cleaning:step:${i}`));
   return (
+    <>
+    <TabViewBar tab="cleaning" />
 <table className="table">
     <thead>
       <tr>
@@ -109,39 +115,42 @@ export function CleaningLog({ run }: { run: RunResult }) {
       </tr>
     </thead>
     <tbody>
-      {run.cleaning_log?.map((s, i) => (
-        <tr key={i}>
+      {shown.map(({ s, i }) => (
+        <tr key={i} data-view-id={`cleaning:step:${i}`}>
           <td>{s.step}</td>
           <td>{s.detail}</td>
           <td>{s.count.toLocaleString()}</td>
         </tr>
       ))}
-      {!run.cleaning_log?.length && (
+      {!shown.length && (
         <tr>
-          <td colSpan={3}>No changes were needed.</td>
+          <td colSpan={3}>{run.cleaning_log?.length ? "Every step is hidden. Restore them from Hidden items." : "No changes were needed."}</td>
         </tr>
       )}
     </tbody>
   </table>
+    </>
   );
 }
 
 /** The plan: the questions the analysis set out to answer, the analyses chosen and the decisions taken. */
 export function PlanView({ run }: { run: RunResult }) {
+  const v = useView();
   if (!run.plan) return null;
   return (
 <div className="plan">
+    <TabViewBar tab="plan" />
     <p>
       <strong>Plan made by:</strong> {run.plan.source === "llm" || run.plan.source === "repaired" ? "the AI" : "our built-in rules"} · <strong>Number we focus on:</strong> {run.plan.target ?? "none"} ·{" "}
       <strong>Date used:</strong> {run.plan.date_col ?? "none"}
     </p>
     <h4>Questions we set out to answer</h4>
-    <ul>{run.plan.questions.map((q) => <li key={q}>{q}</li>)}</ul>
+    <ul>{run.plan.questions.map((q, i) => !v?.isHidden(`plan:question:${i}`) && <li key={q} data-view-id={`plan:question:${i}`}>{q}</li>)}</ul>
     <h4>What we checked, and why</h4>
     <p className="muted">Some checks were suggested by the AI. Others were added by code because they are always needed.</p>
     <ol>
-      {run.plan.analyses.map((a, i) => (
-        <li key={i}>
+      {run.plan.analyses.map((a, i) => !v?.isHidden(`plan:analysis:${i}`) && (
+        <li key={i} data-view-id={`plan:analysis:${i}`}>
           <strong>{a.tool.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase())}</strong> {Object.values(a.params).flat().map(String).join(", ")}
           {a.origin && <span className="muted"> · <strong>{ORIGIN_LABEL[a.origin]}</strong></span>}
           <div className="muted">{a.why}</div>
