@@ -32,43 +32,53 @@ class ExportError(Exception):
     pass
 
 
-def find_browser() -> str | None:
+def browsers() -> list[str]:
+    """Every browser that could make the PDF, most likely first: BROWSER_PATH, a bundled Chromium, then the usual installed ones."""
+    import glob
+    out: list[str] = []
     env = os.environ.get("BROWSER_PATH", "").strip()
     if env and Path(env).exists():
-        return env
-    for c in BROWSER_CANDIDATES:
-        if Path(c).exists():
-            return c
-    import glob
+        out.append(env)
     for g in PW_GLOBS:
-        hit = sorted(glob.glob(g))
-        if hit:
-            return hit[-1]
-    for name in ("chromium", "chromium-browser", "google-chrome", "chrome", "msedge"):
-        p = shutil.which(name)
-        if p:
-            return p
-    return None
+        out += sorted(glob.glob(g), reverse=True)
+    out += [c for c in BROWSER_CANDIDATES if Path(c).exists()]
+    out += [p for p in (shutil.which(n) for n in ("chromium", "chromium-browser", "google-chrome", "chrome", "msedge")) if p]
+    return list(dict.fromkeys(out))
 
 
-def html_to_pdf(page_html: str) -> bytes:
-    exe = find_browser()
-    if not exe:
-        raise ExportError("No browser is available on the server to make a PDF. Set BROWSER_PATH, or use Copy as text.")
+def find_browser() -> str | None:
+    b = browsers()
+    return b[0] if b else None
+
+
+_WORKING: dict = {}
+
+
+def _try(exe: str, page_html: str, timeout: float) -> bytes | None:
     with tempfile.TemporaryDirectory(prefix="lens_pdf_") as d:
         src, out = Path(d) / "page.html", Path(d) / "out.pdf"
         src.write_text(page_html, encoding="utf-8")
         cmd = [exe, "--headless=new", "--no-sandbox", "--disable-gpu", "--disable-dev-shm-usage", "--no-pdf-header-footer", f"--user-data-dir={Path(d) / 'profile'}", f"--print-to-pdf={out}", src.as_uri()]
         try:
-            subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=TIMEOUT_S, check=False)
-        except (subprocess.TimeoutExpired, OSError) as e:
-            raise ExportError("The PDF could not be made in time.") from e
-        if not out.exists() or out.stat().st_size < 200:
-            raise ExportError("The PDF could not be made.")
-        data = out.read_bytes()
-    if not data.startswith(b"%PDF"):
-        raise ExportError("The PDF could not be made.")
-    return data
+            subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=timeout, check=False)
+        except (subprocess.TimeoutExpired, OSError):
+            return None
+        data = out.read_bytes() if out.exists() else b""
+    return data if data.startswith(b"%PDF") and len(data) > 200 else None
+
+
+def html_to_pdf(page_html: str) -> bytes:
+    cands = browsers()
+    if not cands:
+        raise ExportError("No browser is available on the server to make a PDF. Set BROWSER_PATH, or use Copy as text.")
+    if _WORKING.get("exe") in cands:
+        cands = [_WORKING["exe"]] + [c for c in cands if c != _WORKING["exe"]]
+    for exe in cands:
+        data = _try(exe, page_html, TIMEOUT_S if len(cands) == 1 else 25)
+        if data:
+            _WORKING["exe"] = exe
+            return data
+    raise ExportError("The PDF could not be made.")
 
 
 CSS = """body{font:14px/1.5 -apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:#1d1b17;margin:0;padding:0}

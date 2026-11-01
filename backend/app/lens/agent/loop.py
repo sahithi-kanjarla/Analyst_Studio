@@ -69,15 +69,17 @@ def shortcut_plan(question: str, env: Env) -> dict | None:
 def fallback_plan(env: Env) -> dict | None:
     q = env.question
     low = q.lower()
-    mg = rules.BRIEF_MANAGE_RE.search(q)
+    making = bool(re.search(r"\b(?:write|make|create|draft|prepare|put together|give me|generate)\b", low))
+    exporting = bool(rules.EXPORT_RE.search(q)) and not making
+    mg = None if exporting else rules.BRIEF_MANAGE_RE.search(q)
     if mg and (mg.group("op") or "list"):
         op = {"show": "list", "list": "list", "open": "open", "reopen": "open", "rename": "rename", "delete": "delete", "remove": "delete", "discard": "delete"}.get((mg.group("op") or "list").lower(), "list")
         if op == "delete" and re.search(r"\ball\b", low):
             op = "delete_all"
         ref = re.sub(r"\b(?:list|show|open|reopen|rename|delete|remove|discard|my|the|all|saved|brief|briefs|please|me|to)\b", " ", low).strip()
         return {"plan": [{"tool": "brief_manage", "args": {"op": op, **({"id": ref} if ref and op in ("open", "rename", "delete") else {}), **({"title": ref} if op == "rename" and ref else {})}}]}
-    if rules.EXPORT_RE.search(q) and not rules.brief_request(q):
-        if "all" in low and "brief" in low:
+    if exporting:
+        if "brief" in low and (re.search(r"\ball\b", low) or "briefs" in low):
             return {"plan": [{"tool": "export", "args": {"what": "all_briefs"}}]}
         if "text" in low:
             return {"plan": [{"tool": "export", "args": {"what": "text", **({"id": "last"} if "brief" in low else {})}}]}
@@ -143,6 +145,11 @@ def _compose(env: Env, steps: list[dict], results: list[registry.ToolResult], pl
     answered = [r for r in results if r.answer]
     failed = next((m for m in meta if not m["ok"]), None)
     if not answered:
+        err = next((r.error for r in results if not r.ok and r.error), "")
+        if err:
+            from .. import chat
+            ans, nxt = chat._plain("no_fit", f"{err} Here are two questions I can answer.", env.wd, env.ctx, env.df, env.result, 0, env.question)
+            return ans, nxt, meta
         ans, nxt = _unmet_answer(env, "")
         return ans, nxt, meta
     if len(answered) == 1 and not failed:

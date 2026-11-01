@@ -38,6 +38,11 @@ def bears_on(env, focus: str, columns: list) -> bool:
     if any(env.ctx.find(c) for c in columns or [] if isinstance(c, str)):
         return True
     words = set(terms_of(focus))
+    report_text = " ".join([str(env.result.get("goal") or "")] + [f["text"] for f in records.fact_sheet(env.result)] + [str(q) for q in (env.result.get("plan") or {}).get("questions") or []])
+    stem = lambda ws: {w[:4] if len(w) >= 5 else w for w in ws}
+    seen = stem(bf.terms(report_text))
+    if stem(words) & seen:
+        return True                    # the report itself speaks about it
     for c in env.ctx.cols.values():
         hay = set(bf.terms(f"{c.name} {c.display} {c.meaning}")) | {t[:5] for t in bf.terms(f"{c.name} {c.display} {c.meaning}")}
         if words & hay or {w[:5] for w in words} & hay:
@@ -203,7 +208,7 @@ class Brief(Tool):
             if written:
                 h, figs, recs, dropped = written
                 source = "ai"
-            if not h or len(figs) + len(recs) < 2:                 # too few lines survived: the facts' own computed sentences
+            if not h or (1 if h else 0) + len(figs) + len(recs) < 2:                 # too few lines survived: the facts' own computed sentences
                 ch, cf, cr = self._code_parts(env, facts_all, focus)
                 h = h or ch
                 figs = figs or cf
