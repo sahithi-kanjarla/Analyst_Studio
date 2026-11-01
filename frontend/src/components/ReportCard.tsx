@@ -1,5 +1,6 @@
 import ReactMarkdown from "react-markdown";
 import { CardTable, ReportCard as Card } from "../api";
+import { ViewImg, ViewItem, ViewTitle } from "./view/ViewUI";
 
 const LEVEL_CLASS: Record<string, string> = {
   high: "tag tag-ok",
@@ -31,14 +32,14 @@ function Table({ t }: { t: CardTable }) {
 }
 
 /** One finding with its median check on one line, a ratio of the same measure as a sub-section, and per-group tables collapsed. */
-export default function ReportCard({ c, index }: { c: Card; index: number }) {
+export default function ReportCard({ c, index, compact = false }: { c: Card; index: number; compact?: boolean }) {
   const st = c.stats;
   return (
     <article className="insight">
       <header className="insight-head">
         <span className="insight-num">{index}</span>
         <div className="insight-title">
-          <h4>{c.headline}</h4>
+          <ViewTitle id={`insights:card:${c.id}`} tag="h4" text={c.headline} />
           <div className="meta">
             <span className={LEVEL_CLASS[c.confidence.level] ?? "tag"} title={c.confidence.reasons.join(" ")}>{c.confidence.label} confidence</span>
             {c.kpi_related && <span className="tag tag-kpi">your KPI</span>}
@@ -48,8 +49,8 @@ export default function ReportCard({ c, index }: { c: Card; index: number }) {
       </header>
 
       <div className="insight-body">
-        {c.chart_url && <img src={c.chart_url} alt={c.title} loading="lazy" />}
-        <div className="insight-text">
+        {c.chart_url && <ViewItem id={`insights:chart:${c.id}`} className="insight-chart"><ViewImg id={`insights:chart:${c.id}`} src={c.chart_url} alt={c.title} /></ViewItem>}
+        {!compact && <div className="insight-text">
           <section>
             <h5>What we see</h5>
             <ReactMarkdown>{c.observation}</ReactMarkdown>
@@ -93,7 +94,7 @@ export default function ReportCard({ c, index }: { c: Card; index: number }) {
             {st.p != null && <>· {st.p < 0.001 ? "p < 0.001" : `p = ${st.p.toPrecision(2)}`} </>}
             {st.p_adjusted != null && <>· adjusted {st.p_adjusted < 0.001 ? "p < 0.001" : `p = ${st.p_adjusted.toPrecision(2)}`}</>}
           </p>
-        </div>
+        </div>}
       </div>
     </article>
   );

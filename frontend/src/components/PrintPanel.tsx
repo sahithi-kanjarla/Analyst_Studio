@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { RunResult } from "../api";
+import { useView } from "./view/ViewContext";
 
 /** What the printed report includes. The main view (summary, key numbers, charts) is on by default; the rest is opt-in. */
 export interface PrintOptions {
@@ -66,6 +67,8 @@ const KIND_OF_SECTION: [keyof PrintOptions, string][] = [["summary", "summary"],
 
 export default function PrintPanel({ run, startOpen = false }: { run: RunResult; startOpen?: boolean }) {
   const [open, setOpen] = useState(startOpen);
+  const view = useView();
+  const hiddenItems = (view?.data.state.hidden ?? []).filter((id) => view?.data.items[id]);
   const [o, setO] = useState<PrintOptions>(() => loadOptions(run));
   const set = <K extends keyof PrintOptions>(k: K, v: PrintOptions[K]) => {
     setO((prev) => {
@@ -136,6 +139,18 @@ export default function PrintPanel({ run, startOpen = false }: { run: RunResult;
             {check("setup", "Data-quality notes and how the data was set up")}
             {check("details", "Evidence and other details")}
           </fieldset>
+          {view && hiddenItems.length > 0 && (
+            <fieldset>
+              <legend>Hidden items (optional)</legend>
+              <p className="muted small">You hid these on screen. They are still in your saved report; tick any to include it in the printout.</p>
+              {hiddenItems.map((id) => (
+                <label className="print-check" key={id}>
+                  <input type="checkbox" checked={view.printSet.has(id)} onChange={() => view.togglePrint(id)} />
+                  <span>{view.title(id, view.data.items[id].title)}<small>{view.data.items[id].kind}</small></span>
+                </label>
+              ))}
+            </fieldset>
+          )}
           <fieldset>
             <legend>Page</legend>
             <label className="print-field">Title <input value={o.title} onChange={(e) => set("title", e.target.value)} /></label>

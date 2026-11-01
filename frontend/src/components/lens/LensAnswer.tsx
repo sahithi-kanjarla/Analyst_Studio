@@ -2,6 +2,7 @@ import { useState } from "react";
 import { LensChart, LensHow, LensTable, LensTurn } from "../../api";
 import Dialog from "../Dialog";
 import { useLens } from "./LensContext";
+import { useView } from "../view/ViewContext";
 
 const CHART_LABEL: Record<string, string> = { bar: "Bar", line: "Line", stacked_bar: "Stacked bar", share: "Share", histogram: "Histogram", scatter: "Scatter", table: "Table" };
 const GRAIN_LABEL: Record<string, string> = { day: "Daily", week: "Weekly", month: "Monthly", quarter: "Quarterly", year: "Yearly" };
@@ -54,6 +55,7 @@ function Picture({ chart, onOpen }: { chart: LensChart; text?: string; onOpen?: 
 /** One answer: the sentence, the chart or table, how it was calculated, the tools, the chart controls and what to ask next. */
 export default function LensAnswerView({ turn, last }: { turn: LensTurn; last: boolean }) {
   const lens = useLens();
+  const view = useView();
   const a = turn.answer;
   const [big, setBig] = useState(false);
   if (!lens) return null;
@@ -66,7 +68,14 @@ export default function LensAnswerView({ turn, last }: { turn: LensTurn; last: b
   return (
     <div className={`lens-msg lens-bot lens-${a.status}`}>
       {a.label && <p className="lens-badge">{a.label}</p>}
+      {a.focus && <p className="muted lens-small lens-about">About: {a.focus.title}</p>}
       <p className="lens-text">{a.status === "clarify" ? a.clarify?.question : a.text}</p>
+      {a.kind === "view" && a.view?.undo && last && (
+        <div className="msg-tools lens-tools no-print">
+          <button className="chip" disabled={lens.busy || !view?.data.can_undo} onClick={() => view?.undo()}>Undo</button>
+          <span className="muted lens-small">One click puts the view back. Nothing in your report was changed or deleted.</span>
+        </div>
+      )}
       {a.status === "answered" && !a.table && (
         <>
           {a.lines && a.lines.length > 0 && <ul className="lens-lines">{a.lines.map((l, i) => <li key={i}>{l}</li>)}</ul>}

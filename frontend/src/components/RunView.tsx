@@ -5,6 +5,7 @@ import Results from "./Results";
 import AgentFlow from "./AgentFlow";
 import QuestionForm from "./QuestionForm";
 import { LensProvider } from "./lens/LensContext";
+import { ViewProvider } from "./view/ViewContext";
 import LensDock from "./lens/LensDock";
 
 export default function RunView({ runId }: { runId: string }) {
@@ -79,10 +80,12 @@ export default function RunView({ runId }: { runId: string }) {
         {run?.status === "needs_input" && <QuestionForm runId={runId} onSubmitted={() => setAttempt((a) => a + 1)} />}
         {run?.status === "error" && <div className="error">The analysis failed: {run.error}</div>}
         {run?.status === "done" && (
-          <LensProvider runId={runId}>
-            <Results run={run} />
-            <LensDock />
-          </LensProvider>
+          <ViewProvider runId={runId}>
+            <LensProvider runId={runId}>
+              <Results run={run} />
+              <LensDock />
+            </LensProvider>
+          </ViewProvider>
         )}
       </section>
     </div>

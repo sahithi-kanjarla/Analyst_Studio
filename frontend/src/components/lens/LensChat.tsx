@@ -51,6 +51,14 @@ export default function LensChat({ variant }: { variant: "panel" | "tab" | "embe
         )}
         {lens.error && <div className="error" role="alert">{lens.error}</div>}
       </div>
+      {lens.focus && (
+        <div className="lens-focus" role="status">
+          <span className="lens-focus-chip">Focus: {lens.focus.title}
+            <button type="button" aria-label="Remove focus" onClick={() => lens.setFocus(null)}>✕</button>
+          </span>
+          <span className="muted lens-small">Questions are answered about this item until you remove it.</span>
+        </div>
+      )}
       <form className="lens-input" onSubmit={submit}>
         <label className="sr-only" htmlFor={`lens-q-${variant}`}>Your question</label>
         <input id={`lens-q-${variant}`} ref={input} value={q} onChange={(e) => setQ(e.target.value)} maxLength={300}

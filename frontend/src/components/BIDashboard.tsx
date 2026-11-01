@@ -4,6 +4,7 @@ import FindingGallery from "./FindingGallery";
 import InsightCard from "./InsightCard";
 import { Columns, Donut, HBar, Item, PALETTE } from "./charts";
 import LensPins from "./lens/LensPins";
+import { Sections, TabViewBar } from "./view/ViewUI";
 
 interface Row {
   d: Record<string, string | null>;
@@ -267,6 +268,10 @@ export default function BIDashboard({ run }: { run: RunResult }) {
         ))}
       </div>
 
+      <TabViewBar tab="dashboard" />
+      <Sections tab="dashboard" selfTitled={[]} nodes={{
+        "dashboard:visuals": (
+          <>
       {filtered.length === 0 ? (
         <div className="bi-card bi-empty">No records match these filters. <button className="bi-chip" onClick={() => setF(EMPTY)}>Clear all</button></div>
       ) : (
@@ -324,7 +329,11 @@ export default function BIDashboard({ run }: { run: RunResult }) {
         </div>
       )}
 
-      <FindingGallery run={run} />
+          </>
+        ),
+        "dashboard:gallery": <FindingGallery run={run} />,
+        "dashboard:takeaways": (
+          <>
 
       {(takeaways.length > 0 || topStrategy) && (
         <section className="bi-take">
@@ -337,6 +346,9 @@ export default function BIDashboard({ run }: { run: RunResult }) {
           </ul>
         </section>
       )}
+          </>
+        ),
+      }} />
       <LensPins target="dashboard" />
       {data.sampled && <p className="bi-muted small">Large dataset: the dashboard uses a random sample of {data.rows.length.toLocaleString()} of {data.total_rows.toLocaleString()} rows. Download the full cleaned data from the Data tab.</p>}
 

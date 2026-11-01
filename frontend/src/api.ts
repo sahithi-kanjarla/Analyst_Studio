@@ -129,6 +129,8 @@ export interface LensHow {
 export interface LensControls { chart_types: string[]; grains: string[]; can_top_n: boolean; chart: string }
 export interface LensChip { id: string; text: string }
 export interface LensAnswer {
+  view?: { changed: boolean; commands?: ViewCommand[]; undo?: boolean; state?: ViewState };
+  focus?: { id: string; title: string };
   status: "answered" | "clarify" | "no_fit" | "unavailable" | "limit";
   /** data (default) | why | app | summary | priority | strategy | general | view */
   kind?: string;
@@ -154,7 +156,21 @@ export interface LensTurn { id: string; at: number; question: string; tab: strin
 export interface LensPin { id: string; turn_id: string; target: "report" | "dashboard"; title: string; text: string; table?: LensTable; chart?: LensChart; how?: LensHow; created: number }
 export interface LensView { name: string; title: string; lines: string[]; actions: string[]; fact_ids: string[]; from_turn: string; created: number }
 export interface LensInfo { enabled: boolean; ai: boolean; chips: LensChip[]; history: LensTurn[]; pins: LensPin[]; views?: Record<string, LensView>; limit: { asked: number; max: number } }
-export type LensAsk = { question?: string; chip?: string; choice?: { turn: string; choice: string }; patch?: { turn: string; set: Record<string, unknown> }; tab?: string };
+export interface ViewState { hidden: string[]; short: Record<string, boolean>; top_n: Record<string, number>; only_supporting: Record<string, boolean>; chart: Record<string, { chart?: string; grain?: string; n?: number }>; order: Record<string, string[]>; titles: Record<string, string>; pinned: string[]; history: unknown[] }
+export interface ViewTab { order: string[]; hidden: string[]; folded: string[]; short: boolean; top_n: number | null; only_supporting: boolean; items: string[]; sections: string[] }
+export interface ViewItemInfo { id: string; tab: string; kind: "section" | "card" | "chart" | "insight" | "action" | "strategy"; title: string; section: string | null; score?: number; changeable?: string[]; card?: string }
+export interface ViewData {
+  state: ViewState;
+  resolved: { tabs: Record<string, ViewTab>; titles: Record<string, string>; chart: Record<string, { chart?: string; grain?: string; n?: number }>; pinned: string[]; hidden: string[]; original: boolean };
+  redrawn: Record<string, { url: string; note: string }>;
+  message: string;
+  can_undo: boolean;
+  items: Record<string, ViewItemInfo>;
+  sections: Record<string, string[]>;
+  local?: boolean;
+}
+export type ViewCommand = Record<string, unknown> & { cmd: string };
+export type LensAsk = { question?: string; chip?: string; choice?: { turn: string; choice: string }; patch?: { turn: string; set: Record<string, unknown> }; tab?: string ; focus?: { id: string }; view_state?: ViewState };
 
 export interface DataGap {
   severity: "warn" | "info";
@@ -485,6 +501,9 @@ export const api = {
     if (getAccessCode()) fd.append("access_code", getAccessCode());
     return fetch("/api/runs", { method: "POST", body: fd }).then((r) => json<{ run_id: string }>(r));
   },
+  viewGet: (id: string) => fetch(`/api/runs/${id}/view`).then((r) => json<ViewData>(r)),
+  viewApply: (id: string, body: { command?: ViewCommand; commands?: ViewCommand[]; state?: ViewState }) =>
+    fetch(`/api/runs/${id}/view`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }).then((r) => json<ViewData>(r)),
   lensInfo: (id: string) => fetch(`/api/runs/${id}/lens`).then((r) => json<LensInfo>(r)),
   lensAsk: (id: string, body: LensAsk) =>
     fetch(`/api/runs/${id}/lens/ask`, { method: "POST", headers: JSON_HEADERS(), body: JSON.stringify(body) }).then((r) => json<LensTurn>(r)),

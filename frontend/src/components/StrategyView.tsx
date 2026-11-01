@@ -1,4 +1,6 @@
 import { DataGap, Finding, Strategy } from "../api";
+import { ShowMore, TabViewBar, ViewItem, ViewTitle } from "./view/ViewUI";
+import { useView } from "./view/ViewContext";
 
 const LEVEL: Record<string, string> = { High: "lvl lvl-high", Medium: "lvl lvl-mid", Low: "lvl lvl-low" };
 
@@ -28,10 +30,13 @@ function Matrix({ items }: { items: Strategy[] }) {
 }
 
 export default function StrategyView({ strategies, summary, gaps, findings, foundation = [], dropped = 0 }: { strategies: Strategy[]; summary: string; gaps: DataGap[]; findings: Finding[]; foundation?: { id: string; line: string }[]; dropped?: number }) {
+  const view = useView();
+  const short = !!view?.isShort("strategy");
   const backed = strategies.filter((s) => s.kind === "data");
   const headline = (id: string) => findings.find((f) => f.id === id)?.insight?.headline ?? id;
   return (
     <div className="strategy">
+      <TabViewBar tab="strategy" />
       <p className="lead">{summary}</p>
 
       {backed.length > 0 && (
@@ -42,12 +47,12 @@ export default function StrategyView({ strategies, summary, gaps, findings, foun
         </div>
       )}
 
-      {strategies.map((s) => (
-        <article className={`strat ${s.kind === "foundation" ? "strat-foundation" : ""}`} key={s.id}>
+      <ShowMore tab="strategy" items={strategies.map((s) => ({ id: `strategy:${s.id}`, node: (
+        <ViewItem key={s.id} id={`strategy:${s.id}`} tag="article" className={`strat ${s.kind === "foundation" ? "strat-foundation" : ""}`}>
           <header>
             <span className="insight-num">{s.rank}</span>
             <div>
-              <h4>{s.title}</h4>
+              <ViewTitle id={`strategy:${s.id}`} tag="h4" text={s.title} />
               <div className="meta">
                 <span className={LEVEL[s.impact]}>Impact: {s.impact}</span>
                 <span className={LEVEL[s.effort === "Low" ? "High" : s.effort === "High" ? "Low" : "Medium"]}>Effort: {s.effort}</span>
@@ -58,13 +63,13 @@ export default function StrategyView({ strategies, summary, gaps, findings, foun
               </div>
             </div>
           </header>
-          <p>{s.objective}</p>
-          {s.evidence.length > 0 && (
+          {!short && <p>{s.objective}</p>}
+          {!short && s.evidence.length > 0 && (
             <p className="muted small">
               <strong>Based on:</strong> {s.evidence.map((id) => `${headline(id)} (${id})`).join("; ")}
             </p>
           )}
-          <div className="strat-cols">
+          {!short && <div className="strat-cols">
             <section>
               <h5>Actions</h5>
               <ol className="tight">
@@ -89,9 +94,8 @@ export default function StrategyView({ strategies, summary, gaps, findings, foun
                 ))}
               </ul>
             </section>
-          </div>
-        </article>
-      ))}
+          </div>}
+        </ViewItem>) }))} />
 
       {dropped > 0 && <p className="muted small">{dropped} lower-ranked {dropped === 1 ? "strategy is" : "strategies are"} not shown.</p>}
       {foundation.length > 0 && (

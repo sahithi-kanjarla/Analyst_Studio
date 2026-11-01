@@ -588,8 +588,8 @@ def view_apply(run_id: str, body: ViewIn):
     demo = is_demo(run_id)
     state = (body.state or {}) if demo else lensstore.get_view_state(wd)
     cmds = body.commands or ([body.command] if body.command else [])
-    if not cmds:
-        raise HTTPException(400, "No view change was given.")
+    if not cmds:                  # nothing to change: just resolve the state given (the sample run's, kept in the browser) or the saved one
+        return {**_view_wire(run_id, wd, result, state), "local": demo}
     try:
         new, msgs = viewedit.apply_many(result, state, cmds)
     except viewedit.ViewError as e:

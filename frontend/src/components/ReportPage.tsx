@@ -4,6 +4,8 @@ import { LensProvider } from "./lens/LensContext";
 import LensPins from "./lens/LensPins";
 import Md from "./Md";
 import PrintPanel from "./PrintPanel";
+import { Sections, ShowMore, TabViewBar, ViewImg, ViewItem, ViewTitle } from "./view/ViewUI";
+import { useView } from "./view/ViewContext";
 import { ReportBody } from "./Results";
 
 /** "Put more behind what works: Segment = Enterprise: Grow overall revenue…" -> a short title and one line of why. */
@@ -21,6 +23,8 @@ const meaning = (caption: string) => caption.replace(/^How to read this:\s*/i, "
 /** The report as a designed page: the short answer, the key figures, what to do, the evidence, and everything else folded away. */
 export default function ReportPage({ run, embedded = false, startChat = false, startPrint = false }: { run: RunResult; embedded?: boolean; startChat?: boolean; startPrint?: boolean }) {
   const page = run.report_view?.page;
+  const view = useView();
+  const short = !!view?.isShort("report");
   if (!page) {
     return (
       <>
@@ -32,7 +36,7 @@ export default function ReportPage({ run, embedded = false, startChat = false, s
   }
   const title = page.company ? `${page.company} report` : "Your report";
   // a seller's key figures: not the number of columns, and "records" rather than "rows"
-  const tiles = page.tiles.filter((t) => t.label !== "Columns").map((t) => (t.label === "Rows" ? { ...t, label: "Records in your file" } : t));
+  const tiles = page.tiles.map((t, i) => ({ ...t, i })).filter((t) => t.label !== "Columns").map((t) => (t.label === "Rows" ? { ...t, label: "Records in your file" } : t));
   const rows = run.profile?.rows;
   const cols = run.profile?.cols;
   return (
@@ -51,66 +55,82 @@ export default function ReportPage({ run, embedded = false, startChat = false, s
           </div>
         </header>
 
-        <section className="rp-headline" data-kind="summary" aria-label="The short answer">
+        <TabViewBar tab="report" />
+        <Sections tab="report" selfTitled={["report:actions", "report:evidence", "report:behind"]} nodes={{
+          "report:short": (
+          <section className="rp-headline" data-kind="summary" aria-label="The short answer">
           <p className="rp-kicker">The short answer</p>
           <p className="rp-big">{plainStats(page.headline)}</p>
           {page.headline_more && <p className="rp-more">{page.headline_more}</p>}
         </section>
 
-        {tiles.length > 0 && (
-          <section className="rp-tiles grid" data-kind="numbers" aria-label="Key figures">
-            {tiles.map((t) => (
-              <div className={`rp-tile ${tiles.length === 3 ? "span-4" : "span-3"}`} key={t.label}>
-                <span className={`rp-tile-value ${t.value.length > 11 ? "long" : ""}`}>{t.value}</span>
-                <span className="rp-tile-label">{t.label}</span>
-              </div>
-            ))}
-          </section>
-        )}
-
-        <section className="rp-section" data-kind="summary" aria-labelledby="rp-todo">
-          <h2 id="rp-todo">What to do</h2>
-          {page.actions.length > 0 ? (
-            <ol className="rp-todo">
-              {page.actions.map((a, i) => {
-                const { title: t, why } = splitAction(a.text);
-                return (
-                  <li className="rp-action" key={i}>
-                    <span className="rp-num" aria-hidden>{i + 1}</span>
-                    <div>
-                      <h3>{t}</h3>
-                      {why && <p>{why}</p>}
-                      {a.figure && <p className="rp-support">{a.figure.replace(/^Supported by:\s*/i, "")}</p>}
-                    </div>
-                  </li>
-                );
-              })}
-            </ol>
-          ) : (
-            <p className="muted">{page.no_action[0] ?? "The data does not support a specific change yet."}</p>
-          )}
-        </section>
-
-        {page.charts.length > 0 && (
-          <section className="rp-section" data-kind="charts" aria-labelledby="rp-evidence">
-            <h2 id="rp-evidence">The evidence</h2>
-            <div className="grid">
-              {page.charts.slice(0, 6).map((c) => (
-                <figure className="rp-chart surface span-6" key={c.path}>
-                  <h3>{c.title.charAt(0).toUpperCase() + c.title.slice(1)}</h3>
-                  <img src={c.url} alt={c.title} loading="lazy" />
-                  <figcaption><strong>What this means:</strong> {meaning(c.caption)}</figcaption>
-                  {c.details.length > 0 && (
-                    <details>
-                      <summary>Details</summary>
-                      <ul>{c.details.map((d, i) => <li key={i}>{d}</li>)}</ul>
-                    </details>
-                  )}
-                </figure>
-              ))}
-            </div>
-          </section>
-        )}
+          ),
+          "report:numbers": (
+            tiles.length > 0 ? (
+              <section className="rp-tiles grid" data-kind="numbers" aria-label="Key figures">
+                <ShowMore tab="report" items={tiles.map((t) => ({ id: `report:tile:${t.i}`, node: (
+                  <ViewItem key={t.label} id={`report:tile:${t.i}`} className={`rp-tile ${tiles.length === 3 ? "span-4" : "span-3"}`} askLens={false}>
+                    <span className={`rp-tile-value ${t.value.length > 11 ? "long" : ""}`}>{t.value}</span>
+                    <span className="rp-tile-label"><ViewTitle id={`report:tile:${t.i}`} text={t.label} /></span>
+                  </ViewItem>) }))} />
+              </section>
+            ) : <></>
+          ),
+          "report:actions": (
+            <section className="rp-section" data-kind="summary" aria-labelledby="rp-todo">
+              <ViewTitle id="report:actions" tag="h2" text="What to do" />
+              {page.actions.length > 0 ? (
+                <ol className="rp-todo">
+                  <ShowMore tab="report" items={page.actions.map((a, i) => {
+                    const { title: t, why } = splitAction(a.text);
+                    return { id: `report:action:${i}`, node: (
+                      <ViewItem key={i} id={`report:action:${i}`} tag="li" className="rp-action">
+                        <span className="rp-num" aria-hidden>{i + 1}</span>
+                        <div>
+                          <h3><ViewTitle id={`report:action:${i}`} text={t} /></h3>
+                          {why && !short && <p>{why}</p>}
+                          {a.figure && !short && <p className="rp-support">{a.figure.replace(/^Supported by:\s*/i, "")}</p>}
+                        </div>
+                      </ViewItem>) };
+                  })} />
+                </ol>
+              ) : (
+                <p className="muted">{page.no_action[0] ?? "The data does not support a specific change yet."}</p>
+              )}
+            </section>
+          ),
+          "report:evidence": (
+            page.charts.length > 0 ? (
+              <section className="rp-section" data-kind="charts" aria-labelledby="rp-evidence">
+                <ViewTitle id="report:evidence" tag="h2" text="The evidence" />
+                <div className="grid">
+                  <ShowMore tab="report" items={page.charts.slice(0, 6).map((c) => {
+                    const cid = `report:chart:${c.path.split("/").pop()!.replace(/\.\w+$/, "")}`;
+                    return { id: cid, node: (
+                      <ViewItem key={c.path} id={cid} tag="article" className="rp-chart surface span-6">
+                        <h3><ViewTitle id={cid} text={c.title.charAt(0).toUpperCase() + c.title.slice(1)} /></h3>
+                        <ViewImg id={cid} src={c.url ?? ""} alt={c.title} />
+                        <figcaption><strong>What this means:</strong> {meaning(c.caption)}</figcaption>
+                        {c.details.length > 0 && !short && (
+                          <details>
+                            <summary>Details</summary>
+                            <ul>{c.details.map((d, i) => <li key={i}>{d}</li>)}</ul>
+                          </details>
+                        )}
+                      </ViewItem>) };
+                  })} />
+                </div>
+              </section>
+            ) : <></>
+          ),
+          "report:behind": (
+            <section className="rp-section behind" aria-labelledby="rp-behind">
+              <h2 id="rp-behind"><ViewTitle id="report:behind" text="Behind the numbers" /></h2>
+              <p className="muted read">Everything we worked out to get here: how the data was set up, what we cleaned, how things were calculated. Open any part you want to check.</p>
+              <Md md={page.behind_md} />
+            </section>
+          ),
+        }} />
 
         <LensPins target="report" />
 
