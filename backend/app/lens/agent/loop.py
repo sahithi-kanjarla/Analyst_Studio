@@ -179,19 +179,19 @@ def _compose(env: Env, steps: list[dict], results: list[registry.ToolResult], pl
         chips = answered[-1].chips
     if failed:
         err = next((r.error for r in results if not r.ok and r.error), "")
-        ans["text"] = (ans.get("text", "") + f" I stopped at step {failed['n']} ({failed['tool']})" + (f": {err}" if err and err not in ans.get("text", "") else ".")).strip()
-        done = [m["tool"] for m in meta if m["ok"]]
+        ans["text"] = (ans.get("text", "") + f" I stopped at step {failed['n']} ({registry.plain(failed['tool'])})" + (f": {err}" if err and err not in ans.get("text", "") else ".")).strip()
+        done = [registry.plain(m["tool"]) for m in meta if m["ok"]]
         ans["text"] += (" Done so far: " + ", ".join(done) + ".") if done else ""
     return ans, chips, meta
 
 
 def _add_steps_to_how(ans: dict, meta: list[dict], notes: list[str]) -> None:
     how = dict(ans.get("how") or {})
-    lines = [f"Step {m['n']}, {m['tool']}: {m['summary']}" + ("" if m["ok"] else " (stopped here)") for m in meta]
+    lines = [f"Step {m['n']}, {registry.plain(m['tool'])}: {m['summary']}" + ("" if m["ok"] else " (stopped here)") for m in meta]
     how["steps"] = meta
     how["notes"] = list(how.get("notes") or []) + ["Steps: " + " | ".join(lines)] + notes
     if not how.get("operation"):
-        how["operation"] = "Answered by running " + ", ".join(m["tool"] for m in meta)
+        how["operation"] = "Answered with " + ", ".join(registry.plain(m["tool"]) for m in meta)
     ans["how"] = howtext.with_lines({k: v for k, v in how.items() if k != "lines"})
 
 
@@ -248,7 +248,7 @@ def run_request(wd, result, df, ctx, question: str, tab: str, llm, ai_ok: bool, 
         plan = alt
     if plan is None:
         ans, nxt = _unmet_answer(env, "")
-        _add_steps_to_how(ans, [], ["No tool could do this request."])
+        _add_steps_to_how(ans, [], ["Nothing I can do fits this request."])
         ans["agent"] = {"plan": [], "tools": [], "steps": [], "calls": env.calls}
         return Out(ans, nxt, env.calls)
     if not plan.get("plan"):
@@ -263,7 +263,7 @@ def run_request(wd, result, df, ctx, question: str, tab: str, llm, ai_ok: bool, 
                 return Out(a2, n2, env.calls, tools=["data_query"])
         ans, nxt = _unmet_answer(env, plan.get("unsupported") or "")
         ans["agent"] = {"plan": [], "tools": [], "steps": [], "calls": env.calls}
-        _add_steps_to_how(ans, [], ["No tool could do this request."])
+        _add_steps_to_how(ans, [], ["Nothing I can do fits this request."])
         return Out(ans, nxt, env.calls)
     # the premise a request assumes is checked before anything is answered, unless a step already does it
     if env.ai_ok and not any(s.get("tool") in ("data_query", "premise_check") for s in plan["plan"]) and len(plan["plan"]) < planner.MAX_STEPS:

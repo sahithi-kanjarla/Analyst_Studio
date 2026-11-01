@@ -32,7 +32,7 @@ def test_a_valid_plan_runs_each_step_and_the_box_lists_the_steps_and_tools(shop)
     assert ai.calls == 1 and a["agent"]["tools"] == ["data_query", "explain"] and a["status"] == "answered"
     assert a["table"] and "Delhi" in a["text"] and "saved with this run" in a["text"]            # both steps' sentences, the table of the data step
     box = " ".join(a["how"]["lines"])
-    assert "Step 1, data_query" in box and "Step 2, explain" in box
+    assert "Step 1, a calculation on your data" in box and "Step 2, an explanation from the report" in box
 
 
 def test_an_invalid_plan_gets_one_repair_then_runs(shop):
@@ -73,7 +73,7 @@ def test_a_failure_partway_stops_and_says_what_was_done(shop):
     ai = FakeAI(P(("explain", {"topic": "trust"}), ("chart_edit", {"target": "answer", "chart": "line"}), ("explain", {"topic": "cleaning"})))
     a = ask(shop, ai, "do three things")["answer"]
     assert a["agent"]["tools"] == ["explain", "chart_edit"] and a["agent"]["steps"][-1]["ok"] is False
-    assert "I stopped at step 2 (chart_edit)" in a["text"] and "Done so far: explain" in a["text"]
+    assert "I stopped at step 2 (a change to a chart)" in a["text"] and "Done so far: an explanation from the report" in a["text"]
 
 
 def test_a_later_step_can_use_an_earlier_result(shop):

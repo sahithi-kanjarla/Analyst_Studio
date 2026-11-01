@@ -76,7 +76,7 @@ def build(env, tools_help: str = "") -> str:
         "VISIBLE ITEMS (id, kind, title): " + json.dumps(visible_items(env), ensure_ascii=False),
     ]
     if env.focus:
-        parts.append("FOCUS ITEM (the user pressed \"Ask Lens about this\" on it; \"this\" means it; use only this text and the data): " + json.dumps({k: env.focus[k] for k in ("id", "title", "kind", "text")}, ensure_ascii=False))
+        parts.append("FOCUS ITEM (the user clicked it; \"this\" means it; use only this text and the data): " + json.dumps({k: env.focus[k] for k in ("id", "title", "kind", "text")}, ensure_ascii=False))
     d = saved_definitions(env.result)
     if d:
         parts.append("SAVED DEFINITIONS: " + json.dumps(d, ensure_ascii=False))

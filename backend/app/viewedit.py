@@ -27,7 +27,7 @@ MAX_TITLE = 120
 HISTORY = 20
 CHART_TYPES = ("bar", "line", "share", "table", "histogram")
 GRAINS = ("day", "week", "month", "quarter", "year")
-COMMANDS = ("hide", "show", "set_mode", "top_n", "only_supporting", "chart", "move", "rename", "pin", "unpin", "reset", "undo")
+COMMANDS = ("hide", "show", "keep_only", "set_mode", "top_n", "only_supporting", "chart", "move", "rename", "pin", "unpin", "reset", "undo")
 
 
 class ViewError(Exception):
@@ -43,7 +43,7 @@ def normalise(state) -> dict:
     s = empty()
     if not isinstance(state, dict):
         return s
-    s["hidden"] = [i for i in state.get("hidden") or [] if isinstance(i, str)][:500]
+    s["hidden"] = [i for i in state.get("hidden") or [] if isinstance(i, str)][:2000]
     s["pinned"] = [i for i in state.get("pinned") or [] if isinstance(i, str)][:200]
     s["short"] = {t: bool(v) for t, v in (state.get("short") or {}).items() if t in TABS}           # True or False, only where it differs from the tab's default
     s["only_supporting"] = {t: True for t, v in (state.get("only_supporting") or {}).items() if t in TABS and v}
@@ -179,6 +179,8 @@ def catalogue(result: dict) -> dict:
             items[iid]["text"] = _plain((f.get("insight") or {}).get("headline"))
             tabs["dashboard"]["primary"].append(iid)
     _other_tabs(result, items, tabs, section, add)
+    from . import viewselect
+    viewselect.enrich(result, items, tabs, findings, action_ev | summary_ev, action_charts)
     return {"items": items, "tabs": tabs}
 
 
@@ -288,8 +290,27 @@ def resolve(result: dict, state: dict, cat: dict | None = None) -> dict:
 KINDS = ("card", "chart", "insight", "action", "strategy", "section")
 
 
+BULK = 3          # a change that hides or shows more than this many items is previewed first
+
+
+def _select(cmd: dict, cat: dict, default_tab: str | None = None) -> list[str]:
+    from . import viewselect as vs
+    sel = cmd.get("select")
+    try:
+        ids = vs.select(cat, sel, default_tab)
+    except ValueError as e:
+        raise ViewError(str(e))
+    if cmd.get("best") is not None:
+        ids = vs.best(cat, ids, cmd["best"])
+    if not ids:
+        raise ViewError(f"Nothing matches the {vs.what_it_asks(sel)}. " + vs.describe_available(cat, sel, default_tab))
+    return ids
+
+
 def _ids(cmd: dict, cat: dict | None = None) -> list[str]:
-    """The ids a command names: "id" or "ids", or a whole group by "kind" (every chart, every card, ...) optionally within a "tab" and a "section"."""
+    """The ids a command names: a selector ("select": what the items are, resolved by code), or "id" or "ids", or a whole group by "kind" (every chart, every card, ...) optionally within a "tab" and a "section"."""
+    if isinstance(cmd.get("select"), dict) and cat is not None:
+        return _select(cmd, cat)
     if cmd.get("kind") is not None and cat is not None:
         kind = str(cmd["kind"]).lower().rstrip("s")
         kind = {"graph": "chart", "idea": "strategy", "finding": "card", "insight": "insight", "recommendation": "action"}.get(kind, kind)
@@ -306,10 +327,10 @@ def _ids(cmd: dict, cat: dict | None = None) -> list[str]:
 
 def _need(cat: dict, ids: list[str]) -> None:
     if not ids:
-        raise ViewError("Tell me which item or section to change. You can use the Hide and Change buttons on each item.")
+        raise ViewError("Tell me which item or section to change: name it, or click it first and then say what to do.")
     bad = [str(i)[:40] for i in ids if not isinstance(i, str) or i not in cat["items"]]
     if bad:
-        raise ViewError("I can't find " + ("that item" if len(bad) == 1 else "those items") + " in this report, so nothing was changed. Use the buttons on the item itself, or ask for one of the view changes shown below.")
+        raise ViewError("I can't find " + ("that item" if len(bad) == 1 else "those items") + " in this report, so nothing was changed. Name the item by its title, click it first, or tap one of the examples below.")
 
 
 def _tab(cmd: dict, cat: dict | None = None) -> str:
@@ -337,7 +358,7 @@ def apply(result: dict, state: dict, cmd: dict, cat: dict | None = None) -> tupl
     cat = cat or catalogue(result)
     prev = normalise(state)
     if not isinstance(cmd, dict) or str(cmd.get("cmd")) not in COMMANDS:
-        raise ViewError("That is not a view change I can make. I can hide or show things, switch between full and short, show only the top few, keep only the charts that support an action or the summary, change a chart's type, time grain or top N, move a section, rename a title, or pin an item.")
+        raise ViewError("That is not a change to the view that I can make. I can hide or show things, keep only the ones you name, switch between the short and full view, show only the top few, keep only the charts that support an action or the summary, redraw a chart another way, move a section, rename a title, or pin an item.")
     name = str(cmd["cmd"])
     new = copy.deepcopy(prev)
     msg = ""
@@ -360,7 +381,32 @@ def apply(result: dict, state: dict, cmd: dict, cat: dict | None = None) -> tupl
             if name == "show":
                 new["hidden"] = [h for h in new["hidden"] if h != i]
         names = ", ".join(f"“{_label(cat, i)}”" for i in ids[:3]) + (f" and {len(ids) - 3} more" if len(ids) > 3 else "")
+        if name == "show" and not any(i in prev["hidden"] for i in ids):
+            return prev, "Nothing was hidden there, so nothing changed."
         msg = f"{'Hidden' if name == 'hide' else 'Shown again'}: {names}." + (" It stays in your saved report and can be restored from Hidden items." if name == "hide" else "")
+    elif name == "keep_only":
+        from . import viewselect as vs
+        scope, keep = cmd.get("scope"), cmd.get("keep")
+        if not isinstance(scope, dict) or not isinstance(keep, list) or not keep:
+            raise ViewError("To keep only some items, say which kind of item to look at and which of them to keep.")
+        dtab = str(scope.get("tab") or "").lower() or None
+        scope_ids = _select({"select": scope}, cat)
+        kept: list[str] = []
+        for k in keep[:8]:
+            if not isinstance(k, dict):
+                raise ViewError("Each thing to keep must say what it is.")
+            sel = k["select"] if isinstance(k.get("select"), dict) else {kk: vv for kk, vv in k.items() if kk != "best"}
+            try:
+                ids = [i for i in vs.select(cat, sel, dtab) if i in scope_ids]
+            except ValueError as e:
+                raise ViewError(str(e))
+            ids = vs.best(cat, ids, k.get("best")) if k.get("best") is not None else ids
+            if not ids:
+                raise ViewError(f"Nothing among the {vs.what_it_asks(scope)} matches the {vs.what_it_asks(sel)}. " + vs.describe_available(cat, {**scope, **{kk: vv for kk, vv in sel.items() if kk in ("type", "kind")}}, dtab))
+            kept += [i for i in ids if i not in kept]
+        drop = [i for i in scope_ids if i not in kept]
+        new["hidden"] = [h for h in new["hidden"] if h not in kept] + [i for i in drop if i not in new["hidden"]]
+        msg = f"Kept {len(kept)} and hid {len(drop)} of the {vs.what_it_asks(scope)}. They stay in your saved report and can be restored."
     elif name == "set_mode":
         tab, mode = _tab(cmd, cat), str(cmd.get("mode") or "").lower()
         if mode not in ("full", "short"):
@@ -563,3 +609,35 @@ def bar(result: dict, state: dict, cat: dict | None = None) -> dict:
     if st["chart"]:
         parts.append(f"{len(st['chart'])} chart{'s' if len(st['chart']) != 1 else ''} redrawn")
     return {"show": not is_original(st), "text": " · ".join(parts) or "view changed", "hidden": len(hidden)}
+
+
+# ------------------------------------------------------------------ a bulk change is previewed before it is applied
+def _names(cat: dict, ids: list[str], limit: int = 8) -> str:
+    t = [f"“{cat['items'][i]['title']}”" for i in ids[:limit]]
+    return ", ".join(t) + (f" and {len(ids) - limit} more" if len(ids) > limit else "")
+
+
+def preview(result: dict, state: dict, cmds: list, cat: dict | None = None) -> dict | None:
+    """None when the change touches no more than BULK items. Otherwise {"text", "explicit", "count"}: what would be kept, hidden and shown, in plain words, and the same change written as explicit ids
+    (applying that is exactly what was previewed, whatever the AI said). Raises ViewError when the commands are not valid."""
+    cat = cat or catalogue(result)
+    before = normalise(state)
+    new, _ = apply_many(result, state, cmds, cat)
+    hid = [i for i in new["hidden"] if i not in before["hidden"]]
+    shown = [i for i in before["hidden"] if i not in new["hidden"]]
+    if len(hid) + len(shown) <= BULK:
+        return None
+    kept: list[str] = []
+    for c in cmds:
+        if isinstance(c, dict) and c.get("cmd") == "keep_only":
+            scope_ids = _select({"select": c["scope"]}, cat)
+            kept += [i for i in scope_ids if i not in new["hidden"] and i not in kept]
+    parts = []
+    if kept:
+        parts.append("keep: " + _names(cat, kept))
+    if hid:
+        parts.append("hide: " + _names(cat, hid))
+    if shown:
+        parts.append("show: " + _names(cat, shown))
+    explicit = ([{"cmd": "hide", "ids": hid}] if hid else []) + ([{"cmd": "show", "ids": shown}] if shown else []) + [c for c in cmds if isinstance(c, dict) and c.get("cmd") not in ("hide", "show", "keep_only")]
+    return {"text": "I will " + " and ".join(parts) + f". That changes {len(hid) + len(shown)} items, and Undo puts everything back.", "explicit": explicit, "count": len(hid) + len(shown), "hide": hid, "show": shown, "keep": kept}

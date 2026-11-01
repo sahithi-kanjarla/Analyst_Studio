@@ -53,10 +53,22 @@ class ViewEdit(Tool):
 
     def run(self, args, env, prior):
         chips = viewchat.chips_for(env.result, env.tab)
+        if not getattr(env, "confirmed", False):
+            try:
+                pv = ve.preview(env.result, current_state(env), args["commands"], env.cat)
+            except ve.ViewError as e:
+                pv = None
+                bad = str(e)
+                how = howtext.record_how("Checked the requested change against this report's items and refused it", ["this report's items and sections"], [], ["Nothing was changed."])
+                ans, _ = reports._base("view", bad, "Not changed", how, chips, 0, view={"changed": False})
+                return ToolResult(ok=False, summary="The change to the view was refused", answer=ans, chips=chips, error=bad)
+            if pv:
+                ans, pchips = viewchat.preview_answer(env.wd, env.result, pv, 0)
+                return ToolResult(summary="Showed what a bigger change would touch and waited for your confirmation", answer=ans, chips=pchips)
         try:
             new, msgs, changed = apply_commands(env, args["commands"])
         except ve.ViewError as e:
-            how = howtext.record_how("Checked the requested view change against this report's items and refused it", ["this report's items and sections"], [], ["Nothing was changed."])
+            how = howtext.record_how("Checked the requested change against this report's items and refused it", ["this report's items and sections"], [], ["Nothing was changed."])
             ans, _ = reports._base("view", str(e), "Not changed", how, chips, 0, view={"changed": False})
             return ToolResult(ok=False, summary="The view change was refused", answer=ans, chips=chips, error=str(e))
         how = howtext.record_how(f"Applied {len(args['commands'])} view change{'s' if len(args['commands']) != 1 else ''} from the closed list, after checking every id exists in this report",

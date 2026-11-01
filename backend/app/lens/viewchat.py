@@ -17,7 +17,12 @@ COMMAND_HELP = """Commands (each a small JSON object; "tab" is report|insights|s
 {"cmd":"chart","id":<chart id>,"chart":"bar|line|share|table|histogram","grain":"day|week|month|quarter|year","n":<1-50>}  change one chart's type, time grain or top N (only the keys given are changed)
 {"cmd":"move","id":<section id>,"dir":"up|down"}  move a section
 {"cmd":"rename","id":<id>,"title":<the user's own text>}  rename a title
-{"cmd":"pin","id":<id>}  {"cmd":"unpin","id":<id>}  {"cmd":"reset"}  {"cmd":"undo"}"""
+{"cmd":"pin","id":<id>}  {"cmd":"unpin","id":<id>}  {"cmd":"reset"}  {"cmd":"undo"}
+Instead of an id, hide, show and pin take a SELECTOR the code resolves to ids, so a command can touch any number of items: {"cmd":"hide","select":{...}}.
+A selector may have: "type" (chart|card|insight|action|idea|section), "tab", "section" (a section id), "measure" and "dimension" (words, matched to the item's labels; every item has a measure and a dimension, shown in ITEMS),
+"title" (words), "position" ("first"|"last"|n), "rank" (n or {"lte":n,"gte":n}), "cited" (true when an action or the summary cites it), "ids" (a list).
+{"cmd":"keep_only","scope":<selector for what to look at>,"keep":[{"select":<selector>,"best":<keep only the best n of these, optional>}, ...]}  hide everything in scope that is not kept (for example keep one chart about one measure and every chart about another)
+A change to more than 3 items is shown to the user first and applied only when they confirm, so do not split a big change into small ones."""
 
 SYSTEM = ("You turn a request to change what a data report shows into commands. You never calculate and never write report text. Reply with exactly one JSON object:\n"
           '{"action":"view","commands":[<at most 4 commands>]}   or   {"action":"unsupported","reason":"<one plain sentence, no numbers>"}\n' + COMMAND_HELP +
@@ -109,7 +114,8 @@ def parse_rules(question: str, tab_label: str, cat: dict, focus: str | None, hid
 
 
 def _items_for_prompt(cat: dict, tab: str) -> list[dict]:
-    return [{"id": i, "kind": it["kind"], "title": it["title"]} for i, it in cat["items"].items() if it["tab"] == tab][:70]
+    return [{"id": i, "type": it["kind"], "title": it["title"], "measure": it.get("measure") or [], "dimension": it.get("dimension") or [], "rank": it.get("rank"), "cited": it.get("cited")}
+            for i, it in cat["items"].items() if it["tab"] == tab][:70]
 
 
 def ask_ai(llm, question: str, tab: str, cat: dict, focus: str | None) -> tuple[dict | None, int, str]:
@@ -125,6 +131,15 @@ def ask_ai(llm, question: str, tab: str, cat: dict, focus: str | None) -> tuple[
 
 def chips_for(result: dict, tab_label: str) -> list[dict]:
     return [reports.ichip(c["text"], {"kind": "view_cmd", "cmds": c["cmds"]}) for c in ve.available_changes(result, _tab("", tab_label))[:5]]
+
+
+def preview_answer(wd, result: dict, pv: dict, ai_calls: int):
+    """The answer that shows a bulk change before anything is applied: what would be kept, hidden and shown, and an Apply chip that carries the same change as explicit ids."""
+    apply_chip = reports.ichip("Apply this change", {"kind": "view_cmd", "cmds": pv["explicit"], "confirmed": True})
+    how = howtext.record_how("Worked out which items a change to the view would touch, and waited for you to confirm", ["this report's items and sections"], [],
+                             ["Nothing has been changed yet. Tap Apply to make this change; Undo puts everything back."])
+    ans, _ = reports._base("view", pv["text"], "Check before I change this", how, [apply_chip], ai_calls, view={"changed": False, "preview": True, "count": pv["count"]})
+    return ans, [apply_chip]
 
 
 def answer(wd, result: dict, spec: dict, question: str, tab_label: str, llm, ai_ok: bool, ai_calls: int, focus: str | None, view_state: dict | None) -> tuple[dict, list[dict], int, str]:
@@ -144,10 +159,19 @@ def answer(wd, result: dict, spec: dict, question: str, tab_label: str, llm, ai_
     unsure = "I can change what is shown, but not how the app looks (colours, fonts, layout). These are the view changes I can make: tap one."
     if not cmds:
         why = "which item?" if cmds == [] else "no match"
-        text = ("Which item do you mean? Use “Ask Lens about this” on it first, or the Hide button on the item itself. " if cmds == [] else "") + unsure
+        text = ("Which item do you mean? Click it first, or name it by its title. " if cmds == [] else "") + unsure
         how = howtext.record_how("Looked for a view change from the closed list and found none", ["the list of view changes Lens can make"], [], ["Nothing was changed. " + why.capitalize()])
         return _a("view", text, "View changes", how, chips, ai_calls + used, view={"changed": False}), chips, used, fail
     state = view_state if view_state is not None else store.get_view_state(wd)
+    if not spec.get("confirmed"):
+        try:
+            pv = ve.preview(result, state, cmds, cat)
+        except ve.ViewError as e:
+            how = howtext.record_how("Checked the requested change against this report's items and refused it", ["this report's items and sections"], [], ["Nothing was changed."])
+            return _a("view", f"{e}", "Not changed", how, chips, ai_calls + used, view={"changed": False}), chips, used, fail
+        if pv:
+            a, c = preview_answer(wd, result, pv, ai_calls + used)
+            return a, c, used, fail
     try:
         new, msgs = ve.apply_many(result, state, cmds, cat)
     except ve.ViewError as e:

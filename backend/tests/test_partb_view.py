@@ -94,7 +94,7 @@ def test_invalid_ids_and_commands_are_refused_with_a_friendly_message(run):
     r = post(rid, command={"cmd": "hide", "id": "insights:card:nope"})
     assert r.status_code == 422 and "can't find" in r.json()["detail"]
     r = post(rid, command={"cmd": "explode", "id": "x"})
-    assert r.status_code == 422 and "not a view change" in r.json()["detail"]
+    assert r.status_code == 422 and "not a change to the view" in r.json()["detail"]
     assert post(rid, command={"cmd": "top_n", "tab": "insights", "n": 0.5}).status_code == 422
     assert post(rid, command={"cmd": "move", "id": "insights:card:f4", "dir": "up"}).status_code == 422       # only sections move
     ai = FakeAI({"action": "view", "commands": [{"cmd": "hide", "id": "made:up:id"}]})

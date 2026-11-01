@@ -70,7 +70,7 @@ def _try(exe: str, page_html: str, timeout: float) -> bytes | None:
 def html_to_pdf(page_html: str) -> bytes:
     cands = browsers()
     if not cands:
-        raise ExportError("No browser is available on the server to make a PDF. Set BROWSER_PATH, or use Copy as text.")
+        raise ExportError("A PDF can't be made on this server right now. You can copy the text instead.")
     if _WORKING.get("exe") in cands:
         cands = [_WORKING["exe"]] + [c for c in cands if c != _WORKING["exe"]]
     for exe in cands:
