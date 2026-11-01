@@ -29,6 +29,8 @@ Navigation and layout only. No page content was deleted, and no figure, calculat
 
 Screenshots (1280 and 1440 px; Report, Insights, Ideas to try, Dashboard, each Data sub-view, Review answers open): `docs/screenshots/nav-before-*.png` and `nav-after-*.png`, made by `scripts/nav_screenshots.js`. The sample has no second file, so there is no "before" picture of How files connect (the old tab was hidden for it).
 
+**Final run:** frontend build passes; full backend suite 1163 passed in 6 min 51 s (415 s).
+
 ## Skipped
 
 - No screenshots of the phone layout (it is covered by the width checks).
