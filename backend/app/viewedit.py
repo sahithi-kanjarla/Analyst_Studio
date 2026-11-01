@@ -12,11 +12,13 @@ Item ids: "<tab>:<kind>:<n>", for example insights:card:f4, report:action:0, rep
 from __future__ import annotations
 
 import copy
+import json
 import os
 import re
 
-TABS = ("report", "insights", "strategy", "dashboard")
-TAB_NAMES = {"report": "Report", "insights": "Insights", "strategy": "Ideas to try", "dashboard": "Dashboard"}
+TABS = ("report", "insights", "strategy", "dashboard", "data", "model", "cleaning", "plan", "powerbi", "chat")      # every tab of the results page (frontend/src/tabs.ts)
+TAB_NAMES = {"report": "Report", "insights": "Insights", "strategy": "Ideas to try", "dashboard": "Dashboard", "data": "Your data", "model": "How files connect", "cleaning": "What we cleaned",
+             "plan": "How we analysed", "powerbi": "Power BI export", "chat": "Chat"}
 SHORT_INSIGHTS = 5            # the short Insights view: the top 5, ranked by the report's own order
 MAX_SHORT_CHARTS = 6          # the short Report and Dashboard: at most 6 charts, and only those an action or the summary cites
 MAX_N = 50
@@ -175,7 +177,51 @@ def catalogue(result: dict) -> dict:
             iid = chart_item("dashboard", g_sec, f"dashboard:chart:{fid}", (f.get("insight") or {}).get("headline") or f.get("title", ""), f["chart"], [fid], f.get("tool"))
             items[iid]["text"] = _plain((f.get("insight") or {}).get("headline"))
             tabs["dashboard"]["primary"].append(iid)
+    _other_tabs(result, items, tabs, section, add)
     return {"items": items, "tabs": tabs}
+
+
+def _other_tabs(result: dict, items: dict, tabs: dict, section, add) -> None:
+    """The tabs that list the run's own records (the cleaned table, how files connect, the cleaning log, definitions and how the data was set up, the plan, the Power BI export, the chat).
+    Each exposes at least one item with a stable id and a title, so questions, focus, view edits and briefs work from any tab."""
+    prof = result.get("profile") or {}
+    sec = section("data", "tables", "Tables")
+    add("data", sec, "card", "data:table:clean", f"Cleaned table ({prof.get('rows', 0):,} rows)" if isinstance(prof.get("rows"), int) else "Cleaned table",
+        text=f"The cleaned table behind every number: {prof.get('rows', 'n/a')} rows and {prof.get('cols', 'n/a')} columns.")
+    dm = result.get("data_model") or {}
+    sec = section("model", "links", "Tables and links")
+    tables = dm.get("tables") if isinstance(dm, dict) else None
+    if tables:
+        for i, t in enumerate(tables):
+            add("model", sec, "card", f"model:table:{i}", str(t.get("name") or f"Table {i + 1}"), text=_plain(json.dumps(t, default=str))[:400])
+        for i, l in enumerate(dm.get("links") or []):
+            add("model", sec, "card", f"model:link:{i}", f"Link {i + 1}", text=_plain(json.dumps(l, default=str))[:400])
+    else:
+        add("model", sec, "card", "model:summary", "One table, no links to show", text="This run used a single table, so there are no links between files.")
+    sec = section("cleaning", "steps", "Changes made to your data")
+    steps = result.get("cleaning_log") or []
+    for i, st in enumerate(steps):
+        iid = add("cleaning", sec, "card", f"cleaning:step:{i}", st.get("step", f"Step {i + 1}"), text=f"{st.get('step')}: {st.get('detail')} ({st.get('count')} rows or values)")
+        tabs["cleaning"]["primary"].append(iid)
+    if not steps:
+        add("cleaning", sec, "card", "cleaning:none", "No changes were needed", text="No changes were needed to the data.")
+    plan = result.get("plan") or {}
+    sq, sa, sd, ss = section("plan", "questions", "Questions we set out to answer"), section("plan", "analyses", "What we checked, and why"), section("plan", "definitions", "Definitions used"), section("plan", "setup", "How the data was set up")
+    for i, q in enumerate(plan.get("questions") or []):
+        add("plan", sq, "card", f"plan:question:{i}", q, text=q)
+    for i, a in enumerate(plan.get("analyses") or []):
+        iid = add("plan", sa, "card", f"plan:analysis:{i}", str(a.get("tool", "analysis")).replace("_", " ").capitalize(), text=_plain(f"{a.get('tool')} {json.dumps(a.get('params'), default=str)}: {a.get('why', '')}"))
+        tabs["plan"]["primary"].append(iid)
+    for i, d in enumerate(result.get("applied_definitions") or []):
+        add("plan", sd, "card", f"plan:definition:{i}", d.get("question") or f"Definition {i + 1}", text=_plain(f"{d.get('question')} {d.get('answer_label') or d.get('answer')}. {d.get('effect', '')}"))
+    add("plan", ss, "card", "plan:setup", "How the data was set up", text=_plain(f"Number we focus on: {plan.get('target')}. Date used: {plan.get('date_col')}. Objective: {plan.get('objective')}"))
+    sec = section("powerbi", "pack", "Power BI pack")
+    pb = result.get("powerbi") or {}
+    add("powerbi", sec, "card", "powerbi:pack", "Power BI pack", text="Files: " + ", ".join(pb.get("files") or []))
+    for i, m in enumerate(pb.get("measures") or []):
+        add("powerbi", sec, "card", f"powerbi:measure:{i}", str(m).split("=")[0].strip() or f"Measure {i + 1}", text=_plain(m))
+    sec = section("chat", "conversation", "Conversation")
+    add("chat", sec, "card", "chat:conversation", "The conversation with Lens", text="The questions asked and the answers given in this run.")
 
 
 # ------------------------------------------------------------------ changing a chart: which charts Lens can redraw
@@ -236,7 +282,21 @@ def resolve(result: dict, state: dict, cat: dict | None = None) -> dict:
 
 
 # ------------------------------------------------------------------ the commands
-def _ids(cmd: dict) -> list[str]:
+KINDS = ("card", "chart", "insight", "action", "strategy", "section")
+
+
+def _ids(cmd: dict, cat: dict | None = None) -> list[str]:
+    """The ids a command names: "id" or "ids", or a whole group by "kind" (every chart, every card, ...) optionally within a "tab" and a "section"."""
+    if cmd.get("kind") is not None and cat is not None:
+        kind = str(cmd["kind"]).lower().rstrip("s")
+        kind = {"graph": "chart", "idea": "strategy", "finding": "card", "insight": "insight", "recommendation": "action"}.get(kind, kind)
+        if kind not in KINDS:
+            raise ViewError("I can hide or show a whole group of: " + ", ".join(k + "s" for k in KINDS) + ".")
+        tab = str(cmd.get("tab") or "").lower() or None
+        ids = [i for i, it in cat["items"].items() if it["kind"] == kind and (tab is None or it["tab"] == tab) and (not cmd.get("section") or it.get("section") == cmd["section"])]
+        if not ids:
+            raise ViewError(f"There are no {kind}s" + (f" on the {TAB_NAMES.get(tab, tab)} tab" if tab else "") + " to change.")
+        return ids
     raw = cmd.get("ids") if isinstance(cmd.get("ids"), list) else [cmd.get("id")]
     return [i for i in raw if i is not None]
 
@@ -289,7 +349,7 @@ def apply(result: dict, state: dict, cmd: dict, cat: dict | None = None) -> tupl
         new = empty()
         msg = "The view is back to the original: everything is shown, in the original order, with the original titles."
     elif name in ("hide", "show"):
-        ids = _ids(cmd)
+        ids = _ids(cmd, cat)
         _need(cat, ids)
         for i in ids:
             if name == "hide" and i not in new["hidden"]:
@@ -329,7 +389,7 @@ def apply(result: dict, state: dict, cmd: dict, cat: dict | None = None) -> tupl
             new["only_supporting"].pop(tab, None)
         msg = (f"{TAB_NAMES[tab]} shows only the charts that support an action or the summary. The others are under Show more." if on else f"{TAB_NAMES[tab]} shows all its charts again.")
     elif name == "chart":
-        ids = _ids(cmd)
+        ids = _ids(cmd, cat)
         _need(cat, ids)
         item = cat["items"][ids[0]]
         if item["kind"] != "chart":
@@ -356,7 +416,7 @@ def apply(result: dict, state: dict, cmd: dict, cat: dict | None = None) -> tupl
         new["chart"][ids[0]] = ch
         msg = f"“{item['title']}” is redrawn by Lens from your data: " + ", ".join(f"{k.replace('n', 'top N') if k == 'n' else k} {str(v).replace('_', ' ')}" for k, v in ch.items()) + ". The figures in the report text are unchanged."
     elif name == "move":
-        ids = _ids(cmd)
+        ids = _ids(cmd, cat)
         _need(cat, ids)
         sid = ids[0]
         it = cat["items"][sid]
@@ -376,7 +436,7 @@ def apply(result: dict, state: dict, cmd: dict, cat: dict | None = None) -> tupl
         new["order"][tab] = order
         msg = f"Moved “{it['title']}” {direction}."
     elif name == "rename":
-        ids = _ids(cmd)
+        ids = _ids(cmd, cat)
         _need(cat, ids)
         title = " ".join(str(cmd.get("title") or "").split())
         if not title:
@@ -390,7 +450,7 @@ def apply(result: dict, state: dict, cmd: dict, cat: dict | None = None) -> tupl
             new["titles"][ids[0]] = title
             msg = f"Renamed to “{title}”. It is shown as Edited by you; the report itself is unchanged."
     elif name in ("pin", "unpin"):
-        ids = _ids(cmd)
+        ids = _ids(cmd, cat)
         _need(cat, ids)
         for i in ids:
             if name == "pin" and i not in new["pinned"]:

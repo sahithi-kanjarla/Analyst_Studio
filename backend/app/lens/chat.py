@@ -15,7 +15,7 @@ from .. import llm as llmmod
 from .. import viewedit
 from . import chips as chipmod
 from . import context as ctxmod
-from . import engine, howtext, reasoning, records, render, reports, rules, store, viewchat
+from . import agent, engine, howtext, reasoning, records, render, reports, rules, store, viewchat
 from . import max_questions
 from . import query as qmod
 
@@ -465,10 +465,10 @@ def ask(wd: Path, result: dict, *, question: str = "", chip: str | None = None, 
         gap = rules.margin_gap(question, ctx)
         pool = chipmod.start(ctx, df, result) + _starter_intents(result) + [{"id": k, **v} for k, v in store.load(wd)["chips"].items()]
         hit = match_chip(question, pool)
-        found = (hit or {}).get("intent") or rules.route(question)
-        if not found and focus_ctx and viewchat.parse_rules(question, tab, viewedit.catalogue(result), focus_ctx["id"]) is not None:
+        found = (hit or {}).get("intent") or (None if ai_ok else rules.route(question))          # plain-word routing is the no-AI fallback; with an AI the planner decides
+        if not found and not ai_ok and focus_ctx and viewchat.parse_rules(question, tab, viewedit.catalogue(result), focus_ctx["id"]) is not None:
             found = {"kind": "view"}          # "hide this", "pin it", "rename this to ...", "show it as a line": a change to the item in focus
-        if not found and rules.asks_choice(question) and _last_turn_kind(wd) in ("strategy",):
+        if not found and not ai_ok and rules.asks_choice(question) and _last_turn_kind(wd) in ("strategy",):
             found = {"kind": "strategy_why"}
         if found and found["kind"] == "priority" and ai_ok and not (hit or {}).get("intent"):
             found = None          # the AI picks the framing of "what matters to me": it is asked below
@@ -492,28 +492,15 @@ def ask(wd: Path, result: dict, *, question: str = "", chip: str | None = None, 
             ans, nxt = _plain("unavailable", _fail_text("daily limit"), wd, ctx, df, result)
         else:
             llmmod.begin_run()       # this request starts clean: no stop or call record left over from another request on the same thread
-            count_ai = True
-            act, ai_calls, why = translate(llm, wd, ctx, df, question, tab, result, focus_ctx)
-            if act is None:
-                if "daily" in why:
+            out = agent.run_request(wd, result, df, ctx, question, tab, llm, True, focus_ctx, view_state)
+            ai_calls, count_ai = out.calls, out.calls > 0
+            if out.ans is None:
+                if "daily" in out.fail:
                     _DAILY["until"] = time.time() + DAILY_PAUSE_S
-                ans, nxt = _plain("unavailable", _fail_text(why), wd, ctx, df, result, ai_calls)
-            elif act["kind"] == "checked":
-                out = _data_reply(wd, question, act["checked"], ctx, df, result, ai_calls)
-                ans, nxt = out if out else _run_checked(wd, act["checked"], ctx, df, result, ai_calls, question)
-            elif act["kind"] == "clarify":
-                first = next((qmod.check(c.get("query"), ctx, df) for c in act["choices"] if isinstance(c, dict)), None)
-                out = (_data_reply(wd, question, first, ctx, df, result, ai_calls) if first is not None and first.query and (rules.is_why(question) or reasoning.asserts(question, df, ctx)) else None)
-                ans, nxt = out if out else _clarify(act["question"], act["choices"], wd, ctx, df, result, ai_calls, question)       # a 'why' is never answered with a question: the first reading is used
-            elif act["kind"] in REPORT_KINDS:
-                route = {**act["obj"], "kind": act["kind"]}
+                ans, nxt = _plain("unavailable", _fail_text(out.fail), wd, ctx, df, result, ai_calls)
             else:
-                out = _data_reply(wd, question, None, ctx, df, result, ai_calls, ai_said_no=True) if (rules.is_why(question) or reasoning.asserts(question, df, ctx)) else None
-                if out:
-                    ans, nxt = out
-                else:
-                    lead = "I can't answer that from this data" + (f": {act['reason'].rstrip('.')}." if act["reason"] else ".")
-                    ans, nxt = _plain("no_fit", lead + " Here are two questions I can answer.", wd, ctx, df, result, ai_calls, question)
+                ans, nxt = out.ans, out.chips
+                ans["ai_calls"] = ai_calls
     else:
         ans, nxt = _plain("no_fit", "Type a question about your data, or pick one of these.", wd, ctx, df, result)
 

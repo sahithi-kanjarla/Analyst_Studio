@@ -168,9 +168,9 @@ def test_graph_is_wrong_rechecks_the_latest_chart(kav):
     ask(kav, FakeAI(q(op="aggregate", measure="profit", agg="sum", group_by=["category"])), question="total profit by category")
     t2 = ask(kav, FakeAI(q(op="trend", measure="profit", agg="sum", grain="month")), question="show total profit over time")
     for words in ("the graph is not plotted properly", "this graph is wrong"):
-        ai = FakeAI({"action": "unsupported", "reason": "x"})
+        ai = FakeAI({"plan": [{"tool": "recheck_chart", "args": {}}]})
         a = ask(kav, ai, question=words)["answer"]
-        assert ai.calls == 0                                         # plain rules: no AI needed
+        assert ai.calls == 1                                         # with an AI the planner picks the tool (plain-word routing is the no-AI fallback; the next test has no AI)
         assert a["status"] == "answered" and a["kind"] == "recheck" and a["query"]["op"] == "trend"       # the most recent chart, not the first
         assert "every one matches the computed table" in a["text"] and "Nothing is plotted wrongly" in a["text"]
         n = df["order_date"].dt.to_period("M").nunique()
@@ -201,9 +201,11 @@ def test_graph_check_reports_a_mismatch_in_plain_words(kav, monkeypatch):
 # ------------------------------------------------------------------ 4. a request to change what a tab shows is not a summary
 @pytest.mark.parametrize("text", ["make the ideas tab shorter", "simplify this tab", "remove this chart", "shorten the ideas tab", "hide this tab", "Make the dashboard simpler"])
 def test_view_changes_are_not_summarised(kav, text):
-    ai = FakeAI({"action": "summary", "length": "short"})
-    a = ask(kav, ai, question=text)["answer"]
-    assert ai.calls == 0 and a["kind"] == "view" and a["status"] == "answered"       # a view request is never turned into a summary
+    a = ask(kav, None, question=text)["answer"]            # no AI: the plain-word router (the fallback) reads it
+    assert a["ai_calls"] == 0 and a["kind"] == "view" and a["status"] == "answered"       # a view request is never turned into a summary
+    ai = FakeAI({"plan": [], "unsupported": "nothing to change on this run"})              # with an AI the planner is asked, and an empty plan is never a summary either
+    a2 = ask(kav, ai, question=text)["answer"]
+    assert ai.calls == 1 and a2.get("kind") != "summary" and not a2.get("lines")
     assert "coming soon" not in a["text"] and a["label"] in ("View changes", "Not changed", "View changed", "No change")
     assert a["chips"] and not a.get("lines")
 

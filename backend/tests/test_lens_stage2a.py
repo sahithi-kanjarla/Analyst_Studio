@@ -203,14 +203,14 @@ def test_refusal_suggestions_fit_the_topic_and_are_new(shop):
 
 
 def test_a_view_change_is_not_refused_as_a_data_question(shop):
-    ai = FakeAI({"action": "unsupported", "reason": "should never be asked"})
+    ai = FakeAI({"plan": [], "unsupported": "colours and layout cannot be changed"})      # with an AI the planner is asked once (plain-word routing is now the no-AI fallback)
     for text in ("change the view to dark mode", "Can you switch the layout?", "go to the dashboard tab"):
         t = ask(shop, ai, question=text)
         a = t["answer"]
-        assert a["status"] == "answered" and a["kind"] == "view" and a["ai_calls"] == 0, text
+        assert a["status"] == "answered" and a["kind"] == "view" and a["ai_calls"] == 1, text
         assert "coming soon" not in a["text"] and "can't answer" not in a["text"] and "how the app looks" in a["text"]      # styling is declined; the view changes that exist are offered as chips
         assert 2 <= len(a["chips"]) <= 5 and lines_ok(a)
-    assert ai.calls == 0
+    assert ai.calls == 3
     for text in ("show revenue as a line chart", "make it monthly", "top 5 cities by amount"):
         assert not chat.rules.wants_view_change(text), text
 

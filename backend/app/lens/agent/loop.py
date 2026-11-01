@@ -1,0 +1,260 @@
+"""The loop: context -> plan (one AI call) -> validate -> act (steps in order) -> verify -> answer.
+
+ 1. Context: the last 6 turns, the tab, the visible items, the focus, the understanding record, the saved definitions, the report's fact sheet. Never raw rows.
+ 2. Plan: one AI call returns a plan of at most 4 steps; code validates it against the registry. An invalid plan gets ONE repair attempt, then the rule router (the no-AI fallback), then
+    "here is what I can do" with chips. A request no tool can do is written to lens_unmet.jsonl in the run folder.
+ 3. Act: steps run in order, later steps can use earlier results; the first failure stops the run and the answer says what was done.
+ 4. Verify: a sentence the AI wrote (the plan's reply, a brief's lines) is kept only if every figure in it comes from a tool result or the fact sheet and passes the fact-id citation check.
+ 5. Answer: every tool phrases its own result in code, so there is no separate wording call; the answer carries the sentence, any chart or table, "How this was calculated" listing each step
+    and tool, and (for view changes) one Undo for the whole request.
+Normally at most 2 AI calls per request (the plan, and one repair); custom analysis may use up to 2 extra to repair its query."""
+from __future__ import annotations
+
+import json
+import re
+import time
+from dataclasses import dataclass, field
+from pathlib import Path
+
+from ... import viewedit
+from .. import howtext, records, reports, rules, store, viewchat
+from . import planner, registry, verify
+from .env import Env
+
+UNMET_FILE = "lens_unmet.jsonl"
+CAN_DO = ("I can answer questions about your data, explain the report, summarise it, give you a brief for any reader, change what is shown, redraw charts, "
+          "look up definitions and export a PDF.")
+
+
+@dataclass
+class Out:
+    ans: dict | None = None
+    chips: list[dict] = field(default_factory=list)
+    calls: int = 0
+    fail: str = ""
+    tools: list[str] = field(default_factory=list)
+
+
+def make_env(wd, result, df, ctx, question, tab, llm, ai_ok, focus_ctx, view_state) -> Env:
+    env = Env(wd=Path(wd), result=result, df=df, ctx=ctx, question=question, tab=tab, llm=llm, ai_ok=ai_ok, focus=focus_ctx, view_state=view_state)
+    env.cat = viewedit.catalogue(result)
+    env.facts = dict(records.known_facts(result))
+    env.view_cur = None
+    return env
+
+
+# ------------------------------------------------------------------ requests clear enough to skip the plan call
+_UNDO = re.compile(r"^\s*(?:please\s+)?undo(?:\s+(?:that|it|the last(?: change)?))?\s*[.!]?\s*$", re.I)
+_RESET = re.compile(r"^\s*(?:please\s+)?reset(?:\s+(?:the|my))?\s+view\s*[.!]?\s*$", re.I)
+_TOGGLE = re.compile(r"^\s*(?:please\s+)?(hide|remove|show|restore|unhide)\s+(?:the\s+)?(.{3,120}?)\s*[.!]?\s*$", re.I)
+
+
+def shortcut_plan(question: str, env: Env) -> dict | None:
+    """A plan for a request that is exactly one of: undo, reset the view, hide or show an item named by its exact title. No AI call is needed for these."""
+    if _UNDO.match(question or ""):
+        return {"plan": [{"tool": "view_edit", "args": {"commands": [{"cmd": "undo"}]}}], "reply": "", "unsupported": ""}
+    if _RESET.match(question or ""):
+        return {"plan": [{"tool": "view_edit", "args": {"commands": [{"cmd": "reset"}]}}], "reply": "", "unsupported": ""}
+    m = _TOGGLE.match(question or "")
+    if m:
+        want = " ".join(m.group(2).lower().split())
+        hits = [i for i, it in env.cat["items"].items() if " ".join(str(it["title"]).lower().split()) == want and it["kind"] != "section" or (it["kind"] == "section" and " ".join(str(it["title"]).lower().split()) == want)]
+        if len(hits) == 1:
+            cmd = "hide" if m.group(1).lower() in ("hide", "remove") else "show"
+            return {"plan": [{"tool": "view_edit", "args": {"commands": [{"cmd": cmd, "id": hits[0]}]}}], "reply": "", "unsupported": ""}
+    return None
+
+
+# ------------------------------------------------------------------ the rule router: the no-AI fallback
+def fallback_plan(env: Env) -> dict | None:
+    q = env.question
+    r = rules.route(q)
+    if not r:
+        if env.focus:
+            cmds = viewchat.parse_rules(q, env.tab, env.cat, env.focus["id"])
+            if cmds:
+                return {"plan": [{"tool": "view_edit", "args": {"commands": cmds}}]}
+        return None
+    k = r["kind"]
+    if k == "view":
+        cmds = viewchat.parse_rules(q, env.tab, env.cat, (env.focus or {}).get("id"))
+        return {"plan": [{"tool": "view_edit", "args": {"commands": cmds}}]} if cmds else None
+    if k == "recheck":
+        return {"plan": [{"tool": "recheck_chart", "args": {}}]}
+    if k == "summary":
+        return {"plan": [{"tool": "summarise", "args": {"length": r.get("length", "standard")}}]}
+    if k == "app":
+        return {"plan": [{"tool": "explain", "args": {"topic": r["topic"]}}]}
+    if k == "priority":
+        return {"plan": [{"tool": "rank", "args": {"terms": r.get("terms") or []}}]}
+    return None
+
+
+# ------------------------------------------------------------------ unmet requests
+def log_unmet(wd, question: str, tab: str) -> None:
+    """One line per request no tool could do: the request text, the tab and the time. No data values."""
+    try:
+        with open(Path(wd) / UNMET_FILE, "a", encoding="utf-8") as f:
+            f.write(json.dumps({"request": " ".join((question or "").split())[:300], "tab": tab, "at": time.time()}) + "\n")
+    except OSError:
+        pass
+
+
+def _unmet_answer(env: Env, reason: str):
+    from .. import chat
+    if rules.wants_view_change(env.question):          # colours, fonts, layout: not available; the view changes that are available are shown as chips
+        ans, nxt, _, _ = viewchat.answer(env.wd, env.result, {}, env.question, env.tab, None, False, env.calls, (env.focus or {}).get("id"), env.view_state)
+        ans["unmet"] = True
+        log_unmet(env.wd, env.question, env.tab)
+        return ans, nxt
+    lead = "I can't answer that from this data" + (f": {reason.rstrip('.')}." if reason and not any(ch.isdigit() for ch in reason) else ".")
+    ans, nxt = chat._plain("no_fit", f"{lead} Here are two questions I can answer. {CAN_DO}", env.wd, env.ctx, env.df, env.result, 0, env.question)
+    ans["unmet"] = True
+    log_unmet(env.wd, env.question, env.tab)
+    return ans, nxt
+
+
+# ------------------------------------------------------------------ acting, verifying, answering
+def _step_summary(i: int, st: dict, r: registry.ToolResult) -> dict:
+    return {"n": i, "tool": st["tool"], "summary": r.summary or st["tool"], "ok": r.ok}
+
+
+def _compose(env: Env, steps: list[dict], results: list[registry.ToolResult], plan: dict) -> tuple[dict, list[dict]]:
+    meta = [_step_summary(i, st, r) for i, (st, r) in enumerate(zip(steps, results), 1)]
+    answered = [r for r in results if r.answer]
+    failed = next((m for m in meta if not m["ok"]), None)
+    if not answered:
+        ans, nxt = _unmet_answer(env, "")
+        return ans, nxt, meta
+    if len(answered) == 1 and not failed:
+        base = answered[0]
+        ans, chips = dict(base.answer), base.chips
+    else:
+        primary = next((r for r in reversed(answered) if r.answer.get("table") or r.answer.get("chart")), answered[-1])
+        ans = dict(primary.answer)
+        texts = []
+        for r in answered:
+            t = str(r.answer.get("text") or "").strip()
+            if t and t not in texts:
+                texts.append(t)
+        ans["text"] = " ".join(texts)
+        ans["lines"] = [x for r in answered for x in (r.answer.get("lines") or [])]
+        ans["fact_ids"] = list(dict.fromkeys(i for r in answered for i in (r.answer.get("fact_ids") or [])))
+        view = next((r.answer["view"] for r in answered if r.answer.get("view")), None)
+        if view:
+            ans["view"] = view
+        ans["status"] = "answered" if any(r.answer.get("status") == "answered" for r in answered) else ans.get("status", "answered")
+        ans["label"] = ans.get("label") or "Answer"
+        chips = answered[-1].chips
+    if failed:
+        err = next((r.error for r in results if not r.ok and r.error), "")
+        ans["text"] = (ans.get("text", "") + f" I stopped at step {failed['n']} ({failed['tool']})" + (f": {err}" if err and err not in ans.get("text", "") else ".")).strip()
+        done = [m["tool"] for m in meta if m["ok"]]
+        ans["text"] += (" Done so far: " + ", ".join(done) + ".") if done else ""
+    return ans, chips, meta
+
+
+def _add_steps_to_how(ans: dict, meta: list[dict], notes: list[str]) -> None:
+    how = dict(ans.get("how") or {})
+    lines = [f"Step {m['n']}, {m['tool']}: {m['summary']}" + ("" if m["ok"] else " (stopped here)") for m in meta]
+    how["steps"] = meta
+    how["notes"] = list(how.get("notes") or []) + ["Steps: " + " | ".join(lines)] + notes
+    if not how.get("operation"):
+        how["operation"] = "Answered by running " + ", ".join(m["tool"] for m in meta)
+    ans["how"] = howtext.with_lines({k: v for k, v in how.items() if k != "lines"})
+
+
+def execute(env: Env, plan: dict) -> tuple[dict, list[dict], list[dict]]:
+    tools = registry.load_tools()
+    steps = [s for s in plan.get("plan") or []][: planner.MAX_STEPS]
+    results: list[registry.ToolResult] = []
+    for st in steps:
+        tool = tools[st["tool"]]
+        try:
+            r = tool.run(st.get("args") or {}, env, results)
+        except Exception as e:           # noqa: BLE001  a tool must never end the request with a stack trace
+            r = registry.ToolResult(ok=False, summary=f"{tool.name} failed", error="That step failed unexpectedly, so I stopped.")
+            env.notes.append(f"{tool.name}: {type(e).__name__}")
+        results.append(r)
+        env.facts.update(r.facts)
+        if not r.ok:
+            break
+    ran = steps[: len(results)]
+    ans, chips, meta = _compose(env, ran, results, plan)
+    return ans, chips, meta
+
+
+def _verified_reply(env: Env, plan: dict) -> tuple[str, str]:
+    """(the plan's framing sentence if it passes the figure checks, else ''; the reason it was dropped)."""
+    reply = str(plan.get("reply") or "").strip()
+    if not reply:
+        return "", ""
+    clean, why = verify.check_sentence(reply, env.facts)
+    if why:
+        return "", why
+    return clean, ""
+
+
+def run_request(wd, result, df, ctx, question: str, tab: str, llm, ai_ok: bool, focus_ctx: dict | None, view_state: dict | None) -> Out:
+    from .. import chat
+    env = make_env(wd, result, df, ctx, question, tab, llm, ai_ok, focus_ctx, view_state)
+    plan, errs, hard, fail = None, [], False, ""
+    if ai_ok:
+        plan = shortcut_plan(question, env)
+        if plan is None:
+            plan, errs, hard, fail = planner.plan_for(env)
+    else:
+        plan = fallback_plan(env)
+    soft_only = bool(errs) and not hard
+    if plan is not None and errs and hard:
+        alt = fallback_plan(env)
+        plan = alt                                   # an unusable plan: the rule router, then what I can do
+        errs = []
+    if plan is None and fail:
+        alt = fallback_plan(env)
+        if alt is None:
+            return Out(calls=env.calls, fail=fail)
+        plan = alt
+    if plan is None:
+        ans, nxt = _unmet_answer(env, "")
+        _add_steps_to_how(ans, [], ["No tool could do this request."])
+        ans["agent"] = {"plan": [], "tools": [], "steps": [], "calls": env.calls}
+        return Out(ans, nxt, env.calls)
+    if not plan.get("plan"):
+        from .. import reasoning, rules as _rules
+        if _rules.is_why(question) or reasoning.asserts(question, df, ctx):        # a "why" or a wrong premise is still answered by what is behind the number
+            from .. import chat
+            out = chat._data_reply(wd, question, None, ctx, df, result, 0, ai_said_no=True)
+            if out:
+                a2, n2 = out
+                a2["agent"] = {"plan": [], "tools": ["data_query"], "steps": [], "calls": env.calls}
+                _add_steps_to_how(a2, [{"n": 1, "tool": "data_query", "summary": "Checked what the request assumes and showed what is behind the number", "ok": True}], [])
+                return Out(a2, n2, env.calls, tools=["data_query"])
+        ans, nxt = _unmet_answer(env, plan.get("unsupported") or "")
+        ans["agent"] = {"plan": [], "tools": [], "steps": [], "calls": env.calls}
+        _add_steps_to_how(ans, [], ["No tool could do this request."])
+        return Out(ans, nxt, env.calls)
+    # the premise a request assumes is checked before anything is answered, unless a step already does it
+    if env.ai_ok and not any(s.get("tool") in ("data_query", "premise_check") for s in plan["plan"]) and len(plan["plan"]) < planner.MAX_STEPS:
+        from .. import reasoning
+        if reasoning.asserts(question, df, ctx):
+            plan = {**plan, "plan": [{"tool": "premise_check", "args": {}}] + plan["plan"]}
+    ans, chips, meta = execute(env, plan)
+    notes = list(env.notes)
+    reply, why = _verified_reply(env, plan)
+    if reply and ans.get("status") == "answered":
+        ans["text"] = f"{reply} {ans.get('text', '')}".strip()
+    elif why:
+        notes.append(f"A framing sentence the AI wrote was left out: {why}.")
+    chat._readable_names(ans, ctx)
+    ans["agent"] = {"plan": [{"tool": s["tool"], "args": _short_args(s.get("args"))} for s in plan["plan"]], "tools": [m["tool"] for m in meta], "steps": meta, "calls": env.calls}
+    _add_steps_to_how(ans, meta, notes)
+    return Out(ans, chips, env.calls, tools=[m["tool"] for m in meta])
+
+
+def _short_args(args) -> dict:
+    out = {}
+    for k, v in (args or {}).items():
+        s = json.dumps(v, default=str)
+        out[k] = v if len(s) <= 400 else s[:400] + "…"
+    return out
