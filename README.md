@@ -1,13 +1,38 @@
 # Analyst Studio
 
-An agentic data-analyst app. Upload a dataset, say **what you want to find out and why**, and a team of agents
-profiles the data, plans only what your goal needs, cleans it (with a full audit log), runs the statistics, challenges
-its own conclusions, and gives you a report plus a **Power BI starter pack**.
+**Upload a sales file, answer a few simple questions, get a short report you can trust.** The AI proposes; code does every calculation and every check.
 
-**Free to build and run.** The heavy lifting (profiling, cleaning, statistics, charts) is plain Python. The LLM only
-plans, critiques and writes prose, and it can be a free local model, a free-tier API, or nothing at all.
+![The Analyst Studio start page](docs/screenshots/start-top-desktop.png)
 
-![The Analyst Studio start page, with the product tour on the sample report](docs/screenshots/start-top-desktop.png)
+## The problem
+
+A small online seller has a sales spreadsheet and no analyst. Charts from a spreadsheet are easy to make and easy to get wrong, and an AI chatbot that "reads" the file will happily invent a number. Analyst Studio is built for the person who needs a report they can act on and show to a partner, and who must not be misled:
+
+- every figure in the report is **calculated by code on the whole file**, never written by the AI;
+- every claim carries a **how sure we are** label (from effect size, multiple-testing correction, sample size and number of periods), and "no reliable difference" is said when that is the truth;
+- anything the AI writes is **checked against the computed facts**; a number it cannot back is dropped and the rule-based sentence is kept;
+- it **asks** before it assumes (for example what a value of 999 in a delivery column means), at most three questions;
+- it runs with **no AI key at all** (rules-only) and still produces a complete, honest report.
+
+![The report: the short answer, key figures and what to do](docs/screenshots/report-top-desktop.png)
+
+## Try it
+
+No key and no upload needed:
+
+```bash
+cd backend && pip install -r requirements.txt
+cd ../frontend && npm install && npm run build
+cd ../backend && uvicorn app.main:app --port 8000      # open http://localhost:8000
+```
+
+Press **Try with sample data**. It opens a finished run of a small sales file (about 600 rows, a sample store): the report, dashboard, insights, ideas to try and the round **Lens** button, where you can pick a suggested question or change what a tab shows ("make the insights tab shorter"). Nothing calls an AI. To run your own file, press **Try it yourself**; add a free key (see *Pick a free brain*) for smarter wording, or use none. To run it in Docker, see *Deploy*.
+
+More: [how it is built](docs/architecture.md) (pipeline and Lens diagrams, and why the AI proposes and code verifies) and [how it is checked](docs/evaluation.md) (scorecards, report rules, citation check, Lens against pandas).
+
+## How it works
+
+An agentic data analyst: a team of agents profiles the data, plans only what your goal needs, cleans it (with a full audit log), runs the statistics, challenges its own conclusions, and gives you a report plus a **Power BI starter pack**. The heavy lifting (profiling, cleaning, statistics, charts) is plain Python. The LLM only plans, critiques and writes prose, and it can be a free local model, a free-tier API, or nothing at all.
 
 ```
  React UI ──upload + goal──▶ FastAPI ──▶ LangGraph workflow
@@ -231,7 +256,7 @@ Lens also answers questions about the report itself. With each question it is gi
 - **A premise the data contradicts is corrected first.** "Why is Electronics the top?" when Clothing is top gets "Correction first: Electronics is not the top category by total amount: Clothing is, at ... Electronics is second, at ...", with the computed figures, and then the rest of the question is answered.
 - **"Why" questions are not refused, and no cause is ever claimed.** Lens says plainly that the data alone can't show why, then shows what is behind the number, calculated by code and drawn: the share of the total, a split by the most relevant other column (the one whose groups differ most), or what changed between two periods. Two follow-up questions come from that breakdown.
 - **Fewer groups than asked for** ("top 10 cities" with 4 cities) says "There are only 4 cities".
-- **Refusals** now offer 2 questions that fit the topic and were not just offered. A request to change the view ("dark mode", "switch the layout") is answered as such: view changes are coming, and what is available now is listed.
+- **Refusals** now offer 2 questions that fit the topic and were not just offered. A request to change how the app looks ("dark mode", "switch the layout") is declined plainly, and the view changes that do exist are offered as chips (see *View edits*).
 - **How this was calculated** is written once on the server (`lens/howtext.py`) and is never empty: the operation, columns, filters, rows in / used / left out for a calculation; the sources and fact ids for an answer quoted from the report.
 - **App and report questions** ("what does this tab show?", "why is trust Medium?", "what did you clean?", "which definitions did you use?") are quoted from the run's saved records, with the toggle showing which record.
 - **Summarise / shorten** gives at most 5 lines (3 for "shorten") plus the report's top 3 actions. The AI words the lines; each must state a figure and cite the fact it came from, and goes through the report's own citation checks (`cited.verify`: the figure must be the fact's, near the fact's subject; no causal wording); a line that fails is dropped, and if fewer than 2 survive (or there is no AI) the report's own sentences are used. **Use as my short version** keeps it as an alternative view in `lens.json` (shown on the report page as "Your short version"); the original report is never changed.
@@ -247,7 +272,7 @@ Cost is unchanged: at most 2 AI calls per question, the AI cache and rate-limit 
 - **Split by**: "the largest single combination" is now the largest of *all* combinations. Before, only the 6 most common split values were kept, so for sub-categories nested inside categories a whole category (Furniture) could be dropped and a smaller combination named the largest. A nested split now shows up to 12 columns, and the column holding the largest combination is always shown. `engine.drawn_vs_table` compares the values a chart is drawn from with the computed table; the tests use it for every split-by answer.
 - **Negative values**: a negative group is named ("Electronics has negative profit; shares can add up to more than 100%"), shares are shown even when they pass 100%, a negative slice is never drawn as a pie, up to 8 groups are all listed (negative ones marked) instead of "and N more", and the chip **Show groups that lose money** appears when some group is below zero.
 - **"This graph is wrong"** re-checks the most recent chart (draws nothing new, compares the drawn values with the computed table, says the result in plain words, and says what may look odd, such as an incomplete last month). It asks which chart only when none was drawn.
-- **View changes** ("make the ideas tab shorter", "simplify this tab", "remove this chart") are never turned into a summary: Lens says view changes are coming and lists what works now.
+- **View changes** ("make the ideas tab shorter", "simplify this tab", "remove this chart") are never turned into a summary: they are view edits (see *View edits*).
 - **Unusual changes** (`unusual_changes`): the change from each period (month by default) to the next, flagged when it is more than 3 median absolute deviations from the typical change (and at least 10%), or at least 40%, with at least 5 rows in both periods. Partial periods are left out; flagged points are marked on the line chart and listed with their figures; if none, Lens says so.
 - **Premise checks** now also catch "it should be X", "X is higher than Y" and "sales went down in March", by computing them; the correction and its figures come first.
 - **Summaries** are one plain sentence per line, at most 20 words, no column labels or repeated words, and still cite and pass the figure checks. **Why did you choose it?** explains a suggested idea from the report's own ratings (impact, confidence, effort, the fact it rests on) and names the runner-up and why it ranked lower.
@@ -270,6 +295,20 @@ docker compose up --build     # open http://localhost:8000
 4. **HTTPS.** Put a reverse proxy (Caddy, nginx, or your host's load balancer) in front of port 8000 and terminate TLS there. The app itself has no user accounts.
 5. **Free-tier limits.** `AI_TPM_LIMIT` spaces AI calls to fit a per-minute token window (default 6000 when the provider is Groq), so fewer calls are rejected and retried.
 6. **Without Docker:** follow *Quick start* below, with `backend/.env` copied from `.env.example`.
+
+### View edits: change what you see, by hand or by chat
+
+Every card, chart, insight, action and report section has a small **Hide** control and a **Change** menu (rename, pin, move a section, and for a chart its type, time grain or top N), and every card and chart has **Ask Lens about this**. At the top of each tab: **Full view / Short view**, **Undo**, **Reset view**, and **Hidden items (n)** with a Restore button for each.
+
+Chat uses the same mechanism. The AI returns a command from a closed list (hide or show an item or section; full or short view; show only the top N; show only the charts that support an action or the summary; change a chart's type, time grain or top N; move a section up or down; rename a title; pin or unpin); **code validates it** (the item or section id must exist) and applies it with the same function the buttons use, with a one-click **Undo**. Each command is small, validated and idempotent. There are no free-form styling or layout commands: asked for one, Lens shows the available changes as chips. Plain phrases ("make this tab shorter", "undo", "show only the top 3") are read by simple rules with no AI call; with no AI at all the buttons and the chips still work.
+
+- **Short view.** Insights: each insight is one line plus its chart, the top 5 by the report's own order are shown and the rest sit under **Show more**. Report and Dashboard: at most 6 charts, and only those an action or the summary cites (code scores each chart by that).
+- **Nothing is deleted and no figure changes.** The edits are saved with the run (`lens.json`, key `view_edits`), survive a reload, and never touch `result.json` or `report.md`. Hidden items appear in the print panel as optional checkboxes. A renamed title is the user's own text, labelled **Edited by you**.
+- **Redrawn charts.** Changing a chart's type, grain or top N redraws it through the same checked Lens query and chart code, as a separate picture labelled as redrawn; the report's own chart and sentences are unchanged. Only group comparisons and trends can be redrawn.
+- **The sample run is shared**, so its edits are kept in your browser only.
+- **Ask Lens about this** opens Lens with the item as a removable chip, "Focus: <title>". Questions are answered with that item's own saved text (sent to the AI with the question; without an AI the item's text is quoted) until you remove the chip.
+
+Code: `backend/app/viewedit.py` (items, commands, validation, undo, what each tab shows), `backend/app/lens/viewchat.py`, `viewchart.py`; interface: `frontend/src/components/view/`. Tests: `backend/tests/test_partb_view.py`.
 
 ## Quick start
 
@@ -365,7 +404,11 @@ To delete everything, stop the server and remove `backend/data/`. To keep runs f
 - Charts are static images (PNG), not interactive: you can click to enlarge but not filter them. Power BI is the place for interactive slicing; the pack is built for that.
 - Non-English column names need a system font that has those letters (Nirmala UI on Windows, Noto Sans elsewhere).
 
-- **Local use only.** There is no authentication or user separation, and run folders live on disk (`backend/data/runs`). Anyone who can reach the server can list recent runs and read any run whose id they have. Runs older than `RETENTION_DAYS` (30 by default) are deleted when the server starts and whenever a new run is created; a run still queued or running is never deleted. Run folders are 8 to 20 times the size of the input while they exist.
+- **Daily AI token limit.** Free-tier providers cap the tokens per day as well as per minute. Request pacing (`AI_TPM_LIMIT`) keeps calls inside the per-minute window, but when the day's limit is reached the app falls back to rules for that step and says so, and Lens offers only its suggested questions until it resets. `DAILY_AI_RUNS` and `DAILY_LENS_QUESTIONS` cap use across all visitors of a public copy.
+- **Data is not stored securely beyond retention.** Uploads and results sit unencrypted in the runs folder (`RETENTION_DAYS`, 30 by default) and the access code is a shared secret, not a user account. Do not upload data you would not keep on that server; delete a run's folder to remove it earlier.
+- **Unusual-change thresholds are untuned.** Lens flags a change as unusual at more than 3 median absolute deviations (and at least 10%), or at least 40%. These numbers were chosen by hand and checked on test data only.
+- **The premise check covers rank, comparison and direction claims only** ("why is X the top?", "X is higher than Y", "sales went down in March"). Other assumptions inside a question are not checked.
+- **Local use only.** There is no authentication (an optional shared access code can gate uploads, see *Deploy*) or user separation, and run folders live on disk (`backend/data/runs`). Anyone who can reach the server can list recent runs and read any run whose id they have. Runs older than `RETENTION_DAYS` (30 by default) are deleted when the server starts and whenever a new run is created; a run still queued or running is never deleted. Run folders are 8 to 20 times the size of the input while they exist.
 - **No run queue.** Each upload starts its own thread immediately; there is no cap, parallel runs were not tested, and a server restart loses runs in flight (they stay `running` or `queued`).
 - **Size.** Each table is limited to `MAX_ROWS` rows (500 000 by default). A larger file is refused at upload with a message that gives its row count and the limit. There is no column limit, and only 8 files and 50 MB in total. The largest dataset tested is 40 000 rows by 13 columns, which took about 1.5 to 2.5 minutes on the Groq free tier; most of that time is LLM calls and chart rendering, not row processing. Much larger files are untested and the whole upload is held in memory.
 - **Formats.** `.xls` is accepted by the upload check but needs `xlrd`, which is not in `requirements.txt`; save as `.xlsx` instead. `.json` must be table-shaped.
