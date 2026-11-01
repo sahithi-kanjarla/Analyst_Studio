@@ -599,6 +599,22 @@ def view_apply(run_id: str, body: ViewIn):
     return {**_view_wire(run_id, wd, result, new, " ".join(msgs)), "local": demo}
 
 
+class FeedbackIn(BaseModel):
+    turn: str = Field(max_length=40)
+    vote: str = Field(max_length=8)
+
+
+@app.post("/api/runs/{run_id}/lens/feedback")
+def lens_feedback(run_id: str, body: FeedbackIn):
+    """A thumbs up or down on one answer, recorded with the plan and the tools used (lens_feedback.jsonl in the run folder)."""
+    from .lens import feedback
+    wd, _ = _lens_run(run_id)
+    line = feedback.record(wd, body.turn, body.vote)
+    if line is None:
+        raise HTTPException(400, "That answer or vote was not recognised.")
+    return {"recorded": body.vote}
+
+
 @app.get("/api/runs/{run_id}/export/{what}")
 def export_file(run_id: str, what: str, brief: str = ""):
     """A PDF of a brief, all briefs (zip), the report or the short report, or the plain text of one. Made from the saved content, read-only."""

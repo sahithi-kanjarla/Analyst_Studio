@@ -33,7 +33,8 @@ class ChartEdit(Tool):
             r.summary = "Redrew a report chart another way"
             return r
         turns = store.load(env.wd)["turns"]
-        t = next((x for x in reversed(turns) if (not args.get("turn") or x["id"] == args["turn"]) and x["answer"].get("status") == "answered" and x["answer"].get("query")), None)
+        earlier = next((r.answer for r in reversed(prior) if r.ok and r.answer and r.answer.get("query") and (r.answer.get("chart") or {}).get("path") is not None), None)       # a chart drawn by an earlier step of this request
+        t = {"id": "this-request", "answer": earlier} if earlier and not args.get("turn") else next((x for x in reversed(turns) if (not args.get("turn") or x["id"] == args["turn"]) and x["answer"].get("status") == "answered" and x["answer"].get("query")), None)
         if t is None:
             ans, nxt = chat._plain("no_fit", "Which chart do you mean? I haven't drawn one in this chat yet. Ask a question about your data first.", env.wd, env.ctx, env.df, env.result)
             return ToolResult(ok=False, summary="There was no chart to change", answer=ans, chips=nxt, error=ans["text"])

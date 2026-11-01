@@ -279,10 +279,11 @@ def run_request(wd, result, df, ctx, question: str, tab: str, llm, ai_ok: bool, 
 
 
 def _short_args(args) -> dict:
+    """The arguments as saved with the answer (for the feedback file and the history): kept whole up to 4000 characters, cut as text beyond that."""
     out = {}
     for k, v in (args or {}).items():
         s = json.dumps(v, default=str)
-        out[k] = v if len(s) <= 400 else s[:400] + "…"
+        out[k] = v if len(s) <= 4000 else s[:4000] + "…"
     return out
 
 

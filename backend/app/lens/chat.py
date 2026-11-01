@@ -154,7 +154,13 @@ def _clarify(question: str, choices: list[dict], wd, ctx, df, result, ai_calls: 
         ch = qmod.check(c.get("query"), ctx, df)
         if ch.query and isinstance(c.get("label"), str) and c["label"].strip():
             good.append({"id": "k" + store.new_id()[:6], "label": c["label"].strip()[:60], "query": c["query"]})
-    if len(good) == 1:
+        elif isinstance(c.get("commands"), list) and isinstance(c.get("label"), str) and c["label"].strip():        # a choice that is a view change (an ambiguous reference to an item: the titles are the choices)
+            try:
+                viewedit.apply_many(result, store.get_view_state(wd), c["commands"], viewedit.catalogue(result))
+            except viewedit.ViewError:
+                continue
+            good.append({"id": "k" + store.new_id()[:6], "label": c["label"].strip()[:60], "commands": c["commands"]})
+    if len(good) == 1 and "query" in good[0]:
         return _run_checked(wd, qmod.check(good[0]["query"], ctx, df), ctx, df, result, ai_calls, asked)
     if len(good) < 2:
         return _plain("no_fit", "I wasn't sure what you meant, and I can't narrow it down. Here are two questions I can answer.", wd, ctx, df, result, ai_calls, asked)
@@ -451,6 +457,8 @@ def ask(wd: Path, result: dict, *, question: str = "", chip: str | None = None, 
         c = next((x for x in ((t or {}).get("answer", {}).get("clarify") or {}).get("choices", []) if x["id"] == choice.get("choice")), None)
         if not c:
             ans, nxt = _plain("no_fit", "That choice is no longer available. Please ask again.", wd, ctx, df, result)
+        elif c.get("commands"):
+            label, route = c["label"], {"kind": "view_cmd", "cmds": c["commands"]}
         else:
             label, raw = c["label"], c["query"]
     elif patch:
