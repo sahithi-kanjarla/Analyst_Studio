@@ -34,13 +34,23 @@ def request_kind(question: str, ctx=None, df=None) -> str:
 
 
 def for_request(question: str, ctx, df, result: dict, wd, tab: str, n: int = 2) -> list[dict]:
-    """At most n chips that relate to the request that was refused."""
+    """Exactly n concrete chips (two) that relate to the request that was refused: of its own kind first, then the general ones. A refusal always shows them."""
     kind = request_kind(question, ctx, df)
     prev = reports.prev_chip_ids(wd)
     if kind == "view":
-        return (viewchat.chips_for(result, tab) or reports.next_chips(result, "view", "", prev))[:n]
-    if kind == "data":
+        pool = viewchat.chips_for(result, tab) or reports.next_chips(result, "view", "", prev)
+    elif kind == "data":
         from .. import chat
-        return chipmod.relevant(ctx, df, result, question, chat._last_query(wd), prev, n)[:n]
-    return [reports.ichip("Summarise the whole report", {"kind": "summary", "length": "standard", "scope": ""}), reports.ichip("What should we do next?", {"kind": "strategy", "focus": ""}),
-            reports.ichip("What matters most for me?", {"kind": "priority", "terms": []})][:n]
+        pool = chipmod.relevant(ctx, df, result, question, chat._last_query(wd), prev, n)
+    else:
+        pool = []
+    general = [reports.ichip("Summarise the whole report", {"kind": "summary", "length": "standard", "scope": ""}), reports.ichip("What should we do next?", {"kind": "strategy", "focus": ""}),
+            reports.ichip("What matters most for me?", {"kind": "priority", "terms": []})]
+    out, seen = [], set()
+    for c in list(pool) + general + list(chipmod.start(ctx, df, result)):
+        if c["id"] not in seen:
+            seen.add(c["id"])
+            out.append(c)
+        if len(out) == n:
+            break
+    return out

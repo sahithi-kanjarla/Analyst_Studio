@@ -40,6 +40,16 @@ def _matching(env) -> dict:
         return {}
 
 
+def _card(env) -> str:
+    from . import datacard
+    card = datacard.get(env.ctx, env.df)
+    if "datacard_facts" not in env.ctx.memo:
+        env.ctx.memo["datacard_facts"] = datacard.facts(card)
+    env.facts.update(env.ctx.memo["datacard_facts"])          # a sentence about the data can cite a card line, and its figures are checked against it
+    text, _ = datacard.render(card, env.question, str(env.result.get("goal") or ""))
+    return text
+
+
 def history(wd, n: int = HISTORY_TO_AI) -> list[dict]:
     out = []
     for t in store.load(wd)["turns"][-n:]:
@@ -73,6 +83,7 @@ def build(env, tools_help: str = "") -> str:
         "COLUMNS: " + json.dumps(ctxmod.for_prompt(ctx), ensure_ascii=False),
         "SQL VIEW \"data\" (for custom_analysis; column = exact name): " + json.dumps([{"column": c.name, "label": c.display, "role": c.role, "kind": c.kind} for c in ctx.cols.values()], ensure_ascii=False),
         "MATCHING VALUES (real stored values for words in the request): " + json.dumps(_matching(env), ensure_ascii=False),
+        "DATA CARD (what the table holds, no rows): " + _card(env),
         "VISIBLE ITEMS (id, kind, title): " + json.dumps(visible_items(env), ensure_ascii=False),
     ]
     if env.focus:

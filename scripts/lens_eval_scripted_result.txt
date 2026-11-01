@@ -1,6 +1,7 @@
 category          n     plan      ran
 brief            10     100%     100%
 brief_manage      4     100%     100%
+catalog          14     100%     100%
 chart_edit        4     100%     100%
 clarify           3     100%     100%
 custom           26     100%     100%
@@ -18,4 +19,4 @@ strategy          4     100%     100%
 summary           5     100%     100%
 view_edit        14     100%     100%
 why               4     100%     100%
-ALL             136     100%     100%
+ALL             150     100%     100%

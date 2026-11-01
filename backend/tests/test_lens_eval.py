@@ -16,12 +16,12 @@ lens_eval = importlib.util.module_from_spec(spec)
 sys.modules["lens_eval"] = lens_eval
 spec.loader.exec_module(lens_eval)
 LINES = lens_eval.load()
-REQUIRED = {"data_closed", "custom", "followup", "why", "premise", "summary", "brief", "view_edit", "strategy", "glossary", "general", "impossible", "informal", "chart_edit", "export", "brief_manage", "clarify", "multi", "explain"}
+REQUIRED = {"data_closed", "custom", "followup", "why", "premise", "summary", "brief", "view_edit", "strategy", "glossary", "general", "impossible", "informal", "chart_edit", "export", "brief_manage", "clarify", "multi", "explain", "catalog"}
 
 
 def test_the_set_is_big_varied_and_well_formed():
     c = Counter(x["category"] for x in LINES)
-    assert len(LINES) >= 80 and c["custom"] >= 25 and REQUIRED <= set(c)
+    assert len(LINES) >= 80 and c["custom"] >= 25 and c["catalog"] >= 10 and REQUIRED <= set(c)
     assert len({x["id"] for x in LINES}) == len(LINES)
     for x in LINES:
         assert x["request"].strip() and x["tab"] and isinstance(x["visible"], list) and isinstance(x["expected"], list) and "reply" in x, x["id"]

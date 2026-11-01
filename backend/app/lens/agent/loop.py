@@ -22,6 +22,7 @@ from . import planner, registry, suggest, verify
 from .env import Env
 
 UNMET_FILE = "lens_unmet.jsonl"
+UNUSABLE = ("the reply was not a plan", "no usable reply", "bad JSON")        # the model answered, but not with a plan (as against: it could not be reached)
 CAN_DO = ("I can answer questions about your data, explain the report, summarise it, give you a brief for any reader, change what is shown, redraw charts, "
           "look up definitions and export a PDF.")
 
@@ -127,6 +128,63 @@ def log_unmet(wd, question: str, tab: str) -> None:
         pass
 
 
+STOP = set("the a an and or of to in on for is are was were be been do does did can could would should will may might have has had having any some there this that these those with about from into over under what which who whom whose how why when where whether if then than so such it its my our your you we i me us they them their his her as at by not no yes please tell show give me find look see know want need like also still just only more most very much many".split())
+ABOUT_DATA = re.compile(r"\b(?:data|dataset|file|sheet|table|columns?|fields?|records?|recorded|tracked|stored|information|info|is there|are there|do you have|does it (?:have|record|track|include|contain)|have any|has any)\b", re.I)
+
+
+def content_terms(question: str) -> list[str]:
+    """The words of a request that name what it is about, and pairs of neighbouring ones ("return packages"), without the little words around them."""
+    ws = [w for w in re.findall(r"[A-Za-z][A-Za-z'-]{2,}", question or "") if w.lower() not in STOP and w.lower() not in ("data", "dataset", "information", "info", "records", "record", "columns", "column", "recorded", "tracked", "stored")]
+    pairs = [f"{a} {b}" for a, b in zip(ws, ws[1:])]
+    return list(dict.fromkeys(pairs + ws))[:12]
+
+
+def _card_reply(env: Env, plan: dict | None):
+    """An answer written from the data card: the plan's reply, kept only when it cites a line of the card and every figure in it checks against that line."""
+    from ... import cited
+    reply = str((plan or {}).get("reply") or "").strip()
+    if not reply:
+        return None
+    _, marks = cited.split_cites(reply)
+    ids = [i for _, g in marks for i in g if i.startswith("d") and i in env.facts]
+    if not ids:
+        return None
+    clean, why = verify.check_sentence(reply, env.facts)
+    if why:
+        return None
+    how = howtext.record_how("Answered from what the table holds (its column names, meanings and most common values)", ["the description of your data"], [], ["Every figure is quoted from that description, which was written by code from the whole cleaned table."])
+    ans, chips = reports._base("catalog", clean, "About your data", how, [], 0, fact_ids=ids)
+    return ans, chips
+
+
+def data_fallback(env: Env, plan: dict | None) -> tuple[dict, list, str] | None:
+    """Before refusing: the data card (when the plan came with an answer from it), then the data catalog on the words of the request. A yes is always an answer; a no is an answer when the request asks
+    about the data. None when neither applies."""
+    if suggest.request_kind(env.question, env.ctx, env.df) == "view":
+        return None                                  # a request to change what is shown is not a question about the data
+    got = _card_reply(env, plan)
+    if got:
+        return got[0], got[1], "card"
+    terms = content_terms(env.question)
+    if not terms:
+        return None
+    from .tools.data_catalog import DataCatalog
+    if not ABOUT_DATA.search(env.question or ""):
+        return None                                  # only a question about what the data holds is answered by looking; any other request that fits no tool is refused
+    r = DataCatalog().run({"lookup": "find", "terms": terms}, env, [])
+    if r.answer:
+        env.facts.update(r.facts)
+        return r.answer, r.chips, "catalog"
+    return None
+
+
+def _fallback_out(env: Env, ans: dict, nxt: list, via: str) -> "Out":
+    steps = [{"n": 1, "tool": "data_catalog", "summary": "Looked at what the data holds", "ok": True}] if via == "catalog" else []
+    ans["agent"] = {"plan": [], "tools": ["data_catalog"] if via == "catalog" else [], "steps": steps, "calls": env.calls}
+    _add_steps_to_how(ans, steps, ["The request was not turned into a step, so the description of your data and a search of its columns and values were used before refusing."] if via == "catalog" else [])
+    return Out(ans, nxt, env.calls, tools=["data_catalog"] if via == "catalog" else [])
+
+
 def _unmet_answer(env: Env, reason: str):
     from .. import chat
     if rules.wants_view_change(env.question):          # colours, fonts, layout: not available; the view changes that are available are shown as chips
@@ -137,7 +195,7 @@ def _unmet_answer(env: Env, reason: str):
     lead = "I can't answer that from this data" + (f": {reason.rstrip('.')}." if reason and not any(ch.isdigit() for ch in reason) else ".")
     kind = suggest.request_kind(env.question, env.ctx, env.df)
     offer = {"view": "Here are two changes I can make.", "data": "Here are two questions I can answer."}.get(kind, "Here are two things you could ask.")
-    ans, nxt = chat._plain("no_fit", f"{lead} {offer} {CAN_DO}", env.wd, env.ctx, env.df, env.result, 0, env.question)
+    ans, nxt = chat._plain("no_fit", f"{lead} {offer}", env.wd, env.ctx, env.df, env.result, 0, env.question)
     nxt = suggest.for_request(env.question, env.ctx, env.df, env.result, env.wd, env.tab)         # chips that fit the kind of request that was refused
     ans["chips"] = [{"id": c["id"], "text": c["text"]} for c in nxt]
     ans["unmet"] = True
@@ -246,12 +304,16 @@ def run_request(wd, result, df, ctx, question: str, tab: str, llm, ai_ok: bool, 
         alt = fallback_plan(env)
         plan = alt                                   # an unusable plan: the rule router, then what I can do
         errs = []
-    if plan is None and fail:
-        alt = fallback_plan(env)
-        if alt is None:
-            return Out(calls=env.calls, fail=fail)
-        plan = alt
+    if plan is None and fail and fail.startswith("the reply was not a plan"):
+        fail = ""                                  # valid, but not a plan: not an outage, so the rules and the data lookups get their turn
     if plan is None:
+        plan = fallback_plan(env)                  # the rule router, the no-AI fallback
+    if plan is None:
+        fb = data_fallback(env, None) if ai_ok else None          # then the data card and the data catalog, before refusing
+        if fb:
+            return _fallback_out(env, *fb)
+        if fail:
+            return Out(calls=env.calls, fail=fail)                # the model could not be reached or gave nothing usable
         ans, nxt = _unmet_answer(env, "")
         _add_steps_to_how(ans, [], ["Nothing I can do fits this request."])
         ans["agent"] = {"plan": [], "tools": [], "steps": [], "calls": env.calls}
@@ -266,6 +328,9 @@ def run_request(wd, result, df, ctx, question: str, tab: str, llm, ai_ok: bool, 
                 a2["agent"] = {"plan": [], "tools": ["data_query"], "steps": [], "calls": env.calls}
                 _add_steps_to_how(a2, [{"n": 1, "tool": "data_query", "summary": "Checked what the request assumes and showed what is behind the number", "ok": True}], [])
                 return Out(a2, n2, env.calls, tools=["data_query"])
+        fb = data_fallback(env, plan)
+        if fb:
+            return _fallback_out(env, *fb)
         ans, nxt = _unmet_answer(env, plan.get("unsupported") or "")
         ans["agent"] = {"plan": [], "tools": [], "steps": [], "calls": env.calls}
         _add_steps_to_how(ans, [], ["Nothing I can do fits this request."])
@@ -302,7 +367,8 @@ def run_fallback(wd, result, df, ctx, question: str, tab: str, focus_ctx: dict |
     env = make_env(wd, result, df, ctx, question, tab, None, False, focus_ctx, view_state)
     plan = fallback_plan(env)
     if not plan:
-        return None
+        fb = data_fallback(env, None)               # no AI: a question about what the data holds is still answered by looking
+        return _fallback_out(env, *fb) if fb else None
     errs, hard = planner.validate(plan, env)
     if errs and hard:
         return None

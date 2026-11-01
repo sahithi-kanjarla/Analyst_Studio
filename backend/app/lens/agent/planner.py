@@ -32,6 +32,7 @@ def system_prompt() -> str:
             "- Ask to clarify (the clarify tool) only when two readings give different answers; one short question with 2 or 3 choices, each a complete query or a list of view commands. Item titles may be the choices when a reference to an item is ambiguous.\n"
             "- A request about what a tab or item shows (hide, show, order, short or full, top N, rename, pin, which charts) is view_edit, using ids from VISIBLE ITEMS; undo goes back one request.\n"
             "- A request for a document for a reader (a brief) is brief; a file to keep is export. Free-form styling (colours, fonts, layout) is not available: use an empty plan and \"unsupported\".\n"
+            "- DATA CARD says what each column holds (type, role, meaning, share missing, range, distinct values, the most common values with counts). A question about what is in the data (is something recorded, what values a column has, how many are missing) can be answered from it: use an empty plan and put the answer in \"reply\", citing the line it comes from by fact id like [d3]. For a concept that may be spelled or named differently, or when the card is not enough, use data_catalog with the words the user used plus synonyms, local usage and spelling variants.\n"
             "- A summary covers the WHOLE report unless the request names a part (a tab, a section or a topic): put only the words the user used in \"scope\". The open tab is never a scope.\n"
             "- Never put a number from your own knowledge in any field. Return the JSON object only.")
 

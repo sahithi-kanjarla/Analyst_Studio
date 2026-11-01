@@ -37,6 +37,8 @@ def signature(step: dict) -> str:
         return "view_edit/" + "+".join(str(c.get("cmd")) for c in a.get("commands") or [] if isinstance(c, dict))
     if t == "brief":
         return f"brief/{len(a.get('briefs') or [])}"
+    if t == "data_catalog":
+        return f"data_catalog/{a.get('lookup') or 'find'}"
     if t in ("export", "brief_manage"):
         return f"{t}/{a.get('what') or a.get('op')}"
     if t == "custom_analysis":

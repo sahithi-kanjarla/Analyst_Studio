@@ -102,6 +102,8 @@ def _plain(status: str, text: str, wd, ctx, df, result, ai_calls: int = 0, quest
         pick, more = starters.for_tab(ctx, df, result, tab, False, wd)
     else:
         pick = chipmod.relevant(ctx, df, result, question, _last_query(wd), reports.prev_chip_ids(wd), 2)
+        if len(pick) < 2:                         # a refusal always shows two concrete questions
+            pick = pick + [c for c in chipmod.start(ctx, df, result) if c["id"] not in {p["id"] for p in pick}][:2 - len(pick)]
     ans = {"status": status, "text": text, "chips": [{"id": c["id"], "text": c["text"]} for c in pick], "ai_calls": ai_calls}
     if more:
         ans["more"] = [{"id": c["id"], "text": c["text"]} for c in more]
@@ -369,7 +371,7 @@ def ask(wd: Path, result: dict, *, question: str = "", chip: str | None = None, 
         else:
             label, raw = _patch_label(s), {**base, **s}
     elif question:
-        gap = None if agent.suggest.request_kind(question, ctx, df) == "view" else rules.margin_gap(question, ctx)        # a missing cost column is no reason to refuse a change to what is shown
+        gap = None if (agent.suggest.request_kind(question, ctx, df) == "view" or agent.loop.ABOUT_DATA.search(question)) else rules.margin_gap(question, ctx)        # a missing cost column is no reason to refuse a change to what is shown
         pool = chipmod.start(ctx, df, result) + _starter_intents(result) + [{"id": k, **v} for k, v in store.load(wd)["chips"].items()]
         hit = match_chip(question, [c for c in pool if (c.get("intent") or {}).get("kind") != "view_cmd"])         # typed words that read like a change to the view mean the tab that is open now, not the one a chip was made for
         found = (hit or {}).get("intent") or (None if ai_ok else rules.route(question))          # plain-word routing is the no-AI fallback; with an AI the planner decides

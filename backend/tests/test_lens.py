@@ -383,9 +383,9 @@ def test_the_ai_gets_the_understanding_record_and_tab_but_never_rows(run):
     p = ai.prompts[0]
     assert "CURRENT TAB: Dashboard" in p and "membership level" in p and '"label": "Tier"' in p and "money" in p
     df = run[3]
-    for city in df.city.unique():
-        assert city not in p
-    assert df["customer_id"].iloc[0] not in p and "Gold" not in p
+    assert df["customer_id"].iloc[0] not in p                       # no identifier, no row
+    assert "DATA CARD" in p and "values: " in p and all(f"{c} (" in p for c in df.city.unique())          # the data card lists the category values, each only with its count and share (the card is how Lens knows what the data holds)
+    assert not any(f"{v:.2f}" in p for v in df["amount"].head(5))   # a row's own figures are not there
 
 
 def test_only_the_last_six_turns_are_passed(run):
