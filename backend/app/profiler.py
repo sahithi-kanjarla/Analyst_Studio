@@ -81,29 +81,34 @@ def check_row_limit(df: pd.DataFrame, name: str, limit: int | None = None) -> No
 
 
 def load_table(path: str | Path) -> pd.DataFrame:
+    from . import tableio
     p = Path(path)
     ext = p.suffix.lower()
-    if ext in (".xlsx", ".xls"):
+    if ext in (".xlsx", ".xls", ".xlsm"):
+        tables = tableio.read_workbook(p)
+        if tables:
+            return next(iter(tables.values()))
         df = pd.read_excel(p)
     elif ext == ".json":
         df = pd.read_json(p)
     else:
-        df = pd.read_csv(p, sep=_sniff_sep(p), encoding_errors="replace")
+        return tableio.read_delimited(p.read_bytes(), p.name)
     return _tidy_headers(df)
 
 
 def load_tables(path: str | Path) -> dict[str, pd.DataFrame]:
-    """One file -> one table, except Excel workbooks with several non-empty sheets (one table per sheet)."""
+    """One file -> one table, except Excel workbooks with several sheets of records (one table per sheet; sheets of notes are left out)."""
+    from . import tableio
     p = Path(path)
-    if p.suffix.lower() in (".xlsx", ".xls"):
-        sheets = {k: v for k, v in pd.read_excel(p, sheet_name=None).items() if not v.dropna(how="all").empty}
+    if p.suffix.lower() in (".xlsx", ".xls", ".xlsm"):
+        sheets = tableio.read_workbook(p)
         if len(sheets) > 1:
             for k, v in sheets.items():
                 check_row_limit(v, f"{p.name} ({k})")
-            return {f"{p.stem}_{k}": _tidy_headers(v) for k, v in sheets.items()}
+            return {f"{p.stem}_{k}": v for k, v in sheets.items()}
         if len(sheets) == 1:
             check_row_limit(next(iter(sheets.values())), p.name)
-            return {p.stem: _tidy_headers(next(iter(sheets.values())))}
+            return {p.stem: next(iter(sheets.values()))}
     df = load_table(p)
     check_row_limit(df, p.name)
     return {p.stem: df}
@@ -147,6 +152,7 @@ def try_numeric(s: pd.Series, thresh: float = 0.9):
     return None
 
 
+_TZ_SUFFIX = re.compile(r"\s*(?:Z|UTC|GMT|[+-]\d{2}:?\d{2})\s*$", re.I)
 _DMY = re.compile(r"^\s*(\d{1,2})[/.\-](\d{1,2})[/.\-]\d{2,4}")
 _DMY_FULL = re.compile(r"^\s*(\d{1,2})[/.\-](\d{1,2})[/.\-](\d{2,4})\s*$")
 
@@ -170,7 +176,8 @@ def parse_dates(s: pd.Series, dayfirst: bool | None = None) -> pd.Series:
     from the whole column when None, day-first by default); everything else (ISO, dd-Mon-yyyy, with or without a time) is unambiguous."""
     if dayfirst is None:
         dayfirst = infer_date_order(s.dropna())[0] is not False
-    txt = s.astype("object").map(lambda v: v.strip() if isinstance(v, str) else v)
+    # a UTC offset written after the time ("2024-03-05 14:22:10 +0530") says where the clock was, not another moment: the date and time are kept as written, so one column never mixes zones
+    txt = s.astype("object").map(lambda v: _TZ_SUFFIX.sub("", v.strip()) if isinstance(v, str) and re.search(r"\d:\d\d", v) else v.strip() if isinstance(v, str) else v)
     parts = txt.astype(str).str.extract(_DMY_FULL)
     num = parts[0].notna() & txt.notna()
     out = pd.Series(pd.NaT, index=s.index, dtype="datetime64[ns]")

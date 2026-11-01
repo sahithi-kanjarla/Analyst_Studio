@@ -1,0 +1,241 @@
+﻿Bill No,Tarikh,Grahak ka naam,Mobile no.,Shehar,Saman (Product),Matra,Dar (Rate),Kul rashi,Bhugtan sthiti,Vikreta
+5001,05/07/2024,Diya Bose,8880452420,Hyderabad,Silk Scarf,1,1299,1299,Baaki,Sunita
+5002,29/06/2024,Imran Patel,8699252165,Delhi,Backpack,6,1899,11394,Paid,Gopal
+5003,30/06/2024,Diya Khan,6182509499,Chennai,Steel Bottle,6,399,2394,Aadha,Ramesh
+5004,14/05/2024,Anaya Nair,7306078223,Jaipur,Wireless Earbuds,5,2499,12495,Aadha,Ramesh
+5005,15/05/2024,Pooja Nair,7669442483,Chennai,Yoga Mat,5,899,4495,Paid,Sunita
+5006,01/06/2024,Kiara Verma,8897507168,Jaipur,Desk Lamp,6,1499,8994,Aadha,Ramesh
+5007,01/05/2024,Sana Joshi,8432524109,Hyderabad,Backpack,2,1899,3798,Aadha,Gopal
+5008,06/06/2024,Meera Rao,7959705991,Chennai,Leather Wallet,2,649,1298,Aadha,Gopal
+5009,07/06/2024,Anaya Sharma,9672092904,Hyderabad,Running Shoes,1,2999,2999,Paid,Ramesh
+5010,28/06/2024,Sana Das,7300812789,Bengaluru,Wireless Earbuds,2,2499,4998,Baaki,Ramesh
+5011,25/05/2024,Nisha Iyer,7945961421,Hyderabad,Leather Wallet,5,649,3245,Paid,Gopal
+5012,15/06/2024,Kabir Verma,9252922189,Mumbai,Silk Scarf,1,1299,1299,Aadha,Ramesh
+5013,11/06/2024,Sana Gupta,9591762582,Bengaluru,Wireless Earbuds,3,2499,7497,Paid,Sunita
+5014,22/05/2024,Anaya Rao,8280760446,Pune,Cotton Kurta,4,799,3196,Paid,Ramesh
+5015,01/07/2024,Nisha Patel,6234343121,Ahmedabad,Yoga Mat,2,899,1798,Baaki,Sunita
+5016,03/07/2024,Imran Reddy,7734945542,Delhi,Leather Wallet,6,649,3894,Paid,Sunita
+5017,23/05/2024,Diya Bose,8807352960,Jaipur,Leather Wallet,1,649,649,Paid,Ramesh
+5018,04/07/2024,Vihaan Patel,8535671241,Pune,Running Shoes,1,2999,2999,Baaki,Sunita
+5019,06/06/2024,Arjun Nair,7215718973,Mumbai,Silk Scarf,1,1299,1299,Paid,Ramesh
+5020,11/05/2024,Karan Sharma,9346470261,Chennai,Leather Wallet,2,649,1298,Paid,Gopal
+5021,02/07/2024,Karan Singh,9887775209,Hyderabad,Wireless Earbuds,3,2499,7497,Paid,Gopal
+5022,12/06/2024,Rahul Bose,8787145480,Hyderabad,Backpack,5,1899,9495,Baaki,Gopal
+5023,25/06/2024,Rahul Sharma,8344361719,Mumbai,Silk Scarf,4,1299,5196,Aadha,Ramesh
+5024,12/07/2024,Pooja Gupta,6501863417,Mumbai,Backpack,1,1899,1899,Paid,Gopal
+5025,20/06/2024,Zoya Sharma,8231850652,Mumbai,Denim Jacket,2,2199,4398,Baaki,Sunita
+5026,05/07/2024,Kiara Iyer,9674955859,Hyderabad,Desk Lamp,3,1499,4497,Baaki,Ramesh
+5027,22/06/2024,Rahul Bose,9452186817,Jaipur,Wireless Earbuds,5,2499,12495,Paid,Ramesh
+5028,30/07/2024,Tara Verma,6362264394,Pune,Leather Wallet,4,649,2596,Paid,Gopal
+5029,21/06/2024,Aarav Rao,9464311387,Chennai,Silk Scarf,2,1299,2598,Baaki,Sunita
+5030,19/05/2024,Nisha Patel,9697119847,Jaipur,Yoga Mat,4,899,3596,Paid,Gopal
+5031,15/07/2024,Aarav Gupta,8677697538,Ahmedabad,Steel Bottle,5,399,1995,Paid,Gopal
+5032,25/07/2024,Kabir Rao,6580202336,Pune,Denim Jacket,4,2199,8796,Paid,Sunita
+5033,30/05/2024,Karan Bose,6766662298,Bengaluru,Steel Bottle,1,399,399,Paid,Sunita
+5034,01/05/2024,Rohan Reddy,6705636905,Pune,Backpack,5,1899,9495,Baaki,Gopal
+5035,15/05/2024,Nisha Das,6343553384,Hyderabad,Yoga Mat,2,899,1798,Paid,Gopal
+5036,20/07/2024,Dev Menon,6333815613,Kolkata,Silk Scarf,6,1299,7794,Paid,Sunita
+5037,28/06/2024,Tara Menon,6320855799,Jaipur,Desk Lamp,4,1499,5996,Aadha,Gopal
+5038,18/05/2024,Meera Menon,8190098450,Jaipur,Desk Lamp,3,1499,4497,Aadha,Sunita
+5039,21/07/2024,Rahul Mehta,9430047713,Ahmedabad,Steel Bottle,5,399,1995,Paid,Sunita
+5040,20/06/2024,Sana Gupta,8320255715,Mumbai,Denim Jacket,2,2199,4398,Aadha,Ramesh
+5041,01/06/2024,Zoya Rao,9101601103,Bengaluru,Desk Lamp,4,1499,5996,Aadha,Gopal
+5042,03/07/2024,Sana Joshi,7145819525,Jaipur,Wireless Earbuds,6,2499,14994,Aadha,Gopal
+5043,03/05/2024,Meera Iyer,9256436187,Kolkata,Steel Bottle,3,399,1197,Paid,Gopal
+5044,30/05/2024,Nisha Patel,8970478029,Pune,Backpack,2,1899,3798,Paid,Sunita
+5045,14/06/2024,Karan Nair,8218915231,Ahmedabad,Yoga Mat,1,899,899,Paid,Ramesh
+5046,26/05/2024,Nisha Patel,7578919936,Chennai,Backpack,3,1899,5697,Baaki,Ramesh
+5047,18/05/2024,Nisha Menon,6597183805,Ahmedabad,Yoga Mat,6,899,5394,Baaki,Gopal
+5048,20/07/2024,Imran Rao,6756887289,Hyderabad,Denim Jacket,5,2199,10995,Baaki,Ramesh
+5049,12/07/2024,Sana Das,6255816659,Bengaluru,Yoga Mat,2,899,1798,Paid,Sunita
+5050,09/07/2024,Nisha Menon,7318542403,Hyderabad,Cotton Kurta,6,799,4794,Baaki,Gopal
+5051,13/05/2024,Yash Joshi,8609166041,Kolkata,Silk Scarf,6,1299,7794,Paid,Sunita
+5052,05/06/2024,Isha Gupta,7113260450,Delhi,Leather Wallet,4,649,2596,Aadha,Ramesh
+5053,13/07/2024,Kabir Sharma,7956241762,Chennai,Running Shoes,4,2999,11996,Paid,Gopal
+5054,24/07/2024,Yash Menon,8390320816,Delhi,Yoga Mat,5,899,4495,Paid,Sunita
+5055,29/06/2024,Vihaan Khan,7662757194,Jaipur,Wireless Earbuds,2,2499,4998,Aadha,Gopal
+5056,02/07/2024,Rohan Gupta,7908843762,Mumbai,Desk Lamp,2,1499,2998,Baaki,Ramesh
+5057,12/06/2024,Anaya Rao,7339589141,Ahmedabad,Denim Jacket,5,2199,10995,Baaki,Sunita
+5058,19/05/2024,Anaya Reddy,6692392453,Delhi,Steel Bottle,2,399,798,Paid,Sunita
+5059,16/07/2024,Sana Bose,8257395246,Chennai,Yoga Mat,5,899,4495,Baaki,Ramesh
+5060,24/06/2024,Vihaan Das,8795784588,Kolkata,Wireless Earbuds,3,2499,7497,Baaki,Ramesh
+5061,07/05/2024,Sana Nair,8302014048,Ahmedabad,Wireless Earbuds,2,2499,4998,Paid,Ramesh
+5062,22/05/2024,Imran Das,6502809851,Kolkata,Denim Jacket,5,2199,10995,Paid,Gopal
+5063,19/07/2024,Zoya Khan,7100111313,Chennai,Cotton Kurta,1,799,799,Baaki,Sunita
+5064,14/07/2024,Imran Gupta,6877538323,Ahmedabad,Leather Wallet,3,649,1947,Paid,Gopal
+5065,14/05/2024,Zoya Nair,9873138954,Chennai,Leather Wallet,6,649,3894,Baaki,Sunita
+5066,26/06/2024,Diya Reddy,7635055887,Delhi,Backpack,3,1899,5697,Paid,Ramesh
+5067,17/06/2024,Vihaan Bose,6551135777,Mumbai,Silk Scarf,6,1299,7794,Baaki,Ramesh
+5068,15/05/2024,Tara Joshi,7610242880,Pune,Yoga Mat,5,899,4495,Aadha,Sunita
+5069,18/05/2024,Sana Patel,7476736802,Pune,Denim Jacket,3,2199,6597,Paid,Gopal
+5070,23/06/2024,Aarav Verma,9328157011,Chennai,Leather Wallet,2,649,1298,Paid,Gopal
+5071,25/06/2024,Kiara Khan,6191996164,Jaipur,Wireless Earbuds,1,2499,2499,Paid,Sunita
+5072,22/07/2024,Dev Nair,9559199383,Chennai,Wireless Earbuds,2,2499,4998,Paid,Ramesh
+5073,07/06/2024,Arjun Singh,9320884909,Mumbai,Steel Bottle,5,399,1995,Paid,Gopal
+5074,21/05/2024,Pooja Das,8555643195,Chennai,Silk Scarf,2,1299,2598,Paid,Gopal
+5075,15/07/2024,Kiara Sharma,7373321556,Jaipur,Desk Lamp,1,1499,1499,Baaki,Sunita
+5076,01/05/2024,Isha Mehta,8915052189,Bengaluru,Wireless Earbuds,2,2499,4998,Paid,Sunita
+5077,04/07/2024,Dev Nair,7214787381,Hyderabad,Desk Lamp,2,1499,2998,Aadha,Ramesh
+5078,28/05/2024,Yash Khan,9845494050,Hyderabad,Cotton Kurta,3,799,2397,Paid,Ramesh
+5079,10/06/2024,Kabir Menon,7617389293,Ahmedabad,Denim Jacket,1,2199,2199,Baaki,Sunita
+5080,27/05/2024,Rahul Singh,8965593445,Mumbai,Denim Jacket,4,2199,8796,Baaki,Sunita
+5081,12/05/2024,Imran Reddy,8607791784,Hyderabad,Steel Bottle,1,399,399,Paid,Sunita
+5082,22/06/2024,Dev Menon,6682144923,Pune,Yoga Mat,3,899,2697,Baaki,Sunita
+5083,16/07/2024,Dev Reddy,7146610236,Pune,Yoga Mat,1,899,899,Aadha,Sunita
+5084,21/07/2024,Rahul Das,8267014196,Bengaluru,Wireless Earbuds,3,2499,7497,Aadha,Sunita
+5085,02/07/2024,Zoya Patel,8628428271,Delhi,Running Shoes,2,2999,5998,Paid,Ramesh
+5086,06/06/2024,Dev Sharma,9192839752,Jaipur,Running Shoes,4,2999,11996,Baaki,Ramesh
+5087,26/05/2024,Vihaan Mehta,7333172622,Delhi,Denim Jacket,4,2199,8796,Paid,Sunita
+5088,02/07/2024,Yash Das,6991453230,Bengaluru,Backpack,5,1899,9495,Aadha,Gopal
+5089,01/07/2024,Anaya Rao,7276962747,Hyderabad,Wireless Earbuds,6,2499,14994,Baaki,Sunita
+5090,09/07/2024,Anaya Sharma,6447999764,Mumbai,Leather Wallet,6,649,3894,Paid,Sunita
+5091,14/07/2024,Kabir Gupta,9719469803,Hyderabad,Silk Scarf,6,1299,7794,Paid,Sunita
+5092,30/05/2024,Dev Sharma,7588893038,Pune,Steel Bottle,4,399,1596,Baaki,Sunita
+5093,20/06/2024,Karan Nair,9885810487,Chennai,Wireless Earbuds,3,2499,7497,Paid,Gopal
+5094,22/07/2024,Pooja Singh,9349338448,Mumbai,Denim Jacket,4,2199,8796,Paid,Ramesh
+5095,04/07/2024,Zoya Khan,7337479328,Pune,Leather Wallet,6,649,3894,Paid,Ramesh
+5096,07/07/2024,Vihaan Verma,7557732292,Delhi,Wireless Earbuds,6,2499,14994,Aadha,Ramesh
+5097,22/06/2024,Kabir Menon,7954042784,Mumbai,Desk Lamp,4,1499,5996,Paid,Gopal
+5098,28/07/2024,Tara Joshi,9301425364,Ahmedabad,Steel Bottle,2,399,798,Baaki,Ramesh
+5099,20/07/2024,Kiara Rao,9155017843,Chennai,Yoga Mat,6,899,5394,Paid,Gopal
+5100,29/07/2024,Arjun Iyer,8619432901,Jaipur,Running Shoes,4,2999,11996,Paid,Sunita
+5101,16/06/2024,Anaya Das,8821791921,Jaipur,Steel Bottle,3,399,1197,Aadha,Ramesh
+5102,02/05/2024,Tara Das,7602736580,Kolkata,Cotton Kurta,1,799,799,Paid,Sunita
+5103,07/05/2024,Meera Joshi,8621692972,Kolkata,Running Shoes,6,2999,17994,Aadha,Gopal
+5104,15/05/2024,Yash Iyer,8696382538,Ahmedabad,Denim Jacket,1,2199,2199,Aadha,Gopal
+5105,08/05/2024,Dev Bose,7724542776,Pune,Silk Scarf,2,1299,2598,Paid,Gopal
+5106,17/07/2024,Anaya Patel,6298624056,Delhi,Silk Scarf,2,1299,2598,Aadha,Sunita
+5107,26/05/2024,Anaya Mehta,9939324138,Kolkata,Wireless Earbuds,1,2499,2499,Aadha,Ramesh
+5108,23/07/2024,Rohan Singh,8223634537,Delhi,Desk Lamp,6,1499,8994,Aadha,Ramesh
+5109,04/06/2024,Zoya Mehta,9203542144,Pune,Backpack,5,1899,9495,Aadha,Gopal
+5110,18/07/2024,Kiara Joshi,9631345845,Kolkata,Backpack,5,1899,9495,Aadha,Ramesh
+5111,01/06/2024,Isha Joshi,7974517700,Mumbai,Denim Jacket,1,2199,2199,Paid,Sunita
+5112,04/05/2024,Karan Rao,9917012348,Jaipur,Running Shoes,5,2999,14995,Aadha,Sunita
+5113,26/05/2024,Arjun Gupta,6505064802,Mumbai,Wireless Earbuds,4,2499,9996,Baaki,Sunita
+5114,24/07/2024,Yash Menon,8254748423,Kolkata,Backpack,1,1899,1899,Paid,Sunita
+5115,21/06/2024,Pooja Bose,9153991455,Jaipur,Desk Lamp,1,1499,1499,Aadha,Ramesh
+5116,11/06/2024,Sana Mehta,7814993558,Chennai,Backpack,4,1899,7596,Aadha,Ramesh
+5117,24/05/2024,Aarav Gupta,8535564222,Jaipur,Cotton Kurta,6,799,4794,Paid,Gopal
+5118,25/07/2024,Tara Rao,7248917040,Jaipur,Denim Jacket,3,2199,6597,Paid,Sunita
+5119,02/06/2024,Diya Khan,9599810023,Kolkata,Denim Jacket,1,2199,2199,Paid,Ramesh
+5120,05/05/2024,Nisha Rao,6821055617,Pune,Backpack,3,1899,5697,Aadha,Ramesh
+5121,10/07/2024,Nisha Singh,6241764029,Delhi,Running Shoes,6,2999,17994,Paid,Ramesh
+5122,22/05/2024,Tara Sharma,6445639175,Mumbai,Yoga Mat,3,899,2697,Aadha,Gopal
+5123,06/05/2024,Zoya Verma,7138368730,Jaipur,Silk Scarf,2,1299,2598,Baaki,Sunita
+5124,24/07/2024,Vihaan Sharma,6995628219,Chennai,Desk Lamp,5,1499,7495,Baaki,Ramesh
+5125,17/05/2024,Anaya Verma,7606987083,Mumbai,Steel Bottle,3,399,1197,Baaki,Sunita
+5126,30/07/2024,Meera Verma,8934691001,Jaipur,Silk Scarf,1,1299,1299,Aadha,Ramesh
+5127,11/07/2024,Imran Khan,9581354202,Pune,Yoga Mat,3,899,2697,Aadha,Ramesh
+5128,20/07/2024,Isha Mehta,8103657624,Mumbai,Wireless Earbuds,6,2499,14994,Paid,Ramesh
+5129,20/06/2024,Sana Sharma,6619487258,Chennai,Running Shoes,2,2999,5998,Paid,Ramesh
+5130,17/06/2024,Isha Sharma,8684165143,Delhi,Wireless Earbuds,2,2499,4998,Aadha,Ramesh
+5131,18/05/2024,Nisha Joshi,9109462690,Ahmedabad,Backpack,5,1899,9495,Paid,Ramesh
+5132,08/06/2024,Aarav Joshi,6775360368,Chennai,Backpack,5,1899,9495,Baaki,Ramesh
+5133,10/07/2024,Anaya Menon,6605294795,Chennai,Silk Scarf,5,1299,6495,Paid,Gopal
+5134,04/07/2024,Sana Reddy,6420851015,Pune,Silk Scarf,2,1299,2598,Paid,Sunita
+5135,15/05/2024,Tara Gupta,8381259890,Jaipur,Running Shoes,3,2999,8997,Baaki,Ramesh
+5136,25/06/2024,Rahul Nair,7612845442,Chennai,Desk Lamp,5,1499,7495,Aadha,Sunita
+5137,06/05/2024,Zoya Mehta,9989567381,Chennai,Steel Bottle,2,399,798,Baaki,Ramesh
+5138,09/07/2024,Kabir Gupta,9891297347,Ahmedabad,Yoga Mat,5,899,4495,Baaki,Sunita
+5139,15/07/2024,Aarav Bose,7541797602,Delhi,Denim Jacket,6,2199,13194,Paid,Gopal
+5140,23/06/2024,Isha Patel,9799784525,Bengaluru,Steel Bottle,3,399,1197,Paid,Ramesh
+5141,15/07/2024,Vihaan Iyer,7506248707,Pune,Cotton Kurta,5,799,3995,Paid,Gopal
+5142,07/05/2024,Kiara Khan,6767630637,Delhi,Denim Jacket,4,2199,8796,Paid,Sunita
+5143,14/06/2024,Rahul Gupta,8255385332,Ahmedabad,Backpack,4,1899,7596,Paid,Sunita
+5144,25/07/2024,Rohan Iyer,7628002357,Chennai,Denim Jacket,5,2199,10995,Baaki,Sunita
+5145,27/05/2024,Nisha Mehta,6372988719,Ahmedabad,Yoga Mat,5,899,4495,Paid,Ramesh
+5146,18/05/2024,Rahul Verma,8278986577,Bengaluru,Silk Scarf,2,1299,2598,Baaki,Sunita
+5147,23/07/2024,Arjun Singh,9636240314,Mumbai,Wireless Earbuds,3,2499,7497,Paid,Gopal
+5148,01/07/2024,Tara Rao,9692603850,Chennai,Running Shoes,6,2999,17994,Paid,Gopal
+5149,29/06/2024,Meera Mehta,6312696997,Bengaluru,Steel Bottle,4,399,1596,Baaki,Gopal
+5150,03/07/2024,Meera Das,9300416924,Mumbai,Silk Scarf,2,1299,2598,Paid,Sunita
+5151,01/06/2024,Kabir Das,9298364536,Kolkata,Yoga Mat,2,899,1798,Paid,Ramesh
+5152,09/06/2024,Aarav Menon,9149265820,Hyderabad,Yoga Mat,4,899,3596,Paid,Sunita
+5153,25/07/2024,Nisha Gupta,7551644292,Hyderabad,Denim Jacket,4,2199,8796,Paid,Ramesh
+5154,01/07/2024,Arjun Rao,8342523584,Kolkata,Desk Lamp,3,1499,4497,Baaki,Ramesh
+5155,01/05/2024,Dev Menon,8231594168,Jaipur,Steel Bottle,5,399,1995,Paid,Gopal
+5156,24/07/2024,Imran Gupta,9266135222,Chennai,Cotton Kurta,6,799,4794,Paid,Ramesh
+5157,14/05/2024,Tara Mehta,9977610150,Mumbai,Running Shoes,3,2999,8997,Baaki,Gopal
+5158,28/05/2024,Imran Singh,8311396214,Chennai,Backpack,4,1899,7596,Paid,Ramesh
+5159,11/07/2024,Kabir Rao,9815353491,Jaipur,Yoga Mat,5,899,4495,Aadha,Ramesh
+5160,03/07/2024,Sana Menon,6331249713,Chennai,Steel Bottle,1,399,399,Paid,Gopal
+5161,26/06/2024,Pooja Reddy,6790384758,Mumbai,Desk Lamp,2,1499,2998,Aadha,Gopal
+5162,24/05/2024,Kabir Iyer,9459663144,Jaipur,Denim Jacket,3,2199,6597,Baaki,Sunita
+5163,20/07/2024,Dev Khan,6749122873,Jaipur,Yoga Mat,6,899,5394,Baaki,Sunita
+5164,29/05/2024,Kiara Patel,8671864079,Bengaluru,Running Shoes,5,2999,14995,Paid,Sunita
+5165,27/07/2024,Diya Rao,8510819311,Jaipur,Denim Jacket,2,2199,4398,Aadha,Ramesh
+5166,11/07/2024,Kabir Rao,7943100266,Mumbai,Running Shoes,2,2999,5998,Paid,Sunita
+5167,22/06/2024,Pooja Nair,7820755752,Hyderabad,Wireless Earbuds,6,2499,14994,Aadha,Sunita
+5168,10/07/2024,Tara Menon,8349538554,Delhi,Denim Jacket,4,2199,8796,Baaki,Ramesh
+5169,11/05/2024,Arjun Khan,9852574344,Hyderabad,Backpack,1,1899,1899,Baaki,Ramesh
+5170,11/05/2024,Dev Rao,9521589856,Jaipur,Steel Bottle,6,399,2394,Paid,Sunita
+5171,16/06/2024,Yash Patel,8735984796,Bengaluru,Cotton Kurta,3,799,2397,Baaki,Gopal
+5172,24/07/2024,Nisha Iyer,7871879315,Bengaluru,Denim Jacket,1,2199,2199,Baaki,Gopal
+5173,25/05/2024,Isha Gupta,6426240456,Kolkata,Silk Scarf,2,1299,2598,Paid,Sunita
+5174,27/07/2024,Meera Khan,9437886322,Jaipur,Leather Wallet,1,649,649,Paid,Ramesh
+5175,01/07/2024,Pooja Joshi,8986852893,Pune,Desk Lamp,3,1499,4497,Baaki,Gopal
+5176,05/05/2024,Imran Iyer,6766092369,Chennai,Silk Scarf,1,1299,1299,Baaki,Sunita
+5177,07/06/2024,Karan Singh,6770636551,Hyderabad,Denim Jacket,2,2199,4398,Paid,Ramesh
+5178,10/05/2024,Rohan Das,8180485525,Ahmedabad,Denim Jacket,1,2199,2199,Baaki,Ramesh
+5179,03/07/2024,Rahul Menon,8252396960,Chennai,Cotton Kurta,4,799,3196,Paid,Sunita
+5180,06/07/2024,Vihaan Sharma,6451996487,Mumbai,Desk Lamp,4,1499,5996,Aadha,Sunita
+5181,10/05/2024,Diya Sharma,7492531344,Ahmedabad,Silk Scarf,1,1299,1299,Baaki,Ramesh
+5182,06/06/2024,Pooja Joshi,8536837039,Hyderabad,Wireless Earbuds,4,2499,9996,Baaki,Ramesh
+5183,06/07/2024,Kiara Sharma,7460370874,Hyderabad,Steel Bottle,6,399,2394,Baaki,Sunita
+5184,04/06/2024,Tara Rao,6988919413,Kolkata,Running Shoes,4,2999,11996,Aadha,Ramesh
+5185,01/05/2024,Vihaan Iyer,8597878133,Jaipur,Running Shoes,2,2999,5998,Paid,Gopal
+5186,10/07/2024,Arjun Bose,9559515395,Chennai,Steel Bottle,3,399,1197,Paid,Gopal
+5187,16/07/2024,Arjun Verma,9531253417,Ahmedabad,Yoga Mat,5,899,4495,Paid,Gopal
+5188,21/05/2024,Yash Gupta,8437694938,Hyderabad,Backpack,5,1899,9495,Paid,Gopal
+5189,18/07/2024,Nisha Khan,6147442904,Delhi,Wireless Earbuds,3,2499,7497,Baaki,Gopal
+5190,02/06/2024,Tara Rao,8404231043,Hyderabad,Backpack,1,1899,1899,Aadha,Sunita
+5191,01/05/2024,Yash Patel,6769492387,Pune,Steel Bottle,5,399,1995,Paid,Sunita
+5192,14/07/2024,Diya Menon,7586893829,Hyderabad,Silk Scarf,3,1299,3897,Paid,Gopal
+5193,23/05/2024,Pooja Reddy,8436894305,Mumbai,Cotton Kurta,1,799,799,Baaki,Sunita
+5194,01/06/2024,Aarav Das,8276398822,Mumbai,Denim Jacket,6,2199,13194,Paid,Ramesh
+5195,01/06/2024,Arjun Patel,7215598921,Bengaluru,Backpack,2,1899,3798,Baaki,Ramesh
+5196,04/06/2024,Pooja Mehta,8426916194,Chennai,Backpack,3,1899,5697,Baaki,Sunita
+5197,25/06/2024,Pooja Das,7791503401,Bengaluru,Running Shoes,6,2999,17994,Paid,Sunita
+5198,13/06/2024,Isha Nair,6365814586,Mumbai,Desk Lamp,5,1499,7495,Paid,Sunita
+5199,08/07/2024,Karan Sharma,9256271339,Ahmedabad,Cotton Kurta,3,799,2397,Aadha,Sunita
+5200,17/07/2024,Kabir Joshi,6879300412,Chennai,Running Shoes,3,2999,8997,Aadha,Ramesh
+5201,03/07/2024,Kiara Das,8651240364,Chennai,Steel Bottle,6,399,2394,Baaki,Ramesh
+5202,15/05/2024,Pooja Reddy,8321338912,Ahmedabad,Wireless Earbuds,5,2499,12495,Baaki,Ramesh
+5203,12/06/2024,Zoya Verma,9600508672,Bengaluru,Denim Jacket,3,2199,6597,Aadha,Sunita
+5204,23/05/2024,Rohan Iyer,6202563760,Hyderabad,Desk Lamp,1,1499,1499,Paid,Sunita
+5205,15/07/2024,Yash Iyer,9855472875,Kolkata,Steel Bottle,5,399,1995,Aadha,Ramesh
+5206,09/06/2024,Isha Patel,9927920753,Pune,Yoga Mat,3,899,2697,Paid,Ramesh
+5207,25/07/2024,Arjun Iyer,7154447953,Mumbai,Steel Bottle,4,399,1596,Paid,Ramesh
+5208,30/05/2024,Meera Reddy,9760719705,Mumbai,Desk Lamp,3,1499,4497,Baaki,Gopal
+5209,05/06/2024,Aarav Reddy,6723381659,Hyderabad,Backpack,1,1899,1899,Baaki,Gopal
+5210,05/07/2024,Diya Reddy,8726125535,Chennai,Wireless Earbuds,6,2499,14994,Paid,Sunita
+5211,17/05/2024,Vihaan Das,9290116520,Pune,Steel Bottle,1,399,399,Aadha,Sunita
+5212,14/05/2024,Isha Menon,7126053611,Kolkata,Silk Scarf,5,1299,6495,Aadha,Ramesh
+5213,24/07/2024,Karan Rao,8646801576,Delhi,Yoga Mat,3,899,2697,Aadha,Gopal
+5214,01/07/2024,Isha Reddy,8321316304,Delhi,Backpack,5,1899,9495,Paid,Gopal
+5215,04/05/2024,Arjun Patel,6259346573,Delhi,Steel Bottle,3,399,1197,Paid,Sunita
+5216,02/06/2024,Rohan Nair,9672872166,Jaipur,Steel Bottle,5,399,1995,Paid,Sunita
+5217,06/06/2024,Meera Iyer,9788334110,Chennai,Wireless Earbuds,3,2499,7497,Aadha,Ramesh
+5218,09/06/2024,Zoya Khan,9988947051,Chennai,Backpack,5,1899,9495,Paid,Ramesh
+5219,31/05/2024,Yash Das,7281351364,Hyderabad,Desk Lamp,5,1499,7495,Paid,Gopal
+5220,30/06/2024,Kabir Verma,8183658068,Chennai,Backpack,4,1899,7596,Aadha,Sunita
+5221,29/05/2024,Aarav Sharma,7183918755,Chennai,Backpack,2,1899,3798,Paid,Gopal
+5222,28/05/2024,Sana Das,6949031142,Pune,Silk Scarf,2,1299,2598,Paid,Ramesh
+5223,11/07/2024,Rohan Nair,6157151446,Bengaluru,Leather Wallet,6,649,3894,Baaki,Ramesh
+5224,17/06/2024,Meera Singh,6389140376,Chennai,Yoga Mat,3,899,2697,Baaki,Gopal
+5225,22/07/2024,Kabir Bose,9324593845,Chennai,Running Shoes,1,2999,2999,Paid,Ramesh
+5226,06/07/2024,Imran Sharma,9794558689,Kolkata,Running Shoes,2,2999,5998,Paid,Sunita
+5227,02/05/2024,Rohan Bose,9499287061,Jaipur,Cotton Kurta,6,799,4794,Aadha,Gopal
+5228,05/07/2024,Aarav Reddy,9729083046,Ahmedabad,Steel Bottle,4,399,1596,Paid,Sunita
+5229,11/05/2024,Meera Iyer,8521197421,Mumbai,Steel Bottle,2,399,798,Aadha,Sunita
+5230,05/06/2024,Tara Bose,8106852369,Chennai,Leather Wallet,4,649,2596,Paid,Ramesh
+5231,23/06/2024,Yash Mehta,9976954718,Bengaluru,Steel Bottle,5,399,1995,Paid,Ramesh
+5232,24/06/2024,Anaya Verma,8392403049,Mumbai,Backpack,4,1899,7596,Paid,Gopal
+5233,09/05/2024,Zoya Iyer,6881181329,Hyderabad,Steel Bottle,4,399,1596,Baaki,Gopal
+5234,12/07/2024,Diya Iyer,7373806563,Pune,Denim Jacket,6,2199,13194,Aadha,Gopal
+5235,27/05/2024,Arjun Das,7854335961,Delhi,Denim Jacket,2,2199,4398,Paid,Ramesh
+5236,13/06/2024,Arjun Patel,8602589537,Bengaluru,Backpack,4,1899,7596,Aadha,Ramesh
+5237,21/05/2024,Aarav Patel,8300469493,Delhi,Desk Lamp,2,1499,2998,Aadha,Gopal
+5238,25/06/2024,Imran Gupta,6244496610,Mumbai,Denim Jacket,6,2199,13194,Aadha,Sunita
+5239,06/05/2024,Kabir Bose,6607140265,Delhi,Denim Jacket,4,2199,8796,Paid,Sunita
+5240,07/07/2024,Vihaan Gupta,8733851911,Delhi,Leather Wallet,5,649,3245,Aadha,Sunita
