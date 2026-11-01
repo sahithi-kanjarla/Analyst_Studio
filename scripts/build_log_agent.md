@@ -55,6 +55,8 @@ Branch `studio-v3-agent`, created from `studio-v3-partb` at `7476849` (clean tre
 
 ## Fixes from real-AI testing (second round on this branch)
 
+**Result:** frontend build passes; full backend suite **983 passed, 0 failed, in 307.48 s (5 min 7 s)** (includes the 14 new tests in `test_fixes_real_ai.py` and the browser test).
+
 All six are general mechanisms; the example requests are only in `backend/tests/test_fixes_real_ai.py`. Fake AI only.
 
 1. **Selector view changes.** Every item now has `type`, `measure`, `dimension`, `title`, `rank` (within its tab and type, in the report's own order) and `cited` (an action or the summary cites it); `viewselect.py` resolves a selector (type, tab, section, measure, dimension, title words, position, rank, cited, ids) to ids, so a command can touch any number of items. `hide`, `show` and `pin` take `select`; the new `keep_only` takes a `scope` selector and a list of things to keep, each with an optional `best` N (a chart an action or the summary cites comes first), and hides the rest of the scope. "Keep one graph about one measure and the others by another" is one `keep_only` command. A selector that matches nothing says what exists ("There are 19 charts about Revenue (13), Discount pct (4), by Segment, Region"). A change that would hide or show more than 3 items is **previewed** ("I will keep: ... and hide: ...") with an Apply chip that carries the same change as explicit ids; Undo and Reset are never previewed; one Undo reverts the applied change.
