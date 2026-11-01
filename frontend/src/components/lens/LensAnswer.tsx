@@ -166,6 +166,7 @@ export default function LensAnswerView({ turn, last }: { turn: LensTurn; last: b
   const a = turn.answer;
   const [big, setBig] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [moreIdeas, setMoreIdeas] = useState(false);
   if (!lens) return null;
   const hasPic = !!a.chart?.path;
   const fix = (set: Record<string, unknown>, label: string) => lens.send({ patch: { turn: turn.id, set } }, label);
@@ -263,8 +264,14 @@ export default function LensAnswerView({ turn, last }: { turn: LensTurn; last: b
       {(a.status === "answered" || a.status === "no_fit") && <Thumbs turnId={turn.id} runId={lens.runId} initial={a.feedback} />}
       {last && a.chips.length > 0 && a.status !== "clarify" && (
         <div className="lens-next">
-          <span className="lens-label">{a.status === "answered" ? "What to ask next" : "You could ask"}</span>
+          <span className="lens-label">{a.view?.preview ? "Confirm" : a.status === "answered" ? "What to ask next" : "You could ask"}</span>
           <div className="lens-chips">{a.chips.map((c) => <button key={c.id} className="chip" disabled={lens.busy} onClick={() => lens.send({ chip: c.id }, c.text)}>{c.text}</button>)}</div>
+          {a.more && a.more.length > 0 && (
+            <>
+              <button type="button" className="view-all-link lens-more-ideas" aria-expanded={moreIdeas} onClick={() => setMoreIdeas((o) => !o)}>{moreIdeas ? "Fewer ideas" : "More ideas"}</button>
+              {moreIdeas && <div className="lens-chips">{a.more.map((c) => <button key={c.id} className="chip" disabled={lens.busy} onClick={() => lens.send({ chip: c.id }, c.text)}>{c.text}</button>)}</div>}
+            </>
+          )}
         </div>
       )}
     </div>

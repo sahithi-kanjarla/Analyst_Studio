@@ -3,11 +3,10 @@ import LensAnswerView from "./LensAnswer";
 import { useLens } from "./LensContext";
 
 /** The conversation: history, the input and the suggested questions. Used by the side panel, the bottom sheet and the full-width Chat tab (one shared state). */
-const EDIT_CHIPS = ["Make this tab shorter", "Hide the cleaning log", "Show only the top 3 actions"];
-
 export default function LensChat({ variant }: { variant: "panel" | "tab" | "embedded" }) {
   const lens = useLens();
   const [q, setQ] = useState("");
+  const [moreOpen, setMoreOpen] = useState(false);
   const [taught, setTaught] = useState(false);          // the editing chips are shown until the first thing is sent in this visit
   const list = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLInputElement>(null);
@@ -38,7 +37,6 @@ export default function LensChat({ variant }: { variant: "panel" | "tab" | "embe
           <div className="lens-empty">
             <p><strong>Ask about your data.</strong> Every figure is worked out by code from the whole cleaned table.</p>
             <p className="muted">{lens.ai ? "Pick a question or type your own." : "Pick one of the suggested questions. Typed questions are answered when they match one."}</p>
-            <div className="lens-chips">{lens.chips.map((c) => <button key={c.id} className="chip" disabled={lens.busy} onClick={() => lens.send({ chip: c.id }, c.text)}>{c.text}</button>)}</div>
           </div>
         )}
         {lens.turns.map((t) => (
@@ -63,10 +61,13 @@ export default function LensChat({ variant }: { variant: "panel" | "tab" | "embe
           <span className="muted lens-small">Questions are answered about this item until you remove it.</span>
         </div>
       )}
-      {!taught && variant !== "embedded" && (
-        <div className="lens-teach" role="group" aria-label="Change what you see by asking">
-          <span className="muted lens-small">Change what you see by asking:</span>
-          <div className="lens-chips">{EDIT_CHIPS.map((c) => <button key={c} type="button" className="chip" disabled={lens.busy} onClick={() => { setTaught(true); void lens.send({ question: c }, c); }}>{c}</button>)}</div>
+      {!taught && variant !== "embedded" && lens.chips.length > 0 && (
+        <div className="lens-teach" role="group" aria-label="Ideas to start with">
+          <div className="lens-chips">{lens.chips.map((c) => <button key={c.id} type="button" className="chip" disabled={lens.busy} onClick={() => { setTaught(true); void lens.send({ chip: c.id }, c.text); }}>{c.text}</button>)}</div>
+          {lens.more.length > 0 && (
+            <button type="button" className="view-all-link lens-more-ideas" aria-expanded={moreOpen} onClick={() => setMoreOpen((o) => !o)}>{moreOpen ? "Fewer ideas" : "More ideas"}</button>
+          )}
+          {moreOpen && <div className="lens-chips">{lens.more.map((c) => <button key={c.id} type="button" className="chip" disabled={lens.busy} onClick={() => { setTaught(true); void lens.send({ chip: c.id }, c.text); }}>{c.text}</button>)}</div>}
         </div>
       )}
       <form className="lens-input" onSubmit={submit}>

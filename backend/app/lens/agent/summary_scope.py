@@ -40,7 +40,8 @@ def resolve(env, scope: str) -> dict | None:
         return {"label": "the whole report", "ids": None, "lines": None, "whole": True}
     if t:
         items = [i for i in cat["items"].values() if i["tab"] == t and i["kind"] != "section"]
-        label = LABELS.get(t) or "the " + ve.TAB_NAMES[t].lower()
+        name = ve.TAB_NAMES[t].lower()
+        label = LABELS.get(t) or (name if name.startswith(("what", "how", "your")) else "the " + name)
         ids = {f for i in items for f in i.get("finding_ids") or []}
         if t in FACT_TABS:
             return {"label": label, "ids": ids, "lines": None, "whole": False}

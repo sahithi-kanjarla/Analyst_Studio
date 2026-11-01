@@ -621,6 +621,8 @@ def preview(result: dict, state: dict, cmds: list, cat: dict | None = None) -> d
     """None when the change touches no more than BULK items. Otherwise {"text", "explicit", "count"}: what would be kept, hidden and shown, in plain words, and the same change written as explicit ids
     (applying that is exactly what was previewed, whatever the AI said). Raises ViewError when the commands are not valid."""
     cat = cat or catalogue(result)
+    if any(isinstance(c, dict) and c.get("cmd") in ("undo", "reset") for c in cmds):
+        return None                      # going back is never previewed: it is the way out
     before = normalise(state)
     new, _ = apply_many(result, state, cmds, cat)
     hid = [i for i in new["hidden"] if i not in before["hidden"]]

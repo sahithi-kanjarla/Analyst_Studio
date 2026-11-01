@@ -12,7 +12,8 @@ const ok = (name, cond, detail) => { R[name] = { ok: !!cond, detail: detail === 
   await p.goto(base); await p.evaluate(() => localStorage.clear());
   await p.getByRole('button', { name: /Try with sample data/i }).first().click(); await p.waitForSelector('.report-page'); await p.waitForTimeout(800);
   const tab = async (name) => { await p.getByRole('button', { name: new RegExp('^' + name) }).first().click(); await p.waitForTimeout(700); };
-  const ask = async (t) => { if (!(await p.locator('.lens-input input').count())) { await p.locator('.lens-fab').click(); await p.waitForTimeout(400); } await p.locator('.lens-input input').first().fill(t); await p.locator('.lens-input button').first().click(); await p.waitForTimeout(1800); };
+  const applyIfPreview = async () => { const b = p.locator('.lens-bot').last().getByRole('button', { name: 'Apply this change' }); if (await b.count()) { await b.click(); await p.waitForTimeout(1500); } };
+  const ask = async (t) => { if (!(await p.locator('.lens-input input').count())) { await p.locator('.lens-fab').click(); await p.waitForTimeout(400); } await p.locator('.lens-input input').first().fill(t); await p.locator('.lens-input button').first().click(); await p.waitForTimeout(1800); await applyIfPreview(); };
   const vis = (sel) => p.locator(sel).evaluateAll(els => els.filter(e => e.offsetParent !== null).length);
 
   // 1. no controls at rest; short by default; no full/short buttons; no slim bar
@@ -47,9 +48,12 @@ const ok = (name, cond, detail) => { R[name] = { ok: !!cond, detail: detail === 
   await p.locator('.lens-focus-chip button').click(); await p.waitForTimeout(300);
   ok('removing_the_chip_clears_focus', (await p.locator('.lens-focus-chip').count()) === 0 && (await p.locator('.is-selected').count()) === 0);
 
-  // 6. teaching chips when the panel opens
-  const teach = await p.locator('.lens-teach .chip').allInnerTexts();
-  ok('editing_chips_taught', JSON.stringify(teach) === JSON.stringify(['Make this tab shorter', 'Hide the cleaning log', 'Show only the top 3 actions']), teach.join('|'));
+  // 6. few suggestions: at most 4 without an AI, chosen for the tab, with "More ideas"; gone after the first message
+  const starters = await p.locator('.lens-teach > .lens-chips .chip').allInnerTexts();
+  ok('first_open_chips_at_most_four_without_an_ai', starters.length >= 2 && starters.length <= 4, starters.join('|'));
+  ok('first_open_has_more_ideas_link', (await p.locator('.lens-more-ideas').count()) === 1);
+  await p.locator('.lens-more-ideas').first().click(); await p.waitForTimeout(200);
+  ok('more_ideas_reveals_more', (await p.locator('.lens-teach .lens-chips').count()) === 2);
 
   // 3/4/7. chat edits are visible on every tab, through the slim bar, with Undo and Reset
   const edits = [['data', 'hide the cleaned table', 'Your data', 'data:table:clean'], ['cleaning', 'hide the cleaning log', 'What we cleaned', 'cleaning:steps'], ['plan', 'hide how we analysed', 'How we analysed', 'plan:questions'],
@@ -83,6 +87,7 @@ const ok = (name, cond, detail) => { R[name] = { ok: !!cond, detail: detail === 
   ok('bar_gone_after_undo', (await vis('.view-bar.slim')) === 0);
 
   // 5/8. the answer menu and the brief
+  ok('starters_removed_after_the_first_message', (await p.locator('.lens-teach').count()) === 0);
   await ask('write a brief for the new hire about growth'); await p.waitForTimeout(500);
   const brief = p.locator('.lens-brief').last();
   const order = await brief.evaluate(el => { const q = el.querySelector('.lens-brief-quality'), h = el.querySelector('.lens-brief-head'); return !!q && !!h && !!(q.compareDocumentPosition(h) & Node.DOCUMENT_POSITION_FOLLOWING); });
@@ -109,6 +114,7 @@ const ok = (name, cond, detail) => { R[name] = { ok: !!cond, detail: detail === 
   const items = await ans.locator('[role=menuitem]').allInnerTexts();
   ok('answer_menu_has_the_actions', ['Expand', 'Pin to report', 'Pin to dashboard'].every(x => items.includes(x)) && items.some(x => /^Download/.test(x)), items.join('|'));
   ok('answer_keeps_thumbs_and_next_chips', (await ans.locator('.lens-thumbs').count()) === 1 && (await ans.locator('.lens-next .chip').count()) >= 1);
+  ok('at_most_three_next_chips', (await ans.locator('.lens-next .chip').count()) <= 3, await ans.locator('.lens-next .chip').count());
   await shot('lens-answer');
   ok('no_page_errors', errs.length === 0, errs.join('; '));
   await b.close();

@@ -177,7 +177,7 @@ def answer(wd, result: dict, spec: dict, question: str, tab_label: str, llm, ai_
     except ve.ViewError as e:
         how = howtext.record_how("Checked the requested view change against this report's items and refused it", ["this report's items and sections"], [], ["Nothing was changed."])
         return _a("view", f"{e}", "Not changed", how, chips, ai_calls + used, view={"changed": False}), chips, used, fail
-    changed = bool(ve.normalise(new)["history"]) and new is not ve.normalise(state) and ve._core(ve.normalise(new)) != ve._core(ve.normalise(state))
+    changed = ve._core(ve.normalise(new)) != ve._core(ve.normalise(state))          # an undo changes the view too (its history gets shorter)
     if view_state is None and changed:
         store.set_view_state(wd, new)
     text = " ".join(msgs)

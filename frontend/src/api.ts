@@ -139,6 +139,7 @@ export interface LensHow {
 export interface LensControls { chart_types: string[]; grains: string[]; can_top_n: boolean; chart: string }
 export interface LensChip { id: string; text: string }
 export interface LensAnswer {
+  more?: LensChip[];
   briefs?: Brief[];
   export?: { what: string; label: string; url: string; browser: boolean; text?: string };
   second_method?: { label: string; text: string; table: LensTable };
@@ -146,7 +147,7 @@ export interface LensAnswer {
   unmet?: boolean;
   feedback?: "up" | "down";
   agent?: { plan: { tool: string; args: Record<string, unknown> }[]; tools: string[]; steps: { n: number; tool: string; summary: string; ok: boolean }[]; calls: number };
-  view?: { changed: boolean; commands?: ViewCommand[]; undo?: boolean; state?: ViewState };
+  view?: { changed: boolean; commands?: ViewCommand[]; undo?: boolean; state?: ViewState; preview?: boolean; count?: number };
   focus?: { id: string; title: string };
   status: "answered" | "clarify" | "no_fit" | "unavailable" | "limit";
   /** data (default) | why | app | summary | priority | strategy | general | view */
@@ -172,7 +173,7 @@ export interface LensAnswer {
 export interface LensTurn { id: string; at: number; question: string; tab: string; answer: LensAnswer }
 export interface LensPin { id: string; turn_id: string; target: "report" | "dashboard"; title: string; text: string; table?: LensTable; chart?: LensChart; how?: LensHow; created: number }
 export interface LensView { name: string; title: string; lines: string[]; actions: string[]; fact_ids: string[]; from_turn: string; created: number }
-export interface LensInfo { enabled: boolean; ai: boolean; chips: LensChip[]; history: LensTurn[]; pins: LensPin[]; views?: Record<string, LensView>; limit: { asked: number; max: number } }
+export interface LensInfo { enabled: boolean; ai: boolean; chips: LensChip[]; more?: LensChip[]; history: LensTurn[]; pins: LensPin[]; views?: Record<string, LensView>; limit: { asked: number; max: number } }
 export interface ViewState { hidden: string[]; short: Record<string, boolean>; top_n: Record<string, number>; only_supporting: Record<string, boolean>; chart: Record<string, { chart?: string; grain?: string; n?: number }>; order: Record<string, string[]>; titles: Record<string, string>; pinned: string[]; history: unknown[] }
 export interface ViewTab { order: string[]; hidden: string[]; folded: string[]; short: boolean; top_n: number | null; only_supporting: boolean; items: string[]; sections: string[] }
 export interface ViewItemInfo { id: string; tab: string; kind: "section" | "card" | "chart" | "insight" | "action" | "strategy"; title: string; section: string | null; score?: number; changeable?: string[]; card?: string }
@@ -529,7 +530,7 @@ export const api = {
   briefDelete: (id: string, brief: string) => fetch(`/api/runs/${id}/briefs/${brief}`, { method: "DELETE" }).then((r) => json<{ deleted: string }>(r)),
   lensFeedback: (id: string, turn: string, vote: "up" | "down") =>
     fetch(`/api/runs/${id}/lens/feedback`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ turn, vote }) }).then((r) => json<{ recorded: string }>(r)),
-  lensInfo: (id: string) => fetch(`/api/runs/${id}/lens`).then((r) => json<LensInfo>(r)),
+  lensInfo: (id: string, tab = "") => fetch(`/api/runs/${id}/lens${tab ? `?tab=${encodeURIComponent(tab)}` : ""}`).then((r) => json<LensInfo>(r)),
   lensAsk: (id: string, body: LensAsk) =>
     fetch(`/api/runs/${id}/lens/ask`, { method: "POST", headers: JSON_HEADERS(), body: JSON.stringify(body) }).then((r) => json<LensTurn>(r)),
   lensPin: (id: string, turn: string, target: "report" | "dashboard") =>

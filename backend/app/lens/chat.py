@@ -369,9 +369,9 @@ def ask(wd: Path, result: dict, *, question: str = "", chip: str | None = None, 
         else:
             label, raw = _patch_label(s), {**base, **s}
     elif question:
-        gap = rules.margin_gap(question, ctx)
+        gap = None if agent.suggest.request_kind(question, ctx, df) == "view" else rules.margin_gap(question, ctx)        # a missing cost column is no reason to refuse a change to what is shown
         pool = chipmod.start(ctx, df, result) + _starter_intents(result) + [{"id": k, **v} for k, v in store.load(wd)["chips"].items()]
-        hit = match_chip(question, pool)
+        hit = match_chip(question, [c for c in pool if (c.get("intent") or {}).get("kind") != "view_cmd"])         # typed words that read like a change to the view mean the tab that is open now, not the one a chip was made for
         found = (hit or {}).get("intent") or (None if ai_ok else rules.route(question))          # plain-word routing is the no-AI fallback; with an AI the planner decides
         if not ai_ok and not (hit or {}).get("intent"):           # "show the cleaning log" when it is hidden is a view change, not a question about cleaning
             hid = viewedit.normalise(view_state if view_state is not None else store.get_view_state(wd))["hidden"]

@@ -14,6 +14,7 @@ export interface LensApi {
   saveShort: (turn: string) => Promise<void>;
   removeShort: () => Promise<void>;
   chips: LensChip[];
+  more: LensChip[];
   busy: boolean;
   pending: string;
   error: string;
@@ -40,6 +41,7 @@ export function LensProvider({ runId, children }: { runId: string; children: Rea
   const [turns, setTurns] = useState<LensTurn[]>([]);
   const [pins, setPins] = useState<LensPin[]>([]);
   const [shortView, setShortView] = useState<LensView | null>(null);
+  const [starters, setStarters] = useState<{ chips: LensChip[]; more: LensChip[] }>({ chips: [], more: [] });
   const [busy, setBusy] = useState(false);
   const [pending, setPending] = useState("");
   const [error, setError] = useState("");
@@ -78,6 +80,13 @@ export function LensProvider({ runId, children }: { runId: string; children: Rea
     }).catch(() => alive && setInfo(null));
     return () => { alive = false; };
   }, [runId]);
+
+  useEffect(() => {
+    // the opening suggestions are chosen for the tab that is open: a few, with the rest behind "More ideas"
+    let alive = true;
+    api.lensInfo(runId, tabName).then((i) => alive && setStarters({ chips: i.chips ?? [], more: i.more ?? [] })).catch(() => undefined);
+    return () => { alive = false; };
+  }, [runId, tabName]);
 
   const send = useCallback(async (body: LensAsk, label: string) => {
     setBusy(true);
@@ -133,9 +142,9 @@ export function LensProvider({ runId, children }: { runId: string; children: Rea
   }, [runId]);
 
   const value = useMemo<LensApi>(() => ({
-    runId, info, enabled: !!info?.enabled, ai: !!info?.ai, turns, pins, shortView, saveShort, removeShort, chips: info?.chips ?? [], busy, pending, error, open, expanded, tabName, focus, setFocus,
+    runId, info, enabled: !!info?.enabled, ai: !!info?.ai, turns, pins, shortView, saveShort, removeShort, chips: starters.chips, more: starters.more, busy, pending, error, open, expanded, tabName, focus, setFocus,
     setOpen, setExpanded, setTabName, send, pin, unpin, pinOf: (turn, target) => pins.find((p) => p.turn_id === turn && p.target === target),
-  }), [runId, info, turns, pins, shortView, saveShort, removeShort, busy, pending, error, open, expanded, tabName, focus, send, pin, unpin]);
+  }), [runId, info, starters, turns, pins, shortView, saveShort, removeShort, busy, pending, error, open, expanded, tabName, focus, send, pin, unpin]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
