@@ -3,9 +3,12 @@ import LensAnswerView from "./LensAnswer";
 import { useLens } from "./LensContext";
 
 /** The conversation: history, the input and the suggested questions. Used by the side panel, the bottom sheet and the full-width Chat tab (one shared state). */
+const EDIT_CHIPS = ["Make this tab shorter", "Hide the cleaning log", "Show only the top 3 actions"];
+
 export default function LensChat({ variant }: { variant: "panel" | "tab" | "embedded" }) {
   const lens = useLens();
   const [q, setQ] = useState("");
+  const [taught, setTaught] = useState(false);          // the editing chips are shown until the first thing is sent in this visit
   const list = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLInputElement>(null);
   const n = lens?.turns.length ?? 0;
@@ -24,6 +27,7 @@ export default function LensChat({ variant }: { variant: "panel" | "tab" | "embe
     const t = q.trim();
     if (!t || lens.busy) return;
     setQ("");
+    setTaught(true);
     void lens.send({ question: t }, t);
   };
   const limit = lens.info?.limit;
@@ -57,6 +61,12 @@ export default function LensChat({ variant }: { variant: "panel" | "tab" | "embe
             <button type="button" aria-label="Remove focus" onClick={() => lens.setFocus(null)}>✕</button>
           </span>
           <span className="muted lens-small">Questions are answered about this item until you remove it.</span>
+        </div>
+      )}
+      {!taught && variant !== "embedded" && (
+        <div className="lens-teach" role="group" aria-label="Change what you see by asking">
+          <span className="muted lens-small">Change what you see by asking:</span>
+          <div className="lens-chips">{EDIT_CHIPS.map((c) => <button key={c} type="button" className="chip" disabled={lens.busy} onClick={() => { setTaught(true); void lens.send({ question: c }, c); }}>{c}</button>)}</div>
         </div>
       )}
       <form className="lens-input" onSubmit={submit}>

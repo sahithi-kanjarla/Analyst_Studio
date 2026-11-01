@@ -361,6 +361,10 @@ def ask(wd: Path, result: dict, *, question: str = "", chip: str | None = None, 
         pool = chipmod.start(ctx, df, result) + _starter_intents(result) + [{"id": k, **v} for k, v in store.load(wd)["chips"].items()]
         hit = match_chip(question, pool)
         found = (hit or {}).get("intent") or (None if ai_ok else rules.route(question))          # plain-word routing is the no-AI fallback; with an AI the planner decides
+        if not ai_ok and not (hit or {}).get("intent"):           # "show the cleaning log" when it is hidden is a view change, not a question about cleaning
+            hid = viewedit.normalise(view_state if view_state is not None else store.get_view_state(wd))["hidden"]
+            if hid and viewchat.toggle_cmds(question, viewedit.catalogue(result), hid):
+                found = {"kind": "view"}
         if not found and not ai_ok and focus_ctx and viewchat.parse_rules(question, tab, viewedit.catalogue(result), focus_ctx["id"]) is not None:
             found = {"kind": "view"}          # "hide this", "pin it", "rename this to ...", "show it as a line": a change to the item in focus
         if not found and not ai_ok and rules.asks_choice(question) and _last_turn_kind(wd) in ("strategy",):

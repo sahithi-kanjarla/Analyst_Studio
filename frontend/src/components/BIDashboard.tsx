@@ -4,7 +4,7 @@ import FindingGallery from "./FindingGallery";
 import InsightCard from "./InsightCard";
 import { Columns, Donut, HBar, Item, PALETTE } from "./charts";
 import LensPins from "./lens/LensPins";
-import { Sections, TabViewBar } from "./view/ViewUI";
+import { Sections, ShowAllLink, TabViewBar } from "./view/ViewUI";
 
 interface Row {
   d: Record<string, string | null>;
@@ -349,6 +349,7 @@ export default function BIDashboard({ run }: { run: RunResult }) {
           </>
         ),
       }} />
+      <ShowAllLink tab="dashboard" />
       <LensPins target="dashboard" />
       {data.sampled && <p className="bi-muted small">Large dataset: the dashboard uses a random sample of {data.rows.length.toLocaleString()} of {data.total_rows.toLocaleString()} rows. Download the full cleaned data from the Data tab.</p>}
 

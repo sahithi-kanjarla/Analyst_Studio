@@ -13,7 +13,7 @@ import Md from "./Md";
 import ReportPage from "./ReportPage";
 import LensChat from "./lens/LensChat";
 import { useLens } from "./lens/LensContext";
-import { TabViewBar } from "./view/ViewUI";
+import { ShowAllLink, TabViewBar, ViewItem } from "./view/ViewUI";
 import { useView } from "./view/ViewContext";
 
 const TABS: { id: Tab; label: string }[] = (["report", "dashboard", "insights", "strategy", "data", "model", "cleaning", "plan", "powerbi", "chat"] as Tab[]).map((id) => ({ id, label: TAB_LABEL[id] }));
@@ -102,10 +102,11 @@ export function ReportBody({ md }: { md: string }) {
 /** The cleaning log: every change made to the data, with the rows or values it touched. Used by the results tabs and the landing tour. */
 export function CleaningLog({ run }: { run: RunResult }) {
   const v = useView();
-  const shown = (run.cleaning_log ?? []).map((s, i) => ({ s, i })).filter(({ i }) => !v?.isHidden(`cleaning:step:${i}`));
+  const shown = (run.cleaning_log ?? []).map((s, i) => ({ s, i })).filter(({ i }) => !v?.isHidden(`cleaning:step:${i}`) && !v?.isFolded(`cleaning:step:${i}`));
   return (
     <>
     <TabViewBar tab="cleaning" />
+    <ViewItem id="cleaning:steps" tag="section" className="view-section">
 <table className="table">
     <thead>
       <tr>
@@ -129,6 +130,8 @@ export function CleaningLog({ run }: { run: RunResult }) {
       )}
     </tbody>
   </table>
+    </ViewItem>
+    <ShowAllLink tab="cleaning" />
     </>
   );
 }
@@ -140,16 +143,21 @@ export function PlanView({ run }: { run: RunResult }) {
   return (
 <div className="plan">
     <TabViewBar tab="plan" />
+    <ViewItem id="plan:setup" tag="section" className="view-section">
     <p>
       <strong>Plan made by:</strong> {run.plan.source === "llm" || run.plan.source === "repaired" ? "the AI" : "our built-in rules"} · <strong>Number we focus on:</strong> {run.plan.target ?? "none"} ·{" "}
       <strong>Date used:</strong> {run.plan.date_col ?? "none"}
     </p>
+    </ViewItem>
+    <ViewItem id="plan:questions" tag="section" className="view-section">
     <h4>Questions we set out to answer</h4>
     <ul>{run.plan.questions.map((q, i) => !v?.isHidden(`plan:question:${i}`) && <li key={q} data-view-id={`plan:question:${i}`}>{q}</li>)}</ul>
+    </ViewItem>
+    <ViewItem id="plan:analyses" tag="section" className="view-section">
     <h4>What we checked, and why</h4>
     <p className="muted">Some checks were suggested by the AI. Others were added by code because they are always needed.</p>
     <ol>
-      {run.plan.analyses.map((a, i) => !v?.isHidden(`plan:analysis:${i}`) && (
+      {run.plan.analyses.map((a, i) => !v?.isHidden(`plan:analysis:${i}`) && !v?.isFolded(`plan:analysis:${i}`) && (
         <li key={i} data-view-id={`plan:analysis:${i}`}>
           <strong>{a.tool.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase())}</strong> {Object.values(a.params).flat().map(String).join(", ")}
           {a.origin && <span className="muted"> · <strong>{ORIGIN_LABEL[a.origin]}</strong></span>}
@@ -157,6 +165,8 @@ export function PlanView({ run }: { run: RunResult }) {
         </li>
       ))}
     </ol>
+    </ViewItem>
+    <ShowAllLink tab="plan" />
     {run.decisions && run.decisions.length > 0 && (
       <>
         <h4>Choices made along the way</h4>
@@ -182,14 +192,15 @@ export function PlanView({ run }: { run: RunResult }) {
 
 /** One tab's content. The results page and the start page tour both render it, so the tour always shows the real screen. */
 export function TabBody({ run, tab, embedded = false, startChat = false, startPrint = false }: { run: RunResult; tab: Tab; embedded?: boolean; startChat?: boolean; startPrint?: boolean }) {
+  const vw = useView();
   const ranked = [...(run.findings ?? [])].filter((f) => f.insight).sort((a, b) => (b.insight!.score - a.insight!.score));
   return (
     <>
       {tab === "dashboard" && <BIDashboard run={run} />}
 
-      {tab === "chat" && <LensChat variant="tab" />}
+      {tab === "chat" && <><TabViewBar tab="chat" /><ViewItem id="chat:conversation" tag="section" className="view-section"><LensChat variant="tab" /></ViewItem></>}
 
-      {tab === "data" && <DataViewer runId={run.run_id} />}
+      {tab === "data" && <><TabViewBar tab="data" /><ViewItem id="data:table:clean" tag="section" className="view-section"><DataViewer runId={run.run_id} /></ViewItem></>}
 
       {tab === "report" && <ReportPage run={run} embedded={embedded} startChat={startChat} startPrint={startPrint} />}
 
@@ -205,7 +216,7 @@ export function TabBody({ run, tab, embedded = false, startChat = false, startPr
         <StrategyView strategies={run.report_view?.strategies.strategies ?? run.strategies} foundation={run.report_view?.strategies.foundation} dropped={run.report_view?.strategies.dropped ?? 0} summary={run.strategy_summary ?? ""} gaps={run.data_gaps ?? []} findings={run.findings ?? []} />
       )}
 
-      {tab === "model" && run.data_model && <DataModel model={run.data_model} />}
+      {tab === "model" && run.data_model && <><TabViewBar tab="model" /><ViewItem id="model:links" tag="section" className="view-section"><DataModel model={run.data_model} /></ViewItem></>}
 
       {tab === "cleaning" && <CleaningLog run={run} />}
 
@@ -213,11 +224,13 @@ export function TabBody({ run, tab, embedded = false, startChat = false, startPr
 
       {tab === "powerbi" && run.powerbi && (
         <div className="powerbi">
+          <TabViewBar tab="powerbi" />
+          <ViewItem id="powerbi:pack" tag="section" className="view-section">
           <p>
             The pack contains <code>{run.powerbi.files.join("</code>, <code>")}</code>. Open <code>POWERBI_GUIDE.md</code> first: load the CSV in Power BI Desktop, paste the measures, apply the theme, then build the visuals below.
           </p>
           <h4>DAX measures</h4>
-          <pre>{run.powerbi.measures.join("\n\n")}</pre>
+          <pre>{run.powerbi.measures.filter((_, i) => !vw?.isHidden(`powerbi:measure:${i}`) && !vw?.isFolded(`powerbi:measure:${i}`)).join("\n\n")}</pre>
           <h4>Suggested visuals</h4>
           <table className="table">
             <thead>
@@ -229,6 +242,8 @@ export function TabBody({ run, tab, embedded = false, startChat = false, startPr
               ))}
             </tbody>
           </table>
+          </ViewItem>
+          <ShowAllLink tab="powerbi" />
         </div>
       )}
     </>

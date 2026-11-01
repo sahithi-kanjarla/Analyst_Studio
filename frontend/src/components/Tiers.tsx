@@ -1,6 +1,6 @@
 import { GoalAnswer, ReportView } from "../api";
 import ReportCard from "./ReportCard";
-import { Sections, ShowMore, TabViewBar, ViewItem, ViewTitle } from "./view/ViewUI";
+import { Sections, ShowAllLink, ShowMore, TabViewBar, ViewItem, ViewTitle } from "./view/ViewUI";
 import { useView } from "./view/ViewContext";
 
 /** The Insights tab in three tiers: the answer, the evidence (full cards), and an appendix that stays folded until opened.
@@ -26,7 +26,7 @@ export default function Tiers({ view, goalAnswer }: { view: ReportView; goalAnsw
             <h5>Headline findings</h5>
             <ul className="tight">
               <ShowMore tab="insights" items={view.headlines.map((h) => ({ id: `insights:headline:${h.id}`, node: (
-                <ViewItem key={h.id} id={`insights:headline:${h.id}`} tag="li" inline><span title={`Reference ${h.id}`}>{h.text}</span></ViewItem>) }))} />
+                <ViewItem key={h.id} id={`insights:headline:${h.id}`} tag="li"><span title={`Reference ${h.id}`}>{h.text}</span></ViewItem>) }))} />
             </ul>
           </>
         )}
@@ -35,7 +35,7 @@ export default function Tiers({ view, goalAnswer }: { view: ReportView; goalAnsw
             <h5>What to do</h5>
             <ul className="tight">
               <ShowMore tab="insights" items={view.actions.map((a, i) => ({ id: `insights:action:${i}`, node: (
-                <ViewItem key={i} id={`insights:action:${i}`} tag="li" inline askLens={false}><span title={a.evidence.length ? `Based on ${a.evidence.join(", ")}` : undefined}>{a.text}</span></ViewItem>) }))} />
+                <ViewItem key={i} id={`insights:action:${i}`} tag="li"><span title={a.evidence.length ? `Based on ${a.evidence.join(", ")}` : undefined}>{a.text}</span></ViewItem>) }))} />
             </ul>
           </>
         )}
@@ -54,7 +54,7 @@ export default function Tiers({ view, goalAnswer }: { view: ReportView; goalAnsw
         {heading("insights:checked", "Checked, nothing found")}
         <ul className="tight">
           <ShowMore tab="insights" items={view.checked.map((c) => ({ id: `insights:checked:${c.id}`, node: (
-            <ViewItem key={c.id} id={`insights:checked:${c.id}`} tag="li" inline askLens={false}><span title={`Reference ${c.id}`}>{c.line}{c.check ? ` ${c.check}` : ""}</span></ViewItem>) }))} />
+            <ViewItem key={c.id} id={`insights:checked:${c.id}`} tag="li"><span title={`Reference ${c.id}`}>{c.line}{c.check ? ` ${c.check}` : ""}</span></ViewItem>) }))} />
         </ul>
       </section>
     ) : <></>,
@@ -83,6 +83,7 @@ export default function Tiers({ view, goalAnswer }: { view: ReportView; goalAnsw
     <div className="tiers">
       <TabViewBar tab="insights" />
       <Sections tab="insights" selfTitled={["insights:answer", "insights:evidence", "insights:checked", "insights:appendix"]} nodes={nodes} />
+      <ShowAllLink tab="insights" />
     </div>
   );
 }

@@ -48,15 +48,18 @@ def _tab(question: str, current: str) -> str:
     for t, rx in TAB_WORDS:
         if re.search(rx, question, re.I):
             return t
-    c = (current or "").lower()
-    return "strategy" if "idea" in c else c if c in ve.TABS else "report"
+    c = (current or "").strip().lower()
+    for t, n in ve.TAB_NAMES.items():
+        if c in (t, n.lower()):
+            return t
+    return "strategy" if "idea" in c else "report"
 
 
 def _num(tok: str) -> int | None:
     return int(tok) if tok.isdigit() else NUMBER_WORDS.get(tok.lower())
 
 
-def parse_rules(question: str, tab_label: str, cat: dict, focus: str | None) -> list[dict] | None:
+def parse_rules(question: str, tab_label: str, cat: dict, focus: str | None, hidden: list[str] | None = None) -> list[dict] | None:
     """Commands for plain phrases, or None. Only phrases that clearly say one of the closed commands are read; anything else is left to the AI or to the chips."""
     q = " ".join((question or "").split())
     if UNDO.search(q):
@@ -88,6 +91,10 @@ def parse_rules(question: str, tab_label: str, cat: dict, focus: str | None) -> 
             return [{"cmd": "show", "id": f["id"]}]
     elif HIDE.search(q) and re.search(r"\b(?:this|that)\s+(?:\w+\s+){0,2}(?:chart|graph|card|insight|idea|action|section|tile|tab|page)\b", q, re.I):
         return []           # "remove this chart" with no chart in focus: ask which one (the chips explain how)
+    if not f:
+        tg = toggle_cmds(q, cat, hidden or [])
+        if tg is not None:
+            return tg                       # hide or show something named in the user's words (a [] means nothing matched: ask which)
     if NEEDED.search(q):
         cmds.append({"cmd": "only_supporting", "tab": tab, "on": True})
     if m := TOPN.search(q):
@@ -126,7 +133,8 @@ def answer(wd, result: dict, spec: dict, question: str, tab_label: str, llm, ai_
     cmds = spec.get("commands") if isinstance(spec.get("commands"), list) else spec.get("cmds") if isinstance(spec.get("cmds"), list) else None
     used, fail, source = 0, "", "the AI's command" if cmds is not None else ""
     if cmds is None:
-        cmds, source = parse_rules(question, tab_label, cat, focus), "a plain-words rule"          # plain phrases need no AI: cheaper, and the same every time
+        hidden = ve.normalise(view_state if view_state is not None else store.get_view_state(wd))["hidden"]
+        cmds, source = parse_rules(question, tab_label, cat, focus, hidden), "a plain-words rule"          # plain phrases need no AI: cheaper, and the same every time
     styling = cmds is None and rules.wants_view_change(question)           # colours, fonts, layout, dark mode: not a view change that exists, and no AI call is needed to say so
     if cmds is None and not styling and ai_ok and llm is not None and question:
         obj, used, fail = ask_ai(llm, question, _tab("", tab_label), cat, focus)

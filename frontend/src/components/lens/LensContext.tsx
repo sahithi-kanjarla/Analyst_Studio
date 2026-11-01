@@ -56,6 +56,18 @@ export function LensProvider({ runId, children }: { runId: string; children: Rea
   tab.current = tabName;
 
   useEffect(() => {
+    // clicking anywhere except a selectable item or Lens itself clears the focus
+    const on = (e: MouseEvent) => {
+      const t = e.target as Element | null;
+      if (!t || !t.closest) return;
+      if (t.closest("[data-focusable],.lens-panel,.lens-fab,.lens-chat,.dialog-back,.modal")) return;
+      setFocus(null);
+    };
+    document.addEventListener("click", on);
+    return () => document.removeEventListener("click", on);
+  }, []);
+
+  useEffect(() => {
     let alive = true;
     api.lensInfo(runId).then((i) => {
       if (!alive) return;

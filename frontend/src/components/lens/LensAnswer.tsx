@@ -40,33 +40,93 @@ export function LensHowView({ how }: { how: LensHow }) {
   );
 }
 
-/** One brief, in its fixed layout: headline, key figures, recommendations, charts, then the data-quality note (always shown, with the trust label). */
-export function BriefView({ b, runId, busy, onAsk }: { b: Brief; runId: string; busy: boolean; onAsk: (q: string) => void }) {
+/** One brief: the trust label and the data-quality note first, then the headline, key figures, recommendations and charts. One primary action (Download PDF) and one secondary (the ⋯ menu:
+ *  Copy as text, Rename, Edit, Delete). An edited line is labelled "Edited by you"; the data-quality note cannot be edited. */
+export function BriefView({ b: first, runId }: { b: Brief; runId: string; busy?: boolean; onAsk?: (q: string) => void }) {
+  const [b, setB] = useState<Brief>(first);
+  const [menu, setMenu] = useState(false);
+  const [mode, setMode] = useState<"" | "rename" | "edit">("");
+  const [title, setTitle] = useState(first.title);
+  const [draft, setDraft] = useState<Record<string, string>>({});
+  const [gone, setGone] = useState(false);
+  const [err, setErr] = useState("");
   const mark = (x: { edited?: boolean }) => (x.edited ? <small className="view-edited"> Edited by you</small> : null);
+  if (gone) return <p className="muted lens-small">Deleted “{b.title}”. The report itself is unchanged.</p>;
   const copy = async () => {
+    setMenu(false);
     try {
       const r = await fetch(`/api/runs/${runId}/export/text?brief=${b.id}`);
       await navigator.clipboard.writeText(await r.text());
     } catch {
-      /* clipboard can be blocked: the text link still works */
+      /* clipboard can be blocked */
     }
   };
+  const rename = async () => {
+    try {
+      setB(await api.briefRename(runId, b.id, title));
+      setMode("");
+      setErr("");
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Could not rename.");
+    }
+  };
+  const lines: { key: string; section: string; index: number | null; text: string }[] = [
+    ...(b.headline ? [{ key: "headline", section: "headline", index: null, text: b.headline.text }] : []),
+    ...b.key_figures.map((x, i) => ({ key: `key_figures:${i}`, section: "key_figures", index: i, text: x.text })),
+    ...b.recommendations.map((x, i) => ({ key: `recommendations:${i}`, section: "recommendations", index: i, text: x.text })),
+  ];
+  const save = async () => {
+    try {
+      let cur = b;
+      for (const l of lines) {
+        const v = draft[l.key];
+        if (v !== undefined && v.trim() && v.trim() !== l.text) cur = await api.briefEdit(runId, b.id, l.section, l.index, v.trim());
+      }
+      setB(cur);
+      setMode("");
+      setDraft({});
+      setErr("");
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Could not save.");
+    }
+  };
+  const field = (key: string, text: string) => <textarea className="lens-brief-edit" aria-label="Edit this line" rows={2} maxLength={300} value={draft[key] ?? text} onChange={(e) => setDraft((d) => ({ ...d, [key]: e.target.value }))} />;
+  const editing = mode === "edit";
   return (
     <article className="lens-brief">
-      <h4>{b.title}{b.source !== "ai" && <small className="muted"> · from the report's own sentences</small>}</h4>
-      {b.no_info ? <p className="lens-brief-head">{b.no_info}</p> : b.headline && <p className="lens-brief-head">{b.headline.text}{mark(b.headline)}</p>}
-      {b.key_figures.length > 0 && <ul className="lens-brief-figs">{b.key_figures.map((x, i) => <li key={i}>{x.text}{mark(x)}</li>)}</ul>}
-      {b.recommendations.length > 0 && (<><h5>What to do</h5><ol>{b.recommendations.map((x, i) => <li key={i}>{x.text}{mark(x)}</li>)}</ol></>)}
-      {b.charts.map((c) => <figure key={c.path}><img src={`/api/runs/${runId}/files/${c.path}`} alt={c.title} loading="lazy" /><figcaption className="muted lens-small">{c.title}</figcaption></figure>)}
+      <header className="lens-brief-top">
+        {mode === "rename" ? (
+          <form className="lens-brief-rename" onSubmit={(e) => { e.preventDefault(); void rename(); }}>
+            <input aria-label="New title" value={title} maxLength={90} onChange={(e) => setTitle(e.target.value)} />
+            <button className="chip" disabled={!title.trim()}>Save</button>
+            <button type="button" className="chip" onClick={() => setMode("")}>Cancel</button>
+          </form>
+        ) : <h4>{b.title}{b.title_edited && <small className="view-edited"> Edited by you</small>}{b.source !== "ai" && <small className="muted"> · from the report's own sentences</small>}</h4>}
+        <div className="lens-brief-actions no-print">
+          <a className="btn-primary lens-export" href={`/api/runs/${runId}/export/brief?brief=${b.id}`}>Download PDF</a>
+          <div className="lens-menu-wrap">
+            <button type="button" className="lens-more" aria-label="More actions for this brief" aria-haspopup="menu" aria-expanded={menu} onClick={() => setMenu((m) => !m)}>⋯</button>
+            {menu && (
+              <div className="lens-menu" role="menu">
+                <button role="menuitem" className="lens-menu-item" onClick={() => void copy()}>Copy as text</button>
+                <button role="menuitem" className="lens-menu-item" onClick={() => { setMode("rename"); setMenu(false); }}>Rename</button>
+                <button role="menuitem" className="lens-menu-item" onClick={() => { setMode("edit"); setMenu(false); }}>Edit</button>
+                <button role="menuitem" className="lens-menu-item" onClick={() => { setMenu(false); void api.briefDelete(runId, b.id).then(() => setGone(true)).catch(() => setErr("Could not delete.")); }}>Delete</button>
+              </div>
+            )}
+          </div>
+        </div>
+      </header>
       <div className="lens-brief-quality" role="note">
-        <strong>Data quality · How sure we are: {b.quality.trust}</strong>
+        <strong>How sure we are: {b.quality.trust}</strong>
         {b.quality.notes.length > 0 && <ul>{b.quality.notes.map((n, i) => <li key={i}>{n}</li>)}</ul>}
       </div>
-      <div className="msg-tools lens-tools no-print">
-        <a className="link" href={`/api/runs/${runId}/export/brief?brief=${b.id}`}>Download PDF</a>
-        <button className="link" onClick={copy}>Copy as text</button>
-        <button className="link" disabled={busy} onClick={() => onAsk(`delete the ${b.title} brief`)}>Delete</button>
-      </div>
+      {b.no_info ? <p className="lens-brief-head">{b.no_info}</p> : b.headline && (editing ? field("headline", b.headline.text) : <p className="lens-brief-head">{b.headline.text}{mark(b.headline)}</p>)}
+      {b.key_figures.length > 0 && <ul className="lens-brief-figs">{b.key_figures.map((x, i) => <li key={i}>{editing ? field(`key_figures:${i}`, x.text) : <>{x.text}{mark(x)}</>}</li>)}</ul>}
+      {b.recommendations.length > 0 && (<><h5>What to do</h5><ol>{b.recommendations.map((x, i) => <li key={i}>{editing ? field(`recommendations:${i}`, x.text) : <>{x.text}{mark(x)}</>}</li>)}</ol></>)}
+      {editing && <div className="lens-brief-actions no-print"><button className="chip" onClick={() => void save()}>Save changes</button><button className="chip" onClick={() => { setMode(""); setDraft({}); }}>Cancel</button></div>}
+      {err && <p className="error" role="alert">{err}</p>}
+      {b.charts.map((c) => <figure key={c.path}><img src={`/api/runs/${runId}/files/${c.path}`} alt={c.title} loading="lazy" /><figcaption className="muted lens-small">{c.title}</figcaption></figure>)}
     </article>
   );
 }
@@ -105,19 +165,16 @@ export default function LensAnswerView({ turn, last }: { turn: LensTurn; last: b
   const view = useView();
   const a = turn.answer;
   const [big, setBig] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   if (!lens) return null;
   const hasPic = !!a.chart?.path;
   const fix = (set: Record<string, unknown>, label: string) => lens.send({ patch: { turn: turn.id, set } }, label);
-  const pinBtn = (target: "report" | "dashboard", label: string) => {
-    const p = lens.pinOf(turn.id, target);
-    return <button className="link" aria-pressed={!!p} onClick={() => (p ? lens.unpin(p.id) : lens.pin(turn.id, target))}>{p ? `Unpin from ${target}` : label}</button>;
-  };
   return (
     <div className={`lens-msg lens-bot lens-${a.status}`}>
       {a.label && <p className="lens-badge">{a.label}</p>}
       {a.focus && <p className="muted lens-small lens-about">About: {a.focus.title}</p>}
       <p className="lens-text">{a.status === "clarify" ? a.clarify?.question : a.text}</p>
-      {a.briefs && a.briefs.length > 0 && <div className="lens-briefs">{a.briefs.map((b) => <BriefView key={b.id} b={b} runId={lens.runId} busy={lens.busy} onAsk={(q) => lens.send({ question: q }, q)} />)}</div>}
+      {a.briefs && a.briefs.length > 0 && <div className="lens-briefs">{a.briefs.map((b) => <BriefView key={b.id} b={b} runId={lens.runId} />)}</div>}
       {a.briefs && a.briefs.length > 1 && <div className="msg-tools lens-tools no-print"><a className="link" href={`/api/runs/${lens.runId}/export/all_briefs`}>Download all briefs (zip of PDFs)</a></div>}
       {a.export && (
         <div className="msg-tools lens-tools no-print">
@@ -161,33 +218,38 @@ export default function LensAnswerView({ turn, last }: { turn: LensTurn; last: b
           {hasPic ? <Picture chart={a.chart!} text={a.text} onOpen={() => setBig(true)} /> : <LensTableView table={a.table} />}
           {a.chart?.note && <p className="muted lens-small">{a.chart.note}</p>}
           {a.how && <details className="lens-details"><summary>How this was calculated</summary><LensHowView how={a.how} /></details>}
-          {a.controls && (
-            <details className="lens-details">
-              <summary>Change the chart</summary>
-              <div className="lens-controls">
-                <div role="group" aria-label="Chart type"><span className="lens-label">Show as</span>
-                  {a.controls.chart_types.map((c) => <button key={c} className={`chip ${a.controls!.chart === c ? "chip-on" : ""}`} aria-pressed={a.controls!.chart === c} disabled={lens.busy || a.controls!.chart === c} onClick={() => fix({ chart: c }, `Show as ${CHART_LABEL[c]?.toLowerCase() ?? c}`)}>{CHART_LABEL[c] ?? c}</button>)}
-                </div>
-                {a.controls.grains.length > 0 && (
-                  <div role="group" aria-label="Time grain"><span className="lens-label">Group by</span>
-                    {a.controls.grains.map((g) => <button key={g} className={`chip ${a.query?.grain === g ? "chip-on" : ""}`} aria-pressed={a.query?.grain === g} disabled={lens.busy || a.query?.grain === g} onClick={() => fix({ grain: g }, `${GRAIN_LABEL[g]} view`)}>{GRAIN_LABEL[g]}</button>)}
-                  </div>
-                )}
-                {a.controls.can_top_n && (
-                  <div role="group" aria-label="How many to show"><span className="lens-label">Show</span>
-                    {[3, 5, 10, 20].map((n) => <button key={n} className={`chip ${a.query?.n === n ? "chip-on" : ""}`} aria-pressed={a.query?.n === n} disabled={lens.busy || a.query?.n === n} onClick={() => fix({ n }, `Show ${n}`)}>{n}</button>)}
+          <div className="lens-menu-wrap no-print">
+            <button type="button" className="lens-more" aria-label="More actions for this answer" aria-haspopup="menu" aria-expanded={menuOpen} onClick={() => setMenuOpen((o) => !o)}>⋯</button>
+            {menuOpen && (
+              <div className="lens-menu" role="menu">
+                <button role="menuitem" className="lens-menu-item" onClick={() => { setBig(true); setMenuOpen(false); }}>Expand</button>
+                {(["report", "dashboard"] as const).map((t) => {
+                  const p = lens.pinOf(turn.id, t);
+                  return <button key={t} role="menuitem" className="lens-menu-item" onClick={() => { void (p ? lens.unpin(p.id) : lens.pin(turn.id, t)); setMenuOpen(false); }}>{p ? `Unpin from ${t}` : `Pin to ${t}`}</button>;
+                })}
+                {hasPic
+                  ? <a role="menuitem" className="lens-menu-item" href={a.chart!.url} download={`lens-${turn.id}.png`}>Download image</a>
+                  : <a role="menuitem" className="lens-menu-item" href={`data:text/csv;charset=utf-8,${encodeURIComponent(csv(a.table))}`} download={`lens-${turn.id}.csv`}>Download table</a>}
+                {a.controls && (
+                  <div className="lens-controls" role="group" aria-label="Change the chart">
+                    <span className="lens-label">Change the chart</span>
+                    <div role="group" aria-label="Chart type">
+                      {a.controls.chart_types.map((c) => <button key={c} className={`chip ${a.controls!.chart === c ? "chip-on" : ""}`} aria-pressed={a.controls!.chart === c} disabled={lens.busy || a.controls!.chart === c} onClick={() => { setMenuOpen(false); void fix({ chart: c }, `Show as ${CHART_LABEL[c] ?? c}`); }}>{CHART_LABEL[c] ?? c}</button>)}
+                    </div>
+                    {a.controls.grains.length > 0 && (
+                      <div role="group" aria-label="Time grain">
+                        {a.controls.grains.map((g) => <button key={g} className={`chip ${a.query?.grain === g ? "chip-on" : ""}`} aria-pressed={a.query?.grain === g} disabled={lens.busy || a.query?.grain === g} onClick={() => { setMenuOpen(false); void fix({ grain: g }, `${GRAIN_LABEL[g]} view`); }}>{GRAIN_LABEL[g]}</button>)}
+                      </div>
+                    )}
+                    {a.controls.can_top_n && (
+                      <div role="group" aria-label="How many to show">
+                        {[3, 5, 10, 20].map((n) => <button key={n} className={`chip ${a.query?.n === n ? "chip-on" : ""}`} aria-pressed={a.query?.n === n} disabled={lens.busy || a.query?.n === n} onClick={() => { setMenuOpen(false); void fix({ n }, `Show ${n}`); }}>{n}</button>)}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
-            </details>
-          )}
-          <div className="msg-tools lens-tools no-print">
-            <button className="link" onClick={() => setBig(true)}>Expand</button>
-            {pinBtn("report", "Pin to report")}
-            {pinBtn("dashboard", "Pin to dashboard")}
-            {hasPic
-              ? <a className="link" href={a.chart!.url} download={`lens-${turn.id}.png`}>Download image</a>
-              : <a className="link" href={`data:text/csv;charset=utf-8,${encodeURIComponent(csv(a.table))}`} download={`lens-${turn.id}.csv`}>Download table</a>}
+            )}
           </div>
           {big && (
             <Dialog title={turn.question} intro={a.text} onClose={() => setBig(false)} wide>

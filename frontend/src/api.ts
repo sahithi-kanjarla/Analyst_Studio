@@ -113,7 +113,7 @@ export interface LensTable { columns: string[]; rows: (string | number | null)[]
 export interface LensChart { type: string; path: string | null; url: string; note: string }
 export interface BriefLine { text: string; ids: string[]; edited?: boolean }
 export interface Brief {
-  id: string; title: string; audience: string; focus: string; source: string; no_info: string; edited: number;
+  id: string; title: string; title_edited?: boolean; audience: string; focus: string; source: string; no_info: string; edited: number;
   headline: BriefLine | null; key_figures: BriefLine[]; recommendations: BriefLine[]; charts: { path: string; title: string }[];
   quality: { trust: string; notes: string[] };
 }
@@ -181,6 +181,7 @@ export interface ViewData {
   resolved: { tabs: Record<string, ViewTab>; titles: Record<string, string>; chart: Record<string, { chart?: string; grain?: string; n?: number }>; pinned: string[]; hidden: string[]; original: boolean };
   redrawn: Record<string, { url: string; note: string }>;
   message: string;
+  bar?: { show: boolean; text: string; hidden: number };
   can_undo: boolean;
   items: Record<string, ViewItemInfo>;
   sections: Record<string, string[]>;
@@ -521,6 +522,11 @@ export const api = {
   viewGet: (id: string) => fetch(`/api/runs/${id}/view`).then((r) => json<ViewData>(r)),
   viewApply: (id: string, body: { command?: ViewCommand; commands?: ViewCommand[]; state?: ViewState }) =>
     fetch(`/api/runs/${id}/view`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }).then((r) => json<ViewData>(r)),
+  briefRename: (id: string, brief: string, title: string) =>
+    fetch(`/api/runs/${id}/briefs/${brief}/rename`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title }) }).then((r) => json<Brief>(r)),
+  briefEdit: (id: string, brief: string, section: string, index: number | null, text: string) =>
+    fetch(`/api/runs/${id}/briefs/${brief}/edit`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ section, index, text }) }).then((r) => json<Brief>(r)),
+  briefDelete: (id: string, brief: string) => fetch(`/api/runs/${id}/briefs/${brief}`, { method: "DELETE" }).then((r) => json<{ deleted: string }>(r)),
   lensFeedback: (id: string, turn: string, vote: "up" | "down") =>
     fetch(`/api/runs/${id}/lens/feedback`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ turn, vote }) }).then((r) => json<{ recorded: string }>(r)),
   lensInfo: (id: string) => fetch(`/api/runs/${id}/lens`).then((r) => json<LensInfo>(r)),

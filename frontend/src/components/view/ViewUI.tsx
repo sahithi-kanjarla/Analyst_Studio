@@ -2,10 +2,7 @@ import { Fragment, ReactNode, useState } from "react";
 import { useLens } from "../lens/LensContext";
 import { useView } from "./ViewContext";
 
-const CHART_TYPES = ["bar", "line", "share", "table"];
-const GRAINS = ["day", "week", "month", "quarter", "year"];
-const NS = [3, 5, 10];
-const TAB_LABEL: Record<string, string> = { report: "Report", insights: "Insights", strategy: "Ideas to try", dashboard: "Dashboard" };
+const TAB_LABEL: Record<string, string> = { report: "Report", insights: "Insights", strategy: "Ideas to try", dashboard: "Dashboard", data: "Your data", model: "How files connect", cleaning: "What we cleaned", plan: "How we analysed", powerbi: "Power BI export", chat: "Chat" };
 
 /** The title of an item: the original, or the user's own text with an "Edited by you" label. */
 export function ViewTitle({ id, text, tag: Tag = "span" }: { id: string; text: string; tag?: "span" | "h2" | "h3" | "h4" | "h5" }) {
@@ -14,7 +11,7 @@ export function ViewTitle({ id, text, tag: Tag = "span" }: { id: string; text: s
   return <Tag>{v.title(id, text)}{v.edited(id) && <small className="view-edited"> Edited by you</small>}</Tag>;
 }
 
-/** An item's picture: the report's own, or the one Lens redrew when the user changed its type, time grain or top N. */
+/** An item's picture: the report's own, or the one Lens redrew when the user changed its type, time grain or top N (asked for in chat). */
 export function ViewImg({ id, src, alt }: { id: string; src: string; alt: string }) {
   const v = useView();
   const r = v?.data.redrawn[id];
@@ -26,152 +23,90 @@ export function ViewImg({ id, src, alt }: { id: string; src: string; alt: string
   );
 }
 
-function ChangeMenu({ id, onClose }: { id: string; onClose: () => void }) {
-  const v = useView();
-  const [name, setName] = useState("");
-  if (!v) return null;
-  const it = v.data.items[id];
-  const ch = v.data.resolved.chart[id] ?? {};
-  const can = it.changeable ?? [];
-  const go = async (...c: Parameters<typeof v.run>) => { if (await v.run(...c)) onClose(); };
-  const order = v.order(it.tab);
-  const pos = order.indexOf(id);
-  return (
-    <div className="view-menu" role="menu" aria-label={`Change: ${it.title}`}>
-      <div className="view-menu-row">
-        <button role="menuitem" className="chip" onClick={() => go({ cmd: v.isPinned(id) ? "unpin" : "pin", id })}>{v.isPinned(id) ? "Unpin" : "Pin to the top"}</button>
-        {it.kind === "section" && (
-          <>
-            <button role="menuitem" className="chip" disabled={pos <= 0} onClick={() => go({ cmd: "move", id, dir: "up" })}>Move up</button>
-            <button role="menuitem" className="chip" disabled={pos < 0 || pos >= order.length - 1} onClick={() => go({ cmd: "move", id, dir: "down" })}>Move down</button>
-          </>
-        )}
-      </div>
-      {it.kind === "chart" && can.includes("chart") && (
-        <div className="view-menu-row" role="group" aria-label="Chart type"><span className="muted small">Show as</span>
-          {CHART_TYPES.map((c) => <button key={c} role="menuitemradio" aria-checked={ch.chart === c} className={`chip ${ch.chart === c ? "chip-on" : ""}`} onClick={() => go({ cmd: "chart", id, chart: c })}>{c}</button>)}
-        </div>
-      )}
-      {it.kind === "chart" && can.includes("grain") && (
-        <div className="view-menu-row" role="group" aria-label="Time grain"><span className="muted small">Group by</span>
-          {GRAINS.map((g) => <button key={g} role="menuitemradio" aria-checked={ch.grain === g} className={`chip ${ch.grain === g ? "chip-on" : ""}`} onClick={() => go({ cmd: "chart", id, grain: g })}>{g}</button>)}
-        </div>
-      )}
-      {it.kind === "chart" && can.includes("n") && (
-        <div className="view-menu-row" role="group" aria-label="Top N"><span className="muted small">Top</span>
-          {NS.map((n) => <button key={n} role="menuitemradio" aria-checked={ch.n === n} className={`chip ${ch.n === n ? "chip-on" : ""}`} onClick={() => go({ cmd: "chart", id, n })}>{n}</button>)}
-        </div>
-      )}
-      <form className="view-menu-row" onSubmit={(e) => { e.preventDefault(); void go({ cmd: "rename", id, title: name }); }}>
-        <label className="sr-only" htmlFor={`rn-${id}`}>New title</label>
-        <input id={`rn-${id}`} value={name} maxLength={120} placeholder={v.edited(id) ? v.title(id, it.title) : "Your own title"} onChange={(e) => setName(e.target.value)} />
-        <button className="chip" disabled={!name.trim()}>Rename</button>
-        {v.edited(id) && <button type="button" className="chip" onClick={() => go({ cmd: "rename", id, title: "" })}>Use original title</button>}
-      </form>
-    </div>
-  );
-}
+type Tag = "div" | "li" | "section" | "article" | "span";
 
-/** The small controls on every card, chart, insight, action and section: Hide, Change and (for cards and charts) Ask Lens about this. */
-export function ViewControls({ id, askLens = true }: { id: string; askLens?: boolean }) {
+/** Wraps one item. At rest it shows no controls: clicking it (or pressing Enter on it) selects it and opens Lens with "Focus: <title>"; everything else is asked for in chat.
+ *  A hidden item stays in the page, out of sight, so it can be printed. Without view edits (the landing tour, an old run) it renders its children unchanged. */
+export function ViewItem({ id, children, tag: Tag = "div", className = "" }: { id: string; children: ReactNode; tag?: Tag; className?: string }) {
   const v = useView();
   const lens = useLens();
-  const [menu, setMenu] = useState(false);
-  if (!v || !v.data.items[id]) return null;
-  const it = v.data.items[id];
-  return (
-    <span className="view-controls no-print">
-      <button type="button" className="view-btn" onClick={() => v.hide(id)} aria-label={`Hide: ${it.title}`}>Hide</button>
-      <button type="button" className="view-btn" aria-expanded={menu} aria-haspopup="menu" onClick={() => setMenu((m) => !m)} aria-label={`Change: ${it.title}`}>Change</button>
-      {askLens && lens?.enabled && it.kind !== "section" && (
-        <button type="button" className="view-btn view-ask" onClick={() => { lens.setFocus({ id, title: v.title(id, it.title) }); lens.setOpen(true); lens.setExpanded(false); }}>Ask Lens about this</button>
-      )}
-      {menu && <ChangeMenu id={id} onClose={() => setMenu(false)} />}
-    </span>
-  );
-}
-
-/** Wraps one item. Without view edits (the landing tour, an old run) it renders its children unchanged. A hidden item stays in the page, out of sight, so it can be printed. */
-export function ViewItem({ id, children, tag: Tag = "div", className = "", inline = false, askLens = true, controlsFirst = false }: { id: string; children: ReactNode; tag?: "div" | "li" | "section" | "article" | "span"; className?: string; inline?: boolean; askLens?: boolean; controlsFirst?: boolean }) {
-  const v = useView();
-  if (!v || !v.data.items[id]) return <Tag className={className}>{children}</Tag>;
+  const info = v?.data.items[id];
+  if (!v || !info) return <Tag className={className}>{children}</Tag>;
   if (v.isHidden(id)) return <Tag className={`${className} view-hidden ${v.printSet.has(id) ? "view-print" : ""}`} data-view-id={id}>{children}</Tag>;
+  const focusable = info.kind !== "section" && !!lens?.enabled;
+  const selected = focusable && lens?.focus?.id === id;
+  const select = (e: React.SyntheticEvent) => {
+    if (!focusable || !lens) return;
+    const t = e.target as Element;
+    if (e.type === "click" && t.closest("a,button,input,textarea,select,summary,label,[data-nofocus]")) return;
+    if (e.type === "click" && (e as React.MouseEvent).defaultPrevented) return;
+    const inner = t.closest("[data-focusable]");
+    if (inner && inner !== e.currentTarget) return;            // a nested item (a chart inside a card) takes the click
+    lens.setFocus({ id, title: v.title(id, info.title) });
+    lens.setOpen(true);
+    lens.setExpanded(false);
+  };
+  const props: Record<string, unknown> = focusable
+    ? { tabIndex: 0, "data-focusable": "true", "aria-label": undefined, onClick: select, onKeyDown: (e: React.KeyboardEvent) => { if (e.key === "Enter" && e.target === e.currentTarget) { e.preventDefault(); select(e); } } }
+    : {};
+  const Comp = Tag as React.ElementType;
   return (
-    <Tag className={`${className} view-item ${inline ? "view-inline" : ""} ${v.isPinned(id) ? "is-pinned" : ""}`} data-view-id={id}>
-      {v.isPinned(id) && <span className="view-pin no-print">Pinned</span>}
-      {controlsFirst && <ViewControls id={id} askLens={askLens} />}
+    <Comp className={`${className} view-item ${selected ? "is-selected" : ""} ${v.isPinned(id) ? "is-pinned" : ""}`} data-view-id={id} data-selected={selected ? "true" : undefined} {...props}>
       {children}
-      {!controlsFirst && <ViewControls id={id} askLens={askLens} />}
-    </Tag>
+    </Comp>
   );
 }
 
-/** The items of a tab split into those shown and those under "Show more" (short view, top N, only the charts that support an action or the summary). */
-export function ShowMore({ tab, items }: { tab: string; items: { id: string; node: ReactNode }[] }) {
+/** The items of a tab that are shown now. What the short view (or top N, or only the charts that support an action) leaves out is not drawn; the "Show all (n)" link at the end brings it back. */
+export function ShowMore({ items }: { tab?: string; items: { id: string; node: ReactNode }[] }) {
   const v = useView();
-  const shown = items.filter((i) => !v?.isFolded(i.id));
-  const rest = items.filter((i) => v?.isFolded(i.id));
-  return (
-    <>
-      {shown.map((i) => <Fragment key={i.id}>{i.node}</Fragment>)}
-      {rest.length > 0 && (
-        <details className="view-more no-print-fold" data-tab={tab}>
-          <summary>Show more ({rest.length})</summary>
-          {rest.map((i) => <Fragment key={i.id}>{i.node}</Fragment>)}
-        </details>
-      )}
-    </>
-  );
+  return <>{items.filter((i) => !v?.isFolded(i.id)).map((i) => <Fragment key={i.id}>{i.node}</Fragment>)}</>;
 }
 
-/** A tab's sections in the user's order. A hidden section is kept out of sight; a folded one sits under Show more. */
+/** A tab's sections in the user's order. A hidden section is kept out of sight; a folded one is left out. */
 export function Sections({ tab, nodes, selfTitled = [] }: { tab: string; nodes: Record<string, ReactNode>; selfTitled?: string[] }) {
   const v = useView();
   const ids = Object.keys(nodes);
   const order = v ? [...v.order(tab).filter((s) => ids.includes(s)), ...ids.filter((s) => !v.order(tab).includes(s))] : ids;
   return (
-    <>
-      <ShowMore tab={tab} items={order.map((id) => ({ id, node: <ViewItem id={id} className="view-section" askLens={false} controlsFirst>{!selfTitled.includes(id) && v?.edited(id) && <ViewTitle id={id} tag="h4" text="" />}{nodes[id]}</ViewItem> }))} />
-    </>
+    <ShowMore tab={tab} items={order.map((id) => ({ id, node: <ViewItem id={id} className="view-section">{!selfTitled.includes(id) && v?.edited(id) && <ViewTitle id={id} tag="h4" text="" />}{nodes[id]}</ViewItem> }))} />
   );
 }
 
-/** The top of a tab: full or short view, Undo, Reset view, and the list of hidden items with a Restore button for each. */
+/** The one quiet link at the end of a tab: "Show all (n)" when the short view left something out, "Show less" when the tab was switched to the full view. */
+export function ShowAllLink({ tab }: { tab: string }) {
+  const v = useView();
+  const t = v?.data.resolved.tabs[tab];
+  if (!v || !t) return null;
+  const n = t.folded.length;
+  if (n > 0) return <p className="view-all no-print"><button type="button" className="view-all-link" disabled={v.busy} onClick={() => v.run({ cmd: "set_mode", tab, mode: "full" })}>Show all ({n})</button></p>;
+  if (!t.short && ["report", "insights", "dashboard"].includes(tab)) return <p className="view-all no-print"><button type="button" className="view-all-link" disabled={v.busy} onClick={() => v.run({ cmd: "set_mode", tab, mode: "short" })}>Show less</button></p>;
+  return null;
+}
+
+/** One slim bar, shown only when something is hidden or changed ("2 items hidden · Undo · Reset") and gone when the view is back to its default. Hidden items can be restored from its list. */
 export function TabViewBar({ tab }: { tab: string }) {
   const v = useView();
-  if (!v || !v.data.resolved.tabs[tab]) return null;
-  const t = v.data.resolved.tabs[tab];
-  const hidden = v.data.state.hidden.filter((id) => v.data.items[id]?.tab === tab);        // the ones the user hid, not everything inside a hidden section
-  const short = t.short;
+  const [open, setOpen] = useState(false);
+  if (!v || !v.data.resolved.tabs[tab] || !v.data.bar?.show) return null;
+  const hidden = v.data.state.hidden.filter((id) => v.data.items[id]);
   return (
-    <div className="view-bar no-print" role="region" aria-label={`Change what ${TAB_LABEL[tab] ?? "this tab"} shows`}>
+    <div className="view-bar slim no-print" role="region" aria-label={`Changes to ${TAB_LABEL[tab] ?? "this tab"}`}>
       <div className="view-bar-row">
-        <div role="group" aria-label="View" className="view-seg">
-          <button type="button" className={`chip ${!short ? "chip-on" : ""}`} aria-pressed={!short} disabled={v.busy} onClick={() => v.run({ cmd: "set_mode", tab, mode: "full" })}>Full view</button>
-          <button type="button" className={`chip ${short ? "chip-on" : ""}`} aria-pressed={short} disabled={v.busy} onClick={() => v.run({ cmd: "set_mode", tab, mode: "short" })}>Short view</button>
-        </div>
-        {t.top_n != null && <span className="muted small">Top {t.top_n} only</span>}
-        {t.only_supporting && <span className="muted small">Only charts that support an action or the summary</span>}
+        {hidden.length > 0 ? <button type="button" className="view-bar-text" aria-expanded={open} onClick={() => setOpen((o) => !o)}>{v.data.bar.text}</button> : <span className="view-bar-text">{v.data.bar.text}</span>}
         <span className="view-bar-end">
-          {v.data.can_undo && <button type="button" className="btn-quiet" disabled={v.busy} onClick={() => v.undo()}>Undo</button>}
-          {!v.data.resolved.original && <button type="button" className="btn-quiet" disabled={v.busy} onClick={() => v.reset()}>Reset view</button>}
+          {v.data.can_undo && <button type="button" className="view-bar-link" disabled={v.busy} onClick={() => v.undo()}>Undo</button>}
+          <button type="button" className="view-bar-link" disabled={v.busy} onClick={() => v.reset()}>Reset</button>
         </span>
       </div>
-      {hidden.length > 0 && (
-        <details className="view-hidden-list">
-          <summary>Hidden items ({hidden.length})</summary>
-          <ul>
-            {hidden.map((id) => (
-              <li key={id}>
-                <span>{v.title(id, v.data.items[id].title)} <small className="muted">· {v.data.items[id].kind}</small></span>
-                <button type="button" className="chip" onClick={() => v.show(id)}>Restore</button>
-              </li>
-            ))}
-          </ul>
-          <p className="muted small">Hidden items stay in your saved report. They can be added to a printout from the print panel.</p>
-        </details>
+      {open && hidden.length > 0 && (
+        <ul className="view-hidden-list">
+          {hidden.map((id) => (
+            <li key={id}><span>{v.title(id, v.data.items[id].title)} <small className="muted">· {TAB_LABEL[v.data.items[id].tab] ?? v.data.items[id].tab}</small></span><button type="button" className="view-bar-link" onClick={() => v.show(id)}>Restore</button></li>
+          ))}
+        </ul>
       )}
-      <p className="muted small view-status" role="status" aria-live="polite">{v.error || v.data.message || ""}</p>
+      <p className="muted small view-status" role="status" aria-live="polite">{v.error || ""}</p>
     </div>
   );
 }

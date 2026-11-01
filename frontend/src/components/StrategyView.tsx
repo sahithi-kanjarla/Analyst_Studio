@@ -1,5 +1,5 @@
 import { DataGap, Finding, Strategy } from "../api";
-import { ShowMore, TabViewBar, ViewItem, ViewTitle } from "./view/ViewUI";
+import { ShowAllLink, ShowMore, TabViewBar, ViewItem, ViewTitle } from "./view/ViewUI";
 import { useView } from "./view/ViewContext";
 
 const LEVEL: Record<string, string> = { High: "lvl lvl-high", Medium: "lvl lvl-mid", Low: "lvl lvl-low" };
@@ -96,6 +96,7 @@ export default function StrategyView({ strategies, summary, gaps, findings, foun
             </section>
           </div>}
         </ViewItem>) }))} />
+      <ShowAllLink tab="strategy" />
 
       {dropped > 0 && <p className="muted small">{dropped} lower-ranked {dropped === 1 ? "strategy is" : "strategies are"} not shown.</p>}
       {foundation.length > 0 && (
