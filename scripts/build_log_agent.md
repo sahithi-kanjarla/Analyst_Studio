@@ -73,6 +73,8 @@ Existing tests changed: `test_lens.py` (the opening chips are few, so the tests 
 
 ## Fix: questions about what is in the data (third round)
 
+**Result:** frontend build passes; full backend suite **1004 passed, 0 failed, in 313.95 s (5 min 14 s)**.
+
 A request such as "does the data have any information about <a concept>?" was refused with the generic "I can't answer that from this data" and a paragraph of abilities, because nothing could look at what the columns hold. General fix, no concept, column or value in the code:
 
 0. **Data card** (`agent/datacard.py`): built once per run by code and kept with the run (`ctx.memo`), sent with every plan request (about 1,500 tokens): for each column its display name, type, role, meaning, share missing, the range of a number or date, the distinct count, and for a low-cardinality category or yes/no column the 15 most common values with counts and shares. A wide table keeps the columns most relevant to the request and the goal and says how many it left out. **Privacy:** no values for id or free-text columns, nor for any column that looks personal (a name or contact word in its name, e-mail addresses, phone numbers, long text, ID-like codes, people's names, or nearly every value different); those get only the distinct count, the share missing and a plain reason. The cost: a category whose values are several two-word capitalised labels is withheld like a name column; the lookup tool can still count them. Each card line is a fact with an id (`d1`, ...), so an answer about the data can cite it and its figures are checked: an empty plan with a `reply` that cites a card line is shown as the answer, with no tool call.
