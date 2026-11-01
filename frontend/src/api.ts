@@ -452,8 +452,25 @@ async function json<T>(res: Response): Promise<T> {
 export const DEMO_RUN_ID = "5a1e5d3e0001";
 export const isDemo = (id: string) => id === DEMO_RUN_ID;
 
+/** The access code the visitor typed on the upload panel (kept for this tab only). The server asks for it only when UPLOADS_REQUIRE_CODE is set. */
+export function getAccessCode(): string {
+  try {
+    return sessionStorage.getItem("access_code") ?? "";
+  } catch {
+    return "";
+  }
+}
+export function setAccessCode(code: string) {
+  try {
+    sessionStorage.setItem("access_code", code);
+  } catch {
+    /* storage can be blocked: the code is then asked for again */
+  }
+}
+const JSON_HEADERS = (): Record<string, string> => ({ "Content-Type": "application/json", ...(getAccessCode() ? { "X-Access-Code": getAccessCode() } : {}) });
+
 export const api = {
-  health: () => fetch("/api/health").then((r) => json<{ status: string; llm: string; chatbot?: string }>(r)),
+  health: () => fetch("/api/health").then((r) => json<{ status: string; llm: string; chatbot?: string; requires_code?: boolean }>(r)),
   listRuns: () => fetch("/api/runs").then((r) => json<RunSummary[]>(r)),
   getRun: (id: string) => fetch(`/api/runs/${id}`).then((r) => json<RunResult>(r)),
   createRun: (files: File[], goal: string, ctx?: BusinessContextInput) => {
@@ -465,11 +482,12 @@ export const api = {
       if (ctx.explore) fd.append("explore", "true");
       if (ctx.review_saved) fd.append("review_saved", "true");
     }
+    if (getAccessCode()) fd.append("access_code", getAccessCode());
     return fetch("/api/runs", { method: "POST", body: fd }).then((r) => json<{ run_id: string }>(r));
   },
   lensInfo: (id: string) => fetch(`/api/runs/${id}/lens`).then((r) => json<LensInfo>(r)),
   lensAsk: (id: string, body: LensAsk) =>
-    fetch(`/api/runs/${id}/lens/ask`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }).then((r) => json<LensTurn>(r)),
+    fetch(`/api/runs/${id}/lens/ask`, { method: "POST", headers: JSON_HEADERS(), body: JSON.stringify(body) }).then((r) => json<LensTurn>(r)),
   lensPin: (id: string, turn: string, target: "report" | "dashboard") =>
     fetch(`/api/runs/${id}/lens/pins`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ turn, target }) }).then((r) => json<LensPin>(r)),
   lensSaveView: (id: string, turn: string) =>
@@ -478,10 +496,10 @@ export const api = {
   lensUnpin: (id: string, pin: string) => fetch(`/api/runs/${id}/lens/pins/${pin}`, { method: "DELETE" }).then((r) => json<{ removed: string }>(r)),
   openDemo: () => fetch("/api/demo", { method: "POST" }).then((r) => json<{ run_id: string; read_only: boolean }>(r)),
   removeDerived: (id: string, names: string[]) =>
-    fetch(`/api/runs/${id}/remove-derived`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ names }) }).then((r) => json<{ run_id: string }>(r)),
+    fetch(`/api/runs/${id}/remove-derived`, { method: "POST", headers: JSON_HEADERS(), body: JSON.stringify({ names }) }).then((r) => json<{ run_id: string }>(r)),
   getAnswersReview: (id: string) => fetch(`/api/runs/${id}/answers-review`).then((r) => json<{ workspace: string; status: string; answers: AnswerRow[] }>(r)),
   rerunWithAnswers: (id: string, answers: Record<string, string>, ask_again: string[]) =>
-    fetch(`/api/runs/${id}/rerun-answers`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ answers, ask_again }) }).then((r) => json<{ run_id: string }>(r)),
+    fetch(`/api/runs/${id}/rerun-answers`, { method: "POST", headers: JSON_HEADERS(), body: JSON.stringify({ answers, ask_again }) }).then((r) => json<{ run_id: string }>(r)),
   getDashboard: (id: string) => fetch(`/api/runs/${id}/dashboard`).then((r) => json<DashData>(r)),
   getSources: (id: string) => fetch(`/api/runs/${id}/sources`).then((r) => json<DataSource[]>(r)),
   downloadUrl: (id: string, source: string) => `/api/runs/${id}/data/download?source=${encodeURIComponent(source)}`,
@@ -493,7 +511,7 @@ export const api = {
   eventsUrl: (id: string) => `/api/runs/${id}/events`,
   getQuestions: (id: string) => fetch(`/api/runs/${id}/questions`).then((r) => json<QuestionSet>(r)),
   submitAnswers: (id: string, body: { answers: Record<string, string>; notes: string; definitions: Record<string, string>; skip: boolean }) =>
-    fetch(`/api/runs/${id}/answers`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }).then((r) => json<{ status: string }>(r)),
+    fetch(`/api/runs/${id}/answers`, { method: "POST", headers: JSON_HEADERS(), body: JSON.stringify(body) }).then((r) => json<{ status: string }>(r)),
   listGlossary: () => fetch("/api/glossary").then((r) => json<{ workspaces: Record<string, GlossaryEntry> }>(r)),
   putGlossary: (workspace: string, entry: GlossaryEntry) =>
     fetch(`/api/glossary?workspace=${encodeURIComponent(workspace)}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(entry) }).then((r) => json<GlossaryEntry>(r)),

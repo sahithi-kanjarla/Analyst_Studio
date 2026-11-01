@@ -1,0 +1,12 @@
+.git
+.env
+**/node_modules
+frontend/dist
+**/__pycache__
+.pytest_cache
+backend/data
+backend/tests
+**/*.pkl.bak
+docs
+scripts
+*.txt

@@ -43,7 +43,7 @@ function csv(t: LensTable) {
   return "﻿" + [t.columns.map(q).join(","), ...t.shown.map((r) => r.map(q).join(","))].join("\n");
 }
 
-function Picture({ chart, text, onOpen }: { chart: LensChart; text: string; onOpen?: () => void }) {
+function Picture({ chart, onOpen }: { chart: LensChart; text?: string; onOpen?: () => void }) {
   return (
     <button type="button" className="lens-pic" onClick={onOpen} aria-label="Open the chart larger" disabled={!onOpen}>
       <img src={chart.url} alt="" loading="lazy" />

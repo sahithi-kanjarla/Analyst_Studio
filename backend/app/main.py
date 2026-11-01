@@ -7,13 +7,13 @@ from pathlib import Path
 from contextlib import asynccontextmanager
 
 from pydantic import BaseModel, Field
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
 from .config import ALLOWED_EXT, FRONTEND_DIST, MAX_FILES, MAX_ROWS, MAX_UPLOAD_MB, RUNS_DIR
-from . import clarify, glossary, tiering
+from . import clarify, glossary, guard, tiering
 from .profiler import count_delimited_rows, too_many_rows_message
 from . import lens
 from .lens import chat as lenschat, howtext as lenshow, reports as lensreports, store as lensstore
@@ -53,15 +53,17 @@ def open_demo():
 @app.get("/api/health")
 def health():
     _, label = get_llm()
-    return {"status": "ok", "llm": label, "chatbot": lens.mode()}
+    return {"status": "ok", "llm": label, "chatbot": lens.mode(), "requires_code": guard.code_required()}
 
 
 @app.post("/api/runs")
-async def new_run(goal: str = Form(""), company: str = Form(""), industry: str = Form(""), description: str = Form(""), kpis: str = Form(""),
+async def new_run(request: Request, goal: str = Form(""), company: str = Form(""), industry: str = Form(""), description: str = Form(""), kpis: str = Form(""),
                   audience: str = Form(""), notes: str = Form(""), currency: str = Form(""), explore: str = Form(""), review_saved: str = Form(""),
-                  files: list[UploadFile] = File(default=[]), file: UploadFile | None = File(default=None)):
+                  access_code: str = Form(""), files: list[UploadFile] = File(default=[]), file: UploadFile | None = File(default=None)):
     """Upload one or several data files (or an Excel workbook with several sheets). Several tables are connected automatically.
     Everything except the files is optional: with no goal the agents run in exploratory mode; business context sharpens the analysis."""
+    guard.check_code(guard.code_from(request, access_code))     # the sample report never comes through here, so it stays open
+    guard.check_upload_rate(request)
     goal = goal.strip()
     if goal and len(goal) < 5:
         raise HTTPException(400, "Please describe your goal in a few words, or leave it empty for an exploratory analysis.")
@@ -89,6 +91,8 @@ async def new_run(goal: str = Form(""), company: str = Form(""), industry: str =
             if rows > MAX_ROWS:
                 raise HTTPException(413, too_many_rows_message(up.filename, rows, MAX_ROWS))
         items.append((up.filename, content))
+    if get_llm()[0] is not None:
+        guard.reserve_ai_run()           # a run that uses the AI counts against today's cap for all visitors
     purge_expired()
     run_id = create_run(goal[:2000], items, context=context, review_saved=review_saved.strip().lower() in ("1", "true", "on", "yes"))
     start_run(run_id)
@@ -172,10 +176,11 @@ class AnswersIn(BaseModel):
 
 
 @app.post("/api/runs/{run_id}/answers")
-def post_answers(run_id: str, body: AnswersIn):
+def post_answers(run_id: str, body: AnswersIn, request: Request):
     """Answer the questions (or skip to use the defaults) and resume the run. Answers are also saved to the company's glossary."""
     _check_id(run_id)
     _writable(run_id)
+    guard.check_code(guard.code_from(request))
     data = _load_questions(run_id)
     qmap = {q["id"]: q for q in data["questions"] if not q.get("auto")}
     for qid, val in body.answers.items():
@@ -230,14 +235,17 @@ class RerunAnswersIn(BaseModel):
 
 
 @app.post("/api/runs/{run_id}/rerun-answers")
-def rerun_answers(run_id: str, body: RerunAnswersIn):
+def rerun_answers(run_id: str, body: RerunAnswersIn, request: Request):
     """Change answers of a finished run and re-run it from the cleaning step. A changed answer replaces the saved one; a question in `ask_again` is forgotten and asked again.
     Returns the id of the new run."""
     _check_id(run_id)
     _writable(run_id)
+    guard.check_code(guard.code_from(request))
     data = _load_questions(run_id)
     if (read_status(run_id) or {}).get("status") not in ("done", "error"):
         raise HTTPException(409, "Only a finished run can be re-run with other answers.")
+    if get_llm()[0] is not None:
+        guard.reserve_ai_run()
     qmap = {q["id"]: q for q in data["questions"] if not q.get("auto")}
     for qid, val in body.answers.items():
         if qid not in qmap:
@@ -264,10 +272,13 @@ class RemoveDerivedIn(BaseModel):
 
 
 @app.post("/api/runs/{run_id}/remove-derived")
-def remove_derived(run_id: str, body: RemoveDerivedIn):
+def remove_derived(run_id: str, body: RemoveDerivedIn, request: Request):
     """Re-run the analysis without the derived metrics the user removed. Returns the id of the new run."""
     _check_id(run_id)
     _writable(run_id)
+    guard.check_code(guard.code_from(request))
+    if get_llm()[0] is not None:
+        guard.reserve_ai_run()
     res = run_dir(run_id) / "result.json"
     if (read_status(run_id) or {}).get("status") != "done" or not res.exists():
         raise HTTPException(409, "Only a finished run can be re-run.")
@@ -460,12 +471,25 @@ def lens_info(run_id: str):
 
 
 @app.post("/api/runs/{run_id}/lens/ask")
-def lens_ask(run_id: str, body: LensAskIn):
+def lens_ask(run_id: str, body: LensAskIn, request: Request):
     """One question to Lens: a suggested question or chart control (no AI), or typed text (the AI picks a query, code checks, runs and draws it). Code computes every figure."""
     wd, result = _lens_run(run_id)
     demo = is_demo(run_id)
+    typed = bool(body.question.strip()) and not (body.chip or body.choice or body.patch)
+    allow = not demo
+    capped = False
+    if typed and allow and lens_llm() is not None:
+        guard.check_code(guard.code_from(request))           # typed questions use the AI: the code is needed (suggestions and chart controls never are)
+        capped = not guard.under_cap("lens_questions")
+        allow = not capped
     turn = lenschat.ask(wd, result, question=body.question, chip=body.chip, choice=body.choice, patch=body.patch, tab=body.tab,
-                        llm=None if demo else lens_llm(), allow_ai=not demo)
+                        llm=None if demo or capped else lens_llm(), allow_ai=allow)
+    if capped and turn["answer"].get("status") == "unavailable":
+        turn["answer"]["text"] = guard.LENS_MESSAGE
+        turn["answer"]["status"] = "limit"
+        lensstore.replace_turn(wd, turn)
+    elif typed and turn["answer"].get("ai_calls"):
+        guard.count("lens_questions")
     return _wire_turn(turn, run_id)
 
 

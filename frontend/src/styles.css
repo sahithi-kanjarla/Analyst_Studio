@@ -293,3 +293,6 @@ textarea:disabled { opacity: .55; }
 .gallery .tile h4 { color: #111827; }
 .gallery .tile .muted, .gallery .tile .small { color: #4b5563; }
 .gallery .callout { color: inherit; }
+
+.access-code { display: flex; flex-direction: column; gap: 4px; margin: 12px 0; font-size: 14px; }
+.access-code input { padding: 8px 10px; border: 1px solid var(--line, #d9d4c8); border-radius: 8px; font: inherit; }

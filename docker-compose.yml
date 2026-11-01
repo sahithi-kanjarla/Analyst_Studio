@@ -1,0 +1,16 @@
+# One service: the backend and the built frontend on port 8000.
+#   cp .env.example .env     (add your own key if you want AI; never commit .env)
+#   docker compose up --build
+services:
+  analyst-studio:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      - analyst-data:/app/backend/data
+    restart: unless-stopped
+
+volumes:
+  analyst-data:

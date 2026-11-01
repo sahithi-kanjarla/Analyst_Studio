@@ -120,3 +120,11 @@ def remove_view(wd: Path, name: str) -> bool:
         del d["views"][name]
         save(wd, d)
         return True
+
+
+def replace_turn(wd: Path, turn: dict) -> None:
+    """Saves a turn again after its answer was changed (for example a message replaced by the server)."""
+    with LOCK:
+        d = load(wd)
+        d["turns"] = [turn if t["id"] == turn["id"] else t for t in d["turns"]]
+        save(wd, d)

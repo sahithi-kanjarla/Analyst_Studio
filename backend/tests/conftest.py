@@ -6,6 +6,10 @@ import tempfile
 
 _TMP = tempfile.mkdtemp(prefix="analyst_studio_tests_")
 os.environ.setdefault("LLM_PROVIDER", "none")
+os.environ["UPLOAD_RATE_LIMIT"] = "0"         # the public-use protections are off unless a test switches one on
+os.environ["DAILY_AI_RUNS"] = "0"
+os.environ["DAILY_LENS_QUESTIONS"] = "0"
+os.environ.pop("UPLOADS_REQUIRE_CODE", None)
 os.environ.setdefault("CHART_DPI", "50")     # full runs draw 15-25 charts each; pixels are never checked
 os.environ["RUNS_DIR"] = os.path.join(_TMP, "runs")
 os.environ.setdefault("GLOSSARY_PATH", os.path.join(_TMP, "glossary.json"))
