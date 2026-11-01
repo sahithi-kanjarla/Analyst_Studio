@@ -152,7 +152,7 @@ def test_an_unexpected_failure_inside_a_tool_is_said_plainly_and_logged(messy_ru
     assert "unexpectedly" not in text and "secret_internal_key" not in text and "i could not put that result together" in text and "try asking it another way" in text
     assert "custom_analysis" not in text
     log = [json.loads(x) for x in (wd / "lens_errors.jsonl").read_text().splitlines()]
-    assert log[-1]["kind"] == "result" and "secret_internal_key" in log[-1]["error"] and "SELECT region" in log[-1]["sql"]
+    assert log[-1]["kind"] == "result" and log[-1]["error"].startswith("KeyError") and "SELECT region" in log[-1]["sql"]
 
 
 @pytest.mark.parametrize("exc,words", [(MemoryError("x"), "more room"), (TimeoutError("x"), "too long"), (OSError("x"), "could not be read"), (RuntimeError("x"), "went wrong")])
