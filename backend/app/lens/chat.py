@@ -15,7 +15,7 @@ from .. import llm as llmmod
 from .. import viewedit
 from . import chips as chipmod
 from . import context as ctxmod
-from . import agent, engine, howtext, reasoning, records, render, reports, rules, store, viewchat
+from . import agent, engine, howtext, starters, reasoning, records, render, reports, rules, store, viewchat
 from . import max_questions
 from . import query as qmod
 
@@ -94,13 +94,18 @@ def _starter_intents(result: dict) -> list[dict]:
     return [reports.ichip("Summarise this report", {"kind": "summary", "length": "standard"}), reports.ichip("What matters most for me?", {"kind": "priority", "terms": []})]
 
 
-def _plain(status: str, text: str, wd, ctx, df, result, ai_calls: int = 0, question: str = "") -> tuple[dict, list[dict]]:
-    """A reply that is not a calculation (cannot answer, AI not available, limit reached): the message and two questions that fit the topic and were not just offered."""
+def _plain(status: str, text: str, wd, ctx, df, result, ai_calls: int = 0, question: str = "", tab: str = "") -> tuple[dict, list[dict]]:
+    """A reply that is not a calculation (cannot answer, AI not available, limit reached): the message and two questions that fit the topic and were not just offered.
+    When no AI is available the suggestions are at most 4, chosen for the open tab and the conversation, with the rest behind "More ideas"."""
+    more: list[dict] = []
     if status == "unavailable":
-        pick = chipmod.start(ctx, df, result) + _starter_intents(result)
+        pick, more = starters.for_tab(ctx, df, result, tab, False, wd)
     else:
         pick = chipmod.relevant(ctx, df, result, question, _last_query(wd), reports.prev_chip_ids(wd), 2)
-    return {"status": status, "text": text, "chips": [{"id": c["id"], "text": c["text"]} for c in pick], "ai_calls": ai_calls}, pick
+    ans = {"status": status, "text": text, "chips": [{"id": c["id"], "text": c["text"]} for c in pick], "ai_calls": ai_calls}
+    if more:
+        ans["more"] = [{"id": c["id"], "text": c["text"]} for c in more]
+    return ans, pick + more
 
 
 def _run_checked(wd: Path, ch: qmod.Checked, ctx, df, result, ai_calls: int, asked: str = ""):
@@ -177,12 +182,15 @@ def _patch_label(s: dict) -> str:
     return "Change the chart"
 
 
-def info(wd: Path, result: dict, demo: bool, enabled: bool = True) -> dict:
+def info(wd: Path, result: dict, demo: bool, enabled: bool = True, tab: str = "", ai: bool = False) -> dict:
     d = store.load(wd)
     out = {"enabled": enabled, "ai": False, "chips": [], "history": d["turns"], "pins": d["pins"], "views": d["views"], "limit": {"asked": d["asked"], "max": max_questions()}}
     if enabled and (Path(wd) / "clean.pkl").exists():
         df, ctx = load_data(wd, result)
-        out["chips"] = [{"id": c["id"], "text": c["text"]} for c in chipmod.start(ctx, df, result) + _starter_intents(result)]
+        head, more = starters.for_tab(ctx, df, result, tab, ai, wd)
+        out["chips"] = [{"id": c["id"], "text": c["text"]} for c in head]
+        out["more"] = [{"id": c["id"], "text": c["text"]} for c in more]
+        store.remember_chips(wd, head + more)          # a chip's request is kept so that tapping it later still runs it
     return out
 
 
@@ -395,11 +403,11 @@ def ask(wd: Path, result: dict, *, question: str = "", chip: str | None = None, 
                 ans, nxt = out
             else:
                 agent.log_unmet(wd, question, tab)
-                ans, nxt = _plain("unavailable", "Without an AI model I can answer the suggested questions only. Pick one of these.", wd, ctx, df, result)
+                ans, nxt = _plain("unavailable", "Without an AI model I can answer the suggested questions only. Pick one of these.", wd, ctx, df, result, 0, "", tab)
         elif asked >= max_questions():
             ans, nxt = _plain("limit", f"You've reached this run's limit of {max_questions()} questions that use the AI. The suggested questions still work.", wd, ctx, df, result)
         elif time.time() < _DAILY["until"]:
-            ans, nxt = _plain("unavailable", _fail_text("daily limit"), wd, ctx, df, result)
+            ans, nxt = _plain("unavailable", _fail_text("daily limit"), wd, ctx, df, result, 0, "", tab)
         else:
             llmmod.begin_run()       # this request starts clean: no stop or call record left over from another request on the same thread
             out = agent.run_request(wd, result, df, ctx, question, tab, llm, True, focus_ctx, view_state)
@@ -407,7 +415,7 @@ def ask(wd: Path, result: dict, *, question: str = "", chip: str | None = None, 
             if out.ans is None:
                 if "daily" in out.fail:
                     _DAILY["until"] = time.time() + DAILY_PAUSE_S
-                ans, nxt = _plain("unavailable", _fail_text(out.fail), wd, ctx, df, result, ai_calls)
+                ans, nxt = _plain("unavailable", _fail_text(out.fail), wd, ctx, df, result, ai_calls, "", tab)
             else:
                 ans, nxt = out.ans, out.chips
                 ans["ai_calls"] = ai_calls
@@ -429,6 +437,7 @@ def ask(wd: Path, result: dict, *, question: str = "", chip: str | None = None, 
     if ans is None:
         ans, nxt = _run_checked(wd, qmod.check(raw, ctx, df), ctx, df, result, ai_calls, label)
         ans["source"] = "chip" if chip else "choice" if choice else "patch" if patch else "typed-chip"
+    ans["chips"] = ans.get("chips", [])[:(starters.MAX_NO_AI if ans.get("status") == "unavailable" else 3)]          # after an answer: at most 3 "what to ask next" (4 when no AI is there to take a typed request)
     ans.setdefault("source", "ai" if count_ai else "code")
     if focus_ctx:
         ans["focus"] = {"id": focus_ctx["id"], "title": focus_ctx["title"]}

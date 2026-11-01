@@ -18,7 +18,7 @@ from pathlib import Path
 
 from ... import viewedit
 from .. import howtext, records, reports, rules, store, viewchat
-from . import planner, registry, verify
+from . import planner, registry, suggest, verify
 from .env import Env
 
 UNMET_FILE = "lens_unmet.jsonl"
@@ -135,7 +135,11 @@ def _unmet_answer(env: Env, reason: str):
         log_unmet(env.wd, env.question, env.tab)
         return ans, nxt
     lead = "I can't answer that from this data" + (f": {reason.rstrip('.')}." if reason and not any(ch.isdigit() for ch in reason) else ".")
-    ans, nxt = chat._plain("no_fit", f"{lead} Here are two questions I can answer. {CAN_DO}", env.wd, env.ctx, env.df, env.result, 0, env.question)
+    kind = suggest.request_kind(env.question, env.ctx, env.df)
+    offer = {"view": "Here are two changes I can make.", "data": "Here are two questions I can answer."}.get(kind, "Here are two things you could ask.")
+    ans, nxt = chat._plain("no_fit", f"{lead} {offer} {CAN_DO}", env.wd, env.ctx, env.df, env.result, 0, env.question)
+    nxt = suggest.for_request(env.question, env.ctx, env.df, env.result, env.wd, env.tab)         # chips that fit the kind of request that was refused
+    ans["chips"] = [{"id": c["id"], "text": c["text"]} for c in nxt]
     ans["unmet"] = True
     log_unmet(env.wd, env.question, env.tab)
     return ans, nxt

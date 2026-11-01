@@ -462,13 +462,14 @@ def _wire_pin(p: dict, run_id: str) -> dict:
 
 
 @app.get("/api/runs/{run_id}/lens")
-def lens_info(run_id: str):
+def lens_info(run_id: str, tab: str = ""):
     """Lens for this run: whether it is on, whether an AI model is behind it, the suggested questions, the saved conversation and the pins."""
     _check_id(run_id)
     if not lens.enabled(is_demo(run_id)):
         return {"enabled": False, "ai": False, "chips": [], "history": [], "pins": [], "limit": {"asked": 0, "max": lens.max_questions()}}
     wd, result = _lens_run(run_id)
-    out = lenschat.info(wd, result, is_demo(run_id))
+    ai = lens.ai_available() and not is_demo(run_id)
+    out = lenschat.info(wd, result, is_demo(run_id), True, tab, ai)
     return {**out, "ai": lens.ai_available() and not is_demo(run_id), "history": [_wire_turn(t, run_id) for t in out["history"]], "pins": [_wire_pin(p, run_id) for p in out["pins"]]}
 
 

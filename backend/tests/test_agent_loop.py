@@ -101,7 +101,7 @@ def test_at_most_two_calls_normally_and_chips_undo_and_exact_titles_skip_the_pla
     assert ai.calls == 1
     ai = FakeAI(P(("explain", {"topic": "trust"})))
     chips = chat.info(wd, res, False)["chips"]
-    chat.ask(wd, res, chip=chips[0]["id"], llm=ai, allow_ai=True)
+    chat.ask(wd, res, chip=next(c for c in chips if c["id"].startswith("c_"))["id"], llm=ai, allow_ai=True)
     assert ai.calls == 0                                                              # a chip carries its own query
     title = ve.catalogue(res)["items"]["strategy:s1"]["title"]
     t = chat.ask(wd, res, question=f"hide {title}", llm=ai, allow_ai=True)

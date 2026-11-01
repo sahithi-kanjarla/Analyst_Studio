@@ -32,6 +32,11 @@ A percent change must name what it is a change of (the measure as the fact words
 Return JSON: {"lines": ["...", "..."]}"""
 
 
+def starter_intents(result: dict) -> list[dict]:
+    """The two report questions that run without any AI."""
+    return [ichip("Summarise this report", {"kind": "summary", "length": "standard"}), ichip("What matters most for me?", {"kind": "priority", "terms": []})]
+
+
 def ichip(text: str, intent: dict) -> dict:
     return {"id": "i_" + hashlib.sha1((text + json.dumps(intent, sort_keys=True)).encode()).hexdigest()[:10], "text": text, "intent": intent}
 
@@ -184,7 +189,18 @@ def ai_lines(llm, result: dict, n: int) -> tuple[list[dict], str, int]:
             dropped += 1
             continue
         good.append({"text": text.strip(), "ids": list(dict.fromkeys(ids))})
-    return good[:n], "", dropped
+    from .agent import superlatives
+    good, bad = superlatives.check(good, result)          # "highest", "lowest", "most": true of that measure and level, the level named, no two lines in conflict
+    dropped += len(bad)
+    # a reworded line must still pass the figure checks
+    final = []
+    for g in good:
+        t, why = cited.verify(g["text"] + "".join(f" [{i}]" for i in g["ids"][:1]), known) if g["ids"] else (g["text"], None)
+        if why:
+            dropped += 1
+            continue
+        final.append(g)
+    return final[:n], "", dropped
 
 
 def answer_summary(result: dict, wd, llm, length: str, budget: int, allow_ai: bool, ai_calls_before: int = 0, scope_label: str = "the whole report", lines_override: list[dict] | None = None) -> tuple[dict, list[dict], int, str]:

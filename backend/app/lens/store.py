@@ -153,3 +153,16 @@ def put_briefs(wd: Path, briefs: list[dict]) -> None:
         d = load(wd)
         d["briefs"] = briefs[-60:]
         save(wd, d)
+
+
+def remember_chips(wd: Path, chips: list[dict]) -> None:
+    """Keeps the request each chip stands for, so that a chip offered earlier (or behind "More ideas") still runs when it is tapped."""
+    with LOCK:
+        d = load(wd)
+        changed = False
+        for c in chips:
+            if c["id"] not in d["chips"]:
+                d["chips"][c["id"]] = {k: c[k] for k in ("text", "query", "intent") if k in c}
+                changed = True
+        if changed:
+            save(wd, d)

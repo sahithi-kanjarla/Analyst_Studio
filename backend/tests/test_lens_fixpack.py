@@ -322,7 +322,7 @@ REPEAT = "Clothing customers: Clothing is 40.0% of the total amount [r1]."
 def test_summary_lines_are_short_plain_sentences_and_still_checked(shop):
     rid, wd, result, df = shop
     a = ask(shop, FakeAI({"lines": [PLAIN1, LONG, REPEAT, PLAIN2]}), question="Summarise this report")["answer"]
-    assert a["lines"] == ["Clothing brings in the most: 40.0% of the total amount.", "The return rate trend is up 12%."]
+    assert a["lines"] == ["Clothing category brings in the most: 40.0% of the total amount.", "The return rate trend is up 12%."]       # the level is named, so the claim is clear
     assert all(reports.words_in(x) <= 20 and not reports.repeats_a_label(x) for x in a["lines"])
     assert "2 lines the AI wrote did not pass" in " ".join(a["how"]["notes"])
     known = records.known_facts(result)

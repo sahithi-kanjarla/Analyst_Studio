@@ -14,7 +14,7 @@ from .... import llm as llmmod
 from .... import understanding as und
 from ... import briefs as bf
 from ... import howtext, records, reports, store
-from .. import registry, sqlguard, verify
+from .. import registry, sqlguard, superlatives, verify
 from ..registry import Tool, ToolResult, register
 
 MAX_BRIEFS, MAX_EVIDENCE = 4, 6
@@ -183,7 +183,11 @@ class Brief(Tool):
         h, d1 = keep(obj.get("headline"), limit=1)
         f, d2 = keep(obj.get("key_figures"), need_figure=True, limit=bf.MAX_FIGURES)
         r, d3 = keep(obj.get("recommendations"), limit=bf.MAX_RECS)
-        return (h[0] if h else None), f, r, d1 + d2 + d3
+        tagged = [{**x, "_s": "h"} for x in h] + [{**x, "_s": "f"} for x in f] + [{**x, "_s": "r"} for x in r]
+        checked, bad = superlatives.check(tagged, env.result)              # a claim of highest or lowest must hold for its measure and level, name the level, and not conflict with another line
+        strip = lambda xs, k: [{kk: vv for kk, vv in x.items() if kk != "_s"} for x in xs if x["_s"] == k]
+        h, f, r = strip(checked, "h"), strip(checked, "f"), strip(checked, "r")
+        return (h[0] if h else None), f, r, d1 + d2 + d3 + len(bad)
 
     # ------------------------------------------------------------------ run
     def run(self, args, env, prior):
