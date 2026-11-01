@@ -185,11 +185,10 @@ def quote(topic: str, result: dict, tab: str, question: str = "") -> dict | None
         return {"text": f"The cleaning log has {len(log)} step{'s' if len(log) != 1 else ''}." + (" The first ones:" if more > 0 else ""), "lines": lines + ([f"…and {more} more (see the What we cleaned tab)."] if more > 0 else []),
                 "sources": ["the cleaning log saved with this run"], "fact_ids": []}
     if t == "definitions":
-        defs = result.get("applied_definitions") or []
-        if not defs:
-            return {"text": "No definitions or assumptions were applied to this run.", "lines": [], "sources": ["the definitions saved with this run"], "fact_ids": []}
-        lines = [f"{_plain(d.get('question'))} {_plain(d.get('answer_label'))}." + (f" {_plain(d.get('effect'))}" if d.get("effect") else "") for d in defs[:8]]
-        return {"text": f"{len(defs)} definition{'s were' if len(defs) != 1 else ' was'} applied to this run:", "lines": lines, "sources": ["the definitions applied to this run"], "fact_ids": []}
+        lines, sources = definitions_lines(result)
+        if not lines:
+            return {"text": "No definitions or assumptions were used in this report, and you have no saved definitions.", "lines": [], "sources": sources, "fact_ids": []}
+        return {"text": f"{len(lines)} definition{'s' if len(lines) != 1 else ''} or assumption{'s' if len(lines) != 1 else ''} on record, from this report's \u201cDefinitions used\u201d and the definitions you saved:", "lines": lines, "sources": sources, "fact_ids": []}
     if t == "understanding":
         und = result.get("understanding") or {}
         cols = und.get("columns") or {}
@@ -217,6 +216,35 @@ def quote(topic: str, result: dict, tab: str, question: str = "") -> dict | None
         return {"text": f"The report has {len(st)} data-backed ideas to try, ranked. The first ones:", "lines": [f"{_cut(s['title'], 120)} (impact {s.get('impact')}, effort {s.get('effort')})" for s in st[:5]],
                 "sources": ["the report's strategies"], "fact_ids": [i for s in st[:5] for i in (s.get("evidence") or [])][:8]}
     return None
+
+
+def definitions_lines(result: dict, workspace: dict | None = None) -> tuple[list[str], list[str]]:
+    """(the lines, where they come from): what the report lists under "Definitions used" (the answers applied to the data, saved answers that were not applied, derived metrics, the user's own terms and notes)
+    and the definitions the user saved in the glossary. Empty lines mean there are none."""
+    from .. import glossary as gl
+    lines: list[str] = []
+    for d in result.get("applied_definitions") or []:
+        lines.append(f"{_plain(d.get('question'))} {_plain(d.get('answer_label'))}." + (f" {_plain(d.get('effect'))}" if d.get("effect") else ""))
+    for i in result.get("ignored_definitions") or []:
+        lines.append(f"Saved answer not applied: {_plain(i.get('question'))} {_plain(i.get('answer'))} ({_plain(i.get('reason'))}).")
+    dm = result.get("derived_metrics") or {}
+    for d in dm.get("created") or []:
+        lines.append(f"Derived metric {_plain(d.get('name'))} = {_plain(d.get('a'))} / {_plain(d.get('b'))}: {_plain(d.get('meaning'))}")
+    free = result.get("definitions") or {}
+    for t, x in (free.get("terms") or {}).items():
+        lines.append(f"Your definition of {_plain(t)}: {_plain(x)} (free text, not applied to the data)")
+    if free.get("notes"):
+        lines.append(f"Your notes: {_plain(free['notes'])}")
+    ws = workspace if workspace is not None else gl.get_workspace(gl.workspace_key(result.get("context")))
+    for t, x in (ws.get("definitions") or {}).items():
+        line = f"Saved in your glossary: {_plain(t)}: {_plain(x)}"
+        if not any(line.split(": ", 1)[1] in l for l in lines):
+            lines.append(line)
+    for qid, a in (ws.get("answers") or {}).items():
+        q = _plain((a or {}).get("question") if isinstance(a, dict) else "")
+        if q and not any(q in l for l in lines):
+            lines.append(f"Saved answer: {q} {_plain((a or {}).get('label') or (a or {}).get('value'))}")
+    return lines, ["the report's Definitions used", "your saved glossary"]
 
 
 APP_TOPICS = ("tab", "trust", "cleaning", "definitions", "understanding", "goal", "data_gaps", "insights", "strategies")

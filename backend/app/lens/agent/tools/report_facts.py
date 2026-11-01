@@ -9,7 +9,7 @@ from ..registry import Tool, ToolResult, register
 
 class ReportFacts(Tool):
     name = "report_facts"
-    description = "Quote the report's checked facts, by fact id or by matching words; the facts can feed later steps."
+    description = "Use to quote the report's own checked facts (by fact id or by matching words) when the answer is already in the report, or as evidence for a brief; nothing is recalculated."
     args = {"ids": {"type": "list", "help": "fact ids from the report's fact sheet"}, "match": {"type": "str", "help": "words to match"}, "limit": {"type": "int"}}
 
     def validate(self, args, env):

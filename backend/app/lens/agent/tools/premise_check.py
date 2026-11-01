@@ -7,7 +7,7 @@ from ..registry import Tool, ToolResult, register
 
 class PremiseCheck(Tool):
     name = "premise_check"
-    description = "Check what the request assumes (rank, comparison and direction claims) against the data and say what is true."
+    description = 'Use when the request assumes something about the data (a rank, a comparison or a direction) that should be checked before answering; it says what is true.'
     args: dict = {}
 
     def run(self, args, env, prior):

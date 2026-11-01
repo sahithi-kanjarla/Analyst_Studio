@@ -10,7 +10,7 @@ from ..registry import Tool, ToolResult, register
 
 class Summarise(Tool):
     name = "summarise"
-    description = "A short version of the report (5 lines, or 3 when shortened) plus its top actions. `scope` is what the user named to summarise (a tab, a section or a topic, in their words); leave it empty for the whole report. The open tab is never a scope."
+    description = 'Use when the user asks for a summary or a shorter version of the report. `scope` is only what the user named to summarise (a tab, a section or a topic, in their words); leave it empty for the whole report. The open tab is never a scope.'
     args = {"length": {"type": "str", "enum": ["short", "standard"]}, "scope": {"type": "str", "max_len": 120, "help": "only what the user named; empty means the whole report"}}
 
     def run(self, args, env, prior):

@@ -7,7 +7,7 @@ from ..registry import Tool, ToolResult, register
 
 class Rank(Tool):
     name = "rank"
-    description = "Rank the report's existing insights and actions by what the user says matters to them (the top 3 with their figures)."
+    description = "Use when the user says what matters to them and wants the report's findings and actions ordered by it (the top 3 with their figures)."
     args = {"priority": {"type": "str", "help": "what they care about, 1-4 words"}, "terms": {"type": "list", "help": "up to 5 words or close synonyms a report would use"}}
 
     def run(self, args, env, prior):

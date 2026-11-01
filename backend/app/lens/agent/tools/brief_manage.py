@@ -16,8 +16,7 @@ def _answer(env, text: str, label: str, briefs: list[dict], chips=None):
 
 class BriefManage(Tool):
     name = "brief_manage"
-    description = ("List, open, rename, edit or delete a saved brief. op=list|open|rename|edit|delete|delete_all; id=<brief id or a title/audience that names one>; rename needs title; "
-                   "edit needs section (headline|key_figures|recommendations), index (0-based, for lists) and text.")
+    description = 'Use when the user wants to list, open, rename, edit or delete a brief that was already saved. op=list|open|rename|edit|delete|delete_all; id=<brief id or a title/audience that names one>; rename needs title; edit needs section (headline|key_figures|recommendations), index (0-based, for lists) and text.'
     args = {"op": {"type": "str", "required": True, "enum": ["list", "open", "rename", "edit", "delete", "delete_all"]}, "id": {"type": "str"}, "title": {"type": "str", "max_len": 90},
             "section": {"type": "str", "enum": list(SECTIONS)}, "index": {"type": "int"}, "text": {"type": "str", "max_len": 300}}
     soft_validation = True

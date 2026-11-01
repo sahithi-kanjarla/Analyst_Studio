@@ -11,7 +11,7 @@ LABEL = {"brief": "Download the brief as a PDF", "all_briefs": "Download all bri
 
 class Export(Tool):
     name = "export"
-    description = "Make a file to keep: what=brief (needs id: a brief id or a title/audience), all_briefs (zip), report, short_report (PDFs), or text (plain text of a brief when id is given, else of the report)."
+    description = 'Use when the user wants a file to keep or to copy: what=brief (needs id: a brief id or a title/audience), all_briefs (zip), report, short_report (PDFs), or text (plain text of a brief when id is given, else of the report).'
     args = {"what": {"type": "str", "required": True, "enum": WHAT}, "id": {"type": "str"}}
     soft_validation = True
 

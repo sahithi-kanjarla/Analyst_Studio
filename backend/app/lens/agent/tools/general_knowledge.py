@@ -7,7 +7,7 @@ from ..registry import Tool, ToolResult, register
 
 class General(Tool):
     name = "general_knowledge"
-    description = "A short answer (at most 3 sentences, no numbers) to something that is not about this data or report."
+    description = 'Use when the question is not about this data or report at all (what a term means in general, how something works): a short answer, no numbers.'
     args = {"answer": {"type": "str", "required": True, "max_len": 700}}
 
     def run(self, args, env, prior):

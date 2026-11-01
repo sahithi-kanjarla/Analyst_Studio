@@ -320,7 +320,17 @@ def run_request(wd, result, df, ctx, question: str, tab: str, llm, ai_ok: bool, 
         return Out(ans, nxt, env.calls)
     if not plan.get("plan"):
         from .. import reasoning, rules as _rules
-        if _rules.is_why(question) or reasoning.asserts(question, df, ctx):        # a "why" or a wrong premise is still answered by what is behind the number
+        from .. import chat as _chat
+        if _rules.is_why(question) and (suggest.request_kind(question, ctx, df) == "data" or _chat._last_query(wd)):        # a "why" about the data is never refused: what is behind the number is shown (never a cause)
+            from .tools.why_breakdown import WhyBreakdown
+            r = WhyBreakdown().run({}, env, [])
+            if r.ok and r.answer:
+                env.facts.update(r.facts)
+                a2 = r.answer
+                a2["agent"] = {"plan": [], "tools": ["why_breakdown"], "steps": [{"n": 1, "tool": "why_breakdown", "summary": r.summary, "ok": True}], "calls": env.calls}
+                _add_steps_to_how(a2, a2["agent"]["steps"], ["The request asked why and no step was planned, so what is behind the number was shown."])
+                return Out(a2, r.chips, env.calls, tools=["why_breakdown"])
+        if reasoning.asserts(question, df, ctx):                         # a wrong premise is still answered by what is behind the number
             from .. import chat
             out = chat._data_reply(wd, question, None, ctx, df, result, 0, ai_said_no=True)
             if out:

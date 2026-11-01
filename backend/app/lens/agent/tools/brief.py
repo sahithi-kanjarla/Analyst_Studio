@@ -65,8 +65,7 @@ def _context_for_writer(env) -> dict:
 
 class Brief(Tool):
     name = "brief"
-    description = ("Write one or several briefs (any reader, any purpose, free text). Each: {\"audience\":<who reads it, free text>,\"length\":<short phrase>,\"focus\":<what they care about, free text, or empty>,"
-                   "\"columns\":[<columns that bear on the focus>],\"evidence\":[up to 6 steps, each {\"tool\":\"data_query|custom_analysis|report_facts\",\"args\":{...}}]}. Up to 4 briefs.")
+    description = 'Use when the user asks for a brief, one-pager or note for a reader (several in one request are fine). Each: {\\"audience\\":<who reads it, free text>,\\"length\\":<short phrase>,\\"focus\\":<what they care about, free text, or empty>,\\"columns\\":[<columns that bear on the focus>],\\"evidence\\":[up to 6 steps, each {\\"tool\\":\\"data_query|custom_analysis|report_facts\\",\\"args\\":{...}}]}. Up to 4 briefs.'
     args = {"briefs": {"type": "list", "required": True, "max_len": MAX_BRIEFS, "help": "brief plans"}}
     soft_validation = True
 

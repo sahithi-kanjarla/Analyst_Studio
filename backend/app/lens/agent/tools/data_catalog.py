@@ -102,8 +102,7 @@ def _pct(x: float) -> str:
 
 class DataCatalog(Tool):
     name = "data_catalog"
-    description = ("Answer what is IN the data from the column names, meanings and actual values. lookup=find with `terms`: words for the user's concept (the words they used, synonyms, local usage, spelling variants; up to 12); "
-                   "lookup=columns lists the columns; lookup=values with `column` lists its values; lookup=missing (with `column`, or without for all) says how much is missing.")
+    description = "Use when the question is about what is IN the data: whether something is recorded, which columns exist, what values a column holds, how many are missing. lookup=find with `terms`: the user's words plus synonyms, local usage and spelling variants (up to 12); lookup=columns lists the columns; lookup=values with `column` lists its values; lookup=missing (with `column`, or without for all) says how much is missing."
     args = {"lookup": {"type": "str", "enum": ["find", "columns", "values", "missing"]}, "terms": {"type": "list", "max_len": MAX_TERMS}, "column": {"type": "str", "max_len": 80}}
     soft_validation = True
 

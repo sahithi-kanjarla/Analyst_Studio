@@ -24,6 +24,8 @@ def system_prompt() -> str:
             "A data_query \"query\" is one of these operations. Every \"filters\" entry looks like: " + qmod.FILTER_HELP + "\n"
             + "\n".join(f"- {h}" for h in qmod.OP_HELP.values()) + "\n\n"
             "Rules:\n"
+            "- Charts can be created and changed: a request for a number or a split comes with its chart, and a request to draw a result another way is data_query then chart_edit in one plan (chart_edit acts on the result of the step before it). Never say a chart cannot be made.\n"
+            "- A \"why\", \"how come\" or cause question is why_breakdown (never an empty plan); \"keep only the charts that support an action or the summary\" is view_edit (only_supporting); what is IN the data is data_catalog; which definitions were used is glossary.\n"
             "- Prefer data_query whenever a closed operation fits; use custom_analysis only for what the operations cannot express.\n"
             "- Use column names exactly as written in COLUMNS (\"name\"). Never invent a column, a value or an item id. Only \"measure\" columns can be added up or averaged; group by \"category\", \"flag\" or \"id\" columns; time comes from \"date\" columns.\n"
             "- A value the user names goes in a filter or in \"a\"/\"b\" exactly as written; code finds the real value.\n"
@@ -31,7 +33,7 @@ def system_prompt() -> str:
             "- A \"why\" question: return the query for the number being asked about; never explain a cause yourself and never ask a clarifying question for it.\n"
             "- Ask to clarify (the clarify tool) only when two readings give different answers; one short question with 2 or 3 choices, each a complete query or a list of view commands. Item titles may be the choices when a reference to an item is ambiguous.\n"
             "- A request about what a tab or item shows (hide, show, order, short or full, top N, rename, pin, which charts) is view_edit, using ids from VISIBLE ITEMS; undo goes back one request.\n"
-            "- A request for a document for a reader (a brief) is brief; a file to keep is export. Free-form styling (colours, fonts, layout) is not available: use an empty plan and \"unsupported\".\n"
+            "- A request for a document for a reader (a brief) is brief; a file to keep is export. Colours, fonts and layout cannot be styled: use an empty plan and \"unsupported\" for those only.\n"
             "- DATA CARD says what each column holds (type, role, meaning, share missing, range, distinct values, the most common values with counts). A question about what is in the data (is something recorded, what values a column has, how many are missing) can be answered from it: use an empty plan and put the answer in \"reply\", citing the line it comes from by fact id like [d3]. For a concept that may be spelled or named differently, or when the card is not enough, use data_catalog with the words the user used plus synonyms, local usage and spelling variants.\n"
             "- A summary covers the WHOLE report unless the request names a part (a tab, a section or a topic): put only the words the user used in \"scope\". The open tab is never a scope.\n"
             "- Never put a number from your own knowledge in any field. Return the JSON object only.")

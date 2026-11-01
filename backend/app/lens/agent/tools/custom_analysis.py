@@ -85,8 +85,7 @@ def _agree(closed: list[list[float]], custom: list[list[float]]) -> bool:
 
 class CustomAnalysis(Tool):
     name = "custom_analysis"
-    description = ("For a question the closed operations cannot express. ONE SQL SELECT over the table \"data\" (columns in SQL VIEW), plus a plain description of what it computes. "
-                   "Optionally check_query: a data_query query that computes the same thing, to cross-check.")
+    description = 'Use only when a calculation is asked for that none of the closed operations can express (medians, percentiles, a share of orders above a limit, ratios between groups, running totals, anything needing a CASE or a window). ONE SQL SELECT over the table "data" (columns in SQL VIEW; DuckDB dialect), plus a plain description of what it computes. Optionally check_query: a data_query query that computes the same thing, to cross-check.'
     args = {"sql": {"type": "str", "required": True, "max_len": 4000, "help": "one SELECT or WITH ... SELECT over table data, columns exactly as listed"},
             "description": {"type": "str", "required": True, "max_len": 300, "help": "one plain sentence saying what it computes, no numbers"},
             "check_query": {"type": "dict", "help": "optional closed-operation query that computes the same thing"}}

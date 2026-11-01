@@ -7,7 +7,7 @@ from ..registry import Tool, ToolResult, register
 
 class Strategies(Tool):
     name = "strategies"
-    description = "Suggest from the report's strategies (labelled Suggestion, or No suggestion with the reason); with why=true, explain the ranking."
+    description = "Use when the user asks what to do, which idea to try, or why an idea ranks first (why=true): it quotes the report's own strategies with their checks (labelled Suggestion, or No suggestion with the reason)."
     args = {"focus": {"type": "str", "help": "what to act on, 1-4 words, or empty"}, "why": {"type": "bool"}}
 
     def run(self, args, env, prior):

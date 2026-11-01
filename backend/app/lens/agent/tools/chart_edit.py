@@ -11,7 +11,7 @@ SET_KEYS = ("chart", "grain", "n", "sort", "direction")
 
 class ChartEdit(Tool):
     name = "chart_edit"
-    description = "Change a chart's type, time grain, top N, sort, direction or filters. target=answer edits the latest chart Lens drew (or the one of `turn`); target=item edits a report chart (`item` id)."
+    description = 'Use when the user wants a chart drawn another way: its type, time grain, top N, sort, direction or filters. target=answer changes the latest chart Lens drew, which includes the result of an earlier step in the same plan (so \\"show X, then make it a line\\" is data_query followed by chart_edit); target=item changes a chart of the report (`item` id). Charts can be created and changed.'
     args = {"target": {"type": "str", "enum": ["answer", "item"]}, "turn": {"type": "str"}, "item": {"type": "str"}, "chart": {"type": "str"}, "grain": {"type": "str"}, "n": {"type": "int"},
             "sort": {"type": "dict"}, "direction": {"type": "str", "enum": ["top", "bottom"]}, "filters": {"type": "list", "help": "filter objects to add"}}
     soft_validation = True

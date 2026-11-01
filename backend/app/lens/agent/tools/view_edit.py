@@ -40,7 +40,7 @@ def apply_commands(env, cmds: list) -> tuple[dict, list[str], bool]:
 
 class ViewEdit(Tool):
     name = "view_edit"
-    description = ("Change what is shown, with commands from the closed list. " + viewchat.COMMAND_HELP.split("\n", 1)[1].replace("\n", " "))
+    description = ("Use when the user wants to change what is SHOWN: hide, show, keep only some items, short or full view, the top N, only the charts that support an action or the summary, move a section, rename, pin, undo. Commands: " + viewchat.COMMAND_HELP.split("\n", 1)[1].replace("\n", " "))
     args = {"commands": {"type": "list", "required": True, "max_len": 6, "help": "view commands; ids from VISIBLE ITEMS; hide/show also accept {\"kind\":\"chart|card|insight|action|strategy\",\"tab\":...} for a whole group"}}
     soft_validation = True
 

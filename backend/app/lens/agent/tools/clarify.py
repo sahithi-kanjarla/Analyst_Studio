@@ -6,7 +6,7 @@ from ..registry import Tool, ToolResult, register
 
 class Clarify(Tool):
     name = "clarify"
-    description = "Ask ONE short question when two readings give different answers, with 2 or 3 choices; each choice is {\"label\":<2-4 words>,\"query\":<a data_query query>} or {\"label\":...,\"commands\":[view commands]}."
+    description = 'Use only when two readings of the request give different answers, or the request is open-ended: ONE short question with 2 or 3 choices; each choice is {\\"label\\":<2-4 words>,\\"query\\":<a data_query query>} or {\\"label\\":...,\\"commands\\":[view commands]}.'
     args = {"question": {"type": "str", "required": True, "max_len": 300}, "choices": {"type": "list", "required": True}}
 
     def validate(self, args, env):

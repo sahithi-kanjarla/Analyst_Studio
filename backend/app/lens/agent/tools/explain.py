@@ -7,7 +7,7 @@ from ..registry import Tool, ToolResult, register
 
 class Explain(Tool):
     name = "explain"
-    description = "Quote the run's saved records on a topic about the app or the report; nothing is recalculated."
+    description = "Use for a question about the report or the app itself: what a tab shows, why trust is what it is, what was cleaned, which understanding of the columns was used, what data gaps there are. It quotes the run's saved records."
     args = {"topic": {"type": "str", "required": True, "enum": list(records.APP_TOPICS)}}
 
     def run(self, args, env, prior):

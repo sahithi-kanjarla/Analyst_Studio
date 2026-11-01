@@ -9,7 +9,7 @@ from ... import query as qmod
 
 class DataQuery(Tool):
     name = "data_query"
-    description = "A calculation on the whole cleaned table from the closed list of operations; code checks the query and runs it."
+    description = 'Use when the request asks for a number, a ranking, a split, a comparison, a trend, a change between periods, a spread or a relationship that one of the closed operations fits: code checks the query and runs it on the whole cleaned table. Preferred over custom_analysis whenever an operation fits. It also draws the chart of its result.'
     args = {"query": {"type": "dict", "required": True, "help": "one operation object with an \"op\""}}
     soft_validation = True          # a query code rejects is repaired once, then explained, not treated as a broken plan
 

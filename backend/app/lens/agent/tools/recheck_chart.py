@@ -6,7 +6,7 @@ from ..registry import Tool, ToolResult, register
 
 class RecheckChart(Tool):
     name = "recheck_chart"
-    description = "Re-check the latest drawn chart against the table it was drawn from (when the user says a chart looks wrong)."
+    description = 'Use when the user says a chart looks wrong or asks whether it is right: it re-checks the latest drawn chart against the table it was drawn from.'
     args: dict = {}
 
     def run(self, args, env, prior):
