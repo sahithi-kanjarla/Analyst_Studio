@@ -166,7 +166,7 @@ def test_verify_checks_figures_against_tool_facts(shop):
 def test_the_plan_prompt_has_the_context_and_no_rows(run):
     rid, wd, res = run
     ai = FakeAI(P(("explain", {"topic": "tab"})))
-    chat.ask(wd, res, question="what is here", llm=ai, allow_ai=True, tab="Insights", focus={"id": "insights:card:f4"})
+    chat.ask(wd, res, question="what is the total revenue here", llm=ai, allow_ai=True, tab="Insights", focus={"id": "insights:card:f4"})          # a request about the numbers gets the whole context
     pr = ai.prompts[0]
     for part in ("CURRENT TAB: Insights", "VISIBLE ITEMS", "FOCUS ITEM", "COLUMNS:", "REPORT RECORDS", "PREVIOUS TURNS", "SQL VIEW", "MATCHING VALUES", "insights:card:f4"):
         assert part in pr, part

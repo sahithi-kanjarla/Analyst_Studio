@@ -243,7 +243,7 @@ def test_an_empty_record_still_says_something():
 # ------------------------------------------------------------------ what Lens is given (never rows)
 def test_the_ai_gets_the_report_records_and_no_rows(shop):
     ai = FakeAI({"action": "app", "topic": "trust"})
-    ask(shop, ai, question="is the evidence here any good, in plain words?", tab="Insights")
+    ask(shop, ai, question="is the evidence here any good, what was cleaned and which definitions and strategies were used, in plain words?", tab="Insights")          # the parts of the records the request is about
     p = ai.prompts[0]
     assert "REPORT RECORDS" in p and "CURRENT TAB: Insights" in p
     for needle in ("r1", "f1", "s1", "Merge labels", "As missing", "Medium", "Which category earns most"):

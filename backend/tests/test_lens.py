@@ -392,8 +392,11 @@ def test_only_the_last_six_turns_are_passed(run):
     ai = FakeAI(q(op="aggregate", measure="amount", agg="sum"))
     for i in range(8):
         ask(run, ai, question=f"question number {i + 1:02d} about totals")
-    prev = ai.prompts[-1].split("PREVIOUS TURNS")[1].split("QUESTION:")[0]
-    assert prev.count('"question"') == 6 and "number 07" in prev and "number 02" in prev and "number 01" not in prev
+    from app.lens.agent import context
+    turns = context.history(run[1])                                    # the most the AI is ever given: the last six
+    assert len(turns) == 6 and "number 08" in turns[-1]["question"] and "number 03" in turns[0]["question"] and all("number 02" not in t["question"] for t in turns)
+    prev = ai.prompts[-1].split("PREVIOUS TURNS")[1].split("REQUEST:")[0]          # a request that leans on nothing before it gets only the last turn, in brief
+    assert prev.count('"question"') == 1 and "number 07" in prev and '"answer":' not in prev
 
 
 def test_question_cap_per_run(run, monkeypatch):

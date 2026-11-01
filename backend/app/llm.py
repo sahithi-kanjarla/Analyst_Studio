@@ -179,6 +179,21 @@ def last_error() -> str:
     return getattr(_tls, "last", "")
 
 
+def planner_model(llm):
+    """The model that plans a Lens request. LENS_PLANNER_MODEL (a model name for the same provider, e.g. a smaller one) when set and the model can be re-bound to it; otherwise the model given, unchanged.
+    Only the planning call uses it: figures and wording still come from code and from the model the run was given."""
+    name = (os.environ.get("LENS_PLANNER_MODEL") or "").strip()
+    if not name or llm is None:
+        return llm
+    for field in ("model_name", "model"):
+        try:
+            if hasattr(llm, field) and hasattr(llm, "model_copy"):
+                return llm.model_copy(update={field: name})
+        except Exception:      # noqa: BLE001  a model that cannot be re-bound keeps its own
+            return llm
+    return llm
+
+
 def deterministic(llm):
     """The same model at temperature 0, for decisions that must repeat from run to run. A model that cannot be re-bound is returned unchanged."""
     try:
@@ -196,6 +211,11 @@ def begin_run(cache: bool = False) -> None:
     aicache.reset_reused()
 
 
+def note_parts(parts: dict | None) -> None:
+    """Name the parts of the NEXT call's text (system text, data card, fact sheet, item list, history, other) with their sizes in characters; _record turns them into tokens."""
+    _tls.parts = dict(parts) if parts else None
+
+
 def _record(stage: str, *, cache_hit: bool, ok: bool = True, reason: str = "", system: str = "", user: str = "", out=None, seconds: float = 0.0,
             reply: str = "") -> None:
     """One line of the run's AI usage: which stage asked, the tokens (the provider's own count when it gives one, otherwise an estimate of about 4 characters a token),
@@ -210,9 +230,14 @@ def _record(stage: str, *, cache_hit: bool, ok: bool = True, reason: str = "", s
     else:
         tokens_in, tokens_out = int(given_in), int(given_out)
     log = getattr(_tls, "usage", None)
+    named, _tls.parts = getattr(_tls, "parts", None), None
     if log is not None:
-        log.append({"stage": stage, "ok": ok, "reason": reason, "cache_hit": cache_hit, "input_tokens": tokens_in, "output_tokens": tokens_out,
-                    "tokens_estimated": estimated and not cache_hit, "seconds": round(seconds, 3)})
+        row = {"stage": stage, "ok": ok, "reason": reason, "cache_hit": cache_hit, "input_tokens": tokens_in, "output_tokens": tokens_out,
+               "tokens_estimated": estimated and not cache_hit, "seconds": round(seconds, 3)}
+        if named and not cache_hit:           # where the input tokens went, by part (estimated at about 4 characters a token, scaled to the call's own count)
+            total = sum(named.values()) or 1
+            row["input_by_part"] = {k: round(tokens_in * v / total) for k, v in named.items()}
+        log.append(row)
 
 
 def usage_calls() -> list[dict]:
