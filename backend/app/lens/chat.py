@@ -12,14 +12,15 @@ from pathlib import Path
 import pandas as pd
 
 from .. import llm as llmmod
+from .. import viewedit
 from . import chips as chipmod
 from . import context as ctxmod
-from . import engine, howtext, reasoning, records, render, reports, rules, store
+from . import engine, howtext, reasoning, records, render, reports, rules, store, viewchat
 from . import max_questions
 from . import query as qmod
 
 MAX_AI_CALLS = 2
-REPORT_KINDS = ("app", "summary", "priority", "strategy", "general")      # answers about the report and the app, not calculations on the table
+REPORT_KINDS = ("app", "summary", "priority", "strategy", "general", "view")      # answers about the report and the app, not calculations on the table
 HISTORY_TO_AI = 6
 MAX_TABLE_ROWS = 60
 CHIP_MATCH = 0.95          # typed text runs a suggested question only when it is that question (same words, or a typo away): a near miss with another column name must not be answered with the wrong one
@@ -36,6 +37,8 @@ Reply with exactly one of:
 {"action":"priority","priority":"<what the user cares about, 1-4 words>","terms":["<up to 5 words or close synonyms a report would use for it>"]}   "what matters most for me?", "I care about returns" (terms empty if no priority is named)
 {"action":"strategy","focus":"<what to act on, 1-4 words, or empty>"}   "what should we do about X?"
 {"action":"general","answer":"<at most 3 short sentences, no numbers>"}   a question that is not about this data or report (how a term is defined, how something works in general)
+{"action":"view","commands":[<at most 4 commands>]}   a request to change what the report shows ("make the ideas tab shorter", "remove this chart", "show only the top 3"). Commands are from this closed list; code checks every id and applies them:
+""" + viewchat.COMMAND_HELP + """
 
 "action" is exactly one of those words (never an operation name). Example: {"action":"query","query":{"op":"top","measure":"<col>","agg":"sum","group_by":["<col>"],"n":3,"direction":"top"}}
 A query is one of these operations. Every "filters" entry looks like: """ + qmod.FILTER_HELP + """
@@ -51,7 +54,7 @@ Rules:
 - Ask to clarify only when two readings give different answers (for example two columns could be "sales"); one short question with 2 or 3 choices. Never ask to confirm something obvious.
 - "Any sudden drop or rise?", "any spikes?", "anything unusual over time?" is the unusual_changes operation (use the main measure when none is named).
 - "Which groups lose money?" is a top query with direction "bottom" and "only_negative":true.
-- A request for the best idea or strategy, with or without "and why", is {"action":"strategy"}. A request to change what a tab, a chart or the report shows or looks like ("make the ideas tab shorter", "remove this chart") is "unsupported".
+- A request for the best idea or strategy, with or without "and why", is {"action":"strategy"}. A request to change what a tab, a chart or the report shows is a "view" action using only the listed commands; a request for how it looks (colours, fonts, layout) is "unsupported".
 - Use "unsupported" for forecasts, opinions, anything that needs a column that is not listed, or changing data. If margin or profit is asked and no column holds it, that is unsupported.
 - For app and report questions use REPORT RECORDS; for anything else about the data use COLUMNS. Never put a number from your own knowledge in any field.
 - Return the JSON object only."""
@@ -176,11 +179,12 @@ def _history(wd: Path) -> list[dict]:
     return out
 
 
-def build_prompt(ctx, question: str, hist: list[dict], tab: str, result: dict | None = None) -> str:
+def build_prompt(ctx, question: str, hist: list[dict], tab: str, result: dict | None = None, focus: dict | None = None) -> str:
     spans = {ctx.label(k): list(v) for k, v in ctx.spans.items()}
     return ("CURRENT TAB: " + (tab or "unknown") + f"\nTABLE: {ctx.rows} rows" + (f", amounts in {ctx.currency}" if ctx.currency else "")
             + "\nDATE SPANS: " + json.dumps(spans, ensure_ascii=False) + "\nCOLUMNS: " + json.dumps(ctxmod.for_prompt(ctx), ensure_ascii=False)
             + ("\nREPORT RECORDS (no rows): " + records.for_prompt(result, tab) if result is not None else "")
+            + (f"\nFOCUS ITEM (the user pressed \"Ask Lens about this\" on it; answer about it, using only this text and the data): {json.dumps(focus, ensure_ascii=False)}" if focus else "")
             + "\nPREVIOUS TURNS (oldest first, at most 6): " + json.dumps(hist, ensure_ascii=False, default=str) + "\n\nQUESTION: " + question)
 
 
@@ -202,10 +206,10 @@ def _safe_reason(text) -> str:
     return t[:160] if t and not any(ch.isdigit() for ch in t) else ""
 
 
-def translate(llm, wd: Path, ctx, df, question: str, tab: str, result: dict | None = None):
+def translate(llm, wd: Path, ctx, df, question: str, tab: str, result: dict | None = None, focus: dict | None = None):
     """(action, ai_calls, failure reason). At most MAX_AI_CALLS calls: the second is used only to repair a reply that was not JSON or a query that failed the checks."""
     model = llmmod.deterministic(llm)
-    user = build_prompt(ctx, question, _history(wd), tab, result)
+    user = build_prompt(ctx, question, _history(wd), tab, result, focus)
     feedback, calls = "", 0
     with llmmod.capture() as cap:
         for attempt in range(MAX_AI_CALLS):
@@ -386,10 +390,12 @@ def _recheck(wd: Path, ctx, df, result):
 
 
 # ------------------------------------------------------------------ the report and app answers
-def _report_answer(wd: Path, result: dict, ctx, df, kind: str, spec: dict, question: str, tab: str, llm, ai_ok: bool, ai_calls: int):
+def _report_answer(wd: Path, result: dict, ctx, df, kind: str, spec: dict, question: str, tab: str, llm, ai_ok: bool, ai_calls: int, focus_id: str | None = None, view_state: dict | None = None):
     """(answer, chips, AI calls used here, failure reason). `spec` is what the AI chose, or what a plain rule or a suggested question stands for."""
-    if kind == "view":
-        return (*reports.answer_view(result, wd), 0, "")
+    if kind in ("view", "view_cmd"):
+        return viewchat.answer(wd, result, spec, question, tab, llm, ai_ok, ai_calls, focus_id, view_state)
+    if kind == "focus":
+        return (*reports.answer_focus(result, focus_id or "", wd, ai_calls), 0, "")
     if kind == "recheck":
         return (*_recheck(wd, ctx, df, result), 0, "")
     if kind == "app":
@@ -421,10 +427,11 @@ def _readable_names(ans: dict, ctx) -> None:
 
 
 def ask(wd: Path, result: dict, *, question: str = "", chip: str | None = None, choice: dict | None = None, patch: dict | None = None, tab: str = "",
-        llm=None, allow_ai: bool = True) -> dict:
+        llm=None, allow_ai: bool = True, focus: dict | None = None, view_state: dict | None = None) -> dict:
     """Answers one question and saves the turn. Exactly one of question / chip / choice / patch is used (in that order of the checks below)."""
     question = " ".join((question or "").split())[:300]
     df, ctx = load_data(wd, result)
+    focus_ctx = viewedit.item_context(result, str((focus or {}).get("id") or "")) if focus else None       # "Ask Lens about this": the item's own words, from the saved report
     ai_calls, count_ai, label, raw, route = 0, False, question, None, None
     ans, nxt = None, []
     asked = store.load(wd)["asked"]
@@ -472,6 +479,8 @@ def ask(wd: Path, result: dict, *, question: str = "", chip: str | None = None, 
         elif (llm is None or not allow_ai) and ctx.date_col and rules.asks_unusual(question):
             m = chipmod.main_measure(ctx, result)
             raw = {"op": "unusual_changes", "agg": "sum" if m else "count", "measure": m.name if m else None, "date": ctx.date_col, "grain": "month"}
+        elif (llm is None or not allow_ai) and focus_ctx:
+            route = {"kind": "focus"}
         elif llm is None or not allow_ai:
             out = _data_reply(wd, question, None, ctx, df, result, 0) if reasoning.asserts(question, df, ctx) else None
             ans, nxt = out if out else _plain("unavailable", "Without an AI model I can answer the suggested questions only. Pick one of these.", wd, ctx, df, result)
@@ -482,7 +491,7 @@ def ask(wd: Path, result: dict, *, question: str = "", chip: str | None = None, 
         else:
             llmmod.begin_run()       # this request starts clean: no stop or call record left over from another request on the same thread
             count_ai = True
-            act, ai_calls, why = translate(llm, wd, ctx, df, question, tab, result)
+            act, ai_calls, why = translate(llm, wd, ctx, df, question, tab, result, focus_ctx)
             if act is None:
                 if "daily" in why:
                     _DAILY["until"] = time.time() + DAILY_PAUSE_S
@@ -509,7 +518,7 @@ def ask(wd: Path, result: dict, *, question: str = "", chip: str | None = None, 
     if ans is None and route is not None:
         if route["kind"] == "summary" and ai_ok and not count_ai:
             llmmod.begin_run()
-        ans, nxt, used, fail = _report_answer(wd, result, ctx, df, route["kind"], route, label or question, tab, llm, ai_ok, ai_calls)
+        ans, nxt, used, fail = _report_answer(wd, result, ctx, df, route["kind"], route, label or question, tab, llm, ai_ok, ai_calls, (focus_ctx or {}).get("id"), view_state)
         ai_calls += used
         if used:
             count_ai = True
@@ -522,6 +531,8 @@ def ask(wd: Path, result: dict, *, question: str = "", chip: str | None = None, 
         ans, nxt = _run_checked(wd, qmod.check(raw, ctx, df), ctx, df, result, ai_calls, label)
         ans["source"] = "chip" if chip else "choice" if choice else "patch" if patch else "typed-chip"
     ans.setdefault("source", "ai" if count_ai else "code")
+    if focus_ctx:
+        ans["focus"] = {"id": focus_ctx["id"], "title": focus_ctx["title"]}
     turn = {"id": store.new_id(), "at": time.time(), "question": label or "(no question)", "tab": tab, "answer": ans}
     store.add_turn(wd, turn, nxt, count_ai)
     return turn

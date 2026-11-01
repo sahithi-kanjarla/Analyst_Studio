@@ -203,11 +203,9 @@ def test_graph_check_reports_a_mismatch_in_plain_words(kav, monkeypatch):
 def test_view_changes_are_not_summarised(kav, text):
     ai = FakeAI({"action": "summary", "length": "short"})
     a = ask(kav, ai, question=text)["answer"]
-    assert ai.calls == 0 and a["kind"] == "view" and a["status"] == "answered"
-    assert "coming soon" in a["text"]
-    for what in ("Use as my short version", "Pin to report", "Change the chart"):
-        assert what in a["text"]
-    assert not a.get("lines")
+    assert ai.calls == 0 and a["kind"] == "view" and a["status"] == "answered"       # a view request is never turned into a summary
+    assert "coming soon" not in a["text"] and a["label"] in ("View changes", "Not changed", "View changed", "No change")
+    assert a["chips"] and not a.get("lines")
 
 
 def test_summaries_still_work_and_data_requests_are_not_view_changes():

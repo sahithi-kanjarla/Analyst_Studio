@@ -13,7 +13,7 @@ from fastapi.responses import FileResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
 from .config import ALLOWED_EXT, FRONTEND_DIST, MAX_FILES, MAX_ROWS, MAX_UPLOAD_MB, RUNS_DIR
-from . import clarify, glossary, guard, tiering
+from . import clarify, glossary, guard, tiering, viewedit
 from .profiler import count_delimited_rows, too_many_rows_message
 from . import lens
 from .lens import chat as lenschat, howtext as lenshow, reports as lensreports, store as lensstore
@@ -425,6 +425,8 @@ class LensAskIn(BaseModel):
     chip: str | None = None
     choice: dict | None = None      # {"turn": <id of the clarifying turn>, "choice": <id of the option>}
     patch: dict | None = None       # {"turn": <id of an answer>, "set": {"chart": "line"}}: a chart control, applied by code with no AI
+    focus: dict | None = None       # {"id": <item id>}: "Ask Lens about this": the question is answered with that item's context
+    view_state: dict | None = None  # the sample run only: the browser's own view edits (the server never stores edits on the shared sample)
     tab: str = Field(default="", max_length=40)
 
 
@@ -483,7 +485,7 @@ def lens_ask(run_id: str, body: LensAskIn, request: Request):
         capped = not guard.under_cap("lens_questions")
         allow = not capped
     turn = lenschat.ask(wd, result, question=body.question, chip=body.chip, choice=body.choice, patch=body.patch, tab=body.tab,
-                        llm=None if demo or capped else lens_llm(), allow_ai=allow)
+                        llm=None if demo or capped else lens_llm(), allow_ai=allow, focus=body.focus, view_state=(body.view_state or {}) if demo else None)
     if capped and turn["answer"].get("status") == "unavailable":
         turn["answer"]["text"] = guard.LENS_MESSAGE
         turn["answer"]["status"] = "limit"
@@ -535,6 +537,66 @@ def lens_unpin(run_id: str, pin_id: str):
     if not lensstore.remove_pin(wd, pin_id):
         raise HTTPException(404, "Pin not found")
     return {"removed": pin_id}
+
+
+# ------------------------------------------------------------------ view edits: hide, short view, order, titles, pins (presentation only; the saved report is never changed)
+class ViewIn(BaseModel):
+    command: dict | None = None
+    commands: list[dict] | None = None
+    state: dict | None = None          # only for the read-only sample run, whose edits live in the browser, never on the server
+
+
+def _view_wire(run_id: str, wd: Path, result: dict, state: dict, message: str = "") -> dict:
+    cat = viewedit.catalogue(result)
+    res = viewedit.resolve(result, state, cat)
+    charts = {}
+    if res["chart"] and (wd / "clean.pkl").exists():
+        df, ctx = lenschat.load_data(wd, result)
+        from .lens import viewchart
+        findings = {f.get("id"): f for f in result.get("findings") or []}
+        for iid, ov in res["chart"].items():
+            f = next((findings[i] for i in cat["items"][iid].get("finding_ids") or [] if i in findings), None)
+            r = viewchart.render_override(wd, result, f, ov, df, ctx) if f else None
+            if r:
+                charts[iid] = {"url": f"/api/runs/{run_id}/files/{r['path']}", "note": r["note"]}
+    return {"state": viewedit.normalise(state), "resolved": res, "redrawn": charts, "message": message, "can_undo": bool(viewedit.normalise(state)["history"]),
+            "items": {i: {k: v for k, v in it.items() if k in ("id", "tab", "kind", "title", "section", "score", "changeable", "card")} for i, it in cat["items"].items()},
+            "sections": {t: x["sections"] for t, x in cat["tabs"].items()}}
+
+
+@app.get("/api/runs/{run_id}/view")
+def view_get(run_id: str):
+    _check_id(run_id)
+    wd = run_dir(run_id)
+    p = wd / "result.json"
+    if not p.exists():
+        raise HTTPException(409, "This run has no report yet.")
+    result = json.loads(p.read_text(encoding="utf-8"))
+    state = {} if is_demo(run_id) else lensstore.get_view_state(wd)
+    return {**_view_wire(run_id, wd, result, state), "local": is_demo(run_id)}
+
+
+@app.post("/api/runs/{run_id}/view")
+def view_apply(run_id: str, body: ViewIn):
+    """One view change from the closed list (or a few, as one undoable step), by the hand controls. Chat uses the same code. An invalid id gets a plain sentence, and nothing changes."""
+    _check_id(run_id)
+    wd = run_dir(run_id)
+    p = wd / "result.json"
+    if not p.exists():
+        raise HTTPException(409, "This run has no report yet.")
+    result = json.loads(p.read_text(encoding="utf-8"))
+    demo = is_demo(run_id)
+    state = (body.state or {}) if demo else lensstore.get_view_state(wd)
+    cmds = body.commands or ([body.command] if body.command else [])
+    if not cmds:
+        raise HTTPException(400, "No view change was given.")
+    try:
+        new, msgs = viewedit.apply_many(result, state, cmds)
+    except viewedit.ViewError as e:
+        raise HTTPException(422, str(e))
+    if not demo:
+        lensstore.set_view_state(wd, new)
+    return {**_view_wire(run_id, wd, result, new, " ".join(msgs)), "local": demo}
 
 
 @app.get("/api/runs/{run_id}/files/{path:path}")

@@ -407,6 +407,16 @@ def answer_general(text, result: dict, wd, ai_calls: int = 0) -> tuple[dict, lis
     return _base("general", body, GENERAL_LABEL, how, chips, ai_calls)
 
 
+def answer_focus(result: dict, item_id: str, wd, ai_calls: int = 0) -> tuple[dict, list[dict]]:
+    """No AI: a question asked about one item (Ask Lens about this) is answered by quoting the item's own saved words."""
+    from .. import viewedit
+    it = viewedit.item_context(result, item_id) or {"title": "this item", "text": "", "fact_ids": []}
+    body = it["text"] or "The report has no more to say about this item."
+    how = howtext.record_how(f"Quoted what the report says about “{it['title']}”", ["the report's own text for this item"], it.get("fact_ids") or [], ["Nothing was recalculated; the wording is copied from the saved report. With an AI model, typed questions about this item are answered using it."])
+    chips = next_chips(result, "app", "tab", prev_chip_ids(wd))
+    return _base("app", f"About “{it['title']}”: {_first_sentence(body, 600)}", "From your report", how, chips, ai_calls, lines=[x for x in re.split(r"(?<=[.!?])\s+", body)[:6] if x], fact_ids=it.get("fact_ids") or [])
+
+
 def answer_view(result: dict, wd) -> tuple[dict, list[dict]]:
     how = howtext.record_how("Recognised a request to change the view, which is not available yet", ["what Lens can do today"], [], ["Nothing in your data or report was changed."])
     return _base("view", VIEW_TEXT, "Coming soon", how, next_chips(result, "view", "", prev_chip_ids(wd)), 0)

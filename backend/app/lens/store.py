@@ -31,6 +31,7 @@ def load(wd: Path) -> dict:
     d.setdefault("chips", {})
     d.setdefault("asked", 0)
     d.setdefault("views", {})
+    d.setdefault("view_edits", {})
     return d
 
 
@@ -127,4 +128,16 @@ def replace_turn(wd: Path, turn: dict) -> None:
     with LOCK:
         d = load(wd)
         d["turns"] = [turn if t["id"] == turn["id"] else t for t in d["turns"]]
+        save(wd, d)
+
+
+def get_view_state(wd: Path) -> dict:
+    """The view edits saved with the run (hidden items, short views, order, titles, pins, and the history Undo uses)."""
+    return load(wd).get("view_edits") or {}
+
+
+def set_view_state(wd: Path, state: dict) -> None:
+    with LOCK:
+        d = load(wd)
+        d["view_edits"] = state
         save(wd, d)

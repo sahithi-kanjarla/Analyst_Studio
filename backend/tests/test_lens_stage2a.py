@@ -208,8 +208,8 @@ def test_a_view_change_is_not_refused_as_a_data_question(shop):
         t = ask(shop, ai, question=text)
         a = t["answer"]
         assert a["status"] == "answered" and a["kind"] == "view" and a["ai_calls"] == 0, text
-        assert "coming soon" in a["text"] and "summarise the report" in a["text"] and "can't answer" not in a["text"]
-        assert 2 <= len(a["chips"]) <= 3 and lines_ok(a)
+        assert "coming soon" not in a["text"] and "can't answer" not in a["text"] and "how the app looks" in a["text"]      # styling is declined; the view changes that exist are offered as chips
+        assert 2 <= len(a["chips"]) <= 5 and lines_ok(a)
     assert ai.calls == 0
     for text in ("show revenue as a line chart", "make it monthly", "top 5 cities by amount"):
         assert not chat.rules.wants_view_change(text), text
