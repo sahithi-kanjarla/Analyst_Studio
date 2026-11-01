@@ -20,7 +20,7 @@ import time
 import urllib.request
 from contextlib import contextmanager
 
-from . import aicache
+from . import aicache, pacing
 
 _cache: dict = {}
 SENT = {"calls": 0}      # how many requests were really sent to the model in this process (a saved result sends none)
@@ -288,6 +288,7 @@ def _invoke(llm, system: str, user: str) -> tuple[str | None, str]:
         return answers[key], ""
     reason, rate_tries, other_tries = "", 0, 0
     while True:
+        pacing.wait_for_room(pacing.estimate(system, user))        # spaces the call to fit the per-minute token window; what is asked is unchanged
         started = time.monotonic()
         try:
             SENT["calls"] += 1
