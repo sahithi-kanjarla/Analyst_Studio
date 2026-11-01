@@ -115,4 +115,6 @@ Everything below was done with the fake AI and the real DuckDB; nothing is writt
 
    The 150-request scripted replay is unchanged (plan, outcome and run all 100%). Existing assertions changed, because they read the prompt text: `test_agent_loop.py::test_the_plan_prompt_has_the_context_and_no_rows` (uses a request about the numbers, which still gets the whole context), `test_lens.py::test_only_the_last_six_turns_are_passed` (the six-turn limit is checked on the history the AI can ever get; an unreferenced request gets one turn in brief), `test_lens_stage2a.py::test_the_ai_gets_the_report_records_and_no_rows` (the request now asks about the cleaning, definitions and strategies, the parts the records are cut to). New: `test_token_cost.py` (10).
 
+**Final run:** frontend build passes; full backend suite 1145 passed in 6 min 26 s (390 s).
+
 **NOT tested with the real AI:** whether a real model still picks the right tool and operation when most tools are shown by name only and some operations are left out of the list (the safeguard is the retry with everything), whether the cut facts or items ever hide the one a real request needed, whether a smaller `LENS_PLANNER_MODEL` plans as well, the real token counts against these estimates, and how the new plain messages read to a user.
