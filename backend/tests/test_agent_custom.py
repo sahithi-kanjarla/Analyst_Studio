@@ -197,3 +197,27 @@ def test_without_an_ai_the_tool_is_unavailable_and_says_so(shop):
     from app.lens.agent import planner
     errs, hard = planner.validate(plan("SELECT city FROM data"), env)
     assert hard and "needs the AI" in errs[0]
+
+
+def test_nan_or_infinite_results_are_a_problem_and_trigger_the_repair(shop):
+    ai = FakeAI(plan("SELECT city, SUM(amount) / 0.0 AS bad FROM data GROUP BY city"), {"sql": "SELECT city, SUM(amount) AS total FROM data GROUP BY city", "description": "the total for each city"})
+    a = ask(shop, ai)["answer"]
+    assert a["status"] == "answered" and ai.calls == 2 and "not numbers" in ai.prompts[1]
+
+
+def test_parts_that_do_not_add_up_to_the_whole_are_noted():
+    assert "add up to" in g.share_note(["city", "share of total"], [["a", 0.5], ["b", 0.2]])
+    assert g.share_note(["city", "share of total"], [["a", 0.6], ["b", 0.4]]) == ""
+    assert g.share_note(["city", "total"], [["a", 5], ["b", 6]]) == ""
+
+
+def test_only_an_aggregated_custom_result_reaches_the_brief_writer(shop):
+    from tests.test_agent_loop import P
+    rid, wd, result, df = shop
+    brief = {"audience": "the owner", "length": "short", "focus": "cities", "columns": ["city"], "evidence": [{"tool": "custom_analysis", "args": {"sql": "SELECT city, SUM(amount) AS total FROM data GROUP BY city", "description": "the total for each city"}},
+                                                                                                         {"tool": "custom_analysis", "args": {"sql": "SELECT customer_id, amount FROM data", "description": "the orders"}}]}
+    ai = FakeAI(P(("brief", {"briefs": [brief]})), {"headline": "x", "key_figures": [], "recommendations": []})
+    chat.ask(wd, result, question="brief for the owner about cities", llm=ai, allow_ai=True)
+    writer_prompt = ai.prompts[-1]
+    assert "total=" in writer_prompt and "city=Delhi" in writer_prompt                       # the aggregated result, capped
+    assert "C07" not in writer_prompt and "customer_id=" not in writer_prompt               # the non-aggregated rows are never passed on

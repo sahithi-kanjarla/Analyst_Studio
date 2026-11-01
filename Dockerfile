@@ -12,6 +12,9 @@ RUN npm run build
 # ---- stage 2: the backend, with the built frontend next to it ----
 FROM python:3.12-slim
 ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1 MPLBACKEND=Agg
+# a headless browser: Lens makes PDF exports (briefs, the report) with it
+RUN apt-get update && apt-get install -y --no-install-recommends chromium fonts-liberation && rm -rf /var/lib/apt/lists/*
+ENV BROWSER_PATH=/usr/bin/chromium
 WORKDIR /app
 COPY backend/requirements.txt backend/requirements.txt
 RUN pip install --no-cache-dir -r backend/requirements.txt

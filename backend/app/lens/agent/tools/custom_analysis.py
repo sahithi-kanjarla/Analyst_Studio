@@ -142,6 +142,9 @@ class CustomAnalysis(Tool):
             text = f"{desc.rstrip('.')}. The result has {len(res.rows):,}{'+' if res.truncated else ''} row{'s' if len(res.rows) != 1 else ''}; the table shows {len(shown)}."
         notes = [f"Result: {len(res.rows):,} row{'s' if len(res.rows) != 1 else ''}, read in {res.seconds:.2f} s from a read-only view of your cleaned table.",
                  "The AI wrote the query; code checked it (one SELECT, only your columns, no files or network), ran it with a time and memory limit, and checked the result."]
+        sn = sqlguard.share_note(columns, res.rows)
+        if sn:
+            notes.append(sn)
         if repairs:
             notes.append(f"The first query was corrected {repairs} time{'s' if repairs != 1 else ''} after an error.")
         if not res.aggregated:

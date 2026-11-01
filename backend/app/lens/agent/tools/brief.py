@@ -14,7 +14,7 @@ from .... import llm as llmmod
 from .... import understanding as und
 from ... import briefs as bf
 from ... import howtext, records, reports, store
-from .. import registry, verify
+from .. import registry, sqlguard, verify
 from ..registry import Tool, ToolResult, register
 
 MAX_BRIEFS, MAX_EVIDENCE = 4, 6
@@ -121,7 +121,13 @@ class Brief(Tool):
             else:
                 ids = a.get("fact_ids") or list(r.facts)
                 if ids:
-                    facts.append({"id": ids[0], "text": records._cut(a.get("text"), 300)})
+                    text = records._cut(a.get("text"), 300)
+                    res = r.data.get("result")
+                    if t.name == "custom_analysis" and res is not None:
+                        ai_view = sqlguard.for_ai(res)           # only an aggregated result, at most 50 rows and 12 columns; rows that are not aggregated are never passed on
+                        if ai_view:
+                            text = records._cut(text + " Result: " + "; ".join(", ".join(f"{c}={v}" for c, v in zip(ai_view["columns"], row)) for row in ai_view["rows"][:12]), 700)
+                    facts.append({"id": ids[0], "text": text})
                 if (a.get("chart") or {}).get("path") and len(charts) < bf.MAX_CHARTS:
                     charts.append({"path": a["chart"]["path"], "title": records._cut(a.get("text"), 80)})
             custom = custom or t.name == "custom_analysis"

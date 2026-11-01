@@ -52,7 +52,14 @@ Where an AI writes prose (the summary, strategy wording, Lens summaries), `backe
 
 The first real-model run of the 8-question check scored 7 of 8: the model labelled its reply with an operation name instead of "query", and Lens refused it. That is recorded in `scripts/build_log_v3.md`; Lens now reads the reply by what it carries.
 
-## 5. The test suite
+## 5. The Lens request set (agent)
+
+`backend/tests/lens_eval/requests.jsonl` holds 136 requests in 19 categories (closed data questions, 26 that need custom analysis, follow-ups, why questions, wrong premises, summaries, briefs for different readers, single and multi-step view edits, chart edits, strategy, definitions, exports, general knowledge, impossible requests, typos and informal wording, ambiguity). Each line has the request, the tab, the visible items and the expected tool plan. `python scripts/lens_eval.py` replays it two ways:
+
+- **Scripted fake planner** (used by the tests): the planner replies with each line's scripted plan. Saved result: `scripts/lens_eval_scripted_result.txt` shows 136 requests, 100% plan, 100% ran. This proves that every expected plan is valid for the sample run (the ids, columns and SQL exist and run) and that the loop executes it; it says **nothing** about how well a model plans, because the planner is given the answer.
+- **Real AI** (`--real`): the model plans each request itself and plan accuracy is reported per category. Not run in the session that built it; no accuracy figure for a real model exists yet.
+
+## 6. The test suite
 
 The tests use fake models (no network, no key). Saved full-suite results in the repository, from different points in the project's history (the suite grew over time):
 

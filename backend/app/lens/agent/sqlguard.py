@@ -148,6 +148,11 @@ class Result:
     aggregated: bool
     truncated: bool
     seconds: float = 0.0
+    not_numbers: int = 0         # NaN or infinite values the database returned (shown as empty)
+
+
+def _is_bad(v) -> bool:
+    return isinstance(v, float) and (math.isnan(v) or math.isinf(v))
 
 
 def _clean(v):
@@ -201,9 +206,10 @@ def execute(checked: Checked, df: pd.DataFrame, view: str = VIEW) -> Result:
             raise SqlRejected(f"The query took longer than {int(TIMEOUT_S)} seconds and was stopped.")
         if "err" in box:
             raise SqlRejected("The query failed: " + sanitise_error(box["err"]))
+        bad = sum(1 for r in box["rows"] for v in r if _is_bad(v))
         rows = [[_clean(v) for v in r] for r in box["rows"]]
         truncated = len(rows) > cap
-        return Result(box["cols"], rows[:cap], checked.aggregated, truncated, time.monotonic() - t0)
+        return Result(box["cols"], rows[:cap], checked.aggregated, truncated, time.monotonic() - t0, bad)
     finally:
         try:
             con.close()
@@ -215,6 +221,8 @@ def sanity(res: Result) -> list[str]:
     """Problems that make a result unreliable: empty, NaN or infinite values."""
     if not res.rows:
         return ["The query returned no rows."]
+    if res.not_numbers:
+        return [f"The result has {res.not_numbers} value{'s' if res.not_numbers != 1 else ''} that are not numbers (for example from a division by zero)."]
     bad = 0
     for r in res.rows:
         for v in r:
@@ -230,3 +238,23 @@ def for_ai(res: Result) -> dict | None:
     if not res.aggregated:
         return None
     return {"columns": res.columns[:AGG_COLS_TO_AI], "rows": [r[:AGG_COLS_TO_AI] for r in res.rows[:AGG_ROWS_TO_AI]]}
+
+
+SHARE_WORDS = re.compile(r"share|percent|pct|proportion|ratio_of_total", re.I)
+
+
+def share_note(columns: list[str], rows: list[list]) -> str:
+    """When a column looks like shares of a whole and its parts do not add up to the whole, a sentence saying by how much (the parts may legitimately be a subset); '' when they do or it is not shares."""
+    if len(rows) < 2:
+        return ""
+    for j, c in enumerate(columns):
+        if not SHARE_WORDS.search(str(c)):
+            continue
+        vals = [r[j] for r in rows if isinstance(r[j], (int, float)) and not isinstance(r[j], bool)]
+        if len(vals) != len(rows) or any(v < 0 for v in vals):
+            continue
+        tot = sum(vals)
+        whole = 1.0 if max(vals) <= 1.0 else 100.0
+        if abs(tot - whole) > 0.02 * whole:
+            return f"The {c} values add up to {tot:,.4g}, not {whole:g}, so they may cover only part of the whole."
+    return ""

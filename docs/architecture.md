@@ -57,6 +57,28 @@ flowchart LR
 
 The same closed-list idea covers view edits (hide, short view, top N, rename, pin, move, chart type): the AI returns a command, `viewedit.py` validates that the item or section exists and applies it, and one-click Undo reverses it.
 
+## The Lens agent loop
+
+Lens is a plan-act-verify-answer loop over a registry of general tools. Nothing in the loop knows a request type, an audience or a column: a request is a plan of tools.
+
+```mermaid
+flowchart LR
+    R[Request] --> S{Chip, undo or an<br/>exact item title?}
+    S -->|yes| X
+    S -->|no| P[Plan: one AI call<br/>JSON, at most 4 steps]
+    P --> V[Code validates the plan<br/>against the tool registry]
+    V -->|invalid, once| P
+    V -->|still invalid| F[Rule router<br/>the no-AI fallback]
+    F -->|nothing reads it| U[What I can do + chips<br/>logged to lens_unmet.jsonl]
+    V -->|valid| X[Act: run the steps in order,<br/>stop at the first failure]
+    F --> X
+    X --> T[Tools: data_query, custom_analysis, report_facts, rank, strategies, explain,<br/>summarise, glossary, general_knowledge, chart_edit, view_edit, brief, export, ...]
+    T --> W[Verify: every figure from a tool result or the fact sheet,<br/>fact-id citation check, unverified sentences dropped]
+    W --> A[Answer: sentence, table or chart,<br/>How this was calculated lists each step and tool, one Undo]
+```
+
+`custom_analysis` is the one place the AI writes code, so it is the most restricted: the SQL is parsed, not scanned for words; what runs is regenerated from the parse tree; it reads one registered read-only view, with external access off, a timeout, a memory cap and row caps; and an error goes back to the AI only after being sanitised.
+
 ## Why the AI proposes and code verifies
 
 - **A language model cannot be trusted with arithmetic or with ranking facts**, and it cannot tell you when it is wrong. A report that shows "Gold customers are 38.5% of revenue" is only useful if the 38.5 came from a sum.

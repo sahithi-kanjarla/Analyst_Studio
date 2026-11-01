@@ -310,7 +310,7 @@ def _report_answer(wd: Path, result: dict, ctx, df, kind: str, spec: dict, quest
 
 def _readable_names(ans: dict, ctx) -> None:
     """Report answers quote the report's own wording, which may carry a raw column name (discount_pct): show the display name instead. Wording only."""
-    if ans.get("kind") not in ("strategy", "priority", "summary", "general"):        # records quoted word for word (cleaning log, definitions) stay as saved
+    if ans.get("kind") not in ("strategy", "priority", "summary", "general", "custom"):        # records quoted word for word (cleaning log, definitions) stay as saved
         return
     for k in ("text",):
         if isinstance(ans.get(k), str):
