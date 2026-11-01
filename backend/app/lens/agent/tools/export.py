@@ -16,6 +16,8 @@ class Export(Tool):
     soft_validation = True
 
     def validate(self, args, env):
+        if "brief" in (getattr(env, "plan_steps", None) or []):
+            return []                         # the brief is written by an earlier step of this request
         if args.get("what") == "brief" and not bf.find(env.wd, str(args.get("id") or "last")):
             return ["I can't tell which brief to export. Say its title or audience."]
         if args.get("what") == "all_briefs" and not store.get_briefs(env.wd):

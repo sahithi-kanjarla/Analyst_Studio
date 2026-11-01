@@ -24,6 +24,8 @@ class BriefManage(Tool):
 
     def validate(self, args, env):
         op = args.get("op")
+        if "brief" in (getattr(env, "plan_steps", None) or []):
+            return []
         if op in ("open", "rename", "edit", "delete") and not bf.find(env.wd, str(args.get("id") or "")):
             return ["I can't tell which brief you mean. Say its title or audience, or ask me to list your briefs."]
         if op == "rename" and not str(args.get("title") or "").strip():

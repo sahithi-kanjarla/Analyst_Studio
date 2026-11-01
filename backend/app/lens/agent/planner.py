@@ -75,6 +75,7 @@ def validate(plan: dict, env) -> tuple[list[str], bool]:
     """(problems, hard). `hard` is True when something is wrong beyond a data query that code rejected (an unknown tool, a bad argument): such a plan cannot be run as it is."""
     tools = registry.load_tools()
     steps = plan.get("plan") or []
+    env.plan_steps = [st.get("tool") for st in steps if isinstance(st, dict)]          # a step may depend on what an earlier step creates (an export of a brief written in the same request)
     errs: list[str] = []
     hard = False
     if len(steps) > MAX_STEPS:
