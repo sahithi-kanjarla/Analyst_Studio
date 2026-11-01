@@ -55,7 +55,7 @@ _WORKING: dict = {}
 
 
 def _try(exe: str, page_html: str, timeout: float) -> bytes | None:
-    with tempfile.TemporaryDirectory(prefix="lens_pdf_") as d:
+    with tempfile.TemporaryDirectory(prefix="lens_pdf_", ignore_cleanup_errors=True) as d:
         src, out = Path(d) / "page.html", Path(d) / "out.pdf"
         src.write_text(page_html, encoding="utf-8")
         cmd = [exe, "--headless=new", "--no-sandbox", "--disable-gpu", "--disable-dev-shm-usage", "--no-pdf-header-footer", f"--user-data-dir={Path(d) / 'profile'}", f"--print-to-pdf={out}", src.as_uri()]

@@ -71,6 +71,11 @@ def fallback_plan(env: Env) -> dict | None:
     low = q.lower()
     making = bool(re.search(r"\b(?:write|make|create|draft|prepare|put together|give me|generate)\b", low))
     exporting = bool(rules.EXPORT_RE.search(q)) and not making
+    if not exporting:
+        state = env.view_state if env.view_state is not None else store.get_view_state(env.wd)
+        tg = viewchat.toggle_cmds(q, env.cat, viewedit.normalise(state)["hidden"])
+        if tg:
+            return {"plan": [{"tool": "view_edit", "args": {"commands": tg}}]}
     mg = None if exporting else rules.BRIEF_MANAGE_RE.search(q)
     if mg and (mg.group("op") or "list"):
         op = {"show": "list", "list": "list", "open": "open", "reopen": "open", "rename": "rename", "delete": "delete", "remove": "delete", "discard": "delete"}.get((mg.group("op") or "list").lower(), "list")

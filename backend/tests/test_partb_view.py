@@ -110,10 +110,10 @@ def test_invalid_ids_and_commands_are_refused_with_a_friendly_message(run):
 def test_undo_and_reset_restore_the_original(run):
     rid, wd, res = run
     post(rid, command={"cmd": "hide", "id": "insights:card:f4"})
-    post(rid, commands=[{"cmd": "set_mode", "tab": "insights", "mode": "short"}, {"cmd": "rename", "id": "insights:card:f4", "title": "My own title"}])
-    assert not view(rid)["resolved"]["original"]
+    post(rid, commands=[{"cmd": "set_mode", "tab": "insights", "mode": "full"}, {"cmd": "rename", "id": "insights:card:f4", "title": "My own title"}])
+    assert not view(rid)["resolved"]["original"] and view(rid)["resolved"]["tabs"]["insights"]["short"] is False
     u = post(rid, command={"cmd": "undo"}).json()                       # the two commands were ONE step
-    assert u["resolved"]["tabs"]["insights"]["short"] is False and u["state"]["hidden"] == ["insights:card:f4"] and "My own title" not in json.dumps(u["state"]["titles"])
+    assert u["resolved"]["tabs"]["insights"]["short"] is True            # Insights opens in the short view and u["state"]["hidden"] == ["insights:card:f4"] and "My own title" not in json.dumps(u["state"]["titles"])
     post(rid, command={"cmd": "undo"})
     assert view(rid)["resolved"]["original"] and core(view(rid)["state"]) == core(ve.empty())
     assert post(rid, command={"cmd": "undo"}).status_code == 422          # nothing left to undo
@@ -159,6 +159,7 @@ def test_hidden_items_stay_in_the_saved_run_and_no_figure_changes(run):
 # ------------------------------------------------------------------ short view
 def test_make_the_insights_tab_shorter_with_only_needed_charts_gives_the_short_view(run):
     rid, wd, res = run
+    post(rid, command={"cmd": "set_mode", "tab": "insights", "mode": "full"})        # Insights opens short, so start from the full view
     ai = FakeAI({"action": "view", "commands": [{"cmd": "set_mode", "tab": "insights", "mode": "short"}, {"cmd": "only_supporting", "tab": "insights", "on": True}]})
     t = ask(run, "make the insights tab shorter with only needed charts", ai)
     a = t["answer"]
@@ -182,11 +183,12 @@ def test_make_the_insights_tab_shorter_with_only_needed_charts_gives_the_short_v
 
 def test_the_same_request_without_any_ai_gives_the_same_view(run):
     rid, wd, res = run
+    post(rid, command={"cmd": "set_mode", "tab": "insights", "mode": "full"})
     ask(run, "make the insights tab shorter with only needed charts", None)
     no_ai = core(store.get_view_state(wd))
     post(rid, command={"cmd": "reset"})
-    post(rid, commands=[{"cmd": "set_mode", "tab": "insights", "mode": "short"}, {"cmd": "only_supporting", "tab": "insights", "on": True}])
-    assert core(view(rid)["state"]) == no_ai == {**core(ve.empty()), "short": {"insights": True}, "only_supporting": {"insights": True}}
+    post(rid, commands=[{"cmd": "set_mode", "tab": "insights", "mode": "full"}, {"cmd": "set_mode", "tab": "insights", "mode": "short"}, {"cmd": "only_supporting", "tab": "insights", "on": True}])
+    assert core(view(rid)["state"]) == no_ai == {**core(ve.empty()), "only_supporting": {"insights": True}}
 
 
 def test_short_report_and_dashboard_show_at_most_six_supporting_charts(run):
@@ -238,8 +240,9 @@ def test_chips_work_without_any_ai(run):
     chips = t["answer"]["chips"]
     assert chips and any("short" in c["text"].lower() for c in chips)
     pick = next(c for c in chips if "short" in c["text"].lower())
+    post(rid, command={"cmd": "set_mode", "tab": "report", "mode": "full"})              # the chips are for the first tab with items (Report, which opens short)
     t2 = chat.ask(wd, res, chip=pick["id"], llm=None, allow_ai=False, tab="Insights")
-    assert t2["answer"]["view"]["changed"] and ve.normalise(store.get_view_state(wd))["short"]
+    assert t2["answer"]["view"]["changed"] and ve.normalise(store.get_view_state(wd))["short"] == {}       # back to the default, which is the short view
 
 
 def test_the_sample_run_keeps_its_edits_in_the_browser_not_on_the_server():
@@ -247,8 +250,8 @@ def test_the_sample_run_keeps_its_edits_in_the_browser_not_on_the_server():
     r = client.post(f"/api/runs/{demo}/view", json={"command": {"cmd": "hide", "id": "insights:card:f4"}, "state": {}}).json()
     assert r["state"]["hidden"] == ["insights:card:f4"] and r["local"] is True
     assert client.get(f"/api/runs/{demo}/view").json()["state"]["hidden"] == []              # nothing was saved for the next visitor
-    t = chat.ask(DEMO_DIR if False else runner.run_dir(demo), json.loads((runner.run_dir(demo) / "result.json").read_text()), question="make the insights tab shorter", llm=None, allow_ai=False, view_state=r["state"])
-    assert t["answer"]["view"]["state"]["short"] == {"insights": True} and t["answer"]["view"]["state"]["hidden"] == ["insights:card:f4"]
+    t = chat.ask(DEMO_DIR if False else runner.run_dir(demo), json.loads((runner.run_dir(demo) / "result.json").read_text()), question="show the full view of the insights", llm=None, allow_ai=False, view_state=r["state"])
+    assert t["answer"]["view"]["state"]["short"] == {"insights": False} and t["answer"]["view"]["state"]["hidden"] == ["insights:card:f4"]
 
 
 def test_focus_passes_the_items_context_and_can_be_removed(run):

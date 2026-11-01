@@ -19,6 +19,7 @@ import re
 TABS = ("report", "insights", "strategy", "dashboard", "data", "model", "cleaning", "plan", "powerbi", "chat")      # every tab of the results page (frontend/src/tabs.ts)
 TAB_NAMES = {"report": "Report", "insights": "Insights", "strategy": "Ideas to try", "dashboard": "Dashboard", "data": "Your data", "model": "How files connect", "cleaning": "What we cleaned",
              "plan": "How we analysed", "powerbi": "Power BI export", "chat": "Chat"}
+DEFAULT_SHORT = ("report", "insights", "dashboard")      # these tabs open in the short view; "Show all" switches a tab to the full view
 SHORT_INSIGHTS = 5            # the short Insights view: the top 5, ranked by the report's own order
 MAX_SHORT_CHARTS = 6          # the short Report and Dashboard: at most 6 charts, and only those an action or the summary cites
 MAX_N = 50
@@ -44,8 +45,8 @@ def normalise(state) -> dict:
         return s
     s["hidden"] = [i for i in state.get("hidden") or [] if isinstance(i, str)][:500]
     s["pinned"] = [i for i in state.get("pinned") or [] if isinstance(i, str)][:200]
-    for k in ("short", "only_supporting"):
-        s[k] = {t: True for t, v in (state.get(k) or {}).items() if t in TABS and v}
+    s["short"] = {t: bool(v) for t, v in (state.get("short") or {}).items() if t in TABS}           # True or False, only where it differs from the tab's default
+    s["only_supporting"] = {t: True for t, v in (state.get("only_supporting") or {}).items() if t in TABS and v}
     s["top_n"] = {t: int(n) for t, n in (state.get("top_n") or {}).items() if t in TABS and isinstance(n, int) and 1 <= n <= MAX_N}
     s["chart"] = {i: {k: v for k, v in c.items() if k in ("chart", "grain", "n") and v is not None} for i, c in (state.get("chart") or {}).items() if isinstance(c, dict)}
     s["order"] = {t: [i for i in o if isinstance(i, str)] for t, o in (state.get("order") or {}).items() if t in TABS and isinstance(o, list)}
@@ -193,7 +194,8 @@ def _other_tabs(result: dict, items: dict, tabs: dict, section, add) -> None:
     tables = dm.get("tables") if isinstance(dm, dict) else None
     if tables:
         for i, t in enumerate(tables):
-            add("model", sec, "card", f"model:table:{i}", str(t.get("name") or f"Table {i + 1}"), text=_plain(json.dumps(t, default=str))[:400])
+            iid = add("model", sec, "card", f"model:table:{i}", str(t.get("name") or f"Table {i + 1}"), text=_plain(json.dumps(t, default=str))[:400])
+            tabs["model"]["primary"].append(iid)
         for i, l in enumerate(dm.get("links") or []):
             add("model", sec, "card", f"model:link:{i}", f"Link {i + 1}", text=_plain(json.dumps(l, default=str))[:400])
     else:
@@ -219,7 +221,8 @@ def _other_tabs(result: dict, items: dict, tabs: dict, section, add) -> None:
     pb = result.get("powerbi") or {}
     add("powerbi", sec, "card", "powerbi:pack", "Power BI pack", text="Files: " + ", ".join(pb.get("files") or []))
     for i, m in enumerate(pb.get("measures") or []):
-        add("powerbi", sec, "card", f"powerbi:measure:{i}", str(m).split("=")[0].strip() or f"Measure {i + 1}", text=_plain(m))
+        iid = add("powerbi", sec, "card", f"powerbi:measure:{i}", str(m).split("=")[0].strip() or f"Measure {i + 1}", text=_plain(m))
+        tabs["powerbi"]["primary"].append(iid)
     sec = section("chat", "conversation", "Conversation")
     add("chat", sec, "card", "chat:conversation", "The conversation with Lens", text="The questions asked and the answers given in this run.")
 
@@ -252,13 +255,13 @@ def resolve(result: dict, state: dict, cat: dict | None = None) -> dict:
         mine = [i for i, it in items.items() if it["tab"] == tab]
         if not mine:
             continue
-        short = bool(st["short"].get(tab))
+        short = bool(st["short"].get(tab, tab in DEFAULT_SHORT))
         sections = tinfo["sections"]
         order = [s for s in st["order"].get(tab, []) if s in sections] + [s for s in sections if s not in st["order"].get(tab, [])]
         hid = {i for i in mine if i in hidden_all or (items[i].get("section") in hidden_all)}
         folded: set[str] = set()
         chart_ids = [i for i in mine if items[i]["kind"] == "chart" and i not in hid]
-        top_n = st["top_n"].get(tab) or (SHORT_INSIGHTS if short and tab in ("insights", "strategy") else None)
+        top_n = st["top_n"].get(tab) or (SHORT_INSIGHTS if short and tab not in ("report", "dashboard") and len(tinfo["primary"]) > SHORT_INSIGHTS else None)
         if top_n:
             prim = [i for i in tinfo["primary"] if i not in hid]
             keep = set(prim[:top_n]) | {i for i in prim if i in pinned}
@@ -362,10 +365,17 @@ def apply(result: dict, state: dict, cmd: dict, cat: dict | None = None) -> tupl
         tab, mode = _tab(cmd, cat), str(cmd.get("mode") or "").lower()
         if mode not in ("full", "short"):
             raise ViewError("Choose the full view or the short view.")
+        default = tab in DEFAULT_SHORT
         if mode == "short":
-            new["short"][tab] = True
+            if default:
+                new["short"].pop(tab, None)
+            else:
+                new["short"][tab] = True
         else:
-            new["short"].pop(tab, None)
+            if default:
+                new["short"][tab] = False
+            else:
+                new["short"].pop(tab, None)
             new["top_n"].pop(tab, None)
             new["only_supporting"].pop(tab, None)
         msg = f"{TAB_NAMES[tab]} now shows the {mode} view." + (" The rest is under Show more." if mode == "short" else "")
@@ -523,3 +533,33 @@ def item_context(result: dict, item_id: str, cat: dict | None = None) -> dict | 
             parts = ["Behind the numbers: how the data was set up, what was cleaned and how things were calculated."]
     text = _plain(" ".join(p for p in parts if p))[:1200]
     return {"id": item_id, "title": it["title"], "kind": it["kind"], "tab": it["tab"], "text": text, "fact_ids": fids}
+
+
+# ------------------------------------------------------------------ the slim bar: shown only when something is hidden or changed
+def bar(result: dict, state: dict, cat: dict | None = None) -> dict:
+    """{"show": bool, "text": "2 items hidden · 1 title edited", "hidden": n}. `show` is False exactly when the view is back to its default (so the bar disappears)."""
+    st = normalise(state)
+    cat = cat or catalogue(result)
+    hidden = [i for i in st["hidden"] if i in cat["items"]]
+    parts = []
+    if hidden:
+        parts.append(f"{len(hidden)} item{'s' if len(hidden) != 1 else ''} hidden")
+    full = [t for t, v in st["short"].items() if v is False and t in DEFAULT_SHORT]
+    short = [t for t, v in st["short"].items() if v is True and t not in DEFAULT_SHORT]
+    if full:
+        parts.append("showing everything on " + ", ".join(TAB_NAMES[t] for t in full))
+    if short:
+        parts.append("short view on " + ", ".join(TAB_NAMES[t] for t in short))
+    if st["top_n"]:
+        parts.append("top " + "/".join(str(n) for n in st["top_n"].values()) + " only")
+    if st["only_supporting"]:
+        parts.append("only supporting charts")
+    if st["titles"]:
+        parts.append(f"{len(st['titles'])} title{'s' if len(st['titles']) != 1 else ''} edited")
+    if st["pinned"]:
+        parts.append(f"{len(st['pinned'])} pinned")
+    if st["order"]:
+        parts.append("sections moved")
+    if st["chart"]:
+        parts.append(f"{len(st['chart'])} chart{'s' if len(st['chart']) != 1 else ''} redrawn")
+    return {"show": not is_original(st), "text": " · ".join(parts) or "view changed", "hidden": len(hidden)}

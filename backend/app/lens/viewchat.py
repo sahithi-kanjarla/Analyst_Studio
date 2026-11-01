@@ -153,3 +153,51 @@ def answer(wd, result: dict, spec: dict, question: str, tab_label: str, llm, ai_
                              ["Only what is shown changed: no figure, trust label, calculation or sentence of the report was touched.", "Everything hidden stays in your saved report and can be restored from Hidden items. Undo goes back one step."])
     extra = {"view": {"changed": changed, "commands": cmds, "undo": changed, **({"state": ve.normalise(new)} if view_state is not None else {})}}
     return _a("view", text, "View changed" if changed else "No change", how, chips, ai_calls + used, **extra), chips, used, fail
+
+
+# ------------------------------------------------------------------ hide or show something named in the user's own words (the no-AI fallback; with an AI the planner picks the ids)
+TOGGLE_RE = re.compile(r"^\s*(?:please\s+|can you\s+|could you\s+)?(?P<v>hide|remove|unhide|restore|show(?!\s+(?:me\s+)?(?:all|everything|only|just|the\s+(?:full|short)))|bring back)\s+(?:the\s+|my\s+|all\s+(?:the\s+)?)?(?P<what>[^.?!]{2,80}?)\s*[.!]?\s*$", re.I)
+TAB_VOCAB = {"report": ["report", "answer", "summary"], "insights": ["insights", "insight", "findings", "finding", "evidence"], "strategy": ["ideas", "idea", "strategies", "strategy", "suggestions"],
+             "dashboard": ["dashboard", "charts", "visuals"], "data": ["data", "table", "rows"], "model": ["files", "connect", "model", "links", "tables"],
+             "cleaning": ["cleaning", "cleaned", "clean", "log", "changes"], "plan": ["plan", "analysed", "analysis", "analyse", "questions", "definitions", "setup"],
+             "powerbi": ["power", "bi", "export", "measures", "dax"], "chat": ["chat", "conversation"]}
+
+
+def _stem(w: str) -> str:
+    return w[:4] if len(w) >= 5 else w
+
+
+FILLER = ("the", "of", "and", "to", "my", "all", "tab", "page", "section", "part", "we", "how", "what", "your", "our", "this", "that")
+
+
+def _words(text: str) -> set[str]:
+    return {_stem(w) for w in re.findall(r"[a-z0-9]+", str(text).lower()) if len(w) > 1 and w not in FILLER}
+
+
+def _exact(text: str) -> set[str]:
+    return {w.rstrip("s") for w in re.findall(r"[a-z0-9]+", str(text).lower()) if len(w) > 1 and w not in FILLER}
+
+
+def toggle_cmds(question: str, cat: dict, hidden: list[str]) -> list[dict] | None:
+    """hide or show commands for 'hide the cleaning log'-style requests, by matching the words against item and section titles and tab vocabulary. None when the request is not of that form,
+    [] when it is but nothing matches (the caller then asks which)."""
+    m = TOGGLE_RE.match(question or "")
+    if not m:
+        return None
+    verb = "hide" if m["v"].lower() in ("hide", "remove") else "show"
+    want = _words(m["what"])
+    if not want:
+        return []
+    pool = {i: it for i, it in cat["items"].items() if (verb == "hide" and i not in hidden) or (verb == "show" and i in hidden)}
+    exact = _exact(m["what"])
+    for t, vocab in TAB_VOCAB.items():              # the name of a tab or its part ("the cleaning log", "the conversation"): that tab's sections
+        if exact and exact <= {w.rstrip("s") for w in vocab + ve.TAB_NAMES[t].lower().split()}:
+            secs = [sc for sc in cat["tabs"][t]["sections"] if (verb == "hide" and sc not in hidden) or (verb == "show" and sc in hidden)]
+            if secs:
+                return [{"cmd": verb, "id": sc} for sc in secs]
+    hits = [i for i, it in pool.items() if want <= _words(it["title"])]
+    if len(hits) > 1:
+        hits = sorted(hits, key=lambda i: (cat["items"][i]["kind"] != "section", len(cat["items"][i]["title"])))[:1]
+    if hits:
+        return [{"cmd": verb, "id": hits[0]}]
+    return []

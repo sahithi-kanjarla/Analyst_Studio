@@ -50,35 +50,15 @@ class BriefManage(Tool):
         if op == "open":
             return ToolResult(summary=f"Opened “{b['title']}”", answer=_answer(env, b["no_info"] or (b.get("headline") or {}).get("text", b["title"]), "Brief", [b]))
         if op == "delete":
-            store.put_briefs(env.wd, [x for x in bs if x["id"] != b["id"]])
+            bf.delete(env.wd, b["id"])
             return ToolResult(summary=f"Deleted “{b['title']}”", answer=_answer(env, f"Deleted “{b['title']}”. The report itself is unchanged.", "Briefs", []))
-        if op == "rename":
-            b["title"] = " ".join(str(args["title"]).split())[:90]
-            b["title_edited"] = True
-        else:
-            sec, text = args["section"], " ".join(str(args["text"]).split())
-            part = {"text": text, "ids": [], "edited": True}
-            if sec == "headline":
-                part["ids"] = (b.get("headline") or {}).get("ids", [])
-                b["headline"] = part
-                b["no_info"] = ""
+        try:
+            if op == "rename":
+                b = bf.rename(env.wd, b["id"], args["title"])
             else:
-                lst = b[sec]
-                i = args.get("index")
-                if i is None or not 0 <= i < max(len(lst), 1):
-                    if i is not None:
-                        return ToolResult(ok=False, error=f"There is no line {i + 1} in that part.", summary="No such line")
-                    i = len(lst)
-                part["ids"] = lst[i]["ids"] if i < len(lst) else []
-                if i < len(lst):
-                    lst[i] = part
-                elif len(lst) < (bf.MAX_FIGURES if sec == "key_figures" else bf.MAX_RECS):
-                    lst.append(part)
-                else:
-                    return ToolResult(ok=False, error="That part is full; edit one of its lines instead.", summary="Too many lines")
-        import time
-        b["edited"] = time.time()
-        store.put_briefs(env.wd, [b if x["id"] == b["id"] else x for x in bs])
+                b = bf.edit(env.wd, b["id"], args["section"], args.get("index"), args["text"])
+        except ValueError as e:
+            return ToolResult(ok=False, error=str(e), summary="The brief could not be changed")
         msg = f"Renamed to “{b['title']}” (Edited by you)." if op == "rename" else "Updated. Your own lines are labelled Edited by you; the data-quality note stays as it is."
         return ToolResult(summary=f"{'Renamed' if op == 'rename' else 'Edited'} “{b['title']}”", answer=_answer(env, msg, "Brief", [b]))
 

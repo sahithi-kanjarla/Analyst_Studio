@@ -120,11 +120,11 @@ def test_the_per_run_question_cap_still_applies(shop, monkeypatch):
 # ------------------------------------------------------------------ one Undo for a multi-step view edit
 def test_one_undo_reverts_a_multi_step_view_edit(run):
     rid, wd, res = run
-    ai = FakeAI(P(("view_edit", {"commands": [{"cmd": "set_mode", "tab": "insights", "mode": "short"}, {"cmd": "hide", "id": "insights:card:f4"}]}),
+    ai = FakeAI(P(("view_edit", {"commands": [{"cmd": "set_mode", "tab": "strategy", "mode": "short"}, {"cmd": "hide", "id": "insights:card:f4"}]}),
                   ("view_edit", {"commands": [{"cmd": "pin", "id": "strategy:s1"}, {"cmd": "rename", "id": "strategy:s1", "title": "Mine"}]})))
     a = chat.ask(wd, res, question="tidy things up in three ways", llm=ai, allow_ai=True)["answer"]
     st = ve.normalise(store.get_view_state(wd))
-    assert a["view"]["changed"] and st["short"] == {"insights": True} and st["hidden"] == ["insights:card:f4"] and st["pinned"] == ["strategy:s1"] and st["titles"]
+    assert a["view"]["changed"] and st["short"] == {"strategy": True} and st["hidden"] == ["insights:card:f4"] and st["pinned"] == ["strategy:s1"] and st["titles"]
     assert len(st["history"]) == 1                                                    # the whole request is ONE step
     chat.ask(wd, res, question="undo", llm=ai, allow_ai=True)
     assert ve._core(ve.normalise(store.get_view_state(wd))) == ve._core(ve.empty())

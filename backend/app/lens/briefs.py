@@ -95,3 +95,63 @@ def lines_of(b: dict) -> list[str]:
 
 def plain_text(b: dict, result: dict) -> str:
     return "\n".join(lines_of(b))
+
+
+SECTIONS = ("headline", "key_figures", "recommendations")
+
+
+def rename(wd, ref: str, title: str) -> dict:
+    """Renames a saved brief (the title is the user's own text). Raises ValueError with a plain sentence."""
+    bs = store.get_briefs(wd)
+    b = find(wd, ref, bs)
+    title = " ".join(str(title or "").split())[:90]
+    if b is None:
+        raise ValueError("I can't tell which brief you mean.")
+    if not title:
+        raise ValueError("Say the new title.")
+    b["title"], b["title_edited"], b["edited"] = title, True, time.time()
+    store.put_briefs(wd, [b if x["id"] == b["id"] else x for x in bs])
+    return b
+
+
+def edit(wd, ref: str, section: str, index: int | None, text: str) -> dict:
+    """Replaces one line of a saved brief with the user's own text, labelled "Edited by you". The data-quality note and the trust label cannot be edited. Raises ValueError with a plain sentence."""
+    bs = store.get_briefs(wd)
+    b = find(wd, ref, bs)
+    text = " ".join(str(text or "").split())[:300]
+    if b is None:
+        raise ValueError("I can't tell which brief you mean.")
+    if section not in SECTIONS:
+        raise ValueError("Only the headline, the key figures and the recommendations can be edited; the data-quality note stays as it is.")
+    if not text:
+        raise ValueError("Say the new text.")
+    part = {"text": text, "ids": [], "edited": True}
+    if section == "headline":
+        part["ids"] = (b.get("headline") or {}).get("ids", [])
+        b["headline"], b["no_info"] = part, ""
+    else:
+        lst = b[section]
+        limit = MAX_FIGURES if section == "key_figures" else MAX_RECS
+        if index is None:
+            index = len(lst)
+        if not 0 <= index <= len(lst):
+            raise ValueError(f"There is no line {index + 1} in that part.")
+        if index < len(lst):
+            part["ids"] = lst[index]["ids"]
+            lst[index] = part
+        elif len(lst) < limit:
+            lst.append(part)
+        else:
+            raise ValueError("That part is full; edit one of its lines instead.")
+    b["edited"] = time.time()
+    store.put_briefs(wd, [b if x["id"] == b["id"] else x for x in bs])
+    return b
+
+
+def delete(wd, ref: str) -> dict:
+    bs = store.get_briefs(wd)
+    b = find(wd, ref, bs)
+    if b is None:
+        raise ValueError("I can't tell which brief you mean.")
+    store.put_briefs(wd, [x for x in bs if x["id"] != b["id"]])
+    return b

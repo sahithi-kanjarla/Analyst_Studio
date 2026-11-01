@@ -559,7 +559,7 @@ def _view_wire(run_id: str, wd: Path, result: dict, state: dict, message: str = 
             r = viewchart.render_override(wd, result, f, ov, df, ctx) if f else None
             if r:
                 charts[iid] = {"url": f"/api/runs/{run_id}/files/{r['path']}", "note": r["note"]}
-    return {"state": viewedit.normalise(state), "resolved": res, "redrawn": charts, "message": message, "can_undo": bool(viewedit.normalise(state)["history"]),
+    return {"state": viewedit.normalise(state), "bar": viewedit.bar(result, state, cat), "resolved": res, "redrawn": charts, "message": message, "can_undo": bool(viewedit.normalise(state)["history"]),
             "items": {i: {k: v for k, v in it.items() if k in ("id", "tab", "kind", "title", "section", "score", "changeable", "card")} for i, it in cat["items"].items()},
             "sections": {t: x["sections"] for t, x in cat["tabs"].items()}}
 
@@ -597,6 +597,51 @@ def view_apply(run_id: str, body: ViewIn):
     if not demo:
         lensstore.set_view_state(wd, new)
     return {**_view_wire(run_id, wd, result, new, " ".join(msgs)), "local": demo}
+
+
+class BriefRenameIn(BaseModel):
+    title: str = Field(max_length=90)
+
+
+class BriefEditIn(BaseModel):
+    section: str = Field(max_length=30)
+    index: int | None = None
+    text: str = Field(max_length=300)
+
+
+def _brief_call(run_id: str, fn, *a):
+    from .lens import briefs as lensbriefs
+    _check_id(run_id)
+    wd = run_dir(run_id)
+    try:
+        return fn(wd, *a)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+
+
+@app.get("/api/runs/{run_id}/briefs")
+def briefs_list(run_id: str):
+    _check_id(run_id)
+    return {"briefs": lensstore.get_briefs(run_dir(run_id))}
+
+
+@app.post("/api/runs/{run_id}/briefs/{brief_id}/rename")
+def brief_rename(run_id: str, brief_id: str, body: BriefRenameIn):
+    from .lens import briefs as lensbriefs
+    return _brief_call(run_id, lensbriefs.rename, brief_id, body.title)
+
+
+@app.post("/api/runs/{run_id}/briefs/{brief_id}/edit")
+def brief_edit(run_id: str, brief_id: str, body: BriefEditIn):
+    from .lens import briefs as lensbriefs
+    return _brief_call(run_id, lensbriefs.edit, brief_id, body.section, body.index, body.text)
+
+
+@app.delete("/api/runs/{run_id}/briefs/{brief_id}")
+def brief_delete(run_id: str, brief_id: str):
+    from .lens import briefs as lensbriefs
+    _brief_call(run_id, lensbriefs.delete, brief_id)
+    return {"deleted": brief_id}
 
 
 class FeedbackIn(BaseModel):
