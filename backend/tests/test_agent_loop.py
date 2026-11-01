@@ -247,3 +247,60 @@ def test_without_an_ai_the_rule_router_still_answers_and_chips_run(shop):
     assert a["status"] == "unavailable" and "suggested questions only" in a["text"]
     rid, wd, _, _ = shop
     assert "something nobody can answer" in (wd / "lens_unmet.jsonl").read_text()
+
+
+# ------------------------------------------------------------------ feedback, the unmet log and its summary, ambiguity
+def test_a_thumbs_up_or_down_is_recorded_with_the_plan_and_tools(run):
+    from fastapi.testclient import TestClient
+    from app.main import app
+    rid, wd, res = run
+    c = TestClient(app)
+    t = chat.ask(wd, res, question="what did you clean", llm=FakeAI(P(("explain", {"topic": "cleaning"}))), allow_ai=True, tab="Report")
+    r = c.post(f"/api/runs/{rid}/lens/feedback", json={"turn": t["id"], "vote": "down"})
+    assert r.status_code == 200
+    line = json.loads((wd / "lens_feedback.jsonl").read_text().splitlines()[-1])
+    assert line["vote"] == "down" and line["tools"] == ["explain"] and line["plan"][0]["tool"] == "explain" and line["request"] == "what did you clean" and line["tab"] == "Report"
+    assert store.get_turn(wd, t["id"])["answer"]["feedback"] == "down"                           # shows after a reload
+    assert c.post(f"/api/runs/{rid}/lens/feedback", json={"turn": t["id"], "vote": "sideways"}).status_code == 400
+    assert c.post(f"/api/runs/{rid}/lens/feedback", json={"turn": "nope", "vote": "up"}).status_code == 400
+
+
+def test_the_summary_script_groups_unmet_requests_and_thumbs_down(tmp_path):
+    import importlib.util
+    from pathlib import Path
+    spec = importlib.util.spec_from_file_location("fbrep", Path(__file__).resolve().parents[2] / "scripts" / "lens_feedback_report.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    d = tmp_path / "r1"
+    d.mkdir()
+    (d / "lens_unmet.jsonl").write_text("\n".join(json.dumps({"request": r, "tab": "Report", "at": 1}) for r in ["email this to my boss", "please email this to the boss", "email the report to my boss now", "book a flight"]), encoding="utf-8")
+    (d / "lens_feedback.jsonl").write_text("\n".join(json.dumps(x) for x in [{"vote": "down", "tools": ["data_query", "explain"], "request": "bad one"}, {"vote": "up", "tools": ["data_query"], "request": "good"},
+                                                                            {"vote": "down", "tools": ["data_query", "explain"], "request": "bad two"}]), encoding="utf-8")
+    s = mod.summarise(mod.run_dirs([str(tmp_path)]))
+    assert s["unmet"] == 4 and s["top_unmet"][0][1] >= 2 and "boss" in s["top_unmet"][0][0]
+    assert s["tool_votes"]["data_query"] == {"down": 2, "up": 1} and s["down_combos"][0] == ("data_query + explain", 2)
+    assert mod.main([str(tmp_path)]) == 0
+
+
+def test_an_ambiguous_reference_asks_one_question_with_the_item_titles_as_choices(run):
+    rid, wd, res = run
+    cat = ve.catalogue(res)
+    t1, t2 = cat["items"]["insights:chart:f4"]["title"], cat["items"]["insights:headline:r1"]["title"]
+    plan_ = P(("clarify", {"question": "Which one do you mean?", "choices": [{"label": t1[:40], "commands": [{"cmd": "hide", "id": "insights:chart:f4"}]}, {"label": t2[:40], "commands": [{"cmd": "hide", "id": "insights:headline:r1"}]}]}))
+    t = chat.ask(wd, res, question="hide that thing", llm=FakeAI(plan_), allow_ai=True)
+    a = t["answer"]
+    assert a["status"] == "clarify" and [c["label"] for c in a["clarify"]["choices"]] == [t1[:40].strip(), t2[:40].strip()]
+    assert ve.normalise(store.get_view_state(wd))["hidden"] == []                                  # nothing happens until a choice is made
+    pick = a["clarify"]["choices"][1]
+    b = chat.ask(wd, res, choice={"turn": t["id"], "choice": pick["id"]}, llm=None, allow_ai=False)["answer"]
+    assert b["view"]["changed"] and ve.normalise(store.get_view_state(wd))["hidden"] == ["insights:headline:r1"]
+    bad = P(("clarify", {"question": "Which?", "choices": [{"label": "x", "commands": [{"cmd": "hide", "id": "nope:nope"}]}, {"label": "y", "commands": [{"cmd": "hide", "id": "nope:two"}]}]}))
+    c = chat.ask(wd, res, question="hide it", llm=FakeAI(bad), allow_ai=True)["answer"]
+    assert c["status"] == "no_fit"                                                                  # choices that name items that do not exist are refused
+
+
+def test_an_open_ended_request_offers_two_or_three_directions(shop):
+    ch = [{"label": "Top city", "query": {"op": "top", "measure": "amount", "agg": "sum", "group_by": ["city"], "n": 1, "direction": "top"}},
+          {"label": "Over time", "query": {"op": "trend", "measure": "amount", "agg": "sum", "grain": "month"}}]
+    a = ask(shop, FakeAI(P(("clarify", {"question": "Which direction?", "choices": ch}))), "tell me something")["answer"]
+    assert a["status"] == "clarify" and len(a["clarify"]["choices"]) == 2

@@ -27,39 +27,6 @@ CHIP_MATCH = 0.95          # typed text runs a suggested question only when it i
 DAILY_PAUSE_S = 600
 _DAILY = {"until": 0.0}        # a per-day AI limit stops every run's AI questions in this process for a while: waiting a minute will not help
 
-SYSTEM = """You are Lens, the part of a data report that answers questions. You never calculate and never write a number: you choose ONE action as JSON and code does everything else.
-Reply with exactly one of:
-{"action":"query","query":{...}}                    a question answered by calculating on the data
-{"action":"clarify","question":"<one short question>","choices":[{"label":"<2-4 words>","query":{...}},{"label":"...","query":{...}}]}   (2 or 3 choices, each a complete query)
-{"action":"unsupported","reason":"<one plain sentence, no numbers>"}
-{"action":"app","topic":"tab|trust|cleaning|definitions|understanding|goal|data_gaps|insights|strategies"}   about the app or the report itself ("what does this tab show?", "why is trust Medium?", "what did you clean?")
-{"action":"summary","length":"short|standard"}      "summarise" or "shorten" the report
-{"action":"priority","priority":"<what the user cares about, 1-4 words>","terms":["<up to 5 words or close synonyms a report would use for it>"]}   "what matters most for me?", "I care about returns" (terms empty if no priority is named)
-{"action":"strategy","focus":"<what to act on, 1-4 words, or empty>"}   "what should we do about X?"
-{"action":"general","answer":"<at most 3 short sentences, no numbers>"}   a question that is not about this data or report (how a term is defined, how something works in general)
-{"action":"view","commands":[<at most 4 commands>]}   a request to change what the report shows ("make the ideas tab shorter", "remove this chart", "show only the top 3"). Commands are from this closed list; code checks every id and applies them:
-""" + viewchat.COMMAND_HELP + """
-
-"action" is exactly one of those words (never an operation name). Example: {"action":"query","query":{"op":"top","measure":"<col>","agg":"sum","group_by":["<col>"],"n":3,"direction":"top"}}
-A query is one of these operations. Every "filters" entry looks like: """ + qmod.FILTER_HELP + """
-""" + "\n".join(f"- {h}" for h in qmod.OP_HELP.values()) + """
-"chart" is optional: auto|bar|line|stacked_bar|share|histogram|scatter|table. "n" is how many groups to show.
-
-Rules:
-- Use column names exactly as written in COLUMNS ("name"). Never invent a column or a value. Only "measure" columns can be added up or averaged; group by "category", "flag" or "id" columns only; time comes from "date" columns.
-- A value the user names (a city, a tier) goes in a filter or in "a"/"b" exactly as the user wrote it. Code finds the real value.
-- A follow-up ("and for Delhi?", "make it monthly", "as a line", "top 5") changes only what the user asked in the previous query (see PREVIOUS TURNS) and keeps the rest.
-- "last month", "this year" and similar mean the latest period in DATE SPANS, written as a period such as "2023-11" or "2023".
-- A "why" question ("why is X the top?"): return the "query" for the number being asked about (use the main measure when none is named; "revenue" means the money column). Never clarify a "why" question and never explain a cause yourself: code shows what is behind the number. If the question assumes something ("why is X the top?"), still return the query; code checks the assumption.
-- Ask to clarify only when two readings give different answers (for example two columns could be "sales"); one short question with 2 or 3 choices. Never ask to confirm something obvious.
-- "Any sudden drop or rise?", "any spikes?", "anything unusual over time?" is the unusual_changes operation (use the main measure when none is named).
-- "Which groups lose money?" is a top query with direction "bottom" and "only_negative":true.
-- A request for the best idea or strategy, with or without "and why", is {"action":"strategy"}. A request to change what a tab, a chart or the report shows is a "view" action using only the listed commands; a request for how it looks (colours, fonts, layout) is "unsupported".
-- Use "unsupported" for forecasts, opinions, anything that needs a column that is not listed, or changing data. If margin or profit is asked and no column holds it, that is unsupported.
-- For app and report questions use REPORT RECORDS; for anything else about the data use COLUMNS. Never put a number from your own knowledge in any field.
-- Return the JSON object only."""
-
-
 def _norm(t: str) -> str:
     return " ".join("".join(ch.lower() if ch.isalnum() else " " for ch in t).split())
 
@@ -169,31 +136,6 @@ def _clarify(question: str, choices: list[dict], wd, ctx, df, result, ai_calls: 
 
 
 # ------------------------------------------------------------------ the AI step
-def _history(wd: Path) -> list[dict]:
-    out = []
-    for t in store.load(wd)["turns"][-HISTORY_TO_AI:]:
-        a = t["answer"]
-        item = {"question": t["question"], "outcome": a["status"]}
-        if a.get("query"):
-            item["query"] = a["query"]
-        if a["status"] == "answered":
-            item["answer"] = a["text"][:240]
-        elif a["status"] == "clarify":
-            item["asked"] = a["text"]
-            item["choices"] = [c["label"] for c in a["clarify"]["choices"]]
-        out.append(item)
-    return out
-
-
-def build_prompt(ctx, question: str, hist: list[dict], tab: str, result: dict | None = None, focus: dict | None = None) -> str:
-    spans = {ctx.label(k): list(v) for k, v in ctx.spans.items()}
-    return ("CURRENT TAB: " + (tab or "unknown") + f"\nTABLE: {ctx.rows} rows" + (f", amounts in {ctx.currency}" if ctx.currency else "")
-            + "\nDATE SPANS: " + json.dumps(spans, ensure_ascii=False) + "\nCOLUMNS: " + json.dumps(ctxmod.for_prompt(ctx), ensure_ascii=False)
-            + ("\nREPORT RECORDS (no rows): " + records.for_prompt(result, tab) if result is not None else "")
-            + (f"\nFOCUS ITEM (the user pressed \"Ask Lens about this\" on it; answer about it, using only this text and the data): {json.dumps(focus, ensure_ascii=False)}" if focus else "")
-            + "\nPREVIOUS TURNS (oldest first, at most 6): " + json.dumps(hist, ensure_ascii=False, default=str) + "\n\nQUESTION: " + question)
-
-
 def _fail_text(reason: str) -> str:
     low = (reason or "").lower()
     if "daily" in low:
@@ -205,61 +147,6 @@ def _fail_text(reason: str) -> str:
     if "auth" in low:
         return "The AI could not be used because its key was refused. The suggested questions still work."
     return "I couldn't get an answer from the AI just now. Please try again, or pick one of the suggested questions."
-
-
-def _safe_reason(text) -> str:
-    t = " ".join(str(text or "").split())
-    return t[:160] if t and not any(ch.isdigit() for ch in t) else ""
-
-
-def translate(llm, wd: Path, ctx, df, question: str, tab: str, result: dict | None = None, focus: dict | None = None):
-    """(action, ai_calls, failure reason). At most MAX_AI_CALLS calls: the second is used only to repair a reply that was not JSON or a query that failed the checks."""
-    model = llmmod.deterministic(llm)
-    user = build_prompt(ctx, question, _history(wd), tab, result, focus)
-    feedback, calls = "", 0
-    with llmmod.capture() as cap:
-        for attempt in range(MAX_AI_CALLS):
-            obj, why = llmmod.ask_json_ex(model, SYSTEM, user + feedback, repair=False)
-            calls = cap.calls
-            if obj is None:
-                if why.startswith("bad JSON") and attempt == 0 and calls < MAX_AI_CALLS:
-                    feedback = "\n\nYour previous reply was not valid JSON. Answer again with only the JSON object."
-                    continue
-                return None, calls, why
-            act = _action_of(obj)
-            if act == "query":
-                ch = qmod.check(obj.get("query"), ctx, df)
-                if ch.query or ch.ambiguity or attempt == 1 or calls >= MAX_AI_CALLS:
-                    return {"kind": "checked", "checked": ch}, calls, ""
-                hints = "".join(f" Real values of {ctx.label(c)} include: {', '.join(v)}." for c, v in ch.hints.items())
-                feedback = f"\n\nYour previous query was rejected by the checks: {' '.join(ch.errors)}{hints} Answer again with a corrected JSON object, or action \"unsupported\" if it cannot be done."
-                continue
-            if act == "clarify":
-                return {"kind": "clarify", "question": obj.get("question"), "choices": obj.get("choices") if isinstance(obj.get("choices"), list) else []}, calls, ""
-            if act == "unsupported":
-                return {"kind": "unsupported", "reason": _safe_reason(obj.get("reason"))}, calls, ""
-            if act in REPORT_KINDS:
-                return {"kind": act, "obj": obj}, calls, ""
-            if attempt == 0 and calls < MAX_AI_CALLS:
-                feedback = "\n\nYour previous reply did not have a valid \"action\". Answer again with only the JSON object."
-                continue
-            return {"kind": "unsupported", "reason": ""}, calls, ""
-    return None, calls, "no usable reply"
-
-
-def _action_of(obj: dict) -> str | None:
-    """query | clarify | unsupported. A reply that carries a query (or is one) is a query even when its "action" is an operation name or missing: the checks decide, not the label."""
-    a = str(obj.get("action") or "").lower()
-    if a in ("clarify", "unsupported") or a in REPORT_KINDS:
-        return a
-    if a == "why" and isinstance(obj.get("query"), dict):
-        return "query"
-    if isinstance(obj.get("query"), dict):
-        return "query"
-    if obj.get("op") in qmod.OPS:
-        obj["query"] = {k: v for k, v in obj.items() if k != "action"}
-        return "query"
-    return "query" if a == "query" else None
 
 
 # ------------------------------------------------------------------ typed text that is really a suggested question
