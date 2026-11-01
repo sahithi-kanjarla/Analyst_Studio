@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { RunResult } from "../api";
+import Dialog from "./Dialog";
 import { useView } from "./view/ViewContext";
 
 /** What the printed report includes. The main view (summary, key numbers, charts) is on by default; the rest is opt-in. */
@@ -65,8 +66,10 @@ export function tagReport(root: HTMLElement) {
 
 const KIND_OF_SECTION: [keyof PrintOptions, string][] = [["summary", "summary"], ["numbers", "numbers"], ["setup", "setup"], ["details", "details"]];
 
-export default function PrintPanel({ run, startOpen = false }: { run: RunResult; startOpen?: boolean }) {
-  const [open, setOpen] = useState(startOpen);
+/** The print options. Inline (a button that opens the panel under it) in the landing tour; with `dialog` it is opened from the Export menu: `open` and `onClose` are the caller's, and the choices still apply to the printed page while it is closed. */
+export default function PrintPanel({ run, startOpen = false, dialog = false, open: openProp = false, onClose }: { run: RunResult; startOpen?: boolean; dialog?: boolean; open?: boolean; onClose?: () => void }) {
+  const [openInline, setOpen] = useState(startOpen);
+  const open = dialog ? openProp : openInline;
   const view = useView();
   const hiddenItems = (view?.data.state.hidden ?? []).filter((id) => view?.data.items[id]);
   const [o, setO] = useState<PrintOptions>(() => loadOptions(run));
@@ -94,7 +97,7 @@ export default function PrintPanel({ run, startOpen = false }: { run: RunResult;
       document.head.appendChild(style);
     }
     style.textContent = `@page { size: ${o.paper} ${o.orientation}; margin: 14mm 14mm 16mm; }`;
-  }, [o]);
+  }, [o, open]);
 
   // Collapsed sections are printed open. Reverted after printing so the screen is unchanged.
   useEffect(() => {
@@ -124,12 +127,8 @@ export default function PrintPanel({ run, startOpen = false }: { run: RunResult;
     </label>
   );
 
-  return (
-    <>
-    <div className="print-wrap no-print">
-      <button className="btn" aria-expanded={open} aria-controls="print-panel" onClick={() => setOpen((v) => !v)}>Print / Save as PDF</button>
-      {open && (
-        <section id="print-panel" className="print-panel" aria-label="Print options">
+  const panel = (
+      <section id="print-panel" className="print-panel" aria-label="Print options">
           <fieldset>
             <legend>Include</legend>
             {check("summary", "Summary and actions", "the answer and what to do")}
@@ -173,9 +172,19 @@ export default function PrintPanel({ run, startOpen = false }: { run: RunResult;
             <button className="primary" onClick={() => window.print()}>Print / Save as PDF</button>
             <span className="muted small">In the print dialog, choose “Save as PDF”. Your choices are remembered in this browser only.</span>
           </div>
-        </section>
-      )}
+      </section>
+  );
+
+  return (
+    <>
+    {dialog ? (
+      open && <Dialog title="Print or save as PDF" intro="Choose what to include. In the print dialog, choose “Save as PDF” to keep a file." onClose={() => onClose?.()} wide>{panel}</Dialog>
+    ) : (
+    <div className="print-wrap no-print">
+      <button className="btn" aria-expanded={open} aria-controls="print-panel" onClick={() => setOpen((v) => !v)}>Print / Save as PDF</button>
+      {open && panel}
     </div>
+    )}
     {/* The header of the printed page: visible only in print (outside the hidden panel wrapper) */}
     <div className="print-header" aria-hidden="true">
       <div className="print-head-title">{o.title}{o.company && <span> · {o.company}</span>}</div>

@@ -80,10 +80,10 @@ export default function FindingGallery({ run }: { run: RunResult }) {
       </section>
 
       {more.length > 0 && (
-        <details className="more-charts">
-          <summary>More charts ({more.length})</summary>
-          <div className="tile-grid" style={{ marginTop: 12 }}><ShowMore tab="dashboard" items={more.map((f) => ({ id: `dashboard:chart:${f.id}`, node: <Tile key={f.id} f={f} onOpen={() => setOpen(f)} /> }))} /></div>
-        </details>
+        <section className="dash-section more-charts">
+          <h4>More charts <span className="muted">· {more.length}</span></h4>
+          <div className="tile-grid"><ShowMore tab="dashboard" items={more.map((f) => ({ id: `dashboard:chart:${f.id}`, node: <Tile key={f.id} f={f} onOpen={() => setOpen(f)} /> }))} /></div>
+        </section>
       )}
 
       {dm && (dm.created.length > 0 || dm.rejected.length > 0) && (

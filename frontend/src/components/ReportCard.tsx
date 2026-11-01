@@ -10,25 +10,28 @@ const LEVEL_CLASS: Record<string, string> = {
   descriptive: "tag",
 };
 
+const LONG_TABLE = 8;          // the key table of a finding is open; one longer than this is supporting detail and folds
+
 function Table({ t }: { t: CardTable }) {
-  return (
-    <details className="fold">
-      <summary>Per-group figures: {t.title}</summary>
-      <div className="tablewrap">
-        <table className="table">
-          <thead>
-            <tr>{t.columns.map((c) => <th key={c}>{c}</th>)}</tr>
-          </thead>
-          <tbody>
-            {t.rows.map((r, i) => (
-              <tr key={i}>{r.map((v, j) => <td key={j} className={j > 0 ? "num" : ""}>{String(v)}</td>)}</tr>
-            ))}
-          </tbody>
-        </table>
-        {t.total > t.rows.length && <p className="muted small">Showing {t.rows.length} of {t.total} rows; the Data tab shows all of them.</p>}
-      </div>
-    </details>
+  const long = t.rows.length > LONG_TABLE;
+  const body = (
+    <div className="tablewrap">
+      <table className="table">
+        <thead>
+          <tr>{t.columns.map((c) => <th key={c}>{c}</th>)}</tr>
+        </thead>
+        <tbody>
+          {t.rows.map((r, i) => (
+            <tr key={i}>{r.map((v, j) => <td key={j} className={j > 0 ? "num" : ""}>{String(v)}</td>)}</tr>
+          ))}
+        </tbody>
+      </table>
+      {t.total > t.rows.length && <p className="muted small">Showing {t.rows.length} of {t.total} rows; the Data tab shows all of them.</p>}
+    </div>
   );
+  return long
+    ? <details className="fold"><summary>Per-group figures: {t.title}</summary>{body}</details>
+    : <section className="key-table"><h5>Per-group figures: {t.title}</h5>{body}</section>;
 }
 
 /** One finding with its median check on one line, a ratio of the same measure as a sub-section, and per-group tables collapsed. */

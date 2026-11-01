@@ -12,6 +12,7 @@ from . import howtext, reports, rules, store
 COMMAND_HELP = """Commands (each a small JSON object; "tab" is report|insights|strategy|dashboard; "id" is an item or section id from ITEMS):
 {"cmd":"hide","id":<id>}  {"cmd":"show","id":<id>}  hide or show one item or section
 {"cmd":"set_mode","tab":<tab>,"mode":"short|full"}  the short view (top 5 insights one line each plus their chart; at most 6 charts on the report and dashboard) or the full view
+{"cmd":"set_details","on":true|false}  open every folded section on every page (the supporting detail: how a figure was calculated, long tables, step-by-step logs), or fold them away again
 {"cmd":"top_n","tab":<tab>,"n":<1-50>}  show only the top N items of the tab (the rest sit under Show more)
 {"cmd":"only_supporting","tab":<tab>,"on":true|false}  keep only the charts that support an action or the summary
 {"cmd":"chart","id":<chart id>,"chart":"bar|line|share|table|histogram","grain":"day|week|month|quarter|year","n":<1-50>}  change one chart's type, time grain or top N (only the keys given are changed)
@@ -34,6 +35,8 @@ SHORTEN = re.compile(r"\b(?:short(?:er|en)?|simpl(?:e|er|ify)|declutter|tidy|con
 FULLER = re.compile(r"\b(?:full|everything|expand|longer|complete)\b[^.?]{0,20}\b(?:view|version|tab|report)?\b|\bshow (?:me )?(?:all|everything)\b", re.I)
 NEEDED = re.compile(r"\b(?:only|just)\b[^.?]{0,25}\b(?:needed|necessary|useful|supporting|relevant|important|essential)\b[^.?]{0,15}\bcharts?\b|\bneeded charts?\b|\bcharts? (?:that|which) support", re.I)
 TOPN = re.compile(r"\b(?:top|first|best|biggest|leading)\s+(\d{1,2}|one|two|three|four|five|six|seven|eight|nine|ten)\b|\bonly\s+(?:the\s+)?(?:best\s+)?(\d{1,2}|one|two|three|four|five|six|seven|eight|nine|ten)\b", re.I)
+DETAILS_ON = re.compile(r"\b(?:show|open|expand|unfold|reveal)\s+(?:me\s+)?(?:all\s+)?(?:of\s+)?(?:the\s+)?(?:folded\s+)?details\b(?!\s+(?:of|for|about|on|behind|from)\b)|\bexpand\s+(?:everything|all)\b", re.I)
+DETAILS_OFF = re.compile(r"\b(?:collapse|fold(?:\s+away)?|close|hide)\s+(?:all\s+)?(?:of\s+)?(?:the\s+)?details\b|\bcollapse\s+(?:everything|all)\b", re.I)
 UNDO = re.compile(r"^\s*(?:please\s+)?undo(?:\s+that|\s+it|\s+the last(?: change)?)?\s*[.!]?\s*$|\bundo (?:the |that |my )?(?:last )?(?:view )?change\b", re.I)
 RESET = re.compile(r"\b(?:reset|restore|bring back)\b[^.?]{0,25}\b(?:view|everything|original|all)\b|\bshow everything again\b", re.I)
 HIDE = re.compile(r"\b(?:hide|remove|get rid of|delete|drop|take away|collapse)\s+(?:this|it|that)\b|\b(?:hide|remove|get rid of|delete|drop)\s+(?:this|that|the)\s+(?:\w+\s+){0,2}(?:chart|graph|card|insight|idea|action|section|tile|tab|page)\b", re.I)
@@ -71,6 +74,10 @@ def parse_rules(question: str, tab_label: str, cat: dict, focus: str | None, hid
         return [{"cmd": "undo"}]
     if RESET.search(q) and not re.search(r"\bshort", q, re.I):
         return [{"cmd": "reset"}]
+    if DETAILS_OFF.search(q):
+        return [{"cmd": "set_details", "on": False}]
+    if DETAILS_ON.search(q):
+        return [{"cmd": "set_details", "on": True}]
     tab = _tab(q, tab_label)
     f = cat["items"].get(focus or "")
     cmds: list[dict] = []

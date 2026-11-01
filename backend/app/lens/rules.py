@@ -65,7 +65,8 @@ CHOICE_RE = re.compile(r"\bwhy\b[^.?!]{0,25}\b(?:choose|chose|pick(?:ed)?|select
 
 
 _NUM = r"(?:\d{1,2}|one|two|three|four|five|six|seven|eight|nine|ten)"
-VIEW_EDIT2_RE = re.compile(rf"\b(?:show|keep|display|give me)\s+(?:only|just)\s+(?:the\s+)?(?:top\s+|best\s+|first\s+)?{_NUM}\s+(?:insights?|ideas?|strateg\w+|findings?|charts?|graphs?|actions?|cards?|items?)\b"
+VIEW_EDIT2_RE = re.compile(r"\b(?:show|open|expand|unfold|collapse|fold|close)\s+(?:me\s+)?(?:all\s+)?(?:of\s+)?(?:the\s+)?(?:folded\s+)?details\b(?!\s+(?:of|for|about|on|behind|from)\b)|"
+                           rf"\b(?:show|keep|display|give me)\s+(?:only|just)\s+(?:the\s+)?(?:top\s+|best\s+|first\s+)?{_NUM}\s+(?:insights?|ideas?|strateg\w+|findings?|charts?|graphs?|actions?|cards?|items?)\b"
                            r"|\b(?:only|just)\s+(?:the\s+)?(?:needed|necessary|useful|supporting)\s+charts?\b|\bonly\s+(?:the\s+)?charts?\s+(?:that|which)\s+support\b|^\s*(?:please\s+)?undo(?:\s+that|\s+the last(?: change)?)?\s*[.!]?\s*$"
                            r"|^\s*(?:please\s+)?(?:hide|unhide|restore)\b"
                            r"|\bundo\s+(?:that|the last|my last)\s+(?:view\s+)?change\b|\b(?:reset|restore)\s+(?:the |my )?view\b|\bshow\s+(?:me\s+)?(?:the\s+)?(?:full|short)\s+(?:view|version)\s+of\s+(?:the\s+)?(?:insights|ideas|report|dashboard)\b", re.I)

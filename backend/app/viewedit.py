@@ -27,7 +27,7 @@ MAX_TITLE = 120
 HISTORY = 20
 CHART_TYPES = ("bar", "line", "share", "table", "histogram")
 GRAINS = ("day", "week", "month", "quarter", "year")
-COMMANDS = ("hide", "show", "keep_only", "set_mode", "top_n", "only_supporting", "chart", "move", "rename", "pin", "unpin", "reset", "undo")
+COMMANDS = ("hide", "show", "keep_only", "set_mode", "set_details", "top_n", "only_supporting", "chart", "move", "rename", "pin", "unpin", "reset", "undo")
 
 
 class ViewError(Exception):
@@ -35,7 +35,7 @@ class ViewError(Exception):
 
 
 def empty() -> dict:
-    return {"hidden": [], "short": {}, "top_n": {}, "only_supporting": {}, "chart": {}, "order": {}, "titles": {}, "pinned": [], "history": []}
+    return {"hidden": [], "short": {}, "top_n": {}, "only_supporting": {}, "chart": {}, "order": {}, "titles": {}, "pinned": [], "details": False, "history": []}
 
 
 def normalise(state) -> dict:
@@ -51,6 +51,7 @@ def normalise(state) -> dict:
     s["chart"] = {i: {k: v for k, v in c.items() if k in ("chart", "grain", "n") and v is not None} for i, c in (state.get("chart") or {}).items() if isinstance(c, dict)}
     s["order"] = {t: [i for i in o if isinstance(i, str)] for t, o in (state.get("order") or {}).items() if t in TABS and isinstance(o, list)}
     s["titles"] = {i: str(t)[:MAX_TITLE] for i, t in (state.get("titles") or {}).items() if isinstance(i, str) and isinstance(t, str) and t.strip()}
+    s["details"] = bool(state.get("details"))                 # every folded section of every page open (the supporting detail, never the main content)
     s["history"] = [normalise({**h, "history": []}) for h in (state.get("history") or [])[-HISTORY:] if isinstance(h, dict)]
     return s
 
@@ -251,7 +252,7 @@ def resolve(result: dict, state: dict, cat: dict | None = None) -> dict:
     hidden_all = {i for i in st["hidden"] if i in items}
     pinned = [i for i in st["pinned"] if i in items]
     out: dict = {"tabs": {}, "titles": {i: t for i, t in st["titles"].items() if i in items}, "chart": {i: c for i, c in st["chart"].items() if i in items}, "pinned": pinned,
-                 "hidden": sorted(hidden_all), "original": is_original(st)}
+                 "hidden": sorted(hidden_all), "original": is_original(st), "details": st["details"]}
     for tab in TABS:
         tinfo = cat["tabs"][tab]
         mine = [i for i, it in items.items() if it["tab"] == tab]
@@ -425,6 +426,10 @@ def apply(result: dict, state: dict, cmd: dict, cat: dict | None = None) -> tupl
             new["top_n"].pop(tab, None)
             new["only_supporting"].pop(tab, None)
         msg = f"{TAB_NAMES[tab]} now shows the {mode} view." + (" The rest is under Show more." if mode == "short" else "")
+    elif name == "set_details":
+        on = cmd.get("on", True) is not False
+        new["details"] = on
+        msg = "Every folded section is now open (the supporting detail on each page)." if on else "The supporting detail is folded away again."
     elif name == "top_n":
         tab = _tab(cmd, cat)
         n = cmd.get("n")
@@ -606,6 +611,8 @@ def bar(result: dict, state: dict, cat: dict | None = None) -> dict:
         parts.append(f"{len(st['pinned'])} pinned")
     if st["order"]:
         parts.append("sections moved")
+    if st["details"]:
+        parts.append("all details open")
     if st["chart"]:
         parts.append(f"{len(st['chart'])} chart{'s' if len(st['chart']) != 1 else ''} redrawn")
     return {"show": not is_original(st), "text": " · ".join(parts) or "view changed", "hidden": len(hidden)}

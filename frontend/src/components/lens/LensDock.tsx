@@ -25,7 +25,7 @@ export default function LensDock() {
           <header className="lens-head">
             <div><h2>Lens</h2><p className="muted">Ask your data</p></div>
             <div className="lens-head-actions">
-              <button className="btn-quiet" onClick={() => { lens.setExpanded(true); lens.setOpen(false); }} title="Open the same conversation as a full-width tab">Expand</button>
+              <button className="btn-quiet" onClick={() => { lens.setExpanded(true); lens.setOpen(false); }} title="Open the same conversation full width">Expand</button>
               <button className="btn-quiet" onClick={() => lens.setOpen(false)} aria-label="Close Lens">Close</button>
             </div>
           </header>

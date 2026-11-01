@@ -174,12 +174,12 @@ export interface LensTurn { id: string; at: number; question: string; tab: strin
 export interface LensPin { id: string; turn_id: string; target: "report" | "dashboard"; title: string; text: string; table?: LensTable; chart?: LensChart; how?: LensHow; created: number }
 export interface LensView { name: string; title: string; lines: string[]; actions: string[]; fact_ids: string[]; from_turn: string; created: number }
 export interface LensInfo { enabled: boolean; ai: boolean; chips: LensChip[]; more?: LensChip[]; history: LensTurn[]; pins: LensPin[]; views?: Record<string, LensView>; limit: { asked: number; max: number } }
-export interface ViewState { hidden: string[]; short: Record<string, boolean>; top_n: Record<string, number>; only_supporting: Record<string, boolean>; chart: Record<string, { chart?: string; grain?: string; n?: number }>; order: Record<string, string[]>; titles: Record<string, string>; pinned: string[]; history: unknown[] }
+export interface ViewState { hidden: string[]; short: Record<string, boolean>; top_n: Record<string, number>; only_supporting: Record<string, boolean>; chart: Record<string, { chart?: string; grain?: string; n?: number }>; order: Record<string, string[]>; titles: Record<string, string>; pinned: string[]; details?: boolean; history: unknown[] }
 export interface ViewTab { order: string[]; hidden: string[]; folded: string[]; short: boolean; top_n: number | null; only_supporting: boolean; items: string[]; sections: string[] }
 export interface ViewItemInfo { id: string; tab: string; kind: "section" | "card" | "chart" | "insight" | "action" | "strategy"; title: string; section: string | null; score?: number; changeable?: string[]; card?: string }
 export interface ViewData {
   state: ViewState;
-  resolved: { tabs: Record<string, ViewTab>; titles: Record<string, string>; chart: Record<string, { chart?: string; grain?: string; n?: number }>; pinned: string[]; hidden: string[]; original: boolean };
+  resolved: { tabs: Record<string, ViewTab>; titles: Record<string, string>; chart: Record<string, { chart?: string; grain?: string; n?: number }>; pinned: string[]; hidden: string[]; original: boolean; details?: boolean };
   redrawn: Record<string, { url: string; note: string }>;
   message: string;
   bar?: { show: boolean; text: string; hidden: number };
@@ -369,7 +369,8 @@ export interface Decision {
 }
 
 export interface RunResult {
-  profile?: { rows: number; cols: number };
+  profile?: { rows: number; cols: number; columns?: { name: string; dtype: string; role: string; missing_pct: number; unique: number }[] };
+  understanding?: { source?: string; columns?: Record<string, { display_name?: string; meaning?: string; role?: string }> };
   decisions?: Decision[];
   run_mode?: string;
   stage_sources?: Record<string, string>;
@@ -523,6 +524,7 @@ export const api = {
   viewGet: (id: string) => fetch(`/api/runs/${id}/view`).then((r) => json<ViewData>(r)),
   viewApply: (id: string, body: { command?: ViewCommand; commands?: ViewCommand[]; state?: ViewState }) =>
     fetch(`/api/runs/${id}/view`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }).then((r) => json<ViewData>(r)),
+  briefsList: (id: string) => fetch(`/api/runs/${id}/briefs`).then((r) => json<{ briefs: Brief[] }>(r)),
   briefRename: (id: string, brief: string, title: string) =>
     fetch(`/api/runs/${id}/briefs/${brief}/rename`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title }) }).then((r) => json<Brief>(r)),
   briefEdit: (id: string, brief: string, section: string, index: number | null, text: string) =>

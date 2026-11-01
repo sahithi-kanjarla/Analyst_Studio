@@ -1,0 +1,78 @@
+/* Navigation and layout of the analysis view: one thin bar (logo, report name, five tabs, Export, Review answers, a small menu), the Data sub-views, the details control. Loaded last. */
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); border: 0; white-space: nowrap; }
+
+/* ---- the bar */
+.runbar-slot { position: sticky; top: 0; z-index: 40; margin: 0 calc(-1 * var(--gutter, 20px)) 12px; padding: 0 var(--gutter, 20px); background: var(--bg); border-bottom: 1px solid var(--line); }
+.runbar { display: flex; align-items: center; gap: 12px; height: 48px; min-width: 0; }
+.runbar-brand { display: inline-flex; align-items: center; gap: 8px; flex: none; text-decoration: none; color: var(--ink); font-weight: 650; font-size: 15px; }
+.runbar-brand .logo-mark { width: 28px; height: 28px; border-radius: 8px; }
+.runbar-name { flex: 0 1 190px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); font-size: 14px; padding-left: 12px; border-left: 1px solid var(--line); }
+.runbar-tabs { display: flex; align-items: stretch; gap: 2px; height: 100%; flex: 1 1 auto; min-width: 0; margin: 0; padding: 0; border: 0; justify-content: center; }
+.runbar-tabs { overflow-x: auto; scrollbar-width: none; }
+.runbar-tabs::-webkit-scrollbar { display: none; }
+.runbar-tabs .tab { flex: none; display: inline-flex; align-items: center; gap: 6px; height: 100%; margin: 0; padding: 0 12px; border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: none; white-space: nowrap; font-size: 14px; color: var(--muted); }
+.runbar-tabs .tab:hover { color: var(--ink); background: none; }
+.runbar-tabs .tab-active { color: var(--ink); font-weight: 600; border-bottom-color: var(--brand); background: none; }
+.runbar-tabs .tab-active::after { display: none; }
+.runbar-tabs .count { margin: 0; }
+.runbar-right { display: flex; align-items: center; gap: 4px; flex: none; margin-left: auto; }
+.runbar-tabs + .runbar-right { margin-left: 0; }
+.runbar .btn-quiet, .runbar .menu-button { height: 32px; padding: 0 12px; font-size: 13.5px; }
+.runbar-more .menu-button { padding: 0 10px; font-size: 18px; line-height: 1; }
+
+/* ---- drop-down menus */
+.menu { position: relative; }
+.menu-caret { font-size: 11px; opacity: .7; }
+.menu-list { position: absolute; top: calc(100% + 6px); z-index: 60; min-width: 190px; padding: 6px; display: flex; flex-direction: column; background: var(--card, #fff); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 10px 30px rgb(0 0 0 / .14); }
+.menu-right { right: 0; } .menu-left { left: 0; }
+.menu-item { display: block; width: 100%; text-align: left; padding: 8px 12px; border: 0; border-radius: 8px; background: none; color: var(--ink); font: inherit; font-size: 14px; text-decoration: none; cursor: pointer; }
+.menu-item:hover, .menu-item:focus-visible { background: color-mix(in srgb, var(--brand) 10%, transparent); outline: none; }
+
+/* ---- Data sub-views: a segmented control, always visible */
+.dv { display: flex; flex-wrap: wrap; gap: 2px; width: fit-content; max-width: 100%; margin: 0 0 14px; padding: 3px; background: color-mix(in srgb, var(--ink) 6%, transparent); border-radius: 10px; }
+.dv-item { padding: 6px 14px; border: 0; border-radius: 8px; background: none; color: var(--muted); font: inherit; font-size: 14px; font-weight: 500; cursor: pointer; white-space: nowrap; }
+.dv-item:hover { color: var(--ink); }
+.dv-on { background: var(--card, #fff); color: var(--ink); font-weight: 600; box-shadow: 0 1px 3px rgb(0 0 0 / .12); }
+
+/* ---- the page's one details control, top right */
+.page-tools { display: flex; justify-content: flex-end; margin: -2px 0 8px; min-height: 0; }
+.details-toggle { font-size: 13px; }
+.details-toggle[disabled] { opacity: .45; cursor: default; }
+.column-meanings { margin: 0 0 22px; }
+.key-table { margin: 10px 0; }
+.confirm-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 12px; padding: 10px 12px; border: 1px solid var(--warn, #b7791f); border-radius: 10px; background: var(--warn-bg, #fff7e6); }
+.confirm-bar span { flex: 1 1 220px; }
+.chip-danger { border-color: var(--warn, #b7791f); }
+.dialog-x { font-size: 16px; line-height: 1; padding: 6px 10px; }
+.dialog .qform { max-height: 62vh; overflow: auto; }
+
+/* ---- laptop widths: use the screen without going fullscreen */
+@media (min-width: 1100px) {
+  .shell:has(.runbar-slot) { max-width: min(1320px, calc(100vw - 32px)); }
+}
+@media (min-width: 1400px) {
+  .shell:has(.runbar-slot) { max-width: min(1360px, calc(100vw - 48px)); }
+}
+@media (max-width: 1060px) { .runbar-brand-text { display: none; } }
+@media (max-width: 900px) { .runbar-name { display: none; } .runbar-tabs .tab { padding: 0 9px; } }
+
+/* ---- tablet and phone: the tabs move to a second, scrollable row; nothing makes the page scroll sideways */
+@media (max-width: 760px) {
+  .runbar { flex-wrap: wrap; height: auto; row-gap: 0; padding-top: 6px; }
+  .runbar-right { margin-left: auto; }
+  .runbar-tabs { order: 3; flex: 1 0 100%; height: 42px; justify-content: flex-start; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .runbar-tabs::-webkit-scrollbar { display: none; }
+  .runbar-tabs .tab { flex: none; }
+  .runbar .btn-quiet.runbar-review { padding: 0 8px; }
+  .dv { width: 100%; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .dv-item { flex: none; }
+}
+@media (max-width: 420px) { .runbar-review { display: none; } .runbar-name { display: none; } }
+html, body { max-width: 100%; overflow-x: clip; }
+@media print { .runbar-slot, .page-tools { display: none !important; } }
+.only-narrow { display: none; }
+@media (max-width: 420px) { .only-narrow { display: block; } }
+
+/* the Lens panel docked beside the page leaves less width: the bar keeps only what it needs */
+body.lens-docked .runbar-brand-text, body.lens-docked .runbar-name { display: none; }
+body.lens-docked .runbar-tabs { justify-content: flex-start; }

@@ -17,6 +17,9 @@ export interface ViewApi {
   isFolded: (id: string) => boolean;
   isPinned: (id: string) => boolean;
   isShort: (tab: string) => boolean;
+  /** Every folded section open (the supporting detail on every page); remembered with the rest of this report's view and settable by chat ("show all details"). */
+  details: boolean;
+  setDetails: (on: boolean) => Promise<boolean>;
   title: (id: string, original: string) => string;
   edited: (id: string) => boolean;
   order: (tab: string) => string[];
@@ -102,6 +105,8 @@ export function ViewProvider({ runId, children }: { runId: string; children: Rea
       isFolded: (id) => folded.has(id),
       isPinned: (id) => pinned.has(id),
       isShort: (tab) => !!data.resolved.tabs[tab]?.short,
+      details: !!data.resolved.details,
+      setDetails: (on) => run({ cmd: "set_details", on }),
       title: (id, original) => data.resolved.titles[id] ?? original,
       edited: (id) => id in data.resolved.titles,
       order: (tab) => data.resolved.tabs[tab]?.order ?? [],

@@ -11,7 +11,12 @@ const ok = (name, cond, detail) => { R[name] = { ok: !!cond, detail: detail === 
   const shot = async (n) => { if (shots) await p.screenshot({ path: `${shots}/simplify-after-${n}.png` }); };
   await p.goto(base); await p.evaluate(() => localStorage.clear());
   await p.getByRole('button', { name: /Try with sample data/i }).first().click(); await p.waitForSelector('.report-page'); await p.waitForTimeout(800);
-  const tab = async (name) => { await p.getByRole('button', { name: new RegExp('^' + name) }).first().click(); await p.waitForTimeout(700); };
+  const SUB = ['Your data', 'How files connect', 'What we cleaned', 'How we analysed'];
+  const tab = async (name) => {          // the five tabs of the bar; the former setup tabs are sub-views of Data
+    if (SUB.includes(name)) { await p.getByRole('tab', { name: /^Data/ }).first().click(); await p.waitForTimeout(300); await p.getByRole('tab', { name: new RegExp('^' + name) }).first().click(); }
+    else await p.getByRole('tab', { name: new RegExp('^' + name) }).first().click();
+    await p.waitForTimeout(700);
+  };
   const applyIfPreview = async () => { const b = p.locator('.lens-bot').last().getByRole('button', { name: 'Apply this change' }); if (await b.count()) { await b.click(); await p.waitForTimeout(1500); } };
   const ask = async (t) => { if (!(await p.locator('.lens-input input').count())) { await p.locator('.lens-fab').click(); await p.waitForTimeout(400); } await p.locator('.lens-input input').first().fill(t); await p.locator('.lens-input button').first().click(); await p.waitForTimeout(1800); await applyIfPreview(); };
   const vis = (sel) => p.locator(sel).evaluateAll(els => els.filter(e => e.offsetParent !== null).length);
@@ -57,17 +62,22 @@ const ok = (name, cond, detail) => { R[name] = { ok: !!cond, detail: detail === 
 
   // 3/4/7. chat edits are visible on every tab, through the slim bar, with Undo and Reset
   const edits = [['data', 'hide the cleaned table', 'Your data', 'data:table:clean'], ['cleaning', 'hide the cleaning log', 'What we cleaned', 'cleaning:steps'], ['plan', 'hide how we analysed', 'How we analysed', 'plan:questions'],
-                 ['powerbi', 'hide power bi export', 'Power BI export', 'powerbi:pack'], ['chat', 'hide the conversation', 'Chat', 'chat:conversation']];
-  for (const [key, phrase, tabName, id] of edits) {
+                 ['powerbi', 'hide power bi export', 'Export:Power BI files', 'powerbi:pack'], ['chat', 'hide the conversation', 'Lens:expand', 'chat:conversation']];
+  for (const [key, phrase, where, id] of edits) {
     await ask(phrase);
-    await tab(tabName.replace(/\(/g, ''));
+    const inDialog = where.startsWith('Export:');
+    if (inDialog) { await p.getByRole('button', { name: /^Export/ }).click(); await p.getByRole('menuitem', { name: where.slice(7) }).click(); await p.waitForTimeout(500); }
+    else if (where === 'Lens:expand') { await p.locator('.lens-head-actions').getByRole('button', { name: 'Expand' }).click(); await p.waitForTimeout(600); }
+    else await tab(where);
+    const bar = inDialog ? '.dialog .view-bar.slim' : '.view-bar.slim';
     const hidden = await p.locator(`[data-view-id="${id}"]`).evaluateAll(els => els.length > 0 && els.every(e => e.offsetParent === null));
     ok(`chat_hide_visible_on_${key}`, hidden, id);
-    ok(`slim_bar_on_${key}`, (await vis('.view-bar.slim')) === 1, await p.locator('.view-bar.slim .view-bar-text').first().innerText().catch(() => ''));
+    ok(`slim_bar_on_${key}`, (await vis(bar)) === 1, await p.locator(`${bar} .view-bar-text`).first().innerText().catch(() => ''));
     if (key === 'cleaning') await shot('slim-bar');
-    await p.locator('.view-bar.slim').getByRole('button', { name: 'Reset' }).click(); await p.waitForTimeout(600);
-    ok(`reset_removes_bar_${key}`, (await vis('.view-bar.slim')) === 0);
+    await p.locator(bar).getByRole('button', { name: 'Reset' }).click(); await p.waitForTimeout(600);
+    ok(`reset_removes_bar_${key}`, (await vis(bar)) === 0);
     ok(`reset_restores_${key}`, await p.locator(`[data-view-id="${id}"]`).evaluateAll(els => els.some(e => e.offsetParent !== null)), id);
+    if (inDialog) { await p.keyboard.press('Escape'); await p.waitForTimeout(300); }
   }
   ok('model_tab_items_exist_in_the_catalogue', (await (await p.request.get(base + '/api/runs/5a1e5d3e0001/view')).json()).sections.model.length >= 1);
   // short view on a tab that is not short by default

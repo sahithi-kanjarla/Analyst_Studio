@@ -28,7 +28,7 @@ export default function ReportPage({ run, embedded = false, startChat = false, s
   if (!page) {
     return (
       <>
-        <div className="rp-actions no-print"><PrintPanel run={run} /></div>
+        {embedded && <div className="rp-actions no-print"><PrintPanel run={run} /></div>}
         <ReportBody md={run.report_md ?? ""} />
         <LensPins target="report" />
       </>
@@ -50,9 +50,9 @@ export default function ReportPage({ run, embedded = false, startChat = false, s
               {page.trust && <span className="rp-pill">How sure we are: {page.trust}</span>}
             </p>
           </div>
-          <div className="rp-buttons no-print">
+          {embedded && <div className="rp-buttons no-print">
             <PrintPanel run={run} startOpen={startPrint} />
-          </div>
+          </div>}
         </header>
 
         <TabViewBar tab="report" />

@@ -13,6 +13,7 @@ import "./lens.css";
 import "./print.css";
 import "./start.css";
 import "./theme.css";
+import "./nav.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

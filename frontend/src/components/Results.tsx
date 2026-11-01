@@ -1,6 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { RefObject, useEffect, useRef, useState } from "react";
 import { api, RunResult } from "../api";
-import { Tab, TAB_LABEL } from "../tabs";
+import { backendTab, DATA_LABEL, DATA_VIEWS, DataView, NAV_TABS, NavTab, resolveTarget, Tab, TAB_LABEL } from "../tabs";
+import Dialog from "./Dialog";
+import ExportMenu, { BriefsDialog, ExportItem } from "./nav/ExportMenu";
+import RunBar, { TabInfo } from "./nav/RunBar";
+import PrintPanel from "./PrintPanel";
 
 import AnswersReview from "./AnswersReview";
 import DataModel from "./DataModel";
@@ -16,8 +20,6 @@ import { useLens } from "./lens/LensContext";
 import { ShowAllLink, TabViewBar, ViewItem } from "./view/ViewUI";
 import { useView } from "./view/ViewContext";
 
-const TABS: { id: Tab; label: string }[] = (["report", "dashboard", "insights", "strategy", "data", "model", "cleaning", "plan", "powerbi", "chat"] as Tab[]).map((id) => ({ id, label: TAB_LABEL[id] }));
-
 const DECISION_LABEL: Record<string, string> = {
   llm: "chosen by AI",
   repaired: "chosen by AI (repaired once)",
@@ -32,61 +34,201 @@ function summariseChosen(v: unknown): string {
   return String(v ?? "");
 }
 
-export default function Results({ run }: { run: RunResult }) {
-  const [picked, setPicked] = useState<Tab>("report");
+const DETAILS_KEY = (runId: string) => `analyst-studio.details.${runId}`;
+const NAV_KEY = (runId: string) => `analyst-studio.nav.${runId}`;
+
+/** Opens (or folds back) every `<details>` under `root`: the sections the reader may skip. Each keeps the state it had when first seen, and goes back to it when the details are collapsed. */
+function useFolds(root: RefObject<HTMLElement>, expanded: boolean, deps: unknown[]): number {
+  const [count, setCount] = useState(0);
+  const last = useRef<boolean | null>(null);
+  useEffect(() => {
+    const el = root.current;
+    if (!el) return;
+    const apply = () => {
+      const all = Array.from(el.querySelectorAll<HTMLDetailsElement>("details"));
+      const flipped = last.current !== null && last.current !== expanded;
+      for (const d of all) {
+        if (d.dataset.fold === undefined) {
+          d.dataset.fold = d.open ? "open" : "closed";
+          if (expanded) d.open = true;
+        } else if (flipped) {
+          d.open = expanded ? true : d.dataset.fold === "open";
+        }
+      }
+      last.current = expanded;
+      setCount(all.length);
+    };
+    apply();
+    const mo = new MutationObserver(() => { mo.disconnect(); apply(); mo.observe(el, { childList: true, subtree: true }); });
+    mo.observe(el, { childList: true, subtree: true });
+    return () => mo.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [expanded, root, ...deps]);
+  return count;
+}
+
+export default function Results({ run, target }: { run: RunResult; target?: string | null }) {
   const lens = useLens();
-  const tab: Tab = lens?.expanded ? "chat" : picked;       // "Expand" in the Lens panel opens the same conversation as this tab
-  const setTab = (t: Tab) => {
-    lens?.setExpanded(t === "chat");
-    if (t === "chat") lens?.setOpen(false);
-    else setPicked(t);
-  };
+  const view = useView();
+  const stored = (() => { try { return JSON.parse(window.localStorage.getItem(NAV_KEY(run.run_id)) ?? "null") as { data?: DataView } | null; } catch { return null; } })();
+  const [nav, setNav] = useState<NavTab>("report");
+  const [dataView, setDataView] = useState<DataView>(stored?.data && DATA_VIEWS.includes(stored.data) ? stored.data : "data");
+  const [dialog, setDialog] = useState<ExportItem | null>(null);
+  const chat = !!lens?.expanded;                      // "Expand" in the Lens panel opens the same conversation full width, in place of the page
+  const backend: Tab = chat ? "chat" : backendTab(nav, dataView);
   const setTabName = lens?.setTabName;
-  useEffect(() => { setTabName?.(TAB_LABEL[tab]); }, [tab, setTabName]);
+  useEffect(() => { setTabName?.(TAB_LABEL[backend]); }, [backend, setTabName]);
+  const pickDataView = (v: DataView) => {
+    setDataView(v);
+    try { window.localStorage.setItem(NAV_KEY(run.run_id), JSON.stringify({ data: v })); } catch { /* the sub-view is simply not remembered */ }
+  };
+  const pickTab = (t: NavTab) => {
+    if (chat) lens?.setExpanded(false);
+    setNav(t);
+  };
+  // Old links and names (#/run/<id>/<old tab>) arrive here: a tab, a Data sub-view, the Export menu or the expanded Lens.
+  useEffect(() => {
+    const t = resolveTarget(target);
+    if (!t) return;
+    setNav(t.nav);
+    if (t.data) pickDataView(t.data);
+    if (t.exportItem === "powerbi" || t.exportItem === "print" || t.exportItem === "briefs") setDialog(t.exportItem);
+    if (t.lens) { lens?.setExpanded(true); lens?.setOpen(false); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [target]);
+
   const card = useRef<HTMLDivElement>(null);
+  const body = useRef<HTMLDivElement>(null);
   const [full, setFull] = useState(false);
   const [review, setReview] = useState(false);
+  const dirty = useRef(false);
+  const [leave, setLeave] = useState<string | null>(null);
   useEffect(() => {
     const on = () => setFull(document.fullscreenElement === card.current);
     document.addEventListener("fullscreenchange", on);
     return () => document.removeEventListener("fullscreenchange", on);
   }, []);
+  useEffect(() => {
+    const warn = (e: BeforeUnloadEvent) => { if (dirty.current) { e.preventDefault(); e.returnValue = ""; } };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, []);
   const toggleFull = () => (document.fullscreenElement ? document.exitFullscreen() : card.current?.requestFullscreen());
+  const onLeave = (href: string) => {
+    if (!dirty.current) return true;                  // unsaved answer changes: ask before going
+    setLeave(href);
+    return false;
+  };
   const warns = run.critique?.issues.filter((i) => i.severity === "warn").length ?? 0;
 
+  // Expand all details: kept with this report's view (so Lens can set it too: "show all details"); without view edits, in this browser.
+  const [localDetails, setLocalDetails] = useState(() => { try { return window.localStorage.getItem(DETAILS_KEY(run.run_id)) === "1"; } catch { return false; } });
+  const expanded = view ? view.details : localDetails;
+  const setExpanded = (on: boolean) => {
+    if (view) void view.setDetails(on);
+    else {
+      setLocalDetails(on);
+      try { window.localStorage.setItem(DETAILS_KEY(run.run_id), on ? "1" : "0"); } catch { /* not remembered */ }
+    }
+  };
+  const folds = useFolds(body, expanded, [backend, chat, run]);
+
+  const tabs: TabInfo[] = NAV_TABS.map((id) => ({
+    id,
+    count: id === "insights" ? (run.report_view ? run.report_view.evidence.length : (run.findings ?? []).filter((f) => f.insight).length)
+      : id === "strategy" ? (run.report_view ? run.report_view.strategies.strategies.length : run.strategies?.length ?? 0)
+      : id === "report" && warns > 0 ? warns : undefined,
+    warn: id === "report" && warns > 0,
+  }));
+  const name = run.report_view?.page?.company ? `${run.report_view.page.company} report` : run.context?.company ? `${run.context.company} report` : "Your report";
+
   return (
-    <div className={`card results ${full ? "is-full" : ""}`} ref={card}>
-      <div className="results-actions">
-        <button className="btn-quiet" onClick={() => setReview((v) => !v)} title="See, change or re-ask the answers this run used">Review answers</button>
-        <button className="btn-quiet hide-phone" onClick={toggleFull} title="Full screen (Esc to exit)">{full ? "Exit full screen" : "Full screen"}</button>
-        <a className="btn" href={api.powerbiUrl(run.run_id)}>Download Power BI pack</a>
-      </div>
-      <div className="tabs">
-        {TABS.filter((t) => (t.id !== "model" || run.data_model) && (t.id !== "strategy" || run.strategies?.length) && (t.id !== "chat" || lens?.enabled)).map((t) => (
-          <button key={t.id} className={`tab ${tab === t.id ? "tab-active" : ""}`} onClick={() => setTab(t.id)}>
-            {t.label}
-            {t.id === "insights" && <span className="count">{run.report_view ? run.report_view.evidence.length : (run.findings ?? []).filter((f) => f.insight).length}</span>}
-            {t.id === "strategy" && <span className="count">{run.report_view ? run.report_view.strategies.strategies.length : run.strategies?.length ?? 0}</span>}
-            {t.id === "report" && warns > 0 && <span className="count count-warn">{warns}</span>}
-          </button>
-        ))}
-      </div>
-
-      {review && <AnswersReview runId={run.run_id} onClose={() => setReview(false)} />}
-
-      {tab !== "dashboard" && tab !== "report" && tab !== "chat" && run.key_metrics && run.key_metrics.length > 0 && (
-        <div className="kpi-strip">
-          {run.key_metrics.map((m) => (
-            <div className="kpi" key={m.label} title={m.note}>
-              <span className="kpi-val">{m.value}</span>
-              <span className="kpi-label">{m.label}</span>
+    <>
+      <RunBar name={name} tabs={tabs} active={chat ? null : nav} onTab={pickTab} onLeave={onLeave} onReview={() => setReview(true)} onFullScreen={toggleFull} fullScreen={full}
+        exportMenu={<ExportMenu run={run} onPick={(item) => { if (item === "print") setNav("report"); setDialog(item); }} />} />
+      <div className={`card results ${full ? "is-full" : ""}`} ref={card}>
+        {review && <AnswersReview runId={run.run_id} onClose={() => setReview(false)} onDirty={(d) => { dirty.current = d; }} />}
+        {dialog === "briefs" && <BriefsDialog runId={run.run_id} onClose={() => setDialog(null)} />}
+        {dialog === "powerbi" && (
+          <Dialog title="Power BI files" intro="Everything you need to rebuild the charts in Power BI." onClose={() => setDialog(null)} wide>
+            <p><a className="btn" href={api.powerbiUrl(run.run_id)}>Download Power BI pack</a></p>
+            <TabBody run={run} tab="powerbi" />
+          </Dialog>
+        )}
+        <PrintPanel run={run} dialog open={dialog === "print"} onClose={() => setDialog(null)} />
+        {leave && (
+          <Dialog title="Leave without saving?" intro="You changed some answers and did not re-run with them. Going now discards the changes." onClose={() => setLeave(null)}>
+            <div className="qactions">
+              <button className="chip" onClick={() => setLeave(null)}>Stay here</button>
+              <button className="chip chip-danger" onClick={() => { dirty.current = false; const h = leave; setLeave(null); setReview(false); window.location.hash = h; }}>Leave</button>
             </div>
-          ))}
-        </div>
-      )}
+          </Dialog>
+        )}
 
-      <TabBody run={run} tab={tab} />
-    </div>
+        {chat ? (
+          <div ref={body}><TabBody run={run} tab="chat" /></div>
+        ) : (
+          <>
+            {nav === "data" && (
+              <div className="dv" role="tablist" aria-label="Data views">
+                {DATA_VIEWS.map((v) => (
+                  <button key={v} role="tab" type="button" aria-selected={dataView === v} className={`dv-item ${dataView === v ? "dv-on" : ""}`} onClick={() => pickDataView(v)}>{DATA_LABEL[v]}</button>
+                ))}
+              </div>
+            )}
+            <div className="page-tools no-print">
+              <button type="button" className="btn-quiet details-toggle" aria-pressed={expanded} disabled={folds === 0 && !expanded} onClick={() => setExpanded(!expanded)}
+                title={folds === 0 && !expanded ? "Nothing is folded away on this page" : expanded ? "Fold the supporting detail away again" : "Open every folded section on this page"}>
+                {expanded ? "Collapse details" : "Expand all details"}
+              </button>
+            </div>
+            {backend !== "dashboard" && backend !== "report" && run.key_metrics && run.key_metrics.length > 0 && (
+              <div className="kpi-strip">
+                {run.key_metrics.map((m) => (
+                  <div className="kpi" key={m.label} title={m.note}>
+                    <span className="kpi-val">{m.value}</span>
+                    <span className="kpi-label">{m.label}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div ref={body} role={nav === "data" ? "tabpanel" : undefined} className="page-body">
+              <TabBody run={run} tab={backend} />
+            </div>
+          </>
+        )}
+      </div>
+    </>
+  );
+}
+
+/** What each column of the table holds, in plain words: its name, kind, the meaning the analysis worked out for it when it did, and how complete it is. Part of Your data. */
+function ColumnMeanings({ run }: { run: RunResult }) {
+  const cols = run.profile?.columns ?? [];
+  if (!cols.length) return null;
+  const KIND: Record<string, string> = { id: "identifier", categorical: "category", numeric: "number", date: "date", text: "free text", flag: "yes / no", other: "other" };
+  const und = run.understanding?.columns ?? {};
+  return (
+    <section className="column-meanings" aria-label="How the data was set up">
+      <h3>How the data was set up</h3>
+      <p className="muted read">What each column holds, and how the analysis read it.</p>
+      <div className="tablewrap">
+        <table className="table">
+          <thead><tr><th>Column</th><th>Kind</th><th>What it holds</th><th>Missing</th><th>Different values</th></tr></thead>
+          <tbody>
+            {cols.map((c) => (
+              <tr key={c.name}>
+                <td>{und[c.name]?.display_name ? <>{und[c.name].display_name} <span className="muted small">({c.name})</span></> : c.name}</td>
+                <td>{KIND[c.role] ?? c.role}</td>
+                <td>{und[c.name]?.meaning || <span className="muted">–</span>}</td>
+                <td>{c.missing_pct ? `${c.missing_pct}%` : "none"}</td>
+                <td>{c.unique.toLocaleString()}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
   );
 }
 
@@ -200,7 +342,7 @@ export function TabBody({ run, tab, embedded = false, startChat = false, startPr
 
       {tab === "chat" && <><TabViewBar tab="chat" /><ViewItem id="chat:conversation" tag="section" className="view-section"><LensChat variant="tab" /></ViewItem></>}
 
-      {tab === "data" && <><TabViewBar tab="data" /><ViewItem id="data:table:clean" tag="section" className="view-section"><DataViewer runId={run.run_id} /></ViewItem></>}
+      {tab === "data" && <><TabViewBar tab="data" />{!embedded && <ColumnMeanings run={run} />}<ViewItem id="data:table:clean" tag="section" className="view-section"><DataViewer runId={run.run_id} /></ViewItem></>}
 
       {tab === "report" && <ReportPage run={run} embedded={embedded} startChat={startChat} startPrint={startPrint} />}
 
@@ -212,11 +354,13 @@ export function TabBody({ run, tab, embedded = false, startChat = false, startPr
         </div>
       )}
 
+      {tab === "strategy" && !run.strategies && <p className="lead">No ideas to try were produced for this report.</p>}
       {tab === "strategy" && run.strategies && (
         <StrategyView strategies={run.report_view?.strategies.strategies ?? run.strategies} foundation={run.report_view?.strategies.foundation} dropped={run.report_view?.strategies.dropped ?? 0} summary={run.strategy_summary ?? ""} gaps={run.data_gaps ?? []} findings={run.findings ?? []} />
       )}
 
       {tab === "model" && run.data_model && <><TabViewBar tab="model" /><ViewItem id="model:links" tag="section" className="view-section"><DataModel model={run.data_model} /></ViewItem></>}
+      {tab === "model" && !run.data_model && <p className="lead">This analysis used one table, so there are no files to connect.</p>}
 
       {tab === "cleaning" && <CleaningLog run={run} />}
 

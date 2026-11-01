@@ -26,6 +26,7 @@ export function LensTableView({ table, max = 6 }: { table: LensTable; max?: numb
 
 /** The lines come from the server (one place writes them), so the box can never be empty. */
 export function LensHowView({ how }: { how: LensHow }) {
+  const open = !!useView()?.details;          // "Expand all details" opens these too
   const lines = how.lines?.length ? how.lines : [`${how.operation || "Answered from this run's saved records"}.`];
   const [first, ...rest] = lines;
   const foot = rest.length > 1 ? rest[rest.length - 1] : "";
@@ -35,7 +36,7 @@ export function LensHowView({ how }: { how: LensHow }) {
       <p><strong>{first}</strong></p>
       {body.length > 0 && <ul>{body.map((l, i) => <li key={i}>{l}</li>)}</ul>}
       {foot && <p className="muted lens-small">{foot}</p>}
-      {how.sql && <details className="lens-sql"><summary>The query that was run</summary><pre>{how.sql}</pre></details>}
+      {how.sql && <details className="lens-sql" key={`s${open}`} open={open}><summary>The query that was run</summary><pre>{how.sql}</pre></details>}
     </div>
   );
 }
@@ -163,6 +164,7 @@ function Thumbs({ turnId, runId, initial }: { turnId: string; runId: string; ini
 export default function LensAnswerView({ turn, last }: { turn: LensTurn; last: boolean }) {
   const lens = useLens();
   const view = useView();
+  const open = !!view?.details;
   const a = turn.answer;
   const [big, setBig] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -199,7 +201,7 @@ export default function LensAnswerView({ turn, last }: { turn: LensTurn; last: b
           {a.actions && a.actions.length > 0 && (
             <div className="lens-actions"><span className="lens-label">Top actions</span><ol>{a.actions.map((l, i) => <li key={i}>{l}</li>)}</ol></div>
           )}
-          {a.how && <details className="lens-details"><summary>How this was calculated</summary><LensHowView how={a.how} /></details>}
+          {a.how && <details className="lens-details" key={`d${open}`} open={open}><summary>How this was calculated</summary><LensHowView how={a.how} /></details>}
           {a.kind === "summary" && a.view_offer && (
             <div className="msg-tools lens-tools no-print">
               {lens.shortView?.from_turn === turn.id
@@ -218,7 +220,7 @@ export default function LensAnswerView({ turn, last }: { turn: LensTurn; last: b
         <>
           {hasPic ? <Picture chart={a.chart!} text={a.text} onOpen={() => setBig(true)} /> : <LensTableView table={a.table} />}
           {a.chart?.note && <p className="muted lens-small">{a.chart.note}</p>}
-          {a.how && <details className="lens-details"><summary>How this was calculated</summary><LensHowView how={a.how} /></details>}
+          {a.how && <details className="lens-details" key={`d${open}`} open={open}><summary>How this was calculated</summary><LensHowView how={a.how} /></details>}
           <div className="lens-menu-wrap no-print">
             <button type="button" className="lens-more" aria-label="More actions for this answer" aria-haspopup="menu" aria-expanded={menuOpen} onClick={() => setMenuOpen((o) => !o)}>⋯</button>
             {menuOpen && (

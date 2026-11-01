@@ -1,14 +1,16 @@
-import { useEffect, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { api, AnswerRow, isDemo } from "../api";
+import Dialog from "./Dialog";
 
 /** The answers a run used, with where each came from. A changed answer replaces the saved one and the run starts again from the cleaning step;
  *  "Ask me again" forgets the saved answer so the new run asks the question. */
-export default function AnswersReview({ runId, onClose }: { runId: string; onClose: () => void }) {
+export default function AnswersReview({ runId, onClose, onDirty }: { runId: string; onClose: () => void; onDirty?: (dirty: boolean) => void }) {
   const [rows, setRows] = useState<AnswerRow[] | null>(null);
   const [picked, setPicked] = useState<Record<string, string>>({});
   const [again, setAgain] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [confirming, setConfirming] = useState(false);
 
   useEffect(() => {
     api
@@ -21,6 +23,10 @@ export default function AnswersReview({ runId, onClose }: { runId: string; onClo
   }, [runId]);
 
   const changed = rows ? rows.filter((r) => picked[r.id] !== r.answer).map((r) => r.id) : [];
+  const dirty = changed.length > 0 || again.length > 0;
+  useEffect(() => { onDirty?.(dirty); return () => onDirty?.(false); }, [dirty, onDirty]);
+  /** Every way of closing (the X, Esc, a click outside, the Close button) comes here: unsaved changes are asked about first. */
+  const requestClose = () => { if (dirty && !busy) setConfirming(true); else onClose(); };
   const toggleAgain = (id: string) => setAgain((a) => (a.includes(id) ? a.filter((x) => x !== id) : [...a, id]));
 
   const rerun = async () => {
@@ -35,12 +41,22 @@ export default function AnswersReview({ runId, onClose }: { runId: string; onClo
     }
   };
 
-  if (error && !rows) return <div className="error">{error}</div>;
-  if (!rows) return <div className="card placeholder"><span className="spinner" /> Loading answers…</div>;
-  if (!rows.length) return <p className="muted">This run asked no questions, so there are no answers to review.</p>;
+  const frame = (body: ReactNode) => (
+    <Dialog title="Review answers" intro="The answers this run used, and where each came from." onClose={requestClose} xClose>{body}</Dialog>
+  );
+  if (error && !rows) return frame(<div className="error">{error}</div>);
+  if (!rows) return frame(<div className="placeholder"><span className="spinner" /> Loading answers…</div>);
+  if (!rows.length) return frame(<p className="muted">This run asked no questions, so there are no answers to review.</p>);
 
-  return (
+  return frame(
     <div className="qform">
+      {confirming && (
+        <div className="confirm-bar" role="alertdialog" aria-label="Unsaved changes">
+          <span>You have changes that are not saved. Close without re-running?</span>
+          <button className="chip" onClick={() => setConfirming(false)}>Keep editing</button>
+          <button className="chip chip-danger" onClick={onClose}>Discard and close</button>
+        </div>
+      )}
       <p className="muted">Change an answer to re-run from the cleaning step with it. The new answer replaces the saved one. “Ask me again” forgets the saved answer and asks the question on the next run.</p>
       {rows.map((r) => (
         <fieldset key={r.id} className="qitem">
@@ -65,8 +81,8 @@ export default function AnswersReview({ runId, onClose }: { runId: string; onClo
       {error && <div className="error">{error}</div>}
       <div className="qactions">
         {!isDemo(runId) && <button className="primary" disabled={busy || (!changed.length && !again.length)} onClick={rerun}>{busy ? "Starting…" : "Re-run with these answers"}</button>}
-        <button className="chip" disabled={busy} onClick={onClose}>Close</button>
+        <button className="chip" disabled={busy} onClick={requestClose}>Close</button>
       </div>
-    </div>
+    </div>,
   );
 }
