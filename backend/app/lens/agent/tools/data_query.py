@@ -27,7 +27,7 @@ class DataQuery(Tool):
         ans, nxt = out if out else chat._run_checked(env.wd, ch, env.ctx, env.df, env.result, 0, env.question)
         ok = ans.get("status") == "answered"
         facts = verify.facts_from_answer("q", ans, env) if ok else {}
-        return ToolResult(ok=ok, summary="Ran the closed operation " + str((ans.get("query") or {}).get("op", "")) if ok else "The query could not be run", answer=ans, chips=nxt, facts=facts,
+        return ToolResult(ok=ok, summary="Calculated this from your data" if ok else "The query could not be run", answer=ans, chips=nxt, facts=facts,
                           error="" if ok else ans.get("text", ""))
 
 
