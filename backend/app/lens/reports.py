@@ -187,11 +187,13 @@ def ai_lines(llm, result: dict, n: int) -> tuple[list[dict], str, int]:
     return good[:n], "", dropped
 
 
-def answer_summary(result: dict, wd, llm, length: str, budget: int, allow_ai: bool, ai_calls_before: int = 0) -> tuple[dict, list[dict], int, str]:
+def answer_summary(result: dict, wd, llm, length: str, budget: int, allow_ai: bool, ai_calls_before: int = 0, scope_label: str = "the whole report", lines_override: list[dict] | None = None) -> tuple[dict, list[dict], int, str]:
     """(answer, chips, AI calls used here, failure reason). The short version has at most 5 lines (3 when asked to shorten) plus the top 3 actions."""
     n = SUMMARY_LINES.get(length, 5)
     used, fail, dropped, lines, source = 0, "", 0, [], "code"
-    if llm is not None and allow_ai and budget >= 1:
+    if lines_override is not None:
+        lines = lines_override[:n]
+    elif llm is not None and allow_ai and budget >= 1:
         with llmmod.capture() as cap:
             lines, fail, dropped = ai_lines(llm, result, n)
             used = cap.calls
@@ -206,7 +208,7 @@ def answer_summary(result: dict, wd, llm, length: str, budget: int, allow_ai: bo
     notes.append("The actions are the report's own top actions, copied as written." if acts else "The report lists no actions.")
     how = howtext.record_how("Shortened the report using only its checked facts" + (" (the AI chose the wording; code checked every figure against the fact it cites)" if source == "ai" else " (the report's own sentences, shortened by code)"),
                              ["the report's headline facts", "the report's insights", "the report's actions"], ids, notes)
-    lead = f"A short version of the report, using only its checked facts{'' if lines else ': there is nothing to summarise'}."
+    lead = f"Summary of {scope_label}." if lines else f"There is nothing to summarise in {scope_label}."
     chips = next_chips(result, "summary", "", prev_chip_ids(wd))
     ans, chips = _base("summary", lead, "Summary from the report's checked facts", how, chips, used, lines=[ln["text"] for ln in lines], actions=[a["text"] for a in acts], fact_ids=ids,
                        view_offer={"name": "short", "label": "Use as my short version"}, source_of_words=source)

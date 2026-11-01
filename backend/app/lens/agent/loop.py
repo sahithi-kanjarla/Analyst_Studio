@@ -108,7 +108,8 @@ def fallback_plan(env: Env) -> dict | None:
     if k == "recheck":
         return {"plan": [{"tool": "recheck_chart", "args": {}}]}
     if k == "summary":
-        return {"plan": [{"tool": "summarise", "args": {"length": r.get("length", "standard")}}]}
+        sc = rules.summary_scope(q)
+        return {"plan": [{"tool": "summarise", "args": {"length": r.get("length", "standard"), **({"scope": sc} if sc else {})}}]}
     if k == "app":
         return {"plan": [{"tool": "explain", "args": {"topic": r["topic"]}}]}
     if k == "priority":

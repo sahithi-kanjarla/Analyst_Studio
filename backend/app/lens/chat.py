@@ -305,7 +305,11 @@ def _report_answer(wd: Path, result: dict, ctx, df, kind: str, spec: dict, quest
     if kind == "general":
         return (*reports.answer_general(spec.get("answer"), result, wd, ai_calls), 0, "")
     length = spec.get("length") if spec.get("length") in reports.SUMMARY_LINES else "standard"
-    return reports.answer_summary(result, wd, llm, length, MAX_AI_CALLS - ai_calls, ai_ok, ai_calls)
+    env = agent.make_env(wd, result, df, ctx, question, tab, llm, ai_ok, None, None)
+    env.calls = ai_calls
+    from .agent.tools.summarise import Summarise
+    r = Summarise().run({"length": length, "scope": str(spec.get("scope") or rules.summary_scope(question))}, env, [])
+    return r.answer, r.chips, env.calls - ai_calls, r.error
 
 
 def _readable_names(ans: dict, ctx) -> None:

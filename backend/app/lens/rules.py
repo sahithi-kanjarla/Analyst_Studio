@@ -137,3 +137,17 @@ def brief_request(question: str) -> dict | None:
     m = FOR_RE.search(q)
     f = ABOUT_RE.search(q)
     return {"audience": (m.group("who").strip() if m else "the reader"), "focus": (f.group("what").strip() if f else "")}
+
+
+SUMMARY_SCOPE_RE = re.compile(r"\b(?:summari[sz]e|summari[sz]ing|summary of|shorten|condense|recap)\s+(?:up\s+)?(?:the\s+|my\s+|our\s+)?(?P<x>[^.?!]{2,80})", re.I)
+
+
+def summary_scope(question: str) -> str:
+    """What the user named to summarise, in their words ("the ideas to try" -> "ideas to try"), or "" when they named nothing or the whole report. The open tab is never used."""
+    m = SUMMARY_SCOPE_RE.search(question or "")
+    if not m:
+        return ""
+    x = " ".join(m["x"].lower().split())
+    x = re.sub(r"\b(?:please|for me|now|briefly|quickly|in (?:one|two|three|a few) (?:line|lines|sentences?)|short|shorter|in short)\b", "", x).strip(" ,")
+    from .agent.summary_scope import clean
+    return clean(x)

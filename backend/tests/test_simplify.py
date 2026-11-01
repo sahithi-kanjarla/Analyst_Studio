@@ -73,6 +73,8 @@ EVERY_TAB = [("hide the cleaned table", "data:table:clean", "data"), ("hide the 
 def test_a_chat_hide_applies_on_every_tab_through_the_same_mechanism_and_a_chat_show_restores_it(run, phrase, item, tab):
     rid, wd, res = run
     t = chat.ask(wd, res, question=phrase, llm=None, allow_ai=False, tab=ve.TAB_NAMES[tab])
+    if t["answer"]["view"].get("preview"):                      # a change to more than 3 items is shown first, then applied with the Apply chip
+        t = chat.ask(wd, res, chip=t["answer"]["chips"][0]["id"], llm=None, allow_ai=False, tab=ve.TAB_NAMES[tab])
     assert t["answer"]["view"]["changed"], t["answer"]["text"]
     r = view(rid)["resolved"]
     assert item in r["tabs"][tab]["hidden"] and view(rid)["bar"]["show"]
@@ -81,6 +83,8 @@ def test_a_chat_hide_applies_on_every_tab_through_the_same_mechanism_and_a_chat_
     post(rid, command={"cmd": "hide", "id": item})
     assert core(view(rid)["state"]) == core(store.get_view_state(wd))
     shown = chat.ask(wd, res, question=phrase.replace("hide", "show", 1), llm=None, allow_ai=False, tab=ve.TAB_NAMES[tab])
+    if shown["answer"]["view"].get("preview"):
+        shown = chat.ask(wd, res, chip=shown["answer"]["chips"][0]["id"], llm=None, allow_ai=False, tab=ve.TAB_NAMES[tab])
     assert shown["answer"]["view"]["changed"] and view(rid)["resolved"]["original"]
 
 

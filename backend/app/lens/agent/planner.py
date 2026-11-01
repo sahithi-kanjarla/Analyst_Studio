@@ -32,6 +32,7 @@ def system_prompt() -> str:
             "- Ask to clarify (the clarify tool) only when two readings give different answers; one short question with 2 or 3 choices, each a complete query or a list of view commands. Item titles may be the choices when a reference to an item is ambiguous.\n"
             "- A request about what a tab or item shows (hide, show, order, short or full, top N, rename, pin, which charts) is view_edit, using ids from VISIBLE ITEMS; undo goes back one request.\n"
             "- A request for a document for a reader (a brief) is brief; a file to keep is export. Free-form styling (colours, fonts, layout) is not available: use an empty plan and \"unsupported\".\n"
+            "- A summary covers the WHOLE report unless the request names a part (a tab, a section or a topic): put only the words the user used in \"scope\". The open tab is never a scope.\n"
             "- Never put a number from your own knowledge in any field. Return the JSON object only.")
 
 
