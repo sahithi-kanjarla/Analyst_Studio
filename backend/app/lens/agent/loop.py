@@ -18,7 +18,7 @@ from pathlib import Path
 
 from ... import viewedit
 from .. import howtext, records, reports, rules, store, viewchat
-from . import planner, registry, suggest, verify
+from . import errors, planner, registry, suggest, verify
 from .env import Env
 
 UNMET_FILE = "lens_unmet.jsonl"
@@ -267,8 +267,8 @@ def execute(env: Env, plan: dict) -> tuple[dict, list[dict], list[dict]]:
         try:
             r = tool.run(st.get("args") or {}, env, results)
         except Exception as e:           # noqa: BLE001  a tool must never end the request with a stack trace
-            r = registry.ToolResult(ok=False, summary=f"{tool.name} failed", error="That step failed unexpectedly, so I stopped.")
-            env.notes.append(f"{tool.name}: {type(e).__name__}")
+            errors.log(env.wd, tool.name, e, getattr(env, "last_sql", None))
+            r = registry.ToolResult(ok=False, summary=f"{registry.plain(tool.name)} could not be completed", error=errors.plain_message(e))
         results.append(r)
         env.facts.update(r.facts)
         if not r.ok:

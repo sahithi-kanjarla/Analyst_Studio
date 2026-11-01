@@ -11,7 +11,7 @@ import re
 from .... import llm as llmmod
 from ... import context as ctxmod
 from ... import engine, howtext, query as qmod, reports
-from .. import sqlguard, verify
+from .. import errors, sqlguard, verify
 from ..registry import Tool, ToolResult, register
 
 MAX_REPAIRS = 2
@@ -29,13 +29,16 @@ def matching_values(env, limit: int = 6) -> dict[str, list[str]]:
     grams = list(dict.fromkeys(words + [" ".join(p) for p in zip(words, words[1:])]))
     out: dict[str, list[str]] = {}
     for c in env.ctx.groupable():
-        if c.name not in env.df.columns or env.df[c.name].nunique(dropna=True) > 500:
+        try:
+            if c.name not in env.df.columns or env.df[c.name].nunique(dropna=True) > 500:
+                continue
+            found: list[str] = []
+            for g in grams:
+                for v in qmod.resolve_value(env.df, c.name, g):
+                    if v not in found:
+                        found.append(v)
+        except Exception:               # noqa: BLE001  a column that cannot be searched (nested values, odd types) is left out, never an error
             continue
-        found: list[str] = []
-        for g in grams:
-            for v in qmod.resolve_value(env.df, c.name, g):
-                if v not in found:
-                    found.append(v)
         if found:
             out[c.display] = found[:limit]
     return out
@@ -116,6 +119,7 @@ class CustomAnalysis(Tool):
         cols = list(env.df.columns)
         repairs, res, last = 0, None, ""
         while True:
+            env.last_sql = sql
             try:
                 checked = sqlguard.validate(sql, cols)
                 res = sqlguard.execute(checked, env.df)
@@ -125,11 +129,13 @@ class CustomAnalysis(Tool):
                 break
             except sqlguard.SqlRejected as e:
                 last = str(e)
+                errors.log(env.wd, self.name, last, sql)                       # every refused or failed query is kept for debugging, with the reason
                 fixed = self._repair(env, sql, last) if repairs < MAX_REPAIRS else None
                 if not fixed:
                     return self._failed(env, last, repairs)
                 sql, desc = fixed[0], (" ".join(fixed[1].split()) or desc)
                 repairs += 1
+        res.rows = [[v if v is None or isinstance(v, (int, float, str, bool)) else str(v) for v in r] for r in res.rows]       # whatever the database returns (dates, durations, decimals, lists) is shown as text
         columns = [_readable(c, env) for c in res.columns]
         shown = [[_fmt(v) for v in r] for r in res.rows[:sqlguard.SHOW_ROWS]]
         fid, fact = verify.facts_from_table("c", env, columns, [[_fmt(v) for v in r] for r in res.rows], desc)

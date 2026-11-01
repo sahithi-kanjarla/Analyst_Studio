@@ -67,6 +67,16 @@ def _fmt(v) -> str:
     return f"{f:,.0f}" if abs(f) >= 1000 or f == int(f) else f"{f:,.3g}"
 
 
+def _hashable(s: pd.Series) -> pd.Series:
+    """A column whose cells can be counted: lists, dictionaries and other values that cannot be hashed are turned into text for the card's statistics."""
+    if s.dtype == object:
+        try:
+            s.dropna().head(500).map(hash)
+        except TypeError:
+            return s.map(lambda v: v if v is None or isinstance(v, (str, int, float, bool)) else str(v))
+    return s
+
+
 def build(df: pd.DataFrame, ctx) -> dict:
     """{"columns": [{...}], "rows": n}. Cached by the caller with the run. Contains no row, only per-column statistics and the allowed value lists."""
     cols = []
@@ -74,7 +84,7 @@ def build(df: pd.DataFrame, ctx) -> dict:
     for i, (name, c) in enumerate(ctx.cols.items(), 1):
         if name not in df.columns:
             continue
-        s = df[name]
+        s = _hashable(df[name])
         typ = _type_of(s, c.role)
         nn = s.dropna()
         d: dict = {"id": f"d{i}", "name": name, "display": c.display, "type": typ, "role": c.role, "meaning": (c.meaning or "")[:100], "missing": round(float(s.isna().mean()), 4) if n else 0.0,

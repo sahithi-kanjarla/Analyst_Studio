@@ -67,8 +67,11 @@ def value_matches(df: pd.DataFrame, ctx, terms: list[str]) -> list[dict]:
         s = df[c.name]
         if pd.api.types.is_numeric_dtype(s) or pd.api.types.is_datetime64_any_dtype(s):
             continue
-        low = s.dropna().astype(str).str.strip().str.lower()
-        if low.empty or low.nunique() > 50000:
+        try:
+            low = s.dropna().astype(str).str.strip().str.lower()
+            if low.empty or low.nunique() > 50000:
+                continue
+        except Exception:               # noqa: BLE001
             continue
         vc = low.value_counts()
         uniq = list(vc.index)

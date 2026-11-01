@@ -13,6 +13,7 @@ import re
 import threading
 from dataclasses import dataclass, field
 
+import numpy as np
 import pandas as pd
 import logging
 
@@ -71,7 +72,18 @@ def _is_agg(select: exp.Expression) -> bool:
 
 
 def validate(sql: str, columns: list[str], view: str = VIEW) -> Checked:
-    """Parses and checks the query; returns what to run. Raises SqlRejected with a plain sentence when anything is not allowed."""
+    """Parses and checks the query; returns what to run. Raises SqlRejected with a plain sentence when anything is not allowed (and for anything the parser itself could not handle)."""
+    try:
+        return _validate(sql, columns, view)
+    except SqlRejected:
+        raise
+    except RecursionError:
+        raise SqlRejected("The query is too deeply nested to read.") from None
+    except Exception as e:          # noqa: BLE001  a bug or a gap in the parser must not end the request: the query is refused with the reason
+        raise SqlRejected("The query could not be read: " + sanitise_error(f"{type(e).__name__}: {e}")) from None
+
+
+def _validate(sql: str, columns: list[str], view: str = VIEW) -> Checked:
     if not isinstance(sql, str) or not sql.strip():
         raise SqlRejected("The query is empty.")
     if len(sql) > MAX_SQL_CHARS:
@@ -168,6 +180,38 @@ def _clean(v):
     return v
 
 
+def prepare_frame(df: pd.DataFrame) -> pd.DataFrame:
+    """A copy of the cleaned table that DuckDB can read whatever the table holds: a column type it cannot take (a period, an interval, a mixed or nested object column, a category of mixed values,
+    a time zone it cannot convert) is turned into text, and a category column into plain text. Numbers, dates, yes/no and text columns are left as they are. The data itself is not changed."""
+    out = {}
+    for c in df.columns:
+        s = df[c]
+        dt = s.dtype
+        try:
+            if isinstance(dt, pd.CategoricalDtype):
+                s = s.astype(object).where(s.notna(), None).map(lambda v: None if v is None else str(v))
+            elif isinstance(dt, (pd.PeriodDtype, pd.IntervalDtype)):
+                s = s.astype(object).map(lambda v: None if pd.isna(v) else str(v))
+            elif pd.api.types.is_datetime64_any_dtype(dt):
+                s = s.dt.tz_convert("UTC").dt.tz_localize(None) if getattr(dt, "tz", None) is not None else s
+            elif pd.api.types.is_timedelta64_dtype(dt):
+                pass
+            elif dt == object:
+                kinds = {type(v) for v in s.dropna().head(2000)}
+                if kinds and not kinds <= {str}:
+                    import decimal
+                    if kinds <= {int, float, bool, np.integer, np.floating, np.bool_} and len(kinds) == 1:
+                        pass
+                    elif kinds <= {decimal.Decimal, int, float, np.integer, np.floating}:
+                        s = pd.to_numeric(s.map(lambda v: None if v is None else float(v)))
+                    else:
+                        s = s.map(lambda v: None if v is None or (isinstance(v, float) and v != v) else str(v))
+        except Exception:               # noqa: BLE001  whatever it is, text is always readable
+            s = s.astype(str)
+        out[c] = s
+    return pd.DataFrame(out, index=df.index)
+
+
 def execute(checked: Checked, df: pd.DataFrame, view: str = VIEW) -> Result:
     """Runs the validated query in a fresh in-memory DuckDB. Raises SqlRejected for a timeout or a database error, with a sanitised message."""
     import time
@@ -175,13 +219,20 @@ def execute(checked: Checked, df: pd.DataFrame, view: str = VIEW) -> Result:
     import duckdb
     con = duckdb.connect(":memory:")
     try:
-        con.execute(f"SET memory_limit='{MEMORY_LIMIT}'")
-        con.execute("SET threads=2")
-        con.register(view, df)
-        con.execute("SET enable_external_access=false")
-        con.execute("SET autoinstall_known_extensions=false")
-        con.execute("SET autoload_known_extensions=false")
-        con.execute("SET lock_configuration=true")
+        try:
+            con.execute(f"SET memory_limit='{MEMORY_LIMIT}'")
+            con.execute("SET threads=2")
+            con.register(view, prepare_frame(df))
+        except SqlRejected:
+            raise
+        except Exception as e:          # noqa: BLE001  the table could not be given to the database
+            raise SqlRejected("The data could not be opened for this kind of query: " + sanitise_error(e)) from None
+        for setting in ("SET enable_external_access=false", "SET autoinstall_known_extensions=false", "SET autoload_known_extensions=false", "SET lock_configuration=true"):
+            try:
+                con.execute(setting)
+            except Exception as e:      # noqa: BLE001  a setting this version of the database does not have: the query still cannot reach files, because validation allows only the one table
+                if "external_access" in setting or "lock_configuration" in setting:
+                    raise SqlRejected("The query could not be run safely here: " + sanitise_error(e)) from None
         cap = MAX_READ_ROWS if checked.aggregated else RAW_ROWS
         sql = f"SELECT * FROM ({checked.sql}) AS _q LIMIT {cap + 1}"
         box: dict = {}
