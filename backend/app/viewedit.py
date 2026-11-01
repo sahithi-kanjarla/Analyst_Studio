@@ -18,7 +18,21 @@ import re
 
 TABS = ("report", "insights", "strategy", "dashboard", "data", "model", "cleaning", "plan", "powerbi", "chat")      # every tab of the results page (frontend/src/tabs.ts)
 TAB_NAMES = {"report": "Report", "insights": "Insights", "strategy": "Ideas to try", "dashboard": "Dashboard", "data": "Your data", "model": "How files connect", "cleaning": "What we cleaned",
-             "plan": "How we analysed", "powerbi": "Power BI export", "chat": "Chat"}
+             "plan": "How we analysed", "powerbi": "Power BI files", "chat": "Lens"}
+DATA_VIEWS = ("data", "model", "cleaning", "plan")          # the four views of the Data tab (the interface's five tabs: Report, Insights, Ideas to try, Dashboard, Data)
+
+
+def place(tab: str) -> str:
+    """Where a tab's items are on the page, in the interface's own words: the five tabs, the views of the Data tab, the Export menu and the expanded Lens."""
+    if tab in DATA_VIEWS:
+        return f"the {TAB_NAMES[tab]} view of the Data tab"
+    if tab == "powerbi":
+        return "the Power BI files (Export menu)"
+    if tab == "chat":
+        return "the expanded Lens"
+    return f"the {TAB_NAMES.get(tab, tab)} tab"
+
+
 DEFAULT_SHORT = ("report", "insights", "dashboard")      # these tabs open in the short view; "Show all" switches a tab to the full view
 SHORT_INSIGHTS = 5            # the short Insights view: the top 5, ranked by the report's own order
 MAX_SHORT_CHARTS = 6          # the short Report and Dashboard: at most 6 charts, and only those an action or the summary cites
@@ -186,7 +200,7 @@ def catalogue(result: dict) -> dict:
 
 
 def _other_tabs(result: dict, items: dict, tabs: dict, section, add) -> None:
-    """The tabs that list the run's own records (the cleaned table, how files connect, the cleaning log, definitions and how the data was set up, the plan, the Power BI export, the chat).
+    """The views that list the run's own records (the cleaned table, how files connect, the cleaning log, definitions and how the data was set up, the plan, the Power BI files, the expanded Lens).
     Each exposes at least one item with a stable id and a title, so questions, focus, view edits and briefs work from any tab."""
     prof = result.get("profile") or {}
     sec = section("data", "tables", "Tables")
@@ -320,7 +334,7 @@ def _ids(cmd: dict, cat: dict | None = None) -> list[str]:
         tab = str(cmd.get("tab") or "").lower() or None
         ids = [i for i, it in cat["items"].items() if it["kind"] == kind and (tab is None or it["tab"] == tab) and (not cmd.get("section") or it.get("section") == cmd["section"])]
         if not ids:
-            raise ViewError(f"There are no {kind}s" + (f" on the {TAB_NAMES.get(tab, tab)} tab" if tab else "") + " to change.")
+            raise ViewError(f"There are no {kind}s" + (f" on {place(tab)}" if tab else "") + " to change.")
         return ids
     raw = cmd.get("ids") if isinstance(cmd.get("ids"), list) else [cmd.get("id")]
     return [i for i in raw if i is not None]
@@ -340,7 +354,7 @@ def _tab(cmd: dict, cat: dict | None = None) -> str:
     if t not in TABS:
         raise ViewError("Which tab do you mean: Report, Insights, Ideas to try or Dashboard?")
     if cat is not None and not any(i["tab"] == t for i in cat["items"].values()):
-        raise ViewError(f"The {TAB_NAMES[t]} tab of this run has nothing that can be changed, so nothing was changed.")
+        raise ViewError(f"{place(t)[0].upper()}{place(t)[1:]} of this run has nothing that can be changed, so nothing was changed.")
     return t
 
 

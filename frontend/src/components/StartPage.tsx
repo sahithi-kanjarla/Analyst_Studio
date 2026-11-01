@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { AgentEvent, api, RunResult } from "../api";
-import { Tab, TAB_LABEL, TAB_LINE } from "../tabs";
+import { DATA_LABEL, DATA_VIEWS, NAV_LABEL, NAV_TABS, NavTab, Tab, TAB_LINE } from "../tabs";
 import Dialog from "./Dialog";
 import { TabBody } from "./Results";
 import ReportPage from "./ReportPage";
@@ -9,8 +9,10 @@ import UploadForm from "./UploadForm";
 
 /** A screen of the app: one of its tabs, or the report with the chat or the print panel open. */
 export type SampleView = Tab | "ask" | "print";
-const TOUR_TABS: Tab[] = ["report", "dashboard", "insights", "strategy", "data", "cleaning", "plan"];
-const tabOf = (v: SampleView): Tab => (v === "ask" || v === "print" ? "report" : v);
+const TOUR_TABS: NavTab[] = NAV_TABS;          // the five real tabs, in the app's order
+const isDataView = (v: SampleView) => (DATA_VIEWS as string[]).includes(v);
+const tabOf = (v: SampleView): Tab => (v === "ask" || v === "print" ? "report" : v);                 // the screen shown (for its one-line description)
+const navOf = (v: SampleView): NavTab => (isDataView(v) ? "data" : v === "ask" || v === "print" ? "report" : (v as NavTab));          // the tab it belongs to
 
 const STORY: { view: SampleView; title: string; text: string }[] = [
   { view: "plan", title: "It asks before it assumes", text: "When something is unclear, like two date columns or a value such as 999 that may mean “missing”, it asks you a short question. It never guesses quietly." },
@@ -41,12 +43,17 @@ function Scaled({ children, design = 1040, height }: { children: React.ReactNode
   );
 }
 
-function SampleWindow({ run, view, title }: { run: RunResult; view: SampleView; title: string }) {
+function SampleWindow({ run, view, title, onPick }: { run: RunResult; view: SampleView; title: string; onPick: (v: Tab) => void }) {
   return (
     <div className="window" role="group" aria-label="The app, running on a sample report">
       <div className="window-bar"><span className="window-dots" aria-hidden><i /><i /><i /></span><span className="window-title">{title}</span></div>
       <Scaled height="min(60vh, 560px)" key={view}>
         <div className="window-body">
+          {isDataView(view) && (
+            <div className="dv" role="tablist" aria-label="Data views">
+              {DATA_VIEWS.map((v) => <button key={v} role="tab" type="button" aria-selected={view === v} className={`dv-item ${view === v ? "dv-on" : ""}`} onClick={() => onPick(v)}>{DATA_LABEL[v]}</button>)}
+            </div>
+          )}
           {view === "ask" ? <ReportPage run={run} embedded startChat /> : view === "print" ? <ReportPage run={run} embedded startPrint /> : <TabBody run={run} tab={view} embedded />}
         </div>
       </Scaled>
@@ -54,9 +61,9 @@ function SampleWindow({ run, view, title }: { run: RunResult; view: SampleView; 
   );
 }
 
-function Tabs({ view, onPick }: { view: SampleView; onPick: (v: Tab) => void }) {
+function Tabs({ view, onPick }: { view: SampleView; onPick: (v: Tab) => void }) {          // a click on a tab opens its first screen
   const refs = useRef<Record<string, HTMLButtonElement | null>>({});
-  const current = tabOf(view);
+  const current = navOf(view);
   function onKey(e: React.KeyboardEvent, i: number) {
     const move = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
     if (!move) return;
@@ -70,7 +77,7 @@ function Tabs({ view, onPick }: { view: SampleView; onPick: (v: Tab) => void }) 
       {TOUR_TABS.map((t, i) => (
         <button key={t} ref={(el) => { refs.current[t] = el; }} role="tab" id={`tour-${t}`} aria-selected={current === t} aria-controls="tour-window" tabIndex={current === t ? 0 : -1}
           className={`tour-tab ${current === t ? "tour-tab-on" : ""}`} onClick={() => onPick(t)} onKeyDown={(e) => onKey(e, i)}>
-          {TAB_LABEL[t]}
+          {NAV_LABEL[t]}
         </button>
       ))}
     </div>
@@ -136,7 +143,7 @@ function Story({ onView, run, view }: { onView: (v: SampleView) => void; run: Ru
   }, [onView]);
   return (
     <section className="story" aria-label="What makes it different">
-      <div className="story-window"><SampleWindow run={run} view={view} title="Sample Store" /></div>
+      <div className="story-window"><SampleWindow run={run} view={view} title="Sample Store" onPick={onView} /></div>
       <ol className="story-steps">
         {STORY.map((s, i) => (
           <li key={s.title} ref={(el) => { refs.current[i] = el; }} className={view === s.view ? "story-on" : ""}>
@@ -182,7 +189,7 @@ export default function StartPage({ onOpenRun, openNew = false }: { onOpenRun: (
 
       <section className="tour" aria-label="The app, on a sample report">
         <Tabs view={view} onPick={setView} />
-        {run ? <div id="tour-window" role="tabpanel" aria-labelledby={`tour-${tabOf(view)}`}><SampleWindow run={run} view={view} title="Sample Store" /></div> : <div className="window window-loading" aria-live="polite">Loading the sample…</div>}
+        {run ? <div id="tour-window" role="tabpanel" aria-labelledby={`tour-${navOf(view)}`}><SampleWindow run={run} view={view} title="Sample Store" onPick={setView} /></div> : <div className="window window-loading" aria-live="polite">Loading the sample…</div>}
         <p className="tour-line">{TAB_LINE[tabOf(view)]}</p>
       </section>
 

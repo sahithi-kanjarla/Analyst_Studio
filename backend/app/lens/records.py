@@ -11,19 +11,35 @@ from .. import cited
 from .. import summary as sm
 
 TAB_HELP = {
-    "report": "A short report with the answer and what to do. You can print it or save it as a PDF.",
+    "report": "A short report with the answer and what to do. Download it as a PDF or print it from the Export menu.",
     "dashboard": "Charts for the main numbers. Click any bar or month to filter every chart at once.",
     "insights": "Each finding, how far to trust it, and the actions it supports.",
     "ideas to try": "Ideas to test, ranked by how much they could help and how hard they are.",
-    "your data": "The cleaned table behind every number. You can search it, sort it and download it.",
+    "data": "Four views in one place: Your data, How files connect, What we cleaned and How we analysed. Pick one with the row of views at the top.",
+    "your data": "The cleaned table behind every number, and what each column means. You can search it, sort it and download it.",
     "how files connect": "How your files were linked together, and how well they matched.",
     "what we cleaned": "Every change made to your data, with the rows it touched.",
     "how we analysed": "The questions we set out to answer, and the checks we ran.",
-    "power bi export": "Everything you need to rebuild the charts in Power BI.",
-    "chat": "Ask Lens anything about your data, in full width.",
+    "export": "The menu next to the report name: Download PDF, Briefs, Power BI files (everything you need to rebuild the charts in Power BI) and Print.",
+    "lens": "Ask Lens anything about your data. Expand opens the conversation full width.",
 }
-TAB_ALIASES = {"strategy": "ideas to try", "data": "your data", "model": "how files connect", "cleaning": "what we cleaned", "plan": "how we analysed", "powerbi": "power bi export",
-               "ideas": "ideas to try", "files": "how files connect", "analysis": "how we analysed"}
+MAIN_TABS = ("report", "insights", "ideas to try", "dashboard", "data")          # the five tabs of a finished run, in order
+DATA_SUBVIEWS = ("your data", "how files connect", "what we cleaned", "how we analysed")
+TAB_ALIASES = {"strategy": "ideas to try", "model": "how files connect", "cleaning": "what we cleaned", "plan": "how we analysed", "powerbi": "export", "power bi export": "export", "power bi files": "export",
+               "power bi": "export", "print": "export", "chat": "lens", "ideas": "ideas to try", "files": "how files connect", "analysis": "how we analysed"}
+
+
+def where_is(key: str) -> str:
+    """How a tab, a Data view, the Export menu or Lens is named in a sentence."""
+    if key in DATA_SUBVIEWS:
+        return f"The Data tab, {key[0].upper()}{key[1:]} view"
+    if key == "export":
+        return "The Export menu"
+    if key == "lens":
+        return "Lens"
+    return f"The {key.title()} tab"
+
+
 MAX_FACTS_TO_AI, MAX_ITEM_CHARS = 36, 170
 
 
@@ -158,9 +174,10 @@ def quote(topic: str, result: dict, tab: str, question: str = "") -> dict | None
     if t == "tab":
         key = tab_in(question) or tab_key(tab) or None
         if not key:
-            return {"text": "These are the tabs: " + "; ".join(f"{k.title()}: {v}" for k, v in TAB_HELP.items()), "lines": [f"{k.title()}: {v}" for k, v in TAB_HELP.items()],
+            lines = [f"{k.title()}: {TAB_HELP[k]}" for k in MAIN_TABS] + [f"{k[0].upper()}{k[1:]} (a view of the Data tab): {TAB_HELP[k]}" for k in DATA_SUBVIEWS] + [f"Export menu: {TAB_HELP['export']}", f"Lens: {TAB_HELP['lens']}"]
+            return {"text": "These are the five tabs: " + "; ".join(f"{k.title()}: {TAB_HELP[k]}" for k in MAIN_TABS) + f" Also: the Export menu ({TAB_HELP['export']}) and Lens.", "lines": lines,
                     "sources": ["the app's tab descriptions"], "fact_ids": []}
-        return {"text": f"The {key.title()} tab: {TAB_HELP[key]}", "lines": [], "sources": [f"the app's description of the {key.title()} tab"], "fact_ids": []}
+        return {"text": f"{where_is(key)}: {TAB_HELP[key]}", "lines": [], "sources": [f"the app's description of {where_is(key)[0].lower()}{where_is(key)[1:]}"], "fact_ids": []}
     if t == "trust":
         page = rv.get("page") or {}
         lvl = _plain(page.get("trust"))
@@ -182,7 +199,7 @@ def quote(topic: str, result: dict, tab: str, question: str = "") -> dict | None
             return {"text": "The saved record shows no changes made to your data.", "lines": [], "sources": ["the cleaning log"], "fact_ids": []}
         lines = [f"{_plain(c.get('step'))}: {_cut(c.get('detail'), 200)}" + (f" ({c['count']:,} rows)" if isinstance(c.get("count"), int) else "") for c in log[:10]]
         more = len(log) - len(lines)
-        return {"text": f"The cleaning log has {len(log)} step{'s' if len(log) != 1 else ''}." + (" The first ones:" if more > 0 else ""), "lines": lines + ([f"…and {more} more (see the What we cleaned tab)."] if more > 0 else []),
+        return {"text": f"The cleaning log has {len(log)} step{'s' if len(log) != 1 else ''}." + (" The first ones:" if more > 0 else ""), "lines": lines + ([f"…and {more} more (see What we cleaned, a view of the Data tab)."] if more > 0 else []),
                 "sources": ["the cleaning log saved with this run"], "fact_ids": []}
     if t == "definitions":
         lines, sources = definitions_lines(result)

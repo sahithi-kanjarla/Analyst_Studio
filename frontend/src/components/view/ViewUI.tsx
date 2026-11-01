@@ -2,7 +2,7 @@ import { Fragment, ReactNode, useState } from "react";
 import { useLens } from "../lens/LensContext";
 import { useView } from "./ViewContext";
 
-const TAB_LABEL: Record<string, string> = { report: "Report", insights: "Insights", strategy: "Ideas to try", dashboard: "Dashboard", data: "Your data", model: "How files connect", cleaning: "What we cleaned", plan: "How we analysed", powerbi: "Power BI export", chat: "Chat" };
+const TAB_LABEL: Record<string, string> = { report: "Report", insights: "Insights", strategy: "Ideas to try", dashboard: "Dashboard", data: "Your data", model: "How files connect", cleaning: "What we cleaned", plan: "How we analysed", powerbi: "Power BI files", chat: "Lens" };
 
 /** The title of an item: the original, or the user's own text with an "Edited by you" label. */
 export function ViewTitle({ id, text, tag: Tag = "span" }: { id: string; text: string; tag?: "span" | "h2" | "h3" | "h4" | "h5" }) {

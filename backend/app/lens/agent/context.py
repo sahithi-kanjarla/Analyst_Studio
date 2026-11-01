@@ -31,7 +31,7 @@ def tab_id(label: str) -> str:
         if low == n.lower() or low == t:
             return t
     key = records.tab_key(low)
-    return {"ideas to try": "strategy", "your data": "data", "how files connect": "model", "what we cleaned": "cleaning", "how we analysed": "plan", "power bi export": "powerbi"}.get(key or "", key or "")
+    return {"ideas to try": "strategy", "your data": "data", "how files connect": "model", "what we cleaned": "cleaning", "how we analysed": "plan", "export": "powerbi", "lens": "chat"}.get(key or "", key or "")
 
 
 def _matching(env) -> dict:
