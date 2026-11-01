@@ -64,8 +64,14 @@ CHOICE_RE = re.compile(r"\bwhy\b[^.?!]{0,25}\b(?:choose|chose|pick(?:ed)?|select
                        r"|\bwhy (?:is|was) (?:it|that|this)(?: one| idea| strategy)? (?:the )?(?:best|first|top|number one|#1)\b|\bhow did you (?:choose|pick|rank|decide)\b", re.I)
 
 
+_NUM = r"(?:\d{1,2}|one|two|three|four|five|six|seven|eight|nine|ten)"
+VIEW_EDIT2_RE = re.compile(rf"\b(?:show|keep|display|give me)\s+(?:only|just)\s+(?:the\s+)?(?:top\s+|best\s+|first\s+)?{_NUM}\s+(?:insights?|ideas?|strateg\w+|findings?|charts?|graphs?|actions?|cards?|items?)\b"
+                           r"|\b(?:only|just)\s+(?:the\s+)?(?:needed|necessary|useful|supporting)\s+charts?\b|\bonly\s+(?:the\s+)?charts?\s+(?:that|which)\s+support\b|^\s*(?:please\s+)?undo(?:\s+that|\s+the last(?: change)?)?\s*[.!]?\s*$"
+                           r"|\bundo\s+(?:that|the last|my last)\s+(?:view\s+)?change\b|\b(?:reset|restore)\s+(?:the |my )?view\b|\bshow\s+(?:me\s+)?(?:the\s+)?(?:full|short)\s+(?:view|version)\s+of\s+(?:the\s+)?(?:insights|ideas|report|dashboard)\b", re.I)
+
+
 def wants_view_edit(question: str) -> bool:
-    return bool(VIEW_EDIT_RE.search(question or ""))
+    return bool(VIEW_EDIT_RE.search(question or "") or VIEW_EDIT2_RE.search(question or ""))
 
 
 def wants_chart_check(question: str) -> bool:

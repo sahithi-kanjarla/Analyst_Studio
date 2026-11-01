@@ -411,6 +411,8 @@ def apply_many(result: dict, state: dict, cmds: list, cat: dict | None = None) -
     for c in cmds[:6]:
         cur, m = apply(result, cur, c, cat)
         msgs.append(m)
+    if any(isinstance(c, dict) and c.get("cmd") == "undo" for c in cmds[:6]):
+        return cur, msgs
     if cur is not base and _core(cur) != _core(base):
         cur["history"] = (base.get("history") or [])[-(HISTORY - 1):] + [_core(base)]
     return cur, msgs

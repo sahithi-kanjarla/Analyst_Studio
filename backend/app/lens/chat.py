@@ -466,6 +466,8 @@ def ask(wd: Path, result: dict, *, question: str = "", chip: str | None = None, 
         pool = chipmod.start(ctx, df, result) + _starter_intents(result) + [{"id": k, **v} for k, v in store.load(wd)["chips"].items()]
         hit = match_chip(question, pool)
         found = (hit or {}).get("intent") or rules.route(question)
+        if not found and focus_ctx and viewchat.parse_rules(question, tab, viewedit.catalogue(result), focus_ctx["id"]) is not None:
+            found = {"kind": "view"}          # "hide this", "pin it", "rename this to ...", "show it as a line": a change to the item in focus
         if not found and rules.asks_choice(question) and _last_turn_kind(wd) in ("strategy",):
             found = {"kind": "strategy_why"}
         if found and found["kind"] == "priority" and ai_ok and not (hit or {}).get("intent"):
