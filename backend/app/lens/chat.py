@@ -409,6 +409,17 @@ def _report_answer(wd: Path, result: dict, ctx, df, kind: str, spec: dict, quest
     return reports.answer_summary(result, wd, llm, length, MAX_AI_CALLS - ai_calls, ai_ok, ai_calls)
 
 
+def _readable_names(ans: dict, ctx) -> None:
+    """Report answers quote the report's own wording, which may carry a raw column name (discount_pct): show the display name instead. Wording only."""
+    if ans.get("kind") not in ("strategy", "priority", "summary", "general"):        # records quoted word for word (cleaning log, definitions) stay as saved
+        return
+    for k in ("text",):
+        if isinstance(ans.get(k), str):
+            ans[k] = ctx.readable(ans[k])
+    if isinstance(ans.get("lines"), list):
+        ans["lines"] = [ctx.readable(x) if isinstance(x, str) else x for x in ans["lines"]]
+
+
 def ask(wd: Path, result: dict, *, question: str = "", chip: str | None = None, choice: dict | None = None, patch: dict | None = None, tab: str = "",
         llm=None, allow_ai: bool = True) -> dict:
     """Answers one question and saves the turn. Exactly one of question / chip / choice / patch is used (in that order of the checks below)."""
@@ -505,6 +516,7 @@ def ask(wd: Path, result: dict, *, question: str = "", chip: str | None = None, 
         if "daily" in fail:
             _DAILY["until"] = time.time() + DAILY_PAUSE_S
         ans["ai_calls"] = ai_calls
+        _readable_names(ans, ctx)
         ans["source"] = "chip" if chip else "ai" if count_ai else "code"
     if ans is None:
         ans, nxt = _run_checked(wd, qmod.check(raw, ctx, df), ctx, df, result, ai_calls, label)

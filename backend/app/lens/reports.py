@@ -340,7 +340,8 @@ def explain_lines(result: dict, picked: list[dict], rest: list[dict]) -> tuple[l
         lines.append("No other idea in the report fits, so there is no runner-up.")
     else:
         why = _worse(s, nxt)
-        reason = "; ".join(why) if why else "it scored the same on impact, confidence and effort, so the report's own order (alphabetical by title when scores are equal) put it second"
+        reason = "; ".join(why) if why else ("it scored the same on impact, confidence and effort, and the data it rests on shows a smaller checked effect" if float(s.get("effect_size") or 0) > float(nxt.get("effect_size") or 0)
+                                               else "it scored the same on impact, confidence and effort, so the report's own order put it second")
         lines.append(f"The runner-up is “{nxt['title'].rstrip('.')}” (impact {nxt.get('impact')}, confidence {nxt.get('confidence')}, effort {nxt.get('effort')}). It ranked lower because {reason}.")
         ev += list(nxt.get("evidence") or [])
     return lines, list(dict.fromkeys(ev))
