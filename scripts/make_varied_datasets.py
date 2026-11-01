@@ -200,7 +200,7 @@ def wide() -> None:
         d[f"category_{k:02d}"] = [r.choice(["A", "B", "C", "D"][: 2 + k % 3]) for _ in range(n)]
     for k in range(1, 26):
         d[f"metric_{k:02d}"] = np.round(g.gamma(2 + k % 5, 40 + k, n), 2)
-    for k in range(1, 21):
+    for k in range(1, 20):
         d[f"flag_{k:02d}"] = g.randint(0, 2, n)
     d["revenue"] = np.round(g.gamma(3, 800, n), 2)
     d["quantity"] = g.randint(1, 20, n)

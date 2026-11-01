@@ -22,7 +22,8 @@ EMAIL = re.compile(r"[^@\s]+@[^@\s]+\.[A-Za-z]{2,}")
 PHONE = re.compile(r"^\+?[\d\s().-]{7,}$")
 PERSON = re.compile(r"^[A-Z][a-zA-Z'’.-]+(?: [A-Z][a-zA-Z'’.-]+){1,2}$")
 CODE = re.compile(r"^(?=.*\d)[A-Za-z0-9_./-]{5,}$")
-PII_WORDS = re.compile(r"\b(?:name|names|e-?mail|mail|phone|mobile|tel|telephone|contact|address|street|ssn|passport|birth|dob|aadhaar|pan)\b", re.I)
+PII_WORDS = re.compile(r"\b(?:name|names|naam|grahak|e-?mail|mail|phone|mobile|tel|telephone|contact|address\d*|street|ssn|passport|birth|dob|aadhaar|aadhar|pan|gstin|gst\s*(?:no|number|in)|uin|pin\s*code|pincode|zip|postal)\b", re.I)
+GSTIN = re.compile(r"^\d{2}[A-Z]{5}\d{4}[A-Z]\d[A-Z0-9][A-Z0-9]$")
 
 
 def personal_looking(name: str, display: str, values: pd.Series, n_rows: int) -> str:
@@ -33,6 +34,8 @@ def personal_looking(name: str, display: str, values: pd.Series, n_rows: int) ->
     if s.empty:
         return ""
     sample = s.sample(min(len(s), 400), random_state=0) if len(s) > 400 else s
+    if sample.map(lambda v: bool(GSTIN.match(v.strip()))).mean() > 0.2:
+        return "it looks like tax registration numbers"
     if sample.str.contains(EMAIL).mean() > 0.2:
         return "it looks like e-mail addresses"
     if sample.map(lambda v: bool(PHONE.match(v)) and sum(ch.isdigit() for ch in v) >= 7).mean() > 0.5:

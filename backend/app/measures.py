@@ -3,8 +3,12 @@ from __future__ import annotations
 
 import re
 
-SUM_WORDS = re.compile(r"revenue|sales|amount|total|count|qty|quantity|spend|cost|profit|units|orders", re.I)
-AVG_WORDS = re.compile(r"pct|percent|rate|ratio|discount|avg|average|score|margin|price|per_|_per|age$", re.I)  # never add these up
+# Words for an amount, a total or a quantity, in English and in the transliterated Hindi that shows up in Indian exports (rashi = amount, kul = total, matra = quantity, bikri = sales ...). Whole words, so a short word
+# is never found inside a longer one.
+LOCAL_SUM = r"(?<![a-z])(?:rashi|raashi|mulya|kimat|keemat|daam|bikri|bikree|kharch\w*|matra|nag|aay|kamai|rupaye|taxable|gross|net|settlement|payout|refund|fee|fees|charges?|cgst|sgst|igst|gst|tax|taxes)(?![a-z])"
+LOCAL_AVG = r"(?<![a-z])(?:dar|bhav|chhoot|chut|pratishat|pratishath)(?![a-z])"
+SUM_WORDS = re.compile(r"revenue|sales|amount|total|count|qty|quantity|spend|cost|profit|units|orders|" + LOCAL_SUM, re.I)
+AVG_WORDS = re.compile(r"pct|percent|rate|ratio|discount|avg|average|score|margin|price|per_|_per|age$|" + LOCAL_AVG, re.I)  # never add these up
 
 ROWS_LABEL = "records"         # what a share of rows is a share of, and what any share falls back to when the kind of the measure is unknown
 

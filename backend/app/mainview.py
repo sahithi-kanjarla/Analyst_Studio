@@ -623,6 +623,9 @@ def tiles(state: dict, view: dict) -> list[tuple[str, str]]:
     if period:
         out.append((period["label"], period["value"]))
     prof = state.get("profile") or {}
+    g = prof.get("grain")
+    if g:
+        out.append((g["label"], f"{g['orders']:,}"))          # several rows per order: the orders are counted by their key, so the row count is not read as an order count
     if prof.get("rows"):
         out.append(("Rows", f"{prof['rows']:,}"))
     if len(out) < TILES_MIN and prof.get("cols"):

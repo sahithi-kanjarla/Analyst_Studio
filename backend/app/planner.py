@@ -426,13 +426,14 @@ def heuristic_plan(df: pd.DataFrame, profile: dict, goal: str, context: dict | N
                                   + [c for s, _ in flag_rate_specs(df, roles, goal, explore, target) for c in s["params"].values()]))
     relevant += plausible_dimensions(df, roles, uniques, target, relevant)
     relevant = goal_groups(roles, uniques, goal, relevant, ov.get("goal_columns"))
-    questions = [f"What explains differences or changes in {target}?" if target else "What does this dataset contain?"]
+    say = lambda c: str(c).replace("_", " ") if "_" in str(c) else c          # the questions are read by people: an underscore name is shown as words
+    questions = [f"What explains differences or changes in {say(target)}?" if target else "What does this dataset contain?"]
     if target and groups:
-        questions.append(f"Which segments ({', '.join(groups[:3])}) perform best and worst on {target}?")
+        questions.append(f"Which segments ({', '.join(say(g) for g in groups[:3])}) perform best and worst on {say(target)}?")
     if date and target:
-        questions.append(f"Is {target} trending up or down over time?")
+        questions.append(f"Is {say(target)} trending up or down over time?")
     if context.get("kpis") and target and (_name_tokens(target) & kpi_tokens or target in kpi_cols):
-        questions.append(f"How is {target}, one of the KPIs you named, behaving and what is it linked to?")
+        questions.append(f"How is {say(target)}, one of the KPIs you named, behaving and what is it linked to?")
     objective = goal if not explore else "Explore the data and surface the most important patterns for the business (no specific goal was given)."
     return {"objective": objective, "questions": questions, "target": target, "date_col": date, "relevant_columns": relevant,
             "analyses": analyses, "skipped": rule_skipped(profile, relevant, ov), "source": "rules", "explore": bool(explore), "derived": list(ov.get("derived") or [])}
