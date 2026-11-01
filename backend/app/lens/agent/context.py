@@ -32,6 +32,14 @@ def tab_id(label: str) -> str:
     return {"ideas to try": "strategy", "your data": "data", "how files connect": "model", "what we cleaned": "cleaning", "how we analysed": "plan", "power bi export": "powerbi"}.get(key or "", key or "")
 
 
+def _matching(env) -> dict:
+    from .tools.custom_analysis import matching_values
+    try:
+        return matching_values(env)
+    except Exception:           # noqa: BLE001  a value lookup must never stop a request
+        return {}
+
+
 def history(wd, n: int = HISTORY_TO_AI) -> list[dict]:
     out = []
     for t in store.load(wd)["turns"][-n:]:
@@ -63,6 +71,8 @@ def build(env, tools_help: str = "") -> str:
         f"TABLE: {ctx.rows} rows" + (f", amounts in {ctx.currency}" if ctx.currency else ""),
         "DATE SPANS: " + json.dumps(spans, ensure_ascii=False),
         "COLUMNS: " + json.dumps(ctxmod.for_prompt(ctx), ensure_ascii=False),
+        "SQL VIEW \"data\" (for custom_analysis; column = exact name): " + json.dumps([{"column": c.name, "label": c.display, "role": c.role, "kind": c.kind} for c in ctx.cols.values()], ensure_ascii=False),
+        "MATCHING VALUES (real stored values for words in the request): " + json.dumps(_matching(env), ensure_ascii=False),
         "VISIBLE ITEMS (id, kind, title): " + json.dumps(visible_items(env), ensure_ascii=False),
     ]
     if env.focus:
