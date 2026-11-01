@@ -68,6 +68,25 @@ def shortcut_plan(question: str, env: Env) -> dict | None:
 # ------------------------------------------------------------------ the rule router: the no-AI fallback
 def fallback_plan(env: Env) -> dict | None:
     q = env.question
+    low = q.lower()
+    mg = rules.BRIEF_MANAGE_RE.search(q)
+    if mg and (mg.group("op") or "list"):
+        op = {"show": "list", "list": "list", "open": "open", "reopen": "open", "rename": "rename", "delete": "delete", "remove": "delete", "discard": "delete"}.get((mg.group("op") or "list").lower(), "list")
+        if op == "delete" and re.search(r"\ball\b", low):
+            op = "delete_all"
+        ref = re.sub(r"\b(?:list|show|open|reopen|rename|delete|remove|discard|my|the|all|saved|brief|briefs|please|me|to)\b", " ", low).strip()
+        return {"plan": [{"tool": "brief_manage", "args": {"op": op, **({"id": ref} if ref and op in ("open", "rename", "delete") else {}), **({"title": ref} if op == "rename" and ref else {})}}]}
+    if rules.EXPORT_RE.search(q) and not rules.brief_request(q):
+        if "all" in low and "brief" in low:
+            return {"plan": [{"tool": "export", "args": {"what": "all_briefs"}}]}
+        if "text" in low:
+            return {"plan": [{"tool": "export", "args": {"what": "text", **({"id": "last"} if "brief" in low else {})}}]}
+        if "brief" in low:
+            return {"plan": [{"tool": "export", "args": {"what": "brief", "id": "last"}}]}
+        return {"plan": [{"tool": "export", "args": {"what": "short_report" if re.search(r"short|summary", low) else "report"}}]}
+    br = rules.brief_request(q)
+    if br:
+        return {"plan": [{"tool": "brief", "args": {"briefs": [{"audience": br["audience"], "length": "short", "focus": br["focus"], "columns": [], "evidence": []}]}}]}
     r = rules.route(q)
     if not r:
         if env.focus:
@@ -258,3 +277,20 @@ def _short_args(args) -> dict:
         s = json.dumps(v, default=str)
         out[k] = v if len(s) <= 400 else s[:400] + "…"
     return out
+
+
+def run_fallback(wd, result, df, ctx, question: str, tab: str, focus_ctx: dict | None, view_state: dict | None) -> Out | None:
+    """No AI: the rule router's plan run through the same tools, or None when no rule reads the request."""
+    env = make_env(wd, result, df, ctx, question, tab, None, False, focus_ctx, view_state)
+    plan = fallback_plan(env)
+    if not plan:
+        return None
+    errs, hard = planner.validate(plan, env)
+    if errs and hard:
+        return None
+    ans, chips, meta = execute(env, plan)
+    from .. import chat
+    chat._readable_names(ans, ctx)
+    ans["agent"] = {"plan": [{"tool": s["tool"], "args": _short_args(s.get("args"))} for s in plan["plan"]], "tools": [m["tool"] for m in meta], "steps": meta, "calls": 0}
+    _add_steps_to_how(ans, meta, list(env.notes))
+    return Out(ans, chips, 0, tools=[m["tool"] for m in meta])

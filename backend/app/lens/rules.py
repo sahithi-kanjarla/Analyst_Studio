@@ -118,3 +118,21 @@ def priority_terms(question: str) -> list[str]:
         return []
     words = [w for w in re.findall(r"[A-Za-z][A-Za-z\-]+", m.group("p")) if w.lower() not in GENERIC_STOP]
     return words[:5]
+
+
+# ------------------------------------------------------------------ the no-AI fallback for briefs, saved briefs and exports (with an AI the planner decides)
+BRIEF_RE = re.compile(r"\b(?:briefs?|one[- ]pagers?|memos?|digests?|handouts?|talking points)\b", re.I)
+BRIEF_MANAGE_RE = re.compile(r"\b(?P<op>list|show|open|reopen|rename|delete|remove|discard)\b[^.?!]{0,30}\b(?:briefs?)\b|\b(?:my|saved|all) briefs\b", re.I)
+EXPORT_RE = re.compile(r"\b(?:pdf|export|download|copy as text|copy (?:it|this) as text|as text)\b", re.I)
+FOR_RE = re.compile(r"\bfor\s+(?:my\s+|the\s+|our\s+|a\s+|an\s+)?(?P<who>[^.,;!?]{2,60}?)(?=\s+(?:about|on|focus|focused|covering|that|who|with|and then|to read|$)|[.,;!?]|$)", re.I)
+ABOUT_RE = re.compile(r"\b(?:about|focus(?:ed)? on|covering|on)\s+(?P<what>[^.,;!?]{2,60})", re.I)
+
+
+def brief_request(question: str) -> dict | None:
+    """{"audience", "focus"} for a request that asks for a brief, from its own words (no list of readers or topics); None when it is not one."""
+    q = question or ""
+    if not BRIEF_RE.search(q):
+        return None
+    m = FOR_RE.search(q)
+    f = ABOUT_RE.search(q)
+    return {"audience": (m.group("who").strip() if m else "the reader"), "focus": (f.group("what").strip() if f else "")}

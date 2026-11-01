@@ -32,6 +32,7 @@ def load(wd: Path) -> dict:
     d.setdefault("asked", 0)
     d.setdefault("views", {})
     d.setdefault("view_edits", {})
+    d.setdefault("briefs", [])
     return d
 
 
@@ -140,4 +141,15 @@ def set_view_state(wd: Path, state: dict) -> None:
     with LOCK:
         d = load(wd)
         d["view_edits"] = state
+        save(wd, d)
+
+
+def get_briefs(wd: Path) -> list[dict]:
+    return list(load(wd).get("briefs") or [])
+
+
+def put_briefs(wd: Path, briefs: list[dict]) -> None:
+    with LOCK:
+        d = load(wd)
+        d["briefs"] = briefs[-60:]
         save(wd, d)

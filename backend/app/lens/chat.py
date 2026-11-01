@@ -484,8 +484,15 @@ def ask(wd: Path, result: dict, *, question: str = "", chip: str | None = None, 
         elif (llm is None or not allow_ai) and focus_ctx:
             route = {"kind": "focus"}
         elif llm is None or not allow_ai:
-            out = _data_reply(wd, question, None, ctx, df, result, 0) if reasoning.asserts(question, df, ctx) else None
-            ans, nxt = out if out else _plain("unavailable", "Without an AI model I can answer the suggested questions only. Pick one of these.", wd, ctx, df, result)
+            fb = agent.run_fallback(wd, result, df, ctx, question, tab, focus_ctx, view_state)
+            out = _data_reply(wd, question, None, ctx, df, result, 0) if fb is None and reasoning.asserts(question, df, ctx) else None
+            if fb is not None:
+                ans, nxt = fb.ans, fb.chips
+            elif out:
+                ans, nxt = out
+            else:
+                agent.log_unmet(wd, question, tab)
+                ans, nxt = _plain("unavailable", "Without an AI model I can answer the suggested questions only. Pick one of these.", wd, ctx, df, result)
         elif asked >= max_questions():
             ans, nxt = _plain("limit", f"You've reached this run's limit of {max_questions()} questions that use the AI. The suggested questions still work.", wd, ctx, df, result)
         elif time.time() < _DAILY["until"]:

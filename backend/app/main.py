@@ -599,6 +599,26 @@ def view_apply(run_id: str, body: ViewIn):
     return {**_view_wire(run_id, wd, result, new, " ".join(msgs)), "local": demo}
 
 
+@app.get("/api/runs/{run_id}/export/{what}")
+def export_file(run_id: str, what: str, brief: str = ""):
+    """A PDF of a brief, all briefs (zip), the report or the short report, or the plain text of one. Made from the saved content, read-only."""
+    from .lens import briefs as lensbriefs, exporter
+    _check_id(run_id)
+    wd = run_dir(run_id)
+    p = wd / "result.json"
+    if not p.exists():
+        raise HTTPException(409, "This run has no report yet.")
+    result = json.loads(p.read_text(encoding="utf-8"))
+    b = lensbriefs.find(wd, brief) if brief else None
+    if what in ("brief",) and not b:
+        raise HTTPException(404, "That brief was not found.")
+    try:
+        data, ctype, name = exporter.make(what, result, wd, brief=b, briefs=lensstore.get_briefs(wd))
+    except exporter.ExportError as e:
+        raise HTTPException(503 if "browser" in str(e).lower() else 400, str(e))
+    return Response(data, media_type=ctype, headers={"Content-Disposition": f'attachment; filename="{name}"'})
+
+
 @app.get("/api/runs/{run_id}/files/{path:path}")
 def get_file(run_id: str, path: str):
     _check_id(run_id)

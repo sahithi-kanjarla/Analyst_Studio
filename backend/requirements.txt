@@ -19,3 +19,5 @@ langchain-groq>=0.2  # the default free LLM provider (Groq)
 # --- Dev ---
 pytest>=8
 httpx>=0.27
+duckdb>=1.0
+sqlglot>=25
