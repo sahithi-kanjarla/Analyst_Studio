@@ -2,11 +2,18 @@
 For a chart of the report (target=item): its type, time grain or top N, redrawn by Lens as a separate picture (the report's own chart is unchanged)."""
 from __future__ import annotations
 
+import re
+
 from ... import query as qmod
 from ... import store
 from ..registry import Tool, ToolResult, register
 
 SET_KEYS = ("chart", "grain", "n", "sort", "direction")
+
+
+def tab_of(env) -> str:
+    from .. import context
+    return context.tab_id(env.tab)
 
 
 class ChartEdit(Tool):
@@ -36,8 +43,13 @@ class ChartEdit(Tool):
         earlier = next((r.answer for r in reversed(prior) if r.ok and r.answer and r.answer.get("query") and (r.answer.get("chart") or {}).get("path") is not None), None)       # a chart drawn by an earlier step of this request
         t = {"id": "this-request", "answer": earlier} if earlier and not args.get("turn") else next((x for x in reversed(turns) if (not args.get("turn") or x["id"] == args["turn"]) and x["answer"].get("status") == "answered" and x["answer"].get("query")), None)
         if t is None:
-            ans, nxt = chat._plain("no_fit", "Which chart do you mean? I haven't drawn one in this chat yet. Ask a question about your data first.", env.wd, env.ctx, env.df, env.result)
-            return ToolResult(ok=False, summary="There was no chart to change", answer=ans, chips=nxt, error=ans["text"])
+            kind = args.get("chart") or next((m for m in re.findall(r"\b(bar|line|share|pie|table|histogram)\b", env.question or "", re.I)), "") or "bar"
+            kind = {"pie": "share"}.get(kind.lower(), kind.lower())
+            able = [i for i in env.cat["items"].values() if i["kind"] == "chart" and i.get("changeable")]          # the charts Lens can redraw
+            charts = ([i for i in able if i["tab"] == tab_of(env)] + [i for i in able if i["tab"] != tab_of(env)])[:3]
+            choices = [{"label": str(c["title"])[:50], "commands": [{"cmd": "chart", "id": c["id"], "chart": kind}]} for c in charts]
+            ans, nxt = chat._clarify("Which chart do you mean? I have not drawn one in this chat yet.", choices, env.wd, env.ctx, env.df, env.result, 0, env.question)
+            return ToolResult(ok=ans.get("status") in ("answered", "clarify"), summary="Asked which chart to change", answer=ans, chips=nxt, error="" if ans.get("status") in ("answered", "clarify") else ans.get("text", ""))
         q = {**t["answer"]["query"], **{k: args[k] for k in SET_KEYS if args.get(k) is not None}}
         if args.get("filters"):
             q["filters"] = list(q.get("filters") or []) + [f for f in args["filters"] if isinstance(f, dict)]

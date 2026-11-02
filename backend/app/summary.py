@@ -612,6 +612,10 @@ def pick(llm, state: dict, rankings: list[dict]) -> dict:
             picks[q], used_llm = chosen[i] + _record_rankings(q, chosen[i], state, rankings), True
         else:
             picks[q] = goal_pick(q, state, items, rankings) or rules_pick(q, items, main_measure(state, rankings))
+    time_ids = {it["id"] for it in items if it["tool"] in TIME_TOOLS or it.get("kind") == "growth"}
+    for q in asked:          # a question about time is answered by a trend (or a change between periods) over a date column, never by a split by some other column; when there is none, it says so
+        if wording.TREND_Q.search(q):
+            picks[q] = [i for i in picks.get(q, []) if i in time_ids]
     return {"rankings": rankings, "picks": picks, "source": "llm" if used_llm else "rules"}
 
 
@@ -626,6 +630,8 @@ def _text_of(i: str, by_id: dict, facts: dict, detail: bool = False) -> str:
 
 
 def not_answered_reason(q: str, items: list[dict]) -> str:
+    if wording.TREND_Q.search(q) and not any(it["tool"] in TIME_TOOLS or it.get("kind") == "growth" for it in items):
+        return "this run has no usable trend: no date column with enough periods to follow over time"
     return "no analysis in this run splits that measure by what the question asks about"
 
 

@@ -7,6 +7,7 @@ import time
 import json
 import re
 
+from . import labels
 from . import aicache, cited, context as ctxmod, mainview, reportcharts, strategy as strat_mod, summary as summary_mod, tiering, wording
 from . import understanding as und
 from .clarify import named_in_goal
@@ -103,6 +104,7 @@ def llm_summary(llm, state: dict) -> tuple[str, list[str], bool] | None:
             "Be plain and concise, distinguish association from causation, and respect the caveats. If company context is given, use its vocabulary. "
             "Every figure carries its unit and what it is (for example 'average 862 per order'). " + strat_mod.CONCENTRATION_RULE +
             "In a 'so_what' never name which category is the largest part of a total: the report states that itself. "
+            "Call a grouping by its column's own name; a column whose values are states of something (paid, pending, refunded) is a status, never 'customer segments'. "
             + cited.CITE_RULE + "Use the id 'counts' for a number from COUNTS, 'data' for the row or column count and 'context' for a number from the company context. "
             "Return JSON: {\"summary\": \"3-5 sentence executive summary answering the goal\", \"recommendations\": [3-5 concrete, prioritized actions tied to specific findings], "
             "\"so_what\": [{\"question\": <number of a goal question below>, \"text\": \"ONE plain sentence on why that answer matters; no statistics terms\"}]}",
@@ -122,7 +124,10 @@ def llm_summary(llm, state: dict) -> tuple[str, list[str], bool] | None:
         """(text without ids, kept?, the computed fact it contradicts). A dropped text is recorded in `dropped` and `rejected`."""
         clean, bad = cited.verify(text, facts)
         wrong = None if bad else cited.contradicts(clean, computed)
-        if wording.unsupported_profit_claim(clean, state):
+        if (bad_label := labels.invented_grouping(clean, [c["name"] for c in (state.get("profile") or {}).get("columns") or []])):
+            dropped.append(f"{what} dropped (calls a column '{bad_label}', a grouping the data does not have; a column is called by its own name): {clean}")
+            rejected.append(f"invented grouping {bad_label}")
+        elif wording.unsupported_profit_claim(clean, state):
             dropped.append(f"{what} dropped (no cost or profit column in the data): {clean}")
         elif (clash := wording.audience_clash(clean, state)):
             dropped.append(f"{what} dropped (names '{clash}' as the audience; the reader is {ctxmod.audience(state.get('context'))}): {clean}")

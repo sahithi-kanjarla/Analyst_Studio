@@ -38,6 +38,28 @@ def apply_commands(env, cmds: list) -> tuple[dict, list[str], bool]:
     return new, msgs, changed
 
 
+NOOP = "That is already how it is shown, so nothing changed."
+
+
+def with_requested_extras(question: str, commands: list, tab_label: str) -> list:
+    """The commands, plus what the request also asks for that they leave out: "only the needed charts" is its own command (keep the charts that support a headline or an action), whether or not the
+    short view it came with was already on. Added for the tab the other commands are about, else the open tab."""
+    cmds = [c for c in commands if isinstance(c, dict)]
+    if not viewchat.NEEDED.search(question or "") or any(c.get("cmd") == "only_supporting" for c in cmds):
+        return list(commands)
+    tab = next((c["tab"] for c in cmds if c.get("tab") in ve.TABS), None) or viewchat._tab(question, tab_label)
+    return list(commands) + [{"cmd": "only_supporting", "tab": tab, "on": True}]
+
+
+def plain_messages(msgs: list[str]) -> str:
+    """What changed, in one text: a command that changed nothing is not said first and not said twice; when something else did change, the part that was already so is said once at the end."""
+    msgs = list(dict.fromkeys(msgs))
+    real = [m for m in msgs if m != NOOP]
+    if not real:
+        return NOOP
+    return " ".join(real) + (" The rest of what you asked was already how it is shown." if len(real) < len(msgs) else "")
+
+
 class ViewEdit(Tool):
     name = "view_edit"
     description = ("Use when the user wants to change what is SHOWN: hide, show, keep only some items, short or full view, the top N, only the charts that support an action or the summary, move a section, rename, pin, undo. Commands: " + viewchat.COMMAND_HELP.split("\n", 1)[1].replace("\n", " "))
@@ -52,6 +74,7 @@ class ViewEdit(Tool):
         return []
 
     def run(self, args, env, prior):
+        args = {**args, "commands": with_requested_extras(env.question, args["commands"], env.tab)}
         chips = viewchat.chips_for(env.result, env.tab)
         if not getattr(env, "confirmed", False):
             try:
@@ -75,7 +98,7 @@ class ViewEdit(Tool):
                                  ["this report's items and sections"], [], ["Only what is shown changed: no figure, trust label, calculation or sentence of the report was touched.",
                                                                            "Everything hidden stays in your saved report and can be restored from Hidden items. One Undo reverts this whole request."])
         extra = {"view": {"changed": changed, "commands": args["commands"], "undo": changed, **({"state": ve.normalise(new)} if env.view_state is not None else {})}}
-        ans, _ = reports._base("view", " ".join(msgs), "View changed" if changed else "No change", how, chips, 0, **extra)
+        ans, _ = reports._base("view", plain_messages(msgs), "View changed" if changed else "No change", how, chips, 0, **extra)
         return ToolResult(summary=f"Changed the view ({len(args['commands'])} command{'s' if len(args['commands']) != 1 else ''})", answer=ans, chips=chips, view_changed=changed)
 
 

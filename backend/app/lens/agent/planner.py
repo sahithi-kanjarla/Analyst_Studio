@@ -144,6 +144,25 @@ def normalise(obj) -> dict | None:
     return leg
 
 
+THEN_CHART = re.compile(r"\b(?:and\s+)?then\b[^.?!]{0,60}\b(?:chart|graph|plot|line|bar|share|pie|histogram|table)\b", re.I)
+CHART_AS = re.compile(r"\b(?:as|to|into)\s+(?:a\s+)?(?:bar|line|share|pie|table|histogram)\b", re.I)
+THAT = re.compile(r"\b(?:that|this|it|those|these)\b", re.I)
+
+
+def request_problems(question: str, steps: list[dict]) -> list[str]:
+    """Problems with a plan that the words of the request show: a data step followed by a chart change in the request is two steps (not a question to the user); "show that as a line" changes the latest chart
+    (chart_edit), or asks which chart when there is none (also chart_edit). The model sees these and plans again once."""
+    tools = [s.get("tool") for s in steps if isinstance(s, dict)]
+    out = []
+    if THEN_CHART.search(question or "") and "chart_edit" not in tools and tools and (tools[0] == "clarify" or "data_query" in tools or "custom_analysis" in tools):
+        out.append("the request asks for the data and then a change to its chart: plan a data_query step followed by a chart_edit step (target answer), not a clarify")
+    if CHART_AS.search(question or "") and THAT.search(question or "") and not THEN_CHART.search(question or "") and not any(t in ("chart_edit", "view_edit") for t in tools) and not tools == []:
+        out.append("\"show that as <a chart type>\" changes the chart already in the conversation: use chart_edit (target answer); it asks which chart when there is none")
+    if CHART_AS.search(question or "") and THAT.search(question or "") and not tools:
+        out.append("an empty plan cannot answer \"show that as <a chart type>\": use chart_edit (target answer); it asks which chart when there is none")
+    return out
+
+
 def validate(plan: dict, env) -> tuple[list[str], bool]:
     """(problems, hard). `hard` is True when something is wrong beyond a data query that code rejected (an unknown tool, a bad argument): such a plan cannot be run as it is."""
     tools = registry.load_tools()
@@ -172,6 +191,7 @@ def validate(plan: dict, env) -> tuple[list[str], bool]:
         if soft:
             errs += [f"Step {i}: {b}" for b in soft]
             hard = hard or not getattr(tool, "soft_validation", False)
+    errs += [f"Request: {p}" for p in request_problems(env.question, plan.get("plan") or [])]
     return errs, hard
 
 
