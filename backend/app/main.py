@@ -28,7 +28,7 @@ async def _lifespan(_app: FastAPI):
     yield
 
 
-app = FastAPI(title="Analyst Studio", version=VERSION, lifespan=_lifespan)
+app = FastAPI(title="Analyst Studio", version=VERSION, lifespan=_lifespan, default_response_class=web.SafeJSON)
 web.install(app)          # cross-origin rules, security headers and the forwarded scheme: see web.py
 
 

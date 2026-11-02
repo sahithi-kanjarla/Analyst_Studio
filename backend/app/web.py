@@ -5,12 +5,36 @@ CORS_ORIGINS     comma-separated origins allowed to call the API from another si
 TRUST_PROXY_HEADERS  1 = believe X-Forwarded-Proto (and the visitor address in X-Forwarded-For): only behind a proxy you control."""
 from __future__ import annotations
 
+import json
+import math
 import os
 
 from starlette.requests import Request
-from starlette.responses import Response
+from starlette.responses import JSONResponse, Response
 
 DEV_ORIGINS = ["http://localhost:5173", "http://127.0.0.1:5173"]
+
+
+def _finite(o):
+    """The same data with every value that is not a real number (NaN, infinity) turned into null. Keys, text, whole numbers and booleans are untouched."""
+    if isinstance(o, float):
+        return o if math.isfinite(o) else None
+    if isinstance(o, dict):
+        return {k: _finite(v) for k, v in o.items()}
+    if isinstance(o, (list, tuple)):
+        return [_finite(v) for v in o]
+    return o
+
+
+class SafeJSON(JSONResponse):
+    """JSON that can always be sent. A figure that is not a real number is valid in Python but not in JSON, and one of them anywhere in a report used to fail the whole
+    response with a 500 the logs could not explain. The ordinary path is unchanged; only a response that would not serialise is cleaned, and such a figure arrives as null."""
+
+    def render(self, content) -> bytes:
+        try:
+            return json.dumps(content, ensure_ascii=False, allow_nan=False, separators=(",", ":")).encode("utf-8")
+        except ValueError:
+            return json.dumps(_finite(content), ensure_ascii=False, allow_nan=False, separators=(",", ":")).encode("utf-8")
 
 
 def allowed_origins() -> list[str]:

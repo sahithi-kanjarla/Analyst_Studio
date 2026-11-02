@@ -326,10 +326,12 @@ def _col_stats(s: pd.Series, role: str, conv: str | None) -> dict:
         return {}
     if role in ("numeric", "binary", "categorical", "id") and pd.api.types.is_numeric_dtype(nn) and role != "id":
         try:
-            return {"min": float(nn.min()), "median": float(nn.median()), "mean": float(nn.mean()),
-                    "max": float(nn.max()), "std": float(nn.std() or 0), "skew": float(nn.skew() if len(nn) > 2 else 0)}
+            st = {"min": float(nn.min()), "median": float(nn.median()), "mean": float(nn.mean()),
+                  "max": float(nn.max()), "std": float(nn.std()), "skew": float(nn.skew()) if len(nn) > 2 else float("nan")}
         except (TypeError, ValueError):
             return {}
+        # A statistic that is not a real number is left out, never written as 0: one value has no spread, a constant column has no skew.
+        return {k: v for k, v in st.items() if np.isfinite(v)}
     if role == "date":
         return {"min": str(nn.min())[:10], "max": str(nn.max())[:10]}
     if role in ("categorical", "binary"):
