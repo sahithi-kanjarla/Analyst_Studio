@@ -1,0 +1,27 @@
+# Build log: deploy readiness (branch `studio-v3-deploy`, from `studio-v3-fix`)
+
+Fake AI only; no figure, calculation or report sentence was changed. Commit messages follow the attribution rules of this session.
+
+## Done
+
+1. **Production serving.** One server, one port: `python -m app` serves the API and the built frontend on `PORT` (default 8000). `GET /api/health` returns `{"status","version"}` and nothing else; what the page used to read from it (the model label, whether the chat is on, whether a code is asked for) is on `GET /api/config`, which has no secrets or paths (the upload panel was moved to it). CORS: nothing is allowed by default in production (the site's own origin needs no header); `SITE_ORIGIN` and `CORS_ORIGINS` list others; in development the Vite origin stays allowed; a preflight from anywhere else is refused. Behind a proxy (`TRUST_PROXY_HEADERS=1`) `X-Forwarded-Proto` is believed (HSTS is sent on HTTPS) and `X-Forwarded-For` identifies the visitor; without it neither header is believed. Security headers (`nosniff`, `no-referrer`, `SAMEORIGIN`) are always sent. Logs: the access line drops the query string, an unhandled error is logged by type only (its message and traceback can quote what the user sent), and nothing else logs a value; a test starts a real server, sends a search term, a Lens question and a file, and checks none appears in its output. SSE: a `: keep-alive` comment every 15 s and `Cache-Control: no-cache, no-transform`, `X-Accel-Buffering: no`, `Connection: keep-alive`.
+2. **Docker.** Read and rewritten: the image builds the frontend, installs the backend requirements and Chromium, runs as non-root (`app`, uid 10001), keeps everything under `DATA_DIR=/data` (runs and uploads, glossary, AI cache, daily counts; `VOLUME /data`) and has a `HEALTHCHECK` on `/api/health` on the configured port. Compose mounts the one volume and passes `PORT`. Tests read both files for each of those properties. **The image was not built:** `docker` is installed here but there is no daemon (`failed to connect to the docker API at unix:///var/run/docker.sock`), so no container was started and `/api/health` and the sample report were checked on the same code run directly (`python -m app` on a chosen port), not inside the image.
+3. **Public demo (`PUBLIC_DEMO=on`).** Retention defaults to 3 days (`RETENTION_DAYS` still wins); uploads and typed Lens questions need the access code and are closed (403 with a plain message) while no code is configured; the sample report and its chat need no code and call no AI (a test makes any AI call fail); daily caps default to 10 AI analyses and 60 Lens questions (`DAILY_AI_RUNS`, `DAILY_LENS_QUESTIONS` override) with the existing friendly messages; the upload panel carries a privacy note (what is stored, for how many days, that summaries and never individual rows go to the AI provider); `DELETE /api/runs/{id}` ("Delete my run" in the report's menu, with a confirmation) removes the run folder and every uploaded file at once, and refuses the sample. Tests for each, including that the uploaded files no longer exist.
+4. **`scripts/smoke_live.py BASE_URL [ACCESS_CODE]`.** Five checks (health, the sample report, a wrong code refused, a tiny CSV upload with the right code, a PDF export starting `%PDF`), PASS or FAIL for each, exit 1 on any failure (also when the site cannot be reached), and the uploaded test run is deleted afterwards. Tested against a server started by the test: all five pass with the right code, the upload check fails with a wrong one, and an unreachable address fails.
+5. **Docs.** `DEPLOY.md` (build, run, the environment list with the secrets marked, the volume, the health check, logs, a pre-launch checklist, rollback); the README's Deploy section points to it, describes the public demo, and has a "Known limits" section: the real-AI Lens plan match of about 60 to 65 percent, about 7,000 tokens a question, the free Groq daily limit, lost leading zeros, ambiguous day/month dates, legacy `.xls`, fee and waiver netting.
+6. **Checks.** Frontend build passes. Full suite: see Result.
+
+## Decisions
+
+- `/api/health` lost its model label and flags; they are on `/api/config`. Three old tests and the upload panel read the new route.
+- `APP_ENV=production` is what makes CORS closed by default; the Docker image sets it. Without it (a developer's machine) the Vite dev origin is allowed.
+- A public demo with no access code closes uploads rather than leaving them open: the safer way to be wrong.
+- Typed Lens questions on the sample need no code: they call no AI and cost nothing.
+- Everything written moved under `DATA_DIR` (default `backend/data`, as before); the old per-part variables (`RUNS_DIR`, `GLOSSARY_PATH`, `AI_CACHE_DIR`) still win when set.
+- The 60 to 65 percent figure in the README is the number given for the real-AI plan match; it was not re-measured here (no real AI in this task).
+
+## Skipped
+
+- Building and running the image; a real HTTPS proxy in front of it; a log shipper or metrics; user accounts.
+
+**NOT tested:** the Docker build and a running container (no Docker daemon here), the HEALTHCHECK inside a container, Chromium inside the image (PDF export was tested with the Chromium on this machine), any live host or proxy (including SSE through a real proxy and HSTS in a browser), real AI provider behaviour (rate limits, JSON mode, token use), and the 60 to 65 percent and 7,000 token figures (quoted from earlier runs, not measured here).
