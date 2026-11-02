@@ -404,8 +404,12 @@ def ranking_facts(state: dict, df) -> list[dict]:
     out: list[dict] = []
     date = (state.get("plan") or {}).get("date_col")
     focus = group_columns(state, df)
+    lines = (state.get("profile") or {}).get("grain") or {}          # several rows per order: an order's own amounts (kept on the order's first row) are not split by what a line holds
+    order_level, line_level = set(lines.get("order_columns") or []), set(lines.get("line_columns") or [])
     for group in group_columns(state, df, every=True):
         for m in (cols if group in focus else cols[:1]):       # the main additive KPI, and its growth, by every category column; the other KPIs and ratios only by the focus columns
+            if m in order_level and group in line_level:
+                continue
             if m != group and (fact := _rank_additive(df, state, group, m, len(out) + 1)):
                 out.append({**fact, "focus": group in focus})
             if date in df.columns and m != group and _clean_groups(df, group).nunique() <= MAX_GROUPS and (fact := _growth_fact(df, state, group, m, date, len(out) + 1)):

@@ -38,22 +38,77 @@ def key_columns(df: pd.DataFrame) -> list[tuple[str, str]]:
     return [(c, label) for c, label, _ in sorted(out, key=lambda x: -x[2])]
 
 
-def detect(df: pd.DataFrame) -> dict | None:
-    """{"key", "label", "orders", "rows", "per_order"} when the table has several rows per order, else None."""
-    keys = key_columns(df)
-    if not keys:
+MAX_STRUCT_COLS = 80
+CONSTANT_SHARE = 0.95          # of the orders with several rows, this share carry one value (or none) of the column: it describes the order
+VARYING_SHARE = 0.5            # of the orders with several rows, at least this share have more than one value of the column: it describes the line
+
+
+def _is_date(s: pd.Series, role: str | None) -> bool:
+    return role == "date" or pd.api.types.is_datetime64_any_dtype(s)
+
+
+def structural_key(df: pd.DataFrame, roles: dict | None = None) -> tuple[str, list[str], list[str]] | None:
+    """(key column, order-level columns, line-level columns) found from how the values repeat, not from any name: a column whose values repeat across rows, where a date or an additive amount stays the same
+    on every row of the same value (the order's date and total) while at least two other columns change from row to row (the lines). The first such column when several qualify."""
+    roles = roles or {}
+    n = len(df)
+    if n < 20 or df.shape[1] > MAX_STRUCT_COLS:
         return None
-    c, label = keys[0]
-    n = int(df[c].nunique(dropna=True))
-    return {"key": c, "label": label, "orders": n, "rows": int(df[c].notna().sum()), "per_order": round(float(df[c].notna().sum()) / n, 2)}
+    cands = []
+    for c in df.columns:
+        s = df[c]
+        if roles.get(c) in ("numeric", "date", "binary") or pd.api.types.is_datetime64_any_dtype(s) or (pd.api.types.is_float_dtype(s) and not bool((s.dropna() % 1 == 0).all())):
+            continue
+        k = s.dropna()
+        u = k.nunique()
+        if len(k) >= 0.9 * n and u >= MIN_KEYS and len(k) / u >= MIN_REPEAT and u <= 0.9 * len(k):
+            cands.append(c)
+    for c in cands:
+        multi = df[df.duplicated(c, keep=False) & df[c].notna()]
+        if multi.empty:
+            continue
+        g = multi.groupby(c)
+        const, vary = [], []
+        for o in df.columns:
+            if o == c:
+                continue
+            nun = g[o].nunique(dropna=True)
+            filled = float((g[o].count() > 0).mean())
+            if filled < 0.3:
+                continue
+            if (nun <= 1).mean() >= CONSTANT_SHARE:
+                const.append(o)
+            elif (nun > 1).mean() >= VARYING_SHARE:
+                vary.append(o)
+        anchor = [o for o in const if _is_date(df[o], roles.get(o)) or (pd.api.types.is_numeric_dtype(df[o]) and not pd.api.types.is_bool_dtype(df[o]) and measure_kind(str(o)) == "additive")]
+        if anchor and len(vary) >= 2:
+            return c, const, vary
+    return None
 
 
-def count_order_amounts_once(df: pd.DataFrame, log: list[dict]) -> pd.DataFrame:
-    """Where nearly every order's rows carry the same amount (an order total repeated on each line), keep it on the first row of the order and blank it on the others."""
+def detect(df: pd.DataFrame, roles: dict | None = None) -> dict | None:
+    """{"key", "label", "orders", "rows", "per_order", "order_columns", "line_columns"} when the table has several rows per order, else None. The key is a column named like an order key whose values repeat,
+    or, from the way the values repeat (see `structural_key`), a column that behaves like one."""
     keys = key_columns(df)
-    if not keys:
+    c, label, const, vary = None, "Orders", [], []
+    if keys:
+        c, label = keys[0]
+    else:
+        found = structural_key(df, roles)
+        if found:
+            c, const, vary = found
+    if c is None:
+        return None
+    n = int(df[c].nunique(dropna=True))
+    return {"key": c, "label": label, "orders": n, "rows": int(df[c].notna().sum()), "per_order": round(float(df[c].notna().sum()) / n, 2), "order_columns": const, "line_columns": vary}
+
+
+def count_order_amounts_once(df: pd.DataFrame, log: list[dict], roles: dict | None = None) -> pd.DataFrame:
+    """Where nearly every order's rows carry the same amount (an order total repeated on each line), keep it on the first row of the order and blank it on the others."""
+    g0 = detect(df, roles)
+    if not g0:
         return df
-    key = keys[0][0]
+    key = g0["key"]
     multi = df[df.duplicated(key, keep=False) & df[key].notna()]
     if multi.empty:
         return df

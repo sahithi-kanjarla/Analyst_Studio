@@ -351,7 +351,7 @@ def profile_df(df: pd.DataFrame) -> dict:
         })
     out = {"rows": int(len(df)), "cols": int(df.shape[1]), "duplicates": int(df.duplicated().sum()), "columns": cols}
     from .grain import detect
-    g = detect(df)
+    g = detect(df, {c['name']: c['role'] for c in cols})
     if g:
         out["grain"] = g          # several rows per order: the order count is the number of different keys, not the number of rows
     return out

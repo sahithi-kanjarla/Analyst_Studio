@@ -288,3 +288,65 @@ def test_questions_show_underscore_names_as_words():
     prof = profiler.profile_df(df)
     plan = planner.heuristic_plan(df, prof, "", {}, explore=True)
     assert any("net revenue" in q for q in plan["questions"]) and not any("_" in q for q in plan["questions"]), plan["questions"]
+
+
+# ------------------------------------------------------------------ order-line files (the Shopify-style fixture)
+@pytest.fixture(scope="module")
+def shopify_run():
+    import os, tempfile
+    os.environ["LLM_PROVIDER"] = "none"
+    tmp = tempfile.mkdtemp()
+    os.environ.update(RUNS_DIR=tmp + "/runs", AI_CACHE_DIR=tmp + "/c", CHART_DPI="50", GLOSSARY_PATH=tmp + "/g.json")
+    from app import runner
+    f = FIX / "a_shopify_orders.csv"
+    rid = runner.create_run("", [(f.name, f.read_bytes())])
+    runner._execute(rid)
+    wd = runner.run_dir(rid)
+    if (runner.read_status(rid) or {}).get("status") == "needs_input":
+        qs = json.loads((wd / "questions.json").read_text(encoding="utf-8"))["questions"]
+        (wd / "answers.json").write_text(json.dumps({"answers": {q["id"]: q["default"] for q in qs}, "skip": False, "notes": ""}))
+        runner._execute(rid)
+    return wd, json.loads((wd / "result.json").read_text())
+
+
+def test_the_order_key_is_found_from_how_values_repeat_not_from_its_name(shopify_run):
+    wd, result = shopify_run
+    g = result["profile"]["grain"]
+    assert g["key"] == "Name" and g["orders"] == 320 and g["rows"] == 640 and g["per_order"] == 2.0 and g["label"] == "Orders"
+    assert "Lineitem quantity" in g["line_columns"] and "Email" in g["order_columns"]
+    renamed = pd.read_csv(FIX / "a_shopify_orders.csv").rename(columns={"Name": "Ref", "Lineitem quantity": "Units", "Lineitem price": "Each", "Lineitem name": "Item", "Lineitem sku": "Code"})
+    g2 = grain.detect(renamed, {})
+    assert g2 and g2["key"] == "Ref" and g2["orders"] == 320
+    customers = pd.DataFrame({"Customer": [f"C{i % 40}" for i in range(200)], "Date": pd.date_range("2024-01-01", periods=200), "Amount": range(200), "Item": list("abcde") * 40})
+    assert grain.detect(customers, {"Date": "date", "Amount": "numeric"}) is None          # a customer's rows differ in date and amount: it is not an order
+
+
+def test_the_report_shows_the_distinct_order_count_as_a_tile(shopify_run):
+    wd, result = shopify_run
+    tiles = {t["label"]: t["value"] for t in result["report_view"]["page"]["tiles"]}
+    assert tiles["Orders"] == "320"
+
+
+def test_products_are_ranked_by_line_value_and_match_pandas(shopify_run):
+    wd, result = shopify_run
+    raw = pd.read_csv(FIX / "a_shopify_orders.csv")
+    want = (raw["Lineitem quantity"] * raw["Lineitem price"]).groupby(raw["Lineitem name"]).sum().sort_values(ascending=False)
+    clean = pd.read_pickle(wd / "clean.pkl")
+    assert len(clean) == len(raw)                                        # the same product twice in one order is two lines: none was dropped as a duplicate
+    got = clean.groupby("Lineitem name")["revenue"].sum().sort_values(ascending=False)
+    assert got.round(2).to_dict() == want.round(2).to_dict() and list(got.index) == list(want.index)
+    rank = next(r for r in result["summary_facts"]["rankings"] if r["group"] == "Lineitem name" and r["measure"] == "revenue" and r["basis"] == "total" and not r.get("kind"))
+    assert [b[0] for b in rank["bars"]] == list(want.index) and [round(b[1]) for b in rank["bars"]] == [round(v) for v in want.values]
+    assert rank["top"] == want.index[0] and rank["bottom"] == want.index[-1]
+    assert not any(r["group"] == "Lineitem name" and r["measure"] in ("Subtotal", "Taxes", "Total") for r in result["summary_facts"]["rankings"])          # an order's own amounts are not split by product
+
+
+def test_the_line_amount_is_used_when_the_file_has_one():
+    from app import retail_roles
+    n = 120
+    g = np.random.RandomState(2)
+    df = pd.DataFrame({"order": [f"O{i // 2}" for i in range(n)], "date": pd.date_range("2024-01-01", periods=n // 2).repeat(2), "paid": np.repeat(g.gamma(3, 100, n // 2).round(2), 2), "qty": g.randint(1, 5, n),
+                       "each": g.choice([10.0, 20.0, 35.0, 50.0, 80.0, 120.0], n)})
+    df["line_total"] = df["qty"] * df["each"]
+    cols = {c["name"]: c for c in profiler.profile_df(df)["columns"]}
+    assert retail_roles.derive_product_measure(df, cols) is None          # a column already holds quantity x price: it is the line value
