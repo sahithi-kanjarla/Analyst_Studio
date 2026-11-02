@@ -35,12 +35,12 @@ def upload(**data):
 
 # ------------------------------------------------------------------ access code
 def test_open_by_default_and_health_says_no_code_needed(quiet):
-    assert upload().status_code == 200 and client.get("/api/health").json()["requires_code"] is False
+    assert upload().status_code == 200 and client.get("/api/config").json()["requires_code"] is False
 
 
 def test_code_is_required_when_set_and_the_sample_stays_open(monkeypatch, quiet):
     monkeypatch.setenv("UPLOADS_REQUIRE_CODE", "open-sesame")
-    assert client.get("/api/health").json()["requires_code"] is True
+    assert client.get("/api/config").json()["requires_code"] is True
     r = upload()
     assert r.status_code == 403 and "access code" in r.json()["detail"].lower() and not quiet
     r = upload(access_code="wrong")

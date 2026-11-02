@@ -8,12 +8,11 @@ from contextlib import asynccontextmanager
 
 from pydantic import BaseModel, Field
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
-from .config import ALLOWED_EXT, FRONTEND_DIST, MAX_FILES, MAX_ROWS, MAX_UPLOAD_MB, RUNS_DIR
-from . import clarify, glossary, guard, tiering, viewedit
+from .config import ALLOWED_EXT, FRONTEND_DIST, MAX_FILES, MAX_ROWS, MAX_UPLOAD_MB, RUNS_DIR, VERSION, public_demo, retention_days
+from . import clarify, glossary, guard, tiering, viewedit, web
 from .profiler import count_delimited_rows, too_many_rows_message
 from . import lens
 from .lens import chat as lenschat, howtext as lenshow, reports as lensreports, store as lensstore
@@ -29,8 +28,8 @@ async def _lifespan(_app: FastAPI):
     yield
 
 
-app = FastAPI(title="Analyst Studio", version="1.0.0", lifespan=_lifespan)
-app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"], allow_methods=["*"], allow_headers=["*"])
+app = FastAPI(title="Analyst Studio", version=VERSION, lifespan=_lifespan)
+web.install(app)          # cross-origin rules, security headers and the forwarded scheme: see web.py
 
 
 def _check_id(run_id: str) -> None:
@@ -52,8 +51,30 @@ def open_demo():
 
 @app.get("/api/health")
 def health():
+    """For a load balancer or a health check: that the server is up, and which version. Nothing else (no model name, no path, no setting)."""
+    return {"status": "ok", "version": VERSION}
+
+
+@app.get("/api/config")
+def site_config():
+    """What the page needs to know about this site: whether an access code is asked for, which model is behind it, whether the chat is on, and for a public demo how long runs are kept. No secrets and no paths."""
     _, label = get_llm()
-    return {"status": "ok", "llm": label, "chatbot": lens.mode(), "requires_code": guard.code_required()}
+    return {"llm": label, "chatbot": lens.mode(), "requires_code": guard.code_required(), "public_demo": public_demo(), "retention_days": retention_days(),
+            "daily_ai_runs": guard.cap_of("ai_runs"), "daily_lens_questions": guard.cap_of("lens_questions")}
+
+
+@app.delete("/api/runs/{run_id}")
+def delete_run(run_id: str):
+    """"Delete my run": the run, its uploaded files, its results and its saved conversation are removed at once. The sample report is never deleted."""
+    _check_id(run_id)
+    _writable(run_id)
+    import shutil
+    wd = run_dir(run_id)
+    n = sum(1 for p in wd.rglob("*") if p.is_file())
+    shutil.rmtree(wd, ignore_errors=True)
+    if wd.exists():
+        raise HTTPException(500, "The run could not be fully deleted. Please try again.")
+    return {"deleted": run_id, "files_removed": n}
 
 
 @app.post("/api/runs")
@@ -400,14 +421,19 @@ def compare_data(run_id: str):
     return {"rows_before": int(len(raw)), "rows_after": int(len(clean)), "columns": cols}
 
 
+KEEPALIVE_S = 15.0
+
+
 @app.get("/api/runs/{run_id}/events")
 async def stream_events(run_id: str):
     _check_id(run_id)
 
     async def gen():
-        idx = 0
+        idx, idle = 0, 0.0
         while True:
             evs = get_events(run_id, idx)
+            if evs:
+                idle = 0.0
             for e in evs:
                 yield f"data: {json.dumps(e, default=str)}\n\n"
                 idx += 1
@@ -416,8 +442,12 @@ async def stream_events(run_id: str):
                 yield "event: end\ndata: {}\n\n"
                 return
             await asyncio.sleep(0.4)
+            idle += 0.4
+            if idle >= KEEPALIVE_S:          # a comment line: ignored by the browser, but it keeps a proxy from closing a quiet stream
+                idle = 0.0
+                yield ": keep-alive\n\n"
 
-    return StreamingResponse(gen(), media_type="text/event-stream", headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+    return StreamingResponse(gen(), media_type="text/event-stream", headers={"Cache-Control": "no-cache, no-transform", "X-Accel-Buffering": "no", "Connection": "keep-alive"})
 
 
 class LensAskIn(BaseModel):
@@ -481,7 +511,7 @@ def lens_ask(run_id: str, body: LensAskIn, request: Request):
     typed = bool(body.question.strip()) and not (body.chip or body.choice or body.patch)
     allow = not demo
     capped = False
-    if typed and allow and lens_llm() is not None:
+    if typed and allow and (lens_llm() is not None or public_demo()):
         guard.check_code(guard.code_from(request))           # typed questions use the AI: the code is needed (suggestions and chart controls never are)
         capped = not guard.under_cap("lens_questions")
         allow = not capped

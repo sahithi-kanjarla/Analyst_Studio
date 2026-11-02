@@ -12,9 +12,11 @@ import json
 import os
 import threading
 import time
+
+from .config import DATA_DIR
 from pathlib import Path
 
-from .config import ROOT
+from .config import DATA_DIR, ROOT
 
 REUSED = "Reused saved AI result"
 DEFAULT_DAYS = 7
@@ -63,7 +65,7 @@ def temperature_of(llm):
 
 
 def cache_dir() -> Path:
-    return Path(os.environ.get("AI_CACHE_DIR") or ROOT / "data" / "ai_cache")
+    return Path(os.environ.get("AI_CACHE_DIR") or DATA_DIR / "ai_cache")
 
 
 def cache_days() -> float:

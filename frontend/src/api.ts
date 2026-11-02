@@ -507,7 +507,9 @@ export function setAccessCode(code: string) {
 const JSON_HEADERS = (): Record<string, string> => ({ "Content-Type": "application/json", ...(getAccessCode() ? { "X-Access-Code": getAccessCode() } : {}) });
 
 export const api = {
-  health: () => fetch("/api/health").then((r) => json<{ status: string; llm: string; chatbot?: string; requires_code?: boolean }>(r)),
+  health: () => fetch("/api/health").then((r) => json<{ status: string; version: string }>(r)),
+  siteConfig: () => fetch("/api/config").then((r) => json<{ llm: string; chatbot?: string; requires_code?: boolean; public_demo?: boolean; retention_days?: number; daily_ai_runs?: number; daily_lens_questions?: number }>(r)),
+  deleteRun: (id: string) => fetch(`/api/runs/${id}`, { method: "DELETE" }).then((r) => json<{ deleted: string; files_removed: number }>(r)),
   listRuns: () => fetch("/api/runs").then((r) => json<RunSummary[]>(r)),
   getRun: (id: string) => fetch(`/api/runs/${id}`).then((r) => json<RunResult>(r)),
   createRun: (files: File[], goal: string, ctx?: BusinessContextInput) => {

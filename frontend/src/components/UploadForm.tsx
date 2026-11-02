@@ -33,9 +33,10 @@ export default function UploadForm({ onStarted }: { onStarted: (id: string) => v
   const [drag, setDrag] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const [needCode, setNeedCode] = useState(false);
+  const [site, setSite] = useState<{ public_demo?: boolean; retention_days?: number }>({});
   const [code, setCode] = useState(getAccessCode());
   useEffect(() => {
-    api.health().then((h) => setNeedCode(Boolean(h.requires_code))).catch(() => undefined);      // the server asks for a code only when UPLOADS_REQUIRE_CODE is set
+    api.siteConfig().then((h) => { setNeedCode(Boolean(h.requires_code)); setSite(h); }).catch(() => undefined);      // the server asks for a code only when UPLOADS_REQUIRE_CODE is set (or on a public demo)
   }, []);
 
   const setC = <K extends keyof BusinessContextInput>(k: K, v: BusinessContextInput[K]) => setCtx((c) => ({ ...c, [k]: v }));
@@ -212,6 +213,10 @@ export default function UploadForm({ onStarted }: { onStarted: (id: string) => v
             <small className="muted">The sample report and demo are open to everyone and need no code.</small>
           </label>
         )}
+        <p className="privacy-note muted small" role="note">
+          <strong>Privacy.</strong> Your files and the results are stored on this server{site.retention_days ? ` for ${site.retention_days === 1 ? "1 day" : `${site.retention_days} days`}, then deleted automatically` : " until you delete them"}.
+          You can delete a run, with its uploaded files, at any time with “Delete my run” in the menu of its report. When an AI model is used, it is sent summaries of your data (column names, counts, ranges and a few common values), never individual rows.
+        </p>
         {error && <div className="error">{error}</div>}
         <div className="form-actions">
           <button className="primary" disabled={busy}>

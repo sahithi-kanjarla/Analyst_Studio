@@ -13,7 +13,7 @@ export function useBarSlot(): HTMLElement | null {
 export interface TabInfo { id: NavTab; count?: number; warn?: boolean }
 
 /** One thin bar for the analysis view: the logo (home), the report name, the five tabs, and on the right Export, Review answers and a small menu. */
-export default function RunBar({ name, tabs, active, onTab, exportMenu, onReview, onFullScreen, fullScreen, onLeave }: {
+export default function RunBar({ name, tabs, active, onTab, exportMenu, onReview, onFullScreen, fullScreen, onLeave, onDelete }: {
   name: string;
   tabs?: TabInfo[];
   active?: NavTab | null;
@@ -22,6 +22,8 @@ export default function RunBar({ name, tabs, active, onTab, exportMenu, onReview
   onReview?: () => void;
   onFullScreen?: () => void;
   fullScreen?: boolean;
+  /** Delete this run and its uploaded files (not offered for the sample). */
+  onDelete?: () => void;
   /** Called before leaving for another page; return false to stay (unsaved answer changes). */
   onLeave?: (href: string) => boolean;
 }) {
@@ -59,6 +61,7 @@ export default function RunBar({ name, tabs, active, onTab, exportMenu, onReview
               <a role="menuitem" className="menu-item" href="#/glossary" onClick={(e) => { close(); go(e, "#/glossary"); }}>Glossary</a>
               <a role="menuitem" className="menu-item" href="#/history" onClick={(e) => { close(); go(e, "#/history"); }}>History</a>
               {onReview && <button role="menuitem" type="button" className="menu-item only-narrow" onClick={() => { close(); onReview(); }}>Review answers</button>}
+              {onDelete && <button role="menuitem" type="button" className="menu-item" onClick={() => { close(); onDelete(); }}>Delete my run</button>}
               {onFullScreen && <button role="menuitem" type="button" className="menu-item hide-phone" onClick={() => { close(); onFullScreen(); }}>{fullScreen ? "Exit full screen" : "Full screen"}</button>}
             </>
           )}

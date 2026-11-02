@@ -5,6 +5,8 @@ DAILY_AI_RUNS          most analyses that use the AI per day, across all visitor
 DAILY_LENS_QUESTIONS   most Lens questions that use the AI per day, across all visitors (default 500; 0 = no cap). Suggested questions and chart controls never count.
 UPLOAD_RATE_LIMIT      uploads one visitor may start per window (default 10; 0 = no limit). UPLOAD_RATE_WINDOW_S is the window (default 3600 s).
 TRUST_PROXY_HEADERS    1 = identify a visitor by the first X-Forwarded-For address (only behind a proxy you control); default 0 = the connecting address.
+PUBLIC_DEMO=on        a public sample site: runs are kept 3 days (RETENTION_DAYS still wins), uploads and typed Lens questions need the access code (and are closed while no code is set), and the daily caps default low
+                      (10 AI analyses and 60 Lens questions a day). The sample report needs no code and makes no AI call.
 The day is the UTC day. Counts are saved in usage_daily.json next to the runs folder so a restart does not reset the cap."""
 from __future__ import annotations
 
@@ -17,7 +19,7 @@ from collections import defaultdict, deque
 
 from fastapi import HTTPException, Request
 
-from .config import RUNS_DIR
+from .config import RUNS_DIR, public_demo
 
 _lock = threading.Lock()
 _uploads: dict[str, deque] = defaultdict(deque)
@@ -40,13 +42,15 @@ def required_code() -> str:
 
 
 def code_required() -> bool:
-    return bool(required_code())
+    return bool(required_code()) or public_demo()
 
 
 def check_code(given: str | None) -> None:
-    """403 with a friendly message when a code is required and the one given is missing or wrong. Compared in constant time."""
+    """403 with a friendly message when a code is required and the one given is missing or wrong. Compared in constant time. On a public demo with no code set, uploads and AI questions are closed."""
     need = required_code()
     if not need:
+        if public_demo():
+            raise HTTPException(403, "Uploads and AI questions are switched off on this public demo. The sample report is open to everyone.")
         return
     if not given or not hmac.compare_digest(str(given).strip().encode(), need.encode()):
         raise HTTPException(403, "An access code is needed to upload data or run an analysis. Enter the code you were given on the upload panel. The sample report is open to everyone." if not given
@@ -109,8 +113,15 @@ def used(kind: str) -> int:
         return int(_load().get(kind, 0))
 
 
+def cap_of(kind: str) -> int:
+    """Today's cap for "ai_runs" or "lens_questions": the variable when set, else the default (low on a public demo). 0 = no cap."""
+    if kind == "ai_runs":
+        return _int("DAILY_AI_RUNS", 10 if public_demo() else 100)
+    return _int("DAILY_LENS_QUESTIONS", 60 if public_demo() else 500)
+
+
 def under_cap(kind: str) -> bool:
-    cap = _int("DAILY_AI_RUNS", 100) if kind == "ai_runs" else _int("DAILY_LENS_QUESTIONS", 500)
+    cap = cap_of(kind)
     return cap <= 0 or used(kind) < cap
 
 
@@ -132,7 +143,7 @@ def reserve_ai_run() -> None:
     """429 with a friendly message when today's cap on AI analyses is used up; otherwise counts this one."""
     with _lock:
         d = _load()
-        cap = _int("DAILY_AI_RUNS", 100)
+        cap = cap_of("ai_runs")
         if cap > 0 and int(d.get("ai_runs", 0)) >= cap:
             raise HTTPException(429, AI_RUNS_MESSAGE)
         d["ai_runs"] = int(d.get("ai_runs", 0)) + 1

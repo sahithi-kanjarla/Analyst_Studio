@@ -1,5 +1,5 @@
 import { RefObject, useEffect, useRef, useState } from "react";
-import { api, RunResult } from "../api";
+import { api, isDemo, RunResult } from "../api";
 import { backendTab, DATA_LABEL, DATA_VIEWS, DataView, NAV_TABS, NavTab, resolveTarget, Tab, TAB_LABEL } from "../tabs";
 import Dialog from "./Dialog";
 import ExportMenu, { BriefsDialog, ExportItem } from "./nav/ExportMenu";
@@ -103,6 +103,8 @@ export default function Results({ run, target }: { run: RunResult; target?: stri
   const [review, setReview] = useState(false);
   const dirty = useRef(false);
   const [leave, setLeave] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
   useEffect(() => {
     const on = () => setFull(document.fullscreenElement === card.current);
     document.addEventListener("fullscreenchange", on);
@@ -144,7 +146,7 @@ export default function Results({ run, target }: { run: RunResult; target?: stri
 
   return (
     <>
-      <RunBar name={name} tabs={tabs} active={chat ? null : nav} onTab={pickTab} onLeave={onLeave} onReview={() => setReview(true)} onFullScreen={toggleFull} fullScreen={full}
+      <RunBar name={name} tabs={tabs} active={chat ? null : nav} onTab={pickTab} onLeave={onLeave} onReview={() => setReview(true)} onFullScreen={toggleFull} fullScreen={full} onDelete={isDemo(run.run_id) ? undefined : () => setConfirmDelete(true)}
         exportMenu={<ExportMenu run={run} onPick={(item) => { if (item === "print") setNav("report"); setDialog(item); }} />} />
       <div className={`card results ${full ? "is-full" : ""}`} ref={card}>
         {review && <AnswersReview runId={run.run_id} onClose={() => setReview(false)} onDirty={(d) => { dirty.current = d; }} />}
@@ -156,6 +158,15 @@ export default function Results({ run, target }: { run: RunResult; target?: stri
           </Dialog>
         )}
         <PrintPanel run={run} dialog open={dialog === "print"} onClose={() => setDialog(null)} />
+        {confirmDelete && (
+          <Dialog title="Delete my run?" intro="This removes the run, the files you uploaded, the results and your saved conversation from this server, now. It cannot be undone." onClose={() => setConfirmDelete(false)}>
+            {deleteError && <div className="error">{deleteError}</div>}
+            <div className="qactions">
+              <button className="chip" onClick={() => setConfirmDelete(false)}>Keep it</button>
+              <button className="chip chip-danger" onClick={() => api.deleteRun(run.run_id).then(() => { window.location.hash = "#/"; }).catch((e) => setDeleteError(e instanceof Error ? e.message : "Could not delete the run."))}>Delete my run</button>
+            </div>
+          </Dialog>
+        )}
         {leave && (
           <Dialog title="Leave without saving?" intro="You changed some answers and did not re-run with them. Going now discards the changes." onClose={() => setLeave(null)}>
             <div className="qactions">

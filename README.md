@@ -23,7 +23,7 @@ No key and no upload needed:
 ```bash
 cd backend && pip install -r requirements.txt
 cd ../frontend && npm install && npm run build
-cd ../backend && uvicorn app.main:app --port 8000      # open http://localhost:8000
+cd ../backend && python -m app      # open http://localhost:8000  (PORT sets the port)
 ```
 
 Press **Try with sample data**. It opens a finished run of a small sales file (about 600 rows, a sample store): the report, dashboard, insights, ideas to try and the round **Lens** button, where you can pick a suggested question or change what a tab shows ("make the insights tab shorter"). Nothing calls an AI. To run your own file, press **Try it yourself**; add a free key (see *Pick a free brain*) for smarter wording, or use none. To run it in Docker, see *Deploy*.
@@ -282,7 +282,7 @@ Tests: `backend/tests/test_lens_fixpack.py`. `python scripts/lens_fixpack_check.
 
 ## Deploy
 
-One image runs the backend and the built frontend together on port 8000. Nothing here needs a real AI key: without one the app runs rules-only.
+One image runs the backend and the built frontend together on one port (`PORT`, default 8000). Nothing here needs a real AI key: without one the app runs rules-only. **Exact steps for any host that runs Docker: [DEPLOY.md](DEPLOY.md).** `python scripts/smoke_live.py BASE_URL [ACCESS_CODE]` checks a running site.
 
 ```bash
 cp .env.example .env          # then edit .env (it is git-ignored; never commit a key)
@@ -290,11 +290,12 @@ docker compose up --build     # open http://localhost:8000
 ```
 
 1. **Settings.** Every setting is listed, with a comment, in `.env.example`. Leave `GROQ_API_KEY` empty for rules-only mode; add your own key in your private `.env` only (or set it as a secret in your host's dashboard).
-2. **Data.** Runs, uploads, the glossary and the saved AI replies live in the `analyst-data` volume (`/app/backend/data`), so they survive a restart. `docker compose down -v` deletes them.
+2. **Data.** Runs, uploads, the glossary and the saved AI replies live in the `analyst-data` volume (`/data`, the `DATA_DIR`), so they survive a restart. `docker compose down -v` deletes them.
 3. **Protect a public copy.** Set `UPLOADS_REQUIRE_CODE` to a code you share: uploads, AI runs and typed Lens questions then need it (entered on the upload panel), while the sample report and demo stay open. `DAILY_AI_RUNS` and `DAILY_LENS_QUESTIONS` cap the AI use of all visitors per UTC day (a friendly message is shown when reached; suggested questions keep working). `UPLOAD_RATE_LIMIT` per `UPLOAD_RATE_WINDOW_S` limits one visitor's uploads. Behind a reverse proxy you control, set `TRUST_PROXY_HEADERS=1` so visitors are told apart by `X-Forwarded-For`.
 4. **HTTPS.** Put a reverse proxy (Caddy, nginx, or your host's load balancer) in front of port 8000 and terminate TLS there. The app itself has no user accounts.
 5. **Free-tier limits.** `AI_TPM_LIMIT` spaces AI calls to fit a per-minute token window (default 6000 when the provider is Groq), so fewer calls are rejected and retried.
-6. **Without Docker:** follow *Quick start* below, with `backend/.env` copied from `.env.example`.
+6. **Public demo.** `PUBLIC_DEMO=on` keeps runs 3 days (`RETENTION_DAYS` still wins), closes uploads and typed Lens questions without the access code, lowers the daily caps (10 AI analyses, 60 Lens questions) and keeps the sample report open with no AI call. The upload panel states what is stored, for how long and what goes to the AI; "Delete my run" in a report's menu removes the run and its uploaded files at once.
+7. **Without Docker:** follow *Quick start* below, with `backend/.env` copied from `.env.example`.
 
 ### Lens as an agent: plan, act, verify, answer
 

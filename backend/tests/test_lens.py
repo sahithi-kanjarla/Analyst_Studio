@@ -485,7 +485,7 @@ def test_api_end_to_end_with_a_fake_model(run, monkeypatch):
     assert r.status_code == 200
     a = r.json()["answer"]
     assert a["status"] == "answered" and a["chart"]["url"].startswith(f"/api/runs/{rid}/files/charts/lens_") and client.get(a["chart"]["url"]).status_code == 200
-    assert client.get(f"/api/health").json()["chatbot"] == "on"
+    assert client.get("/api/config").json()["chatbot"] == "on"
 
 
 def test_off_flag_hides_lens(run, monkeypatch):
