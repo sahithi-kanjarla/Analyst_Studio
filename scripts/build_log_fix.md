@@ -26,6 +26,10 @@ Fake AI only; every figure is still computed by code; no calculation was changed
 - The analyst-brief and answer-picking stages are skipped only under the narrow conditions above; any run that names a KPI or describes the business still asks the model.
 - The 40k target is checked on the fake's counts, as asked; the budget is an environment setting.
 
+## Result
+
+Frontend build passes (one new pill on the report page). Full suite: the first run gave 1234 passed and 4 failed (an old repair-wording test, the old 40-item/160-character pick cap, a summary test that expected the model to be asked when the rules were already sure, and the Shopify-style report check, which found that a line's revenue split by an order's status was dominated by the blank rows of the extra lines). Fixes: the repair message says "not valid JSON" again; the cap tests use the new cap (24 items of 140 characters); the summary test makes the rules find nothing so the model path is tested; and an order's words and dates are now filled down to its lines (`grain.fill_order_details`, logged), which also lets lines be split by their order's status or date. **Second full run: 1239 passed, 0 failed, in 11 min 9 s (670 s; 673 s wall clock).**
+
 ## Skipped
 
 - Merging stages into one call; a second pass on prompt wording to cut system text further (the plan stage's instructions are still about 1,200 tokens a call); a retry-after wait that is longer than the 60 s cap.
