@@ -86,3 +86,41 @@ def test_sample_is_round_robin_across_categories_and_list_calls_no_ai(capsys, mo
     assert lens_eval.main(["--sample", "6", "--list"]) == 0
     out = capsys.readouterr().out
     assert "6 request(s); no AI was called." in out
+
+
+def test_why_is_x_the_top_segment_accepts_the_premise_check_with_facts_or_a_breakdown():
+    for i in ("e053", "e057"):
+        x = next(x for x in LINES if x["id"] == i)
+        plans = [[t for t, _ in alt] for alt in x["acceptable"]]
+        assert ["premise_check", "report_facts"] in plans and ["premise_check", "why_breakdown"] in plans and ["why_breakdown"] in plans
+        assert x["outcome"].get("premise_ok") and "text" in x["outcome"]["kinds"]
+    results = lens_eval.replay([x for x in LINES if x["id"] in ("e053", "e057")])
+    assert all(r["outcome_ok"] and r["ran_ok"] for r in results)             # every one of those plans ran and gave an acceptable answer
+
+
+def test_typo_and_does_the_data_have_requests_are_scored_by_the_answer():
+    by = {x["id"]: x for x in LINES}
+    for i in ("e116", "e137", "e141", "e143"):
+        assert by[i]["outcome"]["any_plan"] and by[i]["outcome"]["must_mention"], i
+    x = dict(by["e116"], reply={"plan": [{"tool": "custom_analysis", "args": {"sql": "SELECT segment, SUM(revenue) AS total FROM data GROUP BY 1 ORDER BY 2 DESC", "description": "revenue by segment"}}]})
+    r = lens_eval.replay([x])[0]
+    assert not r["plan_ok"] and r["plan_free"] and r["outcome_ok"]                      # a different plan, the right answer (Enterprise on top)
+    bad = dict(by["e116"], outcome={**by["e116"]["outcome"], "must_mention": ["Nowhere Land"]})
+    r2 = lens_eval.replay([bad])[0]
+    assert not r2["outcome_ok"] and r2["outcome"]["missing"] == ["Nowhere Land"]
+    failing = lens_eval.report_text([{**r2, "plan_free": True}])
+    assert failing[1] == 1                                                                 # a wrong answer fails even when the plan is free
+
+
+def test_the_result_is_written_first_in_utf8_and_a_narrow_console_does_not_crash(tmp_path, monkeypatch):
+    import io
+    results = [{"id": "x", "category": "a", "request": "what is “this”", "plan_ok": False, "ran_ok": True, "outcome_ok": True, "expected": ["t"], "planned": ["u"], "status": "answered", "text": "fine – “quoted”", "calls": 1, "tokens": 1234,
+                "outcome": {"kind": "text", "bad_numbers": [], "internal": []}}]
+    narrow = io.TextIOWrapper(io.BytesIO(), encoding="ascii", errors="strict")
+    monkeypatch.setattr(sys, "stdout", narrow)
+    out = tmp_path / "result.txt"
+    code = lens_eval.report(results, out)
+    narrow.flush()
+    text = out.read_text(encoding="utf-8")
+    assert "“this”" in text and "total tokens sent to and from the AI: 1,234" in text and code == 1
+    assert "?" in narrow.buffer.getvalue().decode("ascii")                              # the console got ? where it could not show the character

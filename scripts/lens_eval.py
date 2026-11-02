@@ -90,7 +90,10 @@ def outcome_check(a: dict, line: dict, result: dict) -> dict:
     shown = "\n".join([str(a.get("text") or ""), str(a.get("label") or "")] + [str(x) for x in a.get("lines") or []] + [str(x) for x in (a.get("how") or {}).get("lines") or []])
     internal = sorted({m.group(0) for m in FORBIDDEN.finditer(shown)}) if (line.get("outcome") or {}).get("no_internal", True) else []
     internal = [x for x in internal if x.lower() not in ("order_date", "order_id", "discount_pct")]
-    return {"kind": got, "kind_ok": kind_ok, "figures_ok": not bad_numbers, "bad_numbers": bad_numbers, "internal_ok": not internal, "internal": internal, "ok": kind_ok and not bad_numbers and not internal}
+    shown_all = " ".join([str(a.get("text") or "")] + [str(x) for x in a.get("lines") or []] + [" ".join(map(str, r)) for r in (a.get("table") or {}).get("shown") or []])
+    missing = [m for m in (line.get("outcome") or {}).get("must_mention") or [] if m.lower() not in shown_all.lower()]          # the figure or the column the right answer names
+    kind_ok = kind_ok and not missing
+    return {"kind": got, "kind_ok": kind_ok, "missing": missing, "figures_ok": not bad_numbers, "bad_numbers": bad_numbers, "internal_ok": not internal, "internal": internal, "ok": kind_ok and not bad_numbers and not internal}
 
 
 def signature(step: dict) -> str:
@@ -173,7 +176,7 @@ def replay(lines: list[dict], real: bool = False, verbose: bool = False) -> list
             ok_ran = ok_plan and all(m["ok"] for m in ran) and len(ran) == len(planned) if planned else (a.get("status") in ("no_fit", "answered") and not ag.get("plan"))
             oc = outcome_check(a, line, res)
             rec = {"id": line["id"], "category": line["category"], "request": line["request"], "plan_ok": ok_plan, "ran_ok": bool(ok_ran), "outcome_ok": oc["ok"], "outcome": oc, "expected": expected, "planned": planned,
-                   "status": a.get("status"), "text": str(a.get("text"))[:160], "calls": getattr(llm, "calls", 0), "several_valid": bool(line.get("acceptable"))}
+                   "status": a.get("status"), "text": str(a.get("text"))[:160], "calls": getattr(llm, "calls", 0), "tokens": (lambda u: u["input_tokens"] + u["output_tokens"])(llmmod.usage_summary()), "several_valid": bool(line.get("acceptable")), "plan_free": bool((line.get("outcome") or {}).get("any_plan"))}
             for alt in line.get("acceptable") or []:                      # every acceptable plan must itself run and give an acceptable outcome (checked with the scripted planner)
                 if not real:
                     (wd / "lens.json").unlink(missing_ok=True)
@@ -189,7 +192,9 @@ def replay(lines: list[dict], real: bool = False, verbose: bool = False) -> list
     return out
 
 
-def report(results: list[dict]) -> int:
+def report_text(results: list[dict]) -> tuple[str, int]:
+    out: list[str] = []
+    print = lambda *args, **k: out.append(" ".join(str(x) for x in args))          # the report is built as text first, so it can be saved before anything is printed
     by = defaultdict(list)
     for r in results:
         by[r["category"]].append(r)
@@ -202,7 +207,7 @@ def report(results: list[dict]) -> int:
     sv = [r for r in results if r.get("several_valid")]
     if sv:
         print(f"({len(sv)} request(s) have several valid plans)")
-    bad = [r for r in results if not (r["plan_ok"] and r["ran_ok"] and r["outcome_ok"])]
+    bad = [r for r in results if not ((r["plan_ok"] or r.get("plan_free")) and (r["ran_ok"] or r.get("plan_free")) and r["outcome_ok"])]          # a request scored by its outcome passes on the right answer whatever plan made it
     if bad:
         print(f"\n{len(bad)} failure(s):")
         for r in bad:
@@ -216,7 +221,18 @@ def report(results: list[dict]) -> int:
             oc = r.get("outcome") or {}
             print(f"- {r['id']} [{r['category']}] “{r['request']}”  ({', '.join(why)})\n    expected {r['expected']}\n    planned  {r['planned']}   status {r['status']}: {r['text']}\n    outcome  got {oc.get('kind')}, "
                   f"untraceable numbers {oc.get('bad_numbers')}, internal terms {oc.get('internal')}")
-    return 1 if bad else 0
+    toks = sum(r.get("tokens", 0) for r in results)
+    print(f"total tokens sent to and from the AI: {toks:,} ({toks // max(len(results), 1):,} a request); counted from the prompts and replies, about 4 characters a token")
+    return "\n".join(out), (1 if bad else 0)
+
+
+def report(results: list[dict], out_file: Path | None = None) -> int:
+    """The report is written to `out_file` (UTF-8) first and then printed; a console that cannot show a character prints a ? instead of stopping."""
+    text, code = report_text(results)
+    if out_file:
+        Path(out_file).write_text(text + "\n", encoding="utf-8")
+    sys.stdout.write(text.encode(sys.stdout.encoding or "utf-8", errors="replace").decode(sys.stdout.encoding or "utf-8", errors="replace") + "\n")
+    return code
 
 
 def choose(lines: list[dict], n: int | None) -> list[dict]:
@@ -248,7 +264,13 @@ def main(argv=None) -> int:
     ap.add_argument("--list", action="store_true", help="print the chosen requests and stop (no AI is called)")
     ap.add_argument("--verbose", action="store_true")
     ap.add_argument("--file", type=Path, default=DATA)
+    ap.add_argument("--out", type=Path, help="where the result text is written first (default: scripts/lens_eval_scripted_result.txt, or lens_eval_real_result.txt with --real)")
     a = ap.parse_args(argv)
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")          # a Windows console in a legacy code page must not crash on a curly quote
+        except (AttributeError, ValueError):
+            pass
     lines = load(a.file)
     if a.category:
         lines = [x for x in lines if x["category"] in a.category]
@@ -261,7 +283,7 @@ def main(argv=None) -> int:
         print(f"{len(lines)} request(s); no AI was called.")
         return 0
     results = replay(lines, real=a.real, verbose=a.verbose)
-    code = report(results)
+    code = report(results, a.out or Path(__file__).with_name("lens_eval_real_result.txt" if a.real else "lens_eval_scripted_result.txt"))
     return 0 if a.real else code
 
 

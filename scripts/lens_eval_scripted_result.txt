@@ -20,4 +20,5 @@ summary           5    100%     100%   100%
 view_edit        14    100%     100%   100%
 why               4    100%     100%   100%
 ALL             150    100%     100%   100%
-(17 request(s) have several valid plans)
+(18 request(s) have several valid plans)
+total tokens sent to and from the AI: 399,045 (2,660 a request); counted from the prompts and replies, about 4 characters a token
