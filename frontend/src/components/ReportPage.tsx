@@ -48,6 +48,7 @@ export default function ReportPage({ run, embedded = false, startChat = false, s
             <p className="rp-meta">
               <span>{page.date}</span>
               {page.trust && <span className="rp-pill">How sure we are: {page.trust}</span>}
+              {page.ai_partly && page.ai_partly.length > 0 && <span className="rp-pill rp-pill-warn" title="The AI's answer for these steps was not used; the rules did them instead.">AI partly unavailable: {page.ai_partly.join(", ")}</span>}
             </p>
           </div>
           {embedded && <div className="rp-buttons no-print">

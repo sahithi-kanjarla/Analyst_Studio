@@ -99,6 +99,7 @@ export interface ReportPageData {
   mode: string;
   goal: string;
   trust: string;
+  ai_partly?: string[];
   headline: string;
   headline_more: string;
   tiles: { label: string; value: string }[];

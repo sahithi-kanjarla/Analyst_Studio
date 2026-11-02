@@ -76,3 +76,4 @@ html, body { max-width: 100%; overflow-x: clip; }
 /* the Lens panel docked beside the page leaves less width: the bar keeps only what it needs */
 body.lens-docked .runbar-brand-text, body.lens-docked .runbar-name { display: none; }
 body.lens-docked .runbar-tabs { justify-content: flex-start; }
+.rp-pill-warn { border-color: var(--warn, #b7791f); background: var(--warn-bg, #fff7e6); }

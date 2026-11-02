@@ -27,7 +27,7 @@ SENT = {"calls": 0}      # how many requests were really sent to the model in th
 _tls = threading.local()    # each run is its own worker thread, so concurrent runs never see each other's failures
 TIMEOUT_S = 60
 MAX_RETRIES = 0             # the provider SDKs must not retry on their own: _invoke is the only retry layer, so one failure is never multiplied
-RATE_LIMIT_RETRIES = 3      # retries after a 429 (per-minute limits clear on their own)
+RATE_LIMIT_RETRIES = 2      # retries after a 429 (per-minute limits clear on their own); after these the stage falls back and says why
 RATE_LIMIT_WAIT_CAP_S = 60  # the longest we wait for one retry, whatever retry-after asks for
 RATE_LIMIT_BACKOFF_S = 5    # the wait when the 429 carries no retry-after
 OTHER_ERROR_RETRIES = 1     # timeouts and provider errors: one gentle retry
@@ -297,7 +297,7 @@ def _sleep(seconds: float) -> None:     # one place to patch in tests
     time.sleep(seconds)
 
 
-def _invoke(llm, system: str, user: str) -> tuple[str | None, str]:
+def _invoke(llm, system: str, user: str, json_mode: bool = False) -> tuple[str | None, str]:
     """(text, reason). reason is "" on success; otherwise a short phrase for why the call failed. This is the only retry layer.
     A 429 waits for retry-after (at most RATE_LIMIT_WAIT_CAP_S) and retries up to RATE_LIMIT_RETRIES times; a per-day limit is not retried and stops every
     later call in the run; an identical call already answered in this run is not sent again."""
@@ -312,12 +312,13 @@ def _invoke(llm, system: str, user: str) -> tuple[str | None, str]:
         _record(_stage(), cache_hit=True, system=system, user=user)
         return answers[key], ""
     reason, rate_tries, other_tries = "", 0, 0
+    use = json_bound(llm) if json_mode else llm
     while True:
         pacing.wait_for_room(pacing.estimate(system, user))        # spaces the call to fit the per-minute token window; what is asked is unchanged
         started = time.monotonic()
         try:
             SENT["calls"] += 1
-            out = llm.invoke([("system", system), ("human", user)])
+            out = use.invoke([("system", system), ("human", user)])
             content = out.content
             if isinstance(content, list):  # some providers return content blocks
                 content = "".join(part.get("text", "") if isinstance(part, dict) else str(part) for part in content)
@@ -328,6 +329,10 @@ def _invoke(llm, system: str, user: str) -> tuple[str | None, str]:
         except Exception as e:
             reason = classify_error(e)
             _record(_stage(), cache_hit=False, ok=False, reason=reason, system=system, user=user, seconds=time.monotonic() - started)
+            if use is not llm and _json_mode_refused(e):          # the provider does not do JSON mode for this model: ask without it, once, and remember
+                JSON_MODE_OFF.add(_provider_class(llm))
+                use = llm
+                continue
             if is_daily_limit(e):
                 _tls.daily = True
                 break
@@ -372,53 +377,109 @@ def ask_text(llm, system: str, user: str) -> str | None:
     return out
 
 
+_THINK = re.compile(r"<(think|thinking|reasoning|reflection)>.*?</\1>", re.S | re.I)
+_FENCE = re.compile(r"```[a-zA-Z0-9_-]*\s*\n?(.*?)```", re.S)
+
+
+def extract_json(raw: str) -> tuple[dict | None, str]:
+    """(the first valid JSON object in a reply, "") or (None, why). Reasoning text and code fences around it are ignored, prose before or after it is ignored, and a reply that was cut off says so.
+    Only an object counts: a list or a bare number is not the shape any caller expects."""
+    text = _THINK.sub(" ", raw or "")
+    text = re.sub(r"<(?:think|thinking|reasoning)>.*\Z", " ", text, flags=re.S | re.I)           # reasoning that never closed: nothing after it is the answer
+    chunks = [m.group(1) for m in _FENCE.finditer(text)] + [text]
+    dec, last_err = json.JSONDecoder(), ""
+    for chunk in chunks:
+        i, tries = chunk.find("{"), 0
+        while i != -1 and tries < 40:
+            try:
+                obj, _ = dec.raw_decode(chunk[i:])
+                if isinstance(obj, dict):
+                    return obj, ""
+            except json.JSONDecodeError as e:
+                last_err = f"{e.msg} at line {e.lineno} column {e.colno}"
+            i, tries = chunk.find("{", i + 1), tries + 1
+    if "{" not in text:
+        return None, "no JSON object in the reply"
+    if text.count("{") > text.count("}") or (last_err and re.search(r"Unterminated|Expecting.*delimiter|Expecting value", last_err) and text.rstrip()[-1:] not in "}]"):
+        return None, "the reply was cut off before the JSON object ended"
+    return None, f"invalid JSON ({last_err or 'could not be read'})"
+
+
 def _extract(raw: str) -> dict | None:
-    raw = re.sub(r"^```(?:json)?|```$", "", raw.strip(), flags=re.M).strip()
-    start, end = raw.find("{"), raw.rfind("}")
-    if start == -1 or end == -1:
-        return None
+    return extract_json(raw)[0]
+
+
+JSON_MODE_OFF: set[str] = set()          # provider classes whose JSON mode the provider refused: asked without it from then on
+
+
+def _provider_class(llm) -> str:
+    return type(getattr(llm, "bound", llm)).__name__.lower()
+
+
+def json_bound(llm):
+    """The model asked to answer in JSON, where its provider has such a mode (Groq and OpenAI-style: response_format; Gemini: a JSON mime type; Ollama: format json); the model itself otherwise."""
+    name = _provider_class(llm)
+    if llm is None or not hasattr(llm, "bind") or name in JSON_MODE_OFF:
+        return llm
     try:
-        return json.loads(raw[start:end + 1])
-    except json.JSONDecodeError:
-        return None
+        if "groq" in name or "openai" in name:
+            return llm.bind(response_format={"type": "json_object"})
+        if "google" in name or "gemini" in name:
+            return llm.bind(response_mime_type="application/json")
+        if "ollama" in name:
+            return llm.bind(format="json")
+    except Exception:           # noqa: BLE001  a model that cannot be bound is asked without the mode
+        pass
+    return llm
 
 
-REPAIR_ASK = "\n\nYour previous reply was not valid JSON. It was: {seen}\nAnswer again with only the JSON object, nothing else."
+def _json_mode_refused(e: BaseException) -> bool:
+    low = _text(e)
+    return any(w in low for w in ("response_format", "json_object", "json mode", "mime type", "response_mime_type", "json_validate_failed", "failed_generation", "unsupported parameter", "format"))\
+        and not is_rate_limit(e)
 
 
-def ask_json_ex(llm, system: str, user: str, repair: bool = False) -> tuple[dict | None, str]:
+REPAIR_ASK = "\n\nYour previous reply could not be used: {problem}.\nIt was: {seen}\nAnswer again with only the corrected JSON object, nothing else."
+
+
+def ask_json_ex(llm, system: str, user: str, repair: bool = False, validate=None) -> tuple[dict | None, str]:
     """Ask for JSON and defensively extract it. (object, reason): the object is None when the call failed or the output is unusable, and reason says which.
-    A reply that parsed is saved on disk (aicache) by the full prompt, model and temperature and answers the same call later; failed calls are never saved.
-    repair=True: a reply that is not JSON is asked for once more (ask_json does this). The callers that already run their own repair loop (propose, understanding) leave it off."""
+    The model is asked in its provider's JSON mode where there is one. The first valid JSON object in the reply is taken (fences, reasoning text and prose around it are ignored).
+    `validate(obj) -> list of problems` checks the shape the caller expects; with problems, or a reply that is not JSON, repair=True asks exactly once more and shows the model what was wrong.
+    A reply that parsed (and passed `validate`) is saved on disk (aicache) by the full prompt, model and temperature and answers the same call later; failed calls are never saved.
+    The callers that already run their own repair loop (propose, understanding, the Lens planner) leave repair off."""
     if llm is None:
         return None, "no LLM configured"
     system = system + "\n\nReturn ONLY a single valid JSON object. No prose, no markdown fences."
     k = _disk_key(llm, system, user)
-    if (hit := aicache.get(k)) is not None and (obj := _extract(hit)) is not None:
+    if (hit := aicache.get(k)) is not None and (obj := _extract(hit)) is not None and not (validate and validate(obj)):
         aicache.note_reused(_stage())
         _record(_stage(), cache_hit=True, system=system, user=user)
         return obj, ""
-    raw, reason = _invoke(llm, system, user)
+    raw, reason = _invoke(llm, system, user, json_mode=True)
     if raw is None:
         return None, reason
-    obj = _extract(raw)
-    if obj is None and repair:          # the call worked but the reply was not JSON: ask once more, quoting what came back. Never for a failed call (rate limit, timeout): _invoke already handled those.
+    obj, why = extract_json(raw)
+    problems = [] if obj is None else (list(validate(obj)) if validate else [])
+    if (obj is None or problems) and repair:          # the call worked but the reply was not usable: ask once more, quoting what came back and what was wrong. Never for a failed call (rate limit, timeout): _invoke already handled those.
         seen = " ".join(raw.split())[:300] or "(empty)"
-        raw2, reason2 = _invoke(llm, system, user + REPAIR_ASK.format(seen=seen))
-        obj = _extract(raw2) if raw2 is not None else None
-        if obj is None:
-            bad = reason2 or "bad JSON (the reply had no parseable JSON object)"
+        problem = why if obj is None else "it did not have the expected shape: " + "; ".join(problems)[:300]
+        raw2, reason2 = _invoke(llm, system, user + REPAIR_ASK.format(seen=seen, problem=problem), json_mode=True)
+        obj2, why2 = extract_json(raw2) if raw2 is not None else (None, "")
+        problems2 = [] if obj2 is None else (list(validate(obj2)) if validate else [])
+        if obj2 is None or problems2:
+            bad = reason2 or (f"bad JSON ({why2})" if obj2 is None else "unexpected shape: " + "; ".join(problems2)[:200])
             if not reason2:
                 note_failure(bad)
             return None, bad
-        raw = raw2
-    elif obj is None:
-        bad = "bad JSON (the reply had no parseable JSON object)"
+        obj, raw = obj2, raw2
+    elif obj is None or problems:
+        bad = f"bad JSON ({why})" if obj is None else "unexpected shape: " + "; ".join(problems)[:200]
         note_failure(bad)
         return None, bad
     aicache.put(k, raw)
     return obj, ""
 
 
-def ask_json(llm, system: str, user: str) -> dict | None:
-    return ask_json_ex(llm, system, user, repair=True)[0]
+def ask_json(llm, system: str, user: str, validate=None) -> dict | None:
+    return ask_json_ex(llm, system, user, repair=True, validate=validate)[0]

@@ -793,9 +793,10 @@ def _page(state: dict, run_mode: str, cs: list[dict], plan: dict, ts: list, answ
             seen.add(ch["path"])
             charts.append(ch)
     first = cards[0] if cards else {}
+    fell_back = list(dict.fromkeys(re.sub(r"^AI unavailable:\s*", "", str(d.get("decision") or "")) for d in state.get("decisions") or [] if d.get("source") == "fallback"))          # the stages whose AI answer was not used
     i = lines.index("**View more**") if "**View more**" in lines else len(lines)
     return {"title": "Analysis report", "company": ctx.get("company", ""), "date": time.strftime("%d %b %Y"), "mode": run_mode or derive_mode(state.get("stage_sources")),
-            "goal": state.get("goal", ""), "trust": first.get("trust", ""), "headline": ans.get("sentence") or (first.get("lines") or [""])[0], "headline_more": ans.get("groups_sentence") or "",
+            "goal": state.get("goal", ""), "trust": first.get("trust", ""), "ai_partly": fell_back, "headline": ans.get("sentence") or (first.get("lines") or [""])[0], "headline_more": ans.get("groups_sentence") or "",
             "tiles": [{"label": l, "value": v} for l, v in ts][:4], "cards": cards, "actions": actions, "charts": charts,
             "no_action": [r for n, r in sorted(plan["none"].items()) if num.get(n)], "behind_md": "\n".join(lines[i + 1:]).strip()}
 
