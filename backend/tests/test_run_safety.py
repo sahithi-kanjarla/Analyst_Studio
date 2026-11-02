@@ -165,7 +165,7 @@ def test_summary_prompt_sends_at_most_12_facts_of_10_groups_and_logs_the_cut():
     assert reporter._trim_rankings(small, {"decisions": []}) == small
 
 
-def test_pick_prompt_sends_at_most_40_items_of_160_characters():
+def test_pick_prompt_sends_at_most_the_capped_items_of_the_capped_characters():          # the cap was 40 items of 160 characters; it is 24 of 140 since the token pass
     items = [{"id": f"i{k}", "text": "x" * 300, "column": "seg", "measure": "revenue", "tool": "ranking"} for k in range(70)]
     seen = {}
 
@@ -177,8 +177,8 @@ def test_pick_prompt_sends_at_most_40_items_of_160_characters():
     state = {"decisions": []}
     summary.llm_pick(Spy(), ["What drives revenue?"], items, state)
     sent = json.loads(seen["user"].split("RESULTS: ", 1)[1])
-    assert len(sent) == 40 and all(len(s["text"]) <= 160 for s in sent)
-    assert any(d["decision"] == "summary_answers prompt trimmed" and "40 of 70" in d["chosen"] for d in state["decisions"])
+    assert len(sent) == summary.ITEMS_MAX == 24 and all(len(s["text"]) <= summary.ITEM_CHARS_MAX == 140 for s in sent)
+    assert any(d["decision"] == "summary_answers prompt trimmed" and "24 of 70" in d["chosen"] for d in state["decisions"])
 
 
 # ---------------------------------------------------------------- plan source and run label

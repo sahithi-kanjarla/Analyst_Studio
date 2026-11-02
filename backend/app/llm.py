@@ -463,7 +463,7 @@ def ask_json_ex(llm, system: str, user: str, repair: bool = False, validate=None
     problems = [] if obj is None else (list(validate(obj)) if validate else [])
     if (obj is None or problems) and repair:          # the call worked but the reply was not usable: ask once more, quoting what came back and what was wrong. Never for a failed call (rate limit, timeout): _invoke already handled those.
         seen = " ".join(raw.split())[:300] or "(empty)"
-        problem = why if obj is None else "it did not have the expected shape: " + "; ".join(problems)[:300]
+        problem = f"it was not valid JSON ({why})" if obj is None else "it did not have the expected shape: " + "; ".join(problems)[:300]
         raw2, reason2 = _invoke(llm, system, user + REPAIR_ASK.format(seen=seen, problem=problem), json_mode=True)
         obj2, why2 = extract_json(raw2) if raw2 is not None else (None, "")
         problems2 = [] if obj2 is None else (list(validate(obj2)) if validate else [])

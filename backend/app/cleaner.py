@@ -4,7 +4,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from .grain import count_order_amounts_once, detect as detect_grain
+from .grain import count_order_amounts_once, detect as detect_grain, fill_order_details
 from .profiler import date_order_conflict, infer_date_order, normalize_strings, parse_dates, try_datetime, try_numeric
 
 
@@ -38,7 +38,9 @@ def coerce_types(df: pd.DataFrame, profile: dict, date_order: dict | None = None
     log: list[dict] = []
     df = df.copy()
     df.columns = [str(c).strip() for c in df.columns]
-    df = count_order_amounts_once(df, log, {c['name']: c['role'] for c in profile['columns']})
+    roles = {c['name']: c['role'] for c in profile['columns']}
+    df = fill_order_details(df, log, roles)
+    df = count_order_amounts_once(df, log, roles)
     df, n_na = normalize_strings(df, log)
     if n_na:
         log.append({"step": "Standardise missing values", "detail": "Trimmed whitespace and converted placeholders like 'N/A', 'null', '-' to real missing values", "count": n_na})

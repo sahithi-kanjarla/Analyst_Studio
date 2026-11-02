@@ -64,26 +64,35 @@ def structural_key(df: pd.DataFrame, roles: dict | None = None) -> tuple[str, li
         if len(k) >= 0.9 * n and u >= MIN_KEYS and len(k) / u >= MIN_REPEAT and u <= 0.9 * len(k):
             cands.append(c)
     for c in cands:
-        multi = df[df.duplicated(c, keep=False) & df[c].notna()]
-        if multi.empty:
+        split = split_columns(df, c)
+        if split is None:
             continue
-        g = multi.groupby(c)
-        const, vary = [], []
-        for o in df.columns:
-            if o == c:
-                continue
-            nun = g[o].nunique(dropna=True)
-            filled = float((g[o].count() > 0).mean())
-            if filled < 0.3:
-                continue
-            if (nun <= 1).mean() >= CONSTANT_SHARE:
-                const.append(o)
-            elif (nun > 1).mean() >= VARYING_SHARE:
-                vary.append(o)
+        const, vary = split
         anchor = [o for o in const if _is_date(df[o], roles.get(o)) or (pd.api.types.is_numeric_dtype(df[o]) and not pd.api.types.is_bool_dtype(df[o]) and measure_kind(str(o)) == "additive")]
         if anchor and len(vary) >= 2:
             return c, const, vary
     return None
+
+
+def split_columns(df: pd.DataFrame, key: str) -> tuple[list[str], list[str]] | None:
+    """(columns that describe the order, columns that describe the line) for rows grouped by `key`: of the keys with several rows, the order-level ones hold one value (or none) on nearly all of them, the line-level ones
+    hold several on at least half."""
+    multi = df[df.duplicated(key, keep=False) & df[key].notna()]
+    if multi.empty:
+        return None
+    g = multi.groupby(key)
+    const, vary = [], []
+    for o in df.columns:
+        if o == key:
+            continue
+        nun = g[o].nunique(dropna=True)
+        if float((g[o].count() > 0).mean()) < 0.3:
+            continue
+        if (nun <= 1).mean() >= CONSTANT_SHARE:
+            const.append(o)
+        elif (nun > 1).mean() >= VARYING_SHARE:
+            vary.append(o)
+    return const, vary
 
 
 def detect(df: pd.DataFrame, roles: dict | None = None) -> dict | None:
@@ -93,6 +102,7 @@ def detect(df: pd.DataFrame, roles: dict | None = None) -> dict | None:
     c, label, const, vary = None, "Orders", [], []
     if keys:
         c, label = keys[0]
+        const, vary = split_columns(df, c) or ([], [])
     else:
         found = structural_key(df, roles)
         if found:
@@ -131,4 +141,26 @@ def count_order_amounts_once(df: pd.DataFrame, log: list[dict], roles: dict | No
         n += int((later & df[c].notna()).sum())
         df.loc[later, c] = float("nan")
     log.append({"step": "Counted order amounts once", "detail": f"{', '.join(fixed)} repeat the same figure on every row of an order (several rows per {key}), so each is kept on the first row of the order and blanked on the others; totals now count each order once ({n:,} repeated values blanked)", "count": n})
+    return df
+
+
+def fill_order_details(df: pd.DataFrame, log: list[dict], roles: dict | None = None) -> pd.DataFrame:
+    """Where an order's own details (its status, date, city) are written on its first row only, every row of the order gets them, so a line's value can be split by what its order is. Words and dates only:
+    an order's amounts are not copied (they are counted once, see `count_order_amounts_once`)."""
+    g = detect(df, roles)
+    if not g:
+        return df
+    key = g["key"]
+    cols = [c for c in g["order_columns"] if c in df.columns and not (pd.api.types.is_numeric_dtype(df[c]) and not pd.api.types.is_bool_dtype(df[c])) and df[c].isna().any()]
+    if not cols:
+        return df
+    df = df.copy()
+    n = 0
+    for c in cols:
+        first = df.groupby(key)[c].transform("first")
+        fill = df[c].isna() & first.notna() & df[key].notna()
+        n += int(fill.sum())
+        df.loc[fill, c] = first[fill]
+    if n:
+        log.append({"step": "Filled order details down", "detail": f"{len(cols)} columns that describe the order ({', '.join(cols[:5])}{' ...' if len(cols) > 5 else ''}) were written on its first row only; every row of the order now carries them ({n:,} blanks filled), so what a line is worth can be split by its order's status, date or place", "count": n})
     return df

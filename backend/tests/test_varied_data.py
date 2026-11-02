@@ -350,3 +350,16 @@ def test_the_line_amount_is_used_when_the_file_has_one():
     df["line_total"] = df["qty"] * df["each"]
     cols = {c["name"]: c for c in profiler.profile_df(df)["columns"]}
     assert retail_roles.derive_product_measure(df, cols) is None          # a column already holds quantity x price: it is the line value
+
+
+def test_an_orders_details_written_on_its_first_row_reach_every_line():
+    rows = []
+    for o in range(40):
+        for k in range(1 + o % 3):
+            rows.append({"Order ID": f"A{o:03d}", "Status": ["paid", "pending"][o % 2] if k == 0 else None, "Date": f"2024-01-{o % 28 + 1:02d}" if k == 0 else None, "Order Total": 100 + o if k == 0 else None, "Qty": 1 + k, "Item": f"p{k}", "Each": 10.0 + k})
+    df = pd.DataFrame(rows)
+    log = []
+    out = grain.fill_order_details(df, log, {"Date": "date"})
+    assert out["Status"].notna().all() and out["Date"].notna().all() and out["Order Total"].isna().sum() == df["Order Total"].isna().sum()          # words and dates fill down, amounts do not
+    assert out.groupby("Order ID")["Status"].nunique().max() == 1 and log[0]["step"] == "Filled order details down"
+    assert grain.fill_order_details(pd.DataFrame({"Order ID": [f"A{i}" for i in range(60)], "Status": ["x"] * 60}), [], {}) is not None
