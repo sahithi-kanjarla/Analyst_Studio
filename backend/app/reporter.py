@@ -72,13 +72,16 @@ def _trim_rankings(rankings: list[dict], state: dict) -> list[dict]:
     return out
 
 
+SUMMARY_FINDINGS, SUMMARY_FACT_CHARS = 8, 260
+
+
 def llm_summary(llm, state: dict) -> tuple[str, list[str], bool] | None:
     """(summary, recommendations, partial). Sentences/recommendations with numbers not in the findings are dropped; None only if nothing is left."""
     ctx_txt = ctxmod.context_text(state.get("context"))
     asked = summary_mod.questions(state)
     c = wording.counts(state["findings"])
     rankings = _trim_rankings((state.get("summary_facts") or {}).get("rankings") or [], state)
-    ranked = _rank(state["findings"])[:12]
+    ranked = _rank(state["findings"])[:SUMMARY_FINDINGS]
     payload = [{"id": f["id"], "headline": f["insight"]["headline"], "facts": f["text"].replace("**", ""), "confidence": f["insight"]["confidence"]["label"],
                 "survives_correction": f["stats"].get("survives_correction")} for f in ranked] + [{"id": r["id"], "headline": r["text"], "facts": r["text"], "confidence": "computed from the data", "survives_correction": None} for r in rankings]
     scopes = {x["id"]: cited.scope_of(x) for x in [*ranked, *rankings]}
@@ -104,7 +107,7 @@ def llm_summary(llm, state: dict) -> tuple[str, list[str], bool] | None:
             "Return JSON: {\"summary\": \"3-5 sentence executive summary answering the goal\", \"recommendations\": [3-5 concrete, prioritized actions tied to specific findings], "
             "\"so_what\": [{\"question\": <number of a goal question below>, \"text\": \"ONE plain sentence on why that answer matters; no statistics terms\"}]}",
             (f"COMPANY CONTEXT (user-written, unverified):\n{ctx_txt}\n" if ctx_txt else "") +
-            f"GOAL: {state['goal']}\nGOAL QUESTIONS: {json.dumps(dict(enumerate(asked)), ensure_ascii=False)}\nCOUNTS (quote these exactly, never recount): {json.dumps(c, ensure_ascii=False)}\nCAVEATS: {json.dumps([i['text'] for i in state['critique']['issues']][:8], ensure_ascii=False)}\nFINDINGS: {json.dumps(payload, default=str, ensure_ascii=False)}",
+            f"GOAL: {state['goal']}\nGOAL QUESTIONS: {json.dumps(dict(enumerate(asked)), ensure_ascii=False)}\nCOUNTS (quote these exactly, never recount): {json.dumps(c, ensure_ascii=False)}\nCAVEATS: {json.dumps([i['text'] for i in state['critique']['issues']][:8], ensure_ascii=False)}\nFINDINGS: {json.dumps([{**p, 'facts': p['facts'][:SUMMARY_FACT_CHARS]} for p in payload], default=str, ensure_ascii=False)}",          # the checks above read the whole text; the model is sent its first sentences
         )
     why = cap.reason
     if not out:
@@ -561,7 +564,7 @@ def _setup_section(state: dict) -> list[str]:
     u = llmmod.usage_summary()
     if u["calls"]:
         tok = f"about {u['input_tokens']:,} input and {u['output_tokens']:,} output tokens" + (" (estimated)" if u["estimated"] else "")
-        L += [f"**AI usage so far:** {u['sent']} call(s) sent, {u['cached']} answered from saved or repeated results; {tok}; {u['seconds']} s in AI calls. Per call: ai_usage.json.", ""]
+        L += [f"**AI usage so far:** {u['sent']} call(s) sent, {u['cached']} answered from saved or repeated results; {tok}; {u['seconds']} s in AI calls. Per stage and per call: ai_usage.json. Biggest stages: " + ", ".join(f"{r['stage'].rsplit('.', 1)[-1].replace('_', ' ')} ({r['input_tokens'] + r['output_tokens']:,})" for r in sorted(llmmod.by_stage(llmmod.usage_calls()), key=lambda r: -(r["input_tokens"] + r["output_tokens"]))[:3]) + ".", ""]
     else:
         L += ["**AI usage:** no AI calls in this run (rules only).", ""]
     cn = state.get("concerns") or {}

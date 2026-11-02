@@ -326,6 +326,13 @@ Reply with JSON: {{"questions": [{{"text": str, "why": one sentence, "signal": t
 "options": [{{"label": str, "action": {{...}}}}], "default": the label of the default option}}]}}"""
 
 
+def _profile_for(signals: list[dict], profile: dict) -> list[dict]:
+    """The compact profile of the columns the signals name; the whole compact profile when they name none."""
+    used = {c for s in signals for c in s.get("columns") or []}
+    full = compact_profile(profile)
+    return [c for c in full if c["name"] in used] or full
+
+
 def llm_questions(llm, profile: dict, signals: list[dict], goal: str, ctx: dict | None, saved: dict | None) -> tuple[list[dict] | None, list[str]]:
     """(valid questions, drop reasons). None means the model gave no usable answer, so the caller falls back to the templates."""
     if llm is None:
@@ -337,7 +344,7 @@ def llm_questions(llm, profile: dict, signals: list[dict], goal: str, ctx: dict 
              "definitions": saved.get("definitions") or {}}
     user = (f"GOAL: {goal}\n\n" + (f"BUSINESS CONTEXT (user-written, unverified):\n{ctx_txt}\n\n" if ctx_txt else "")
             + f"SAVED GLOSSARY (already answered, do not ask again):\n{json.dumps(known, default=str)}\n\n"
-            + f"PROFILE ({profile['rows']} rows):\n{json.dumps(compact_profile(profile), default=str)}\n\n"
+            + f"PROFILE ({profile['rows']} rows; the columns the signals are about):\n{json.dumps(_profile_for(signals, profile), default=str)}\n\n"
             + f"SIGNALS:\n{json.dumps([{k: s[k] for k in ('id', 'type', 'columns', 'evidence')} for s in signals], default=str)}")
     out = ask_json(llm, WRITER_SYSTEM, user)
     if not isinstance(out, dict) or not isinstance(out.get("questions"), list):

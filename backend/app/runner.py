@@ -138,6 +138,9 @@ def _execute(run_id: str) -> None:
     finally:
         try:
             llm_mod.save_usage(wd)      # every run, finished, paused or failed, keeps its AI calls
+            t = llm_mod.usage_summary()
+            if t["calls"]:
+                emit(run_id, "System", f"AI usage: {t['sent']} call(s) sent, {t['cached']} from saved results; {t['input_tokens']:,} input and {t['output_tokens']:,} output tokens" + (" (estimated)" if t["estimated"] else "") + " - per stage in ai_usage.json")
         except OSError:
             pass
 

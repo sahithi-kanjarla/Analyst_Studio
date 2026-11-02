@@ -26,8 +26,8 @@ CONCERN_TYPES = ("label_variants", "date_order", "missing_code", "number_is_cate
 TYPE_ACTION = {"label_variants": "merge_labels", "date_order": "swap_day_month", "missing_code": "treat_value_as_missing"}
 TYPE_SIGNAL = {"label_variants": "label_merge", "date_order": "date_swap", "missing_code": "sentinel"}      # the rule signal kind whose id (and answer rules) the question shares
 RULE_SIGNALS = {"label_merge", "date_swap", "rare_labels"}      # rule signals that only run when the AI part did not
-TOP_N, RARE_N, HIGH_CARD, VALUE_CHARS = 15, 15, 100, 40
-FACT_MAX_CHARS = 24000        # the whole fact sheet, serialised
+TOP_N, RARE_N, HIGH_CARD, VALUE_CHARS = 12, 8, 100, 40
+FACT_MAX_CHARS = 14000        # the whole fact sheet, serialised
 MAX_CONCERNS = 20             # concerns read from one reply
 
 

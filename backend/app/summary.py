@@ -492,7 +492,7 @@ def rules_pick(q: str, items: list[dict], main: str = "") -> list[str]:
 
 
 # ------------------------------------------------------------------ LLM: ids from the closed list
-ITEMS_MAX, ITEM_CHARS_MAX = 40, 160       # the prompt never grows with the data: a free-tier per-minute limit fails a call that is too large
+ITEMS_MAX, ITEM_CHARS_MAX = 24, 140       # the prompt never grows with the data: a free-tier per-minute limit fails a call that is too large
 
 
 def _trim_items(questions: list[str], items: list[dict], state: dict) -> list[dict]:
@@ -598,7 +598,10 @@ def pick(llm, state: dict, rankings: list[dict]) -> dict:
     """{"rankings", "picks": {question: [ids]}, "source"} for every planned question."""
     asked = questions(state)
     items = catalog(state, rankings)
-    chosen = llm_pick(llm, asked, items, state) or {}
+    sure = bool(asked) and all(goal_pick(q, state, items, rankings) for q in asked)          # every question has a result the rules link to it by name, by value or by time word: nothing for the model to decide
+    if sure and llm is not None:
+        state.setdefault("decisions", []).append({"decision": "summary_answers", "source": "rules", "chosen": "rules matching", "why": "every question already had a confident rule match, so no AI call was made", "errors": [], "raw_output": ""})
+    chosen = (llm_pick(llm, asked, items, state) if not sure else None) or {}
     picks, used_llm = {}, False
     for i, q in enumerate(asked):
         if chosen.get(i):

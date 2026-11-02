@@ -319,6 +319,7 @@ def prioritise(cands: list[dict], findings: list[dict] | None = None) -> list[di
     return cands
 
 
+FACT_CHARS, FACTS_PER_CANDIDATE = 240, 3          # what each candidate carries to the model
 REFINE_SYSTEM = """You are a senior strategy consultant adapting candidate strategies to a specific company.
 Rewrite wording so it fits the company's industry and vocabulary. You may change: title, objective, actions (3-5), risks (2-3), kpis, how_to_test.
 You may NOT add strategies, change ids, evidence, impact or effort, or introduce any number that is not already in the candidate or the facts.
@@ -336,7 +337,7 @@ def refine_with_llm(llm, state: dict, strategies: list[dict]) -> int:
     if not cands:
         return 0
     payload = [{"id": s["id"], "title": s["title"], "objective": s["objective"], "actions": s["actions"], "risks": s["risks"], "kpis": s["kpis"], "how_to_test": s["how_to_test"],
-                "facts": [{"id": f["id"], "text": f["text"].replace("**", "")} for f in state["findings"] if f["id"] in s["evidence"]]} for s in cands]
+                "facts": [{"id": f["id"], "text": f["text"].replace("**", "")[:FACT_CHARS]} for f in state["findings"] if f["id"] in s["evidence"]][:FACTS_PER_CANDIDATE]} for s in cands]
     out = ask_json(llm, REFINE_SYSTEM, (f"COMPANY CONTEXT (user-written, unverified):\n{ctx_txt}\n\n" if ctx_txt else "") + f"GOAL: {state['goal']}\nCANDIDATES:\n{json.dumps(payload, default=str, ensure_ascii=False)}")
     if not out or not isinstance(out.get("strategies"), list):
         return 0

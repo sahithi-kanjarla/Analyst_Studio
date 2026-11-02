@@ -53,7 +53,7 @@ def propose(llm, name: str, system: str, view: str, validator: Callable, fallbac
         elif obj is None and why1.startswith("rate limit"):     # the retries are already spent inside the call: a second ask would only repeat them
             out = {"value": fallback(), "source": "fallback", "why": f"The model was unavailable ({why1}), so the rule was used.", "errors": errors}
         else:
-            again = view + "\n\nYour previous answer was rejected:\n" + (json.dumps(obj, default=str)[:2000] if obj is not None else "(not valid JSON)") \
+            again = view + "\n\nYour previous answer was rejected:\n" + (json.dumps(obj, default=str)[:800] if obj is not None else "(not valid JSON)") \
                 + "\nProblems:\n" + "\n".join(f"- {e}" for e in errors) + "\nAnswer again with corrected JSON. Fix only these problems and use no numbers."
             obj2, why2 = ask_json_ex(llm, system, again)
             clean2, errors2 = _check(obj2, validator, why2)

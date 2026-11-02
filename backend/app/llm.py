@@ -281,7 +281,7 @@ def save_usage(workdir) -> None:
     p = _Path(workdir) / "ai_usage.json"
     prior = _json.loads(p.read_text(encoding="utf-8")).get("calls", []) if p.exists() else []
     calls = prior + usage_calls()
-    p.write_text(_json.dumps({"calls": calls, "totals": totals(calls)}, indent=1), encoding="utf-8")
+    p.write_text(_json.dumps({"calls": calls, "totals": totals(calls), "by_stage": by_stage(calls)}, indent=1), encoding="utf-8")
 
 
 def reset_cache():

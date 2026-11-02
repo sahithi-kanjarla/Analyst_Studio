@@ -397,6 +397,7 @@ def build_insights(state: dict) -> None:
 
 
 # ------------------------------------------------------------------ optional LLM enrichment (grounded)
+SENT_FINDINGS, SENT_CHARS = 8, 260          # what is sent to the model per run: the leading findings, each cut to its first sentences
 ENRICH_SYSTEM = """You are a senior business analyst explaining analysis results to the company's decision makers.
 For each insight, write fields that help them understand and act, using the company context when given.
 Rules: use ONLY the facts provided; never introduce a number that is not in the facts; do not claim cause and effect (use 'may', 'could', 'worth testing');
@@ -408,9 +409,9 @@ def enrich_with_llm(llm, state: dict) -> int:
     """Returns how many insights were improved. Anything that fails validation is silently kept in its rule-based form."""
     if llm is None:
         return 0
-    findings = [f for f in state["findings"] if f["tool"] != "robust_compare"][:12]
+    findings = [f for f in state["findings"] if f["tool"] != "robust_compare"][:SENT_FINDINGS]
     ctx_txt = ctxmod.context_text(state.get("context"))
-    payload = [{"id": f["id"], "headline": f["insight"]["headline"], "facts": f["text"].replace("**", ""), "confidence": f["insight"]["confidence"]["label"]} for f in findings]
+    payload = [{"id": f["id"], "headline": f["insight"]["headline"], "facts": f["text"].replace("**", "")[:SENT_CHARS], "confidence": f["insight"]["confidence"]["label"]} for f in findings]
     out = ask_json(llm, ENRICH_SYSTEM, (f"COMPANY CONTEXT (user-written, unverified):\n{ctx_txt}\n\n" if ctx_txt else "") + f"GOAL: {state['goal']}\nINSIGHTS:\n{json.dumps(payload, default=str, ensure_ascii=False)}")
     if not out or not isinstance(out.get("insights"), list):
         return 0

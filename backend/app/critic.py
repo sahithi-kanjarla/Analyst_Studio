@@ -16,6 +16,9 @@ from .planner import roles_and_uniques
 from .tools import spec_signature, validate_spec
 
 
+SENT_FINDINGS, SENT_CHARS = 8, 240          # what the reviewer is sent: the leading findings, each cut to its claim
+
+
 def review(state: dict, llm) -> dict:
     findings = state["findings"]
     profile = state["profile"]
@@ -82,7 +85,7 @@ def review(state: dict, llm) -> dict:
     # --- optional LLM review
     notes: list[str] = []
     if llm is not None:
-        summary = [{"id": f["id"], "title": f["title"], "text": f["text"], "p": f["stats"].get("p"), "n": f["stats"].get("n")} for f in findings][:14]
+        summary = [{"id": f["id"], "title": f["title"], "text": f["text"].replace("**", "")[:SENT_CHARS], "p": f["stats"].get("p"), "n": f["stats"].get("n")} for f in findings][:SENT_FINDINGS]          # what the reviewer needs: the claim, its p and n
         out = ask_json(
             llm,
             "You are a skeptical senior statistician reviewing an analysis. Identify claims that the evidence does not fully support "
