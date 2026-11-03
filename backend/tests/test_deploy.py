@@ -205,7 +205,9 @@ def test_uploads_and_typed_lens_questions_need_the_code_on_a_public_demo_but_the
     monkeypatch.setenv("CHATBOT", "on")
     mine = "b" * 12
     shutil.copytree(config.DEMO_DIR, runner.run_dir(mine))
-    runner.write_status(mine, "done")
+    from app import owner
+    client.cookies.set(owner.COOKIE, "M" * 43)                       # a public demo shows a run only to its owner: this visitor owns it
+    runner.write_status(mine, "done", owner=owner.hash_token("M" * 43))
     try:
         assert ask(mine).status_code == 403 and ask(mine, {"X-Access-Code": "wrong"}).status_code == 403          # a typed question on your own run needs the code
         assert ask(mine, {"X-Access-Code": "s3cret"}).status_code == 200
@@ -289,7 +291,7 @@ def test_smoke_live_passes_against_a_local_server_and_fails_on_a_wrong_code(tmp_
         ok = subprocess.run([sys.executable, str(ROOT / "scripts" / "smoke_live.py"), f"http://127.0.0.1:{port}", "abc123"], capture_output=True, text=True, timeout=300)
         assert ok.returncode == 0, ok.stdout + ok.stderr
         lines = [x for x in ok.stdout.splitlines() if x.startswith(("PASS", "FAIL"))]
-        assert len(lines) == 5 and all(x.startswith("PASS") for x in lines)
+        assert len(lines) == 6 and all(x.startswith("PASS") for x in lines)       # the sixth: visitor B cannot list, read or delete visitor A's run
         bad = subprocess.run([sys.executable, str(ROOT / "scripts" / "smoke_live.py"), f"http://127.0.0.1:{port}", "nope"], capture_output=True, text=True, timeout=300)
         assert bad.returncode == 1 and "FAIL  an upload of a tiny CSV" in bad.stdout
         gone = subprocess.run([sys.executable, str(ROOT / "scripts" / "smoke_live.py"), "http://127.0.0.1:1"], capture_output=True, text=True, timeout=120)

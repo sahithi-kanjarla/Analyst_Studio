@@ -6,6 +6,7 @@ import tempfile
 
 _TMP = tempfile.mkdtemp(prefix="analyst_studio_tests_")
 os.environ.setdefault("LLM_PROVIDER", "none")
+os.environ.setdefault("OWNER_SECRET", "test-only-owner-secret-0123456789abcdef")       # tests never write a secret file into backend/data
 os.environ["UPLOAD_RATE_LIMIT"] = "0"         # the public-use protections are off unless a test switches one on
 os.environ["DAILY_AI_RUNS"] = "0"
 os.environ["DAILY_LENS_QUESTIONS"] = "0"

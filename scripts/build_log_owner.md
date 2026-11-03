@@ -15,8 +15,11 @@ Another session can continue from here. Order: Fix 2 first, then Fix 1 in four c
 - Commit 2 (Fix 1): the sample run is read-only on the routes that persist (lens pins/views/feedback, brief rename/edit/delete now 403 there); ownerless legacy runs follow PUBLIC_DEMO (can_access);
   export/PDF is authorised by the same route guard (the PDF is made from a local HTML file, no internal HTTP request, so no signed token was needed).
 
+- Commit 3 (Fix 1): backend/tests/test_owner.py (route-table test over every route containing {run_id} plus /api/glossary: B gets the identical "Run not found" 404, owner reaches the handler, sample readable;
+  delete/view/lens-chip/list/glossary/legacy/PUBLIC_DEMO/cookie flags/SSE/PDF/log+metadata token checks); mutation-checked (guard disabled -> test fails);
+  scripts/smoke_live.py now uses cookie jars and has the visitor-B check (6 checks); test_deploy.py adjusted (owned run under PUBLIC_DEMO, 6 smoke lines).
+
 ## Left to do
-- Fix 1, commit 3: route-by-route tests, smoke script visitor-B check.
 - Fix 1, commit 4: DEPLOY.md, README Known limits, upload-panel privacy note.
 - Full suite once at the end (the venv /tmp/claude-0/v1 holds the pinned versions; the single final run also covers Fix 2's "suite passes on those versions").
 
