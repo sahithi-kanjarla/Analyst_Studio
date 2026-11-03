@@ -458,9 +458,12 @@ def key_metrics(state: dict, df: pd.DataFrame) -> list[dict]:
             x = pd.to_numeric(s, errors="coerce").dropna()
             if len(x):
                 c = cur if t in und.money_columns(state.get("understanding")) else ""
-                if has_sum_word(t, overrides=kinds(state.get("brief"))):
+                from . import summary
+                if has_sum_word(t, overrides=kinds(state.get("brief"))) and t not in summary.rate_columns(df, state):
                     m.append({"label": f"Total {t}", "value": f"{c}{_fmt(x.sum())}", "note": ""})
                 m.append({"label": f"Average {t}", "value": f"{c}{_fmt(x.mean())}", "note": f"median {c}{_fmt(x.median())}"})
+    from . import summary
+    m += summary.profit_figures(state, df)
     d = plan.get("date_col")
     if d and d in df.columns and pd.api.types.is_datetime64_any_dtype(df[d]) and df[d].notna().any():
         m.append({"label": "Period covered", "value": f"{df[d].min():%d %b %Y} – {df[d].max():%d %b %Y}", "note": f"{(df[d].max() - df[d].min()).days:,} days"})

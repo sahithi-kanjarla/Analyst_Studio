@@ -277,7 +277,7 @@ def merge_strategies(state: dict) -> dict:
 # ------------------------------------------------------------------ key numbers
 def key_numbers(state: dict, df=None) -> list[dict]:
     """Total of every additive KPI (written in full), every ratio KPI as a ratio of sums, and the period. Computed from the cleaned data when it is given; otherwise from the existing key metrics."""
-    existing = [m for m in state.get("key_metrics") or [] if m["label"].startswith(("Total ", "Period")) or "(total " in m["label"]]
+    existing = [m for m in state.get("key_metrics") or [] if m["label"].startswith(("Total ", "Gross ", "Period")) or "(total " in m["label"]]
     if df is None:
         return existing
     import pandas as pd
@@ -292,6 +292,7 @@ def key_numbers(state: dict, df=None) -> list[dict]:
         r = ratio_of_sums(df, spec)
         if r is not None:
             out.append({"label": f"{name} (total {spec['a']} over total {spec['b']})", "value": summary._ratio_text(r, r), "note": ""})
+    out += summary.profit_figures(state, df)
     per = next((m for m in existing if m["label"].startswith("Period")), None)
     return out + ([per] if per else [])
 

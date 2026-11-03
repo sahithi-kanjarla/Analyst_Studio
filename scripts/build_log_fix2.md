@@ -7,7 +7,7 @@ Findings of review runs on a clean bakery file (900 rows, one row per order). Ru
 | Fix | State |
 |---|---|
 | A. Order key detection | done |
-| B. Key figures (no sum of a rate; gross profit and margin by code) | left to do |
+| B. Key figures (no sum of a rate; gross profit and margin by code) | done |
 | C. Partial periods | left to do |
 | D. Derived columns, one-to-one categories | left to do |
 | E. Display names | left to do |
@@ -27,3 +27,11 @@ Findings of review runs on a clean bakery file (900 rows, one row per order). Ru
 
 - `grain.decide`: with no AI answer, a name-matched candidate that `verify` finds unique per row now gives verdict `order_grain` (source "name"), so no question is asked and nothing is blanked. The question is still asked when the candidates repeat, or when the AI and the data disagree.
 - Tests (`tests/test_order_key.py`): unique key asks nothing (bakery), repeated key still asks (handicrafts), pipeline on the bakery does not pause on the question. 8 passed.
+
+## Fix B: key figures (done)
+
+- New `derived_cols.py`: finds columns that are exact products or sums of two others from the values (tolerance = a rounding error). Also reused by D and F.
+- A rate is a column the brief or record labels a rate, or one the data shows as the per-unit factor of a product whose other factor is a count (`per_unit_factors`). `summary.rate_columns` collects them; `kpi_measures` and `insights.key_metrics` no longer sum them (an average is still shown).
+- `summary.profit_figures`: when a revenue-like and a cost-like additive column exist (record labels first, name words only as a fallback, `measures.COST_WORDS` / `REVENUE_WORDS`), shows Gross profit = revenue - cost and Gross margin = profit / revenue, on the rows that have both. Added to `key_metrics` and `tiering.key_numbers`.
+- A ratio of revenue over cost is dropped from the key figures when gross margin is shown.
+- Tests: `tests/test_key_figures.py` (5). Related files re-run: ratio_measures, summary_answers, report_tiers, main_view, context_insights, report_consistency, scorecard_gaps: 77 passed.
