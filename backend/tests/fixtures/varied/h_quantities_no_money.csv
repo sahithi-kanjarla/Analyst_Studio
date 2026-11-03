@@ -1,0 +1,281 @@
+order_id,order_date,product,warehouse,quantity,returned_qty,status
+70001,2024-07-31,Silk Scarf,Gurgaon,7,0,delivered
+70002,2024-09-04,Silk Scarf,Gurgaon,25,2,delivered
+70003,2024-07-10,Running Shoes,Hosur,3,0,delivered
+70004,2024-06-07,Running Shoes,Gurgaon,11,2,cancelled
+70005,2024-06-03,Silk Scarf,Bhiwandi,16,0,delivered
+70006,2024-07-13,Silk Scarf,Bhiwandi,15,0,delivered
+70007,2024-09-07,Silk Scarf,Bhiwandi,30,0,delivered
+70008,2024-06-13,Yoga Mat,Gurgaon,13,0,shipped
+70009,2024-09-10,Running Shoes,Bhiwandi,23,1,delivered
+70010,2024-06-07,Wireless Earbuds,Gurgaon,17,2,shipped
+70011,2024-09-24,Leather Wallet,Hosur,2,0,delivered
+70012,2024-07-22,Silk Scarf,Bhiwandi,25,0,shipped
+70013,2024-08-11,Steel Bottle,Bhiwandi,4,2,cancelled
+70014,2024-09-07,Desk Lamp,Gurgaon,27,0,cancelled
+70015,2024-06-17,Backpack,Hosur,30,1,shipped
+70016,2024-09-26,Cotton Kurta,Bhiwandi,19,1,delivered
+70017,2024-08-23,Silk Scarf,Gurgaon,6,2,delivered
+70018,2024-07-11,Yoga Mat,Hosur,5,1,shipped
+70019,2024-08-19,Silk Scarf,Bhiwandi,23,2,delivered
+70020,2024-06-22,Leather Wallet,Gurgaon,15,0,delivered
+70021,2024-09-29,Backpack,Gurgaon,2,0,delivered
+70022,2024-06-30,Steel Bottle,Hosur,17,2,delivered
+70023,2024-09-07,Steel Bottle,Bhiwandi,17,0,delivered
+70024,2024-06-16,Cotton Kurta,Hosur,11,2,shipped
+70025,2024-06-06,Denim Jacket,Hosur,1,0,cancelled
+70026,2024-06-25,Desk Lamp,Gurgaon,4,0,shipped
+70027,2024-08-29,Cotton Kurta,Hosur,9,0,delivered
+70028,2024-07-28,Cotton Kurta,Hosur,14,0,delivered
+70029,2024-08-29,Leather Wallet,Bhiwandi,4,1,shipped
+70030,2024-09-23,Backpack,Gurgaon,21,0,cancelled
+70031,2024-07-28,Silk Scarf,Gurgaon,28,2,cancelled
+70032,2024-09-19,Wireless Earbuds,Hosur,6,0,cancelled
+70033,2024-08-18,Yoga Mat,Hosur,23,0,cancelled
+70034,2024-06-23,Cotton Kurta,Bhiwandi,8,0,delivered
+70035,2024-06-07,Backpack,Gurgaon,12,2,delivered
+70036,2024-07-29,Backpack,Hosur,3,0,delivered
+70037,2024-08-31,Yoga Mat,Hosur,28,0,delivered
+70038,2024-07-01,Backpack,Bhiwandi,9,0,shipped
+70039,2024-07-31,Desk Lamp,Gurgaon,9,0,delivered
+70040,2024-07-23,Steel Bottle,Bhiwandi,2,0,delivered
+70041,2024-09-26,Running Shoes,Bhiwandi,25,1,delivered
+70042,2024-07-04,Desk Lamp,Gurgaon,30,2,delivered
+70043,2024-08-27,Running Shoes,Gurgaon,21,0,delivered
+70044,2024-09-25,Running Shoes,Hosur,15,2,delivered
+70045,2024-06-10,Silk Scarf,Bhiwandi,6,1,shipped
+70046,2024-06-04,Yoga Mat,Bhiwandi,12,0,delivered
+70047,2024-08-04,Steel Bottle,Hosur,8,0,cancelled
+70048,2024-06-21,Denim Jacket,Bhiwandi,7,2,delivered
+70049,2024-09-04,Wireless Earbuds,Hosur,25,0,delivered
+70050,2024-09-11,Desk Lamp,Hosur,19,2,delivered
+70051,2024-07-26,Cotton Kurta,Hosur,22,2,cancelled
+70052,2024-08-12,Yoga Mat,Hosur,16,1,delivered
+70053,2024-07-09,Cotton Kurta,Hosur,17,2,delivered
+70054,2024-07-02,Denim Jacket,Hosur,13,1,delivered
+70055,2024-08-02,Steel Bottle,Gurgaon,9,0,delivered
+70056,2024-06-02,Cotton Kurta,Gurgaon,8,1,shipped
+70057,2024-08-13,Desk Lamp,Hosur,30,0,shipped
+70058,2024-09-05,Wireless Earbuds,Hosur,28,1,cancelled
+70059,2024-09-16,Leather Wallet,Bhiwandi,4,0,cancelled
+70060,2024-07-31,Silk Scarf,Bhiwandi,4,1,cancelled
+70061,2024-06-07,Denim Jacket,Hosur,15,0,delivered
+70062,2024-09-07,Yoga Mat,Hosur,27,2,delivered
+70063,2024-09-12,Backpack,Gurgaon,27,0,delivered
+70064,2024-06-21,Running Shoes,Hosur,4,1,delivered
+70065,2024-06-21,Running Shoes,Bhiwandi,29,0,shipped
+70066,2024-09-02,Cotton Kurta,Hosur,19,0,delivered
+70067,2024-06-16,Leather Wallet,Bhiwandi,26,0,delivered
+70068,2024-06-25,Steel Bottle,Gurgaon,15,0,delivered
+70069,2024-08-05,Running Shoes,Hosur,28,1,delivered
+70070,2024-06-20,Denim Jacket,Bhiwandi,3,2,delivered
+70071,2024-07-26,Desk Lamp,Gurgaon,2,0,delivered
+70072,2024-09-11,Steel Bottle,Hosur,9,2,delivered
+70073,2024-06-06,Leather Wallet,Bhiwandi,8,0,delivered
+70074,2024-07-08,Running Shoes,Gurgaon,24,0,delivered
+70075,2024-09-28,Steel Bottle,Gurgaon,20,1,delivered
+70076,2024-09-08,Backpack,Hosur,18,0,delivered
+70077,2024-09-13,Running Shoes,Gurgaon,29,0,shipped
+70078,2024-08-27,Backpack,Hosur,29,0,delivered
+70079,2024-08-13,Running Shoes,Gurgaon,26,1,delivered
+70080,2024-08-15,Leather Wallet,Hosur,19,0,shipped
+70081,2024-09-06,Cotton Kurta,Bhiwandi,22,0,delivered
+70082,2024-06-10,Desk Lamp,Bhiwandi,21,0,cancelled
+70083,2024-07-26,Cotton Kurta,Gurgaon,21,0,cancelled
+70084,2024-06-26,Yoga Mat,Hosur,7,0,shipped
+70085,2024-09-08,Silk Scarf,Hosur,19,0,delivered
+70086,2024-06-02,Silk Scarf,Bhiwandi,11,0,shipped
+70087,2024-06-18,Silk Scarf,Hosur,6,2,delivered
+70088,2024-09-15,Backpack,Hosur,30,0,cancelled
+70089,2024-07-26,Desk Lamp,Bhiwandi,22,1,cancelled
+70090,2024-09-27,Desk Lamp,Bhiwandi,23,0,shipped
+70091,2024-09-19,Silk Scarf,Hosur,20,0,cancelled
+70092,2024-08-02,Wireless Earbuds,Hosur,12,2,delivered
+70093,2024-06-06,Yoga Mat,Bhiwandi,27,0,delivered
+70094,2024-08-29,Leather Wallet,Gurgaon,21,2,cancelled
+70095,2024-08-11,Denim Jacket,Gurgaon,16,0,delivered
+70096,2024-09-29,Denim Jacket,Hosur,23,0,shipped
+70097,2024-09-01,Steel Bottle,Hosur,15,0,delivered
+70098,2024-08-22,Silk Scarf,Hosur,29,2,delivered
+70099,2024-07-21,Desk Lamp,Hosur,9,0,delivered
+70100,2024-07-20,Running Shoes,Bhiwandi,9,1,delivered
+70101,2024-09-10,Desk Lamp,Gurgaon,25,0,cancelled
+70102,2024-07-28,Silk Scarf,Gurgaon,17,0,delivered
+70103,2024-07-18,Leather Wallet,Hosur,3,1,shipped
+70104,2024-07-04,Desk Lamp,Hosur,26,0,cancelled
+70105,2024-09-19,Silk Scarf,Gurgaon,29,1,delivered
+70106,2024-07-02,Yoga Mat,Bhiwandi,21,1,delivered
+70107,2024-09-25,Yoga Mat,Bhiwandi,20,1,delivered
+70108,2024-07-05,Running Shoes,Bhiwandi,19,0,shipped
+70109,2024-09-08,Backpack,Gurgaon,7,1,delivered
+70110,2024-07-02,Cotton Kurta,Bhiwandi,16,2,cancelled
+70111,2024-06-19,Cotton Kurta,Bhiwandi,2,0,delivered
+70112,2024-09-23,Steel Bottle,Hosur,17,0,delivered
+70113,2024-08-17,Running Shoes,Bhiwandi,7,2,delivered
+70114,2024-09-03,Denim Jacket,Gurgaon,12,0,delivered
+70115,2024-08-20,Steel Bottle,Gurgaon,7,0,cancelled
+70116,2024-07-22,Running Shoes,Hosur,7,1,delivered
+70117,2024-06-25,Desk Lamp,Hosur,21,2,cancelled
+70118,2024-07-12,Steel Bottle,Hosur,2,0,shipped
+70119,2024-07-01,Yoga Mat,Bhiwandi,27,0,delivered
+70120,2024-07-18,Yoga Mat,Hosur,16,0,cancelled
+70121,2024-06-02,Leather Wallet,Bhiwandi,9,0,shipped
+70122,2024-06-19,Cotton Kurta,Gurgaon,26,0,shipped
+70123,2024-07-03,Running Shoes,Bhiwandi,9,0,shipped
+70124,2024-08-18,Yoga Mat,Gurgaon,1,0,cancelled
+70125,2024-09-26,Desk Lamp,Bhiwandi,5,0,shipped
+70126,2024-07-26,Wireless Earbuds,Gurgaon,22,0,cancelled
+70127,2024-06-25,Leather Wallet,Hosur,10,0,shipped
+70128,2024-09-26,Running Shoes,Hosur,1,0,shipped
+70129,2024-08-02,Leather Wallet,Hosur,13,0,delivered
+70130,2024-08-04,Leather Wallet,Hosur,3,2,delivered
+70131,2024-08-06,Yoga Mat,Hosur,7,1,delivered
+70132,2024-08-24,Backpack,Hosur,9,0,cancelled
+70133,2024-09-27,Silk Scarf,Bhiwandi,13,1,delivered
+70134,2024-08-18,Running Shoes,Gurgaon,24,0,shipped
+70135,2024-08-11,Desk Lamp,Hosur,5,0,delivered
+70136,2024-06-30,Desk Lamp,Gurgaon,12,0,delivered
+70137,2024-06-09,Leather Wallet,Hosur,13,0,delivered
+70138,2024-09-28,Silk Scarf,Hosur,13,0,delivered
+70139,2024-08-20,Desk Lamp,Hosur,28,1,delivered
+70140,2024-09-07,Steel Bottle,Hosur,25,0,cancelled
+70141,2024-06-27,Steel Bottle,Gurgaon,3,1,shipped
+70142,2024-08-29,Wireless Earbuds,Bhiwandi,15,0,cancelled
+70143,2024-08-28,Leather Wallet,Bhiwandi,14,2,delivered
+70144,2024-09-07,Denim Jacket,Gurgaon,14,1,delivered
+70145,2024-08-02,Steel Bottle,Bhiwandi,5,1,cancelled
+70146,2024-09-02,Denim Jacket,Hosur,8,1,cancelled
+70147,2024-06-02,Leather Wallet,Bhiwandi,20,0,delivered
+70148,2024-06-12,Yoga Mat,Hosur,30,1,delivered
+70149,2024-09-01,Cotton Kurta,Bhiwandi,6,2,delivered
+70150,2024-09-05,Silk Scarf,Bhiwandi,1,0,delivered
+70151,2024-07-11,Desk Lamp,Hosur,26,2,delivered
+70152,2024-06-19,Silk Scarf,Bhiwandi,22,0,cancelled
+70153,2024-06-02,Leather Wallet,Gurgaon,22,2,delivered
+70154,2024-06-17,Leather Wallet,Bhiwandi,25,0,shipped
+70155,2024-08-07,Backpack,Gurgaon,22,1,delivered
+70156,2024-06-10,Backpack,Gurgaon,12,1,cancelled
+70157,2024-08-02,Backpack,Gurgaon,2,0,shipped
+70158,2024-06-15,Cotton Kurta,Gurgaon,24,0,shipped
+70159,2024-09-21,Desk Lamp,Bhiwandi,3,0,cancelled
+70160,2024-07-18,Wireless Earbuds,Gurgaon,4,0,delivered
+70161,2024-07-01,Backpack,Gurgaon,8,0,cancelled
+70162,2024-06-25,Running Shoes,Gurgaon,28,0,shipped
+70163,2024-08-13,Denim Jacket,Gurgaon,27,1,cancelled
+70164,2024-06-20,Leather Wallet,Bhiwandi,1,0,shipped
+70165,2024-06-21,Leather Wallet,Hosur,1,0,delivered
+70166,2024-09-04,Leather Wallet,Hosur,29,0,delivered
+70167,2024-09-22,Desk Lamp,Gurgaon,29,2,shipped
+70168,2024-06-03,Desk Lamp,Hosur,23,2,cancelled
+70169,2024-08-03,Denim Jacket,Hosur,28,0,shipped
+70170,2024-07-19,Running Shoes,Gurgaon,24,0,shipped
+70171,2024-06-19,Cotton Kurta,Gurgaon,3,2,delivered
+70172,2024-09-13,Wireless Earbuds,Gurgaon,24,2,delivered
+70173,2024-07-12,Yoga Mat,Gurgaon,21,0,delivered
+70174,2024-09-08,Yoga Mat,Hosur,23,1,shipped
+70175,2024-09-21,Backpack,Hosur,25,2,cancelled
+70176,2024-07-21,Wireless Earbuds,Gurgaon,21,2,delivered
+70177,2024-09-12,Silk Scarf,Hosur,4,1,delivered
+70178,2024-08-19,Denim Jacket,Gurgaon,2,0,shipped
+70179,2024-07-22,Leather Wallet,Hosur,7,2,delivered
+70180,2024-08-01,Steel Bottle,Bhiwandi,28,0,cancelled
+70181,2024-06-07,Desk Lamp,Gurgaon,21,0,cancelled
+70182,2024-07-04,Leather Wallet,Gurgaon,10,1,delivered
+70183,2024-08-03,Steel Bottle,Hosur,4,0,shipped
+70184,2024-06-09,Denim Jacket,Gurgaon,4,0,shipped
+70185,2024-07-01,Leather Wallet,Bhiwandi,26,0,delivered
+70186,2024-06-08,Silk Scarf,Bhiwandi,23,2,delivered
+70187,2024-07-23,Silk Scarf,Bhiwandi,7,0,delivered
+70188,2024-07-22,Leather Wallet,Hosur,11,2,delivered
+70189,2024-09-09,Leather Wallet,Gurgaon,21,1,delivered
+70190,2024-08-12,Running Shoes,Gurgaon,10,1,shipped
+70191,2024-06-13,Leather Wallet,Bhiwandi,6,0,shipped
+70192,2024-06-01,Backpack,Hosur,2,0,delivered
+70193,2024-06-10,Desk Lamp,Gurgaon,14,0,delivered
+70194,2024-08-19,Running Shoes,Gurgaon,25,0,delivered
+70195,2024-07-23,Backpack,Gurgaon,23,0,delivered
+70196,2024-09-16,Cotton Kurta,Bhiwandi,10,0,shipped
+70197,2024-06-17,Desk Lamp,Hosur,11,1,shipped
+70198,2024-06-30,Yoga Mat,Gurgaon,11,0,delivered
+70199,2024-09-21,Steel Bottle,Gurgaon,27,1,shipped
+70200,2024-07-06,Denim Jacket,Hosur,22,1,delivered
+70201,2024-08-12,Backpack,Bhiwandi,14,2,delivered
+70202,2024-08-10,Backpack,Bhiwandi,25,0,delivered
+70203,2024-07-25,Steel Bottle,Hosur,10,1,delivered
+70204,2024-08-15,Backpack,Gurgaon,23,0,delivered
+70205,2024-08-08,Desk Lamp,Gurgaon,3,0,cancelled
+70206,2024-09-05,Yoga Mat,Hosur,21,0,delivered
+70207,2024-08-30,Denim Jacket,Hosur,23,0,cancelled
+70208,2024-08-31,Silk Scarf,Hosur,17,0,cancelled
+70209,2024-06-24,Yoga Mat,Gurgaon,22,1,cancelled
+70210,2024-07-31,Leather Wallet,Bhiwandi,18,0,cancelled
+70211,2024-08-15,Running Shoes,Gurgaon,2,0,delivered
+70212,2024-06-02,Running Shoes,Hosur,5,1,delivered
+70213,2024-08-14,Backpack,Gurgaon,24,1,shipped
+70214,2024-07-29,Steel Bottle,Bhiwandi,8,0,delivered
+70215,2024-09-09,Leather Wallet,Hosur,19,2,shipped
+70216,2024-07-15,Backpack,Hosur,20,0,delivered
+70217,2024-08-20,Wireless Earbuds,Gurgaon,10,0,shipped
+70218,2024-07-09,Desk Lamp,Bhiwandi,20,0,delivered
+70219,2024-06-21,Yoga Mat,Bhiwandi,3,1,shipped
+70220,2024-09-01,Silk Scarf,Hosur,9,0,cancelled
+70221,2024-09-11,Cotton Kurta,Bhiwandi,13,1,delivered
+70222,2024-09-26,Wireless Earbuds,Hosur,6,0,delivered
+70223,2024-07-25,Desk Lamp,Hosur,18,0,shipped
+70224,2024-08-18,Denim Jacket,Bhiwandi,26,0,cancelled
+70225,2024-09-04,Yoga Mat,Gurgaon,29,0,delivered
+70226,2024-06-30,Denim Jacket,Gurgaon,8,0,delivered
+70227,2024-07-02,Wireless Earbuds,Gurgaon,8,1,cancelled
+70228,2024-06-09,Cotton Kurta,Bhiwandi,30,0,delivered
+70229,2024-06-05,Silk Scarf,Hosur,5,0,delivered
+70230,2024-06-28,Silk Scarf,Gurgaon,7,0,delivered
+70231,2024-09-22,Desk Lamp,Gurgaon,4,1,cancelled
+70232,2024-07-24,Backpack,Bhiwandi,4,0,cancelled
+70233,2024-06-06,Backpack,Hosur,22,0,delivered
+70234,2024-09-22,Yoga Mat,Bhiwandi,24,0,delivered
+70235,2024-06-06,Cotton Kurta,Hosur,28,0,delivered
+70236,2024-07-06,Running Shoes,Bhiwandi,10,0,delivered
+70237,2024-07-18,Yoga Mat,Gurgaon,1,0,shipped
+70238,2024-08-08,Leather Wallet,Hosur,17,0,delivered
+70239,2024-07-17,Silk Scarf,Bhiwandi,11,0,delivered
+70240,2024-08-18,Backpack,Bhiwandi,24,1,shipped
+70241,2024-08-29,Leather Wallet,Hosur,30,2,delivered
+70242,2024-06-03,Running Shoes,Gurgaon,10,1,cancelled
+70243,2024-07-07,Desk Lamp,Hosur,19,0,shipped
+70244,2024-07-06,Desk Lamp,Bhiwandi,5,0,shipped
+70245,2024-09-05,Cotton Kurta,Gurgaon,23,0,cancelled
+70246,2024-08-19,Leather Wallet,Gurgaon,7,0,delivered
+70247,2024-07-01,Denim Jacket,Hosur,18,0,delivered
+70248,2024-07-19,Desk Lamp,Bhiwandi,23,0,delivered
+70249,2024-08-30,Denim Jacket,Hosur,27,1,delivered
+70250,2024-06-20,Yoga Mat,Hosur,25,2,delivered
+70251,2024-06-24,Desk Lamp,Gurgaon,14,2,delivered
+70252,2024-06-19,Running Shoes,Bhiwandi,28,2,delivered
+70253,2024-07-21,Desk Lamp,Hosur,16,0,cancelled
+70254,2024-09-21,Steel Bottle,Hosur,20,0,shipped
+70255,2024-08-25,Denim Jacket,Gurgaon,6,1,shipped
+70256,2024-09-03,Cotton Kurta,Hosur,19,0,cancelled
+70257,2024-08-19,Desk Lamp,Gurgaon,27,0,shipped
+70258,2024-08-04,Silk Scarf,Bhiwandi,3,1,shipped
+70259,2024-08-04,Running Shoes,Gurgaon,30,0,shipped
+70260,2024-06-19,Silk Scarf,Gurgaon,2,0,cancelled
+70261,2024-08-04,Silk Scarf,Bhiwandi,30,2,delivered
+70262,2024-09-12,Cotton Kurta,Bhiwandi,28,2,delivered
+70263,2024-07-09,Wireless Earbuds,Gurgaon,27,1,shipped
+70264,2024-06-18,Steel Bottle,Bhiwandi,5,0,cancelled
+70265,2024-09-18,Leather Wallet,Bhiwandi,20,2,cancelled
+70266,2024-09-21,Steel Bottle,Bhiwandi,11,1,shipped
+70267,2024-07-28,Denim Jacket,Gurgaon,25,1,shipped
+70268,2024-08-05,Backpack,Bhiwandi,5,0,delivered
+70269,2024-08-01,Leather Wallet,Bhiwandi,3,0,delivered
+70270,2024-06-03,Backpack,Gurgaon,18,1,shipped
+70271,2024-07-31,Denim Jacket,Bhiwandi,28,2,shipped
+70272,2024-08-11,Running Shoes,Gurgaon,5,1,cancelled
+70273,2024-09-13,Yoga Mat,Hosur,21,1,delivered
+70274,2024-07-04,Backpack,Bhiwandi,11,1,delivered
+70275,2024-06-21,Desk Lamp,Hosur,15,0,shipped
+70276,2024-06-17,Cotton Kurta,Gurgaon,15,1,cancelled
+70277,2024-06-30,Cotton Kurta,Gurgaon,12,2,shipped
+70278,2024-08-27,Leather Wallet,Hosur,6,2,delivered
+70279,2024-06-17,Running Shoes,Bhiwandi,21,2,delivered
+70280,2024-08-24,Cotton Kurta,Bhiwandi,21,2,shipped

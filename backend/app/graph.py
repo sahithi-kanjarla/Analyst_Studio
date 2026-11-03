@@ -150,6 +150,7 @@ def profile_node(state: RunState) -> dict:
             while name in tables:
                 name, n = f"{base}_{n}", n + 1
             tables[name] = df
+    load_log = [{**s, "step": (f"[{name}] " if len(tables) > 1 else "") + s["step"]} for name, df in tables.items() for s in (df.attrs.get("load_notes") or [])]          # what was changed while reading the files
 
     if len(tables) == 1:
         df = next(iter(tables.values()))
@@ -159,7 +160,7 @@ def profile_node(state: RunState) -> dict:
         for c in prof["columns"]:
             counts[c["role"]] = counts.get(c["role"], 0) + 1
         emit(rid, "Profiler", f"{prof['rows']:,} rows × {prof['cols']} columns, {prof['duplicates']} duplicate rows. Column types found: " + ", ".join(f"{v} {k}" for k, v in counts.items()), roles=counts)
-        return {"profile": prof, "tables": []}
+        return {"profile": prof, "tables": [], "pre_clean_log": load_log}
 
     profs, meta = {}, []
     for name, df in tables.items():
@@ -167,7 +168,7 @@ def profile_node(state: RunState) -> dict:
         profs[name] = profile_df(df)
         meta.append({"name": name, "rows": int(len(df)), "cols": int(df.shape[1])})
     emit(rid, "Profiler", f"Found {len(tables)} tables: " + ", ".join(f"{m['name']} ({m['rows']:,} × {m['cols']})" for m in meta))
-    return {"tables": meta, "table_profiles": profs}
+    return {"tables": meta, "table_profiles": profs, "pre_clean_log": load_log}
 
 
 def _answers_for(state, qs: list[dict]) -> dict:
@@ -223,7 +224,7 @@ def relate_node(state: RunState) -> dict:
     llm, _ = get_llm()
     emit(rid, "Joiner", "Working out how the tables connect (key columns, value overlap)…")
 
-    typed, profiles, pre_log = {}, {}, []
+    typed, profiles, pre_log = {}, {}, list(state.get("pre_clean_log") or [])
     for m in state["tables"]:
         name = m["name"]
         df = pd.read_pickle(wd / f"tbl_{name}.pkl")

@@ -21,6 +21,7 @@ from scipy import stats
 from . import derived, wording
 from .measures import measure_kind
 from .config import CHART_DPI
+from .profiler import safe_skew
 
 # The first colour is the app accent (the highlight); other bars are a neutral warm grey, so the highlight is the one colour that stands out.
 PALETTE = ["#A4461F", "#6B675E", "#9A9486", "#8D887C", "#B8B1A3", "#7A4C0C", "#2D6A3E", "#D4CEC2"]
@@ -302,7 +303,8 @@ def distribution(df, ctx, col):
     x = pd.to_numeric(df[col], errors="coerce").dropna()
     if len(x) < 5:
         return None
-    skew = float(x.skew())
+    skew_v = safe_skew(x)                       # None for a constant column, whatever the pandas version says
+    skew = skew_v if skew_v is not None else 0.0     # only for the wording and the log-axis rule below
     q1, q3, q99 = (float(v) for v in x.quantile([0.25, 0.75, 0.99]))
     median = float(x.median())
     log_axis = bool(skew > 5 and x.min() > 0 and q99 > 20 * median)           # extreme right skew: a log axis shows every value
@@ -331,7 +333,7 @@ def distribution(df, ctx, col):
             + (f" The chart is cut at the 99th percentile ({beyond:,} larger value{'s' if beyond != 1 else ''} not shown); the statistics use every value." if clipped else "")
             + (" The chart uses a log scale because of the extreme skew." if log_axis else ""))
     return finding("distribution", f"Distribution of {col}", text,
-                   {"n": int(len(x)), "mean": _f(x.mean()), "median": _f(median), "std": _f(x.std()), "skew": _f(skew), "q1": _f(q1), "q3": _f(q3),
+                   {"n": int(len(x)), "mean": _f(x.mean()), "median": _f(median), "std": _f(x.std()), "skew": _f(skew_v), "q1": _f(q1), "q3": _f(q3),
                     "p99": _f(q99), "beyond_p99": beyond if clipped else 0, "clipped": clipped, "log_axis": log_axis},
                    _save(fig, ctx, _slug("dist", col)))
 
@@ -447,7 +449,7 @@ def group_compare(df, ctx, target, group, within=None, within_value=None):
         st["positive"] = str(pos)
         st["overall_rate"] = _f(d["y"].mean())
     else:
-        st["target_skew"] = _f(d["y"].skew())
+        st["target_skew"] = _f(safe_skew(d["y"]))
         st["ratio_of_sums"] = spec is not None
         if spec is None and additive(target, ctx) and (d["y"] >= 0).all() and d["y"].sum() > 0:      # each shown group's share of the total, for the "so what" of an average comparison
             sums = d.groupby("g")["y"].sum()

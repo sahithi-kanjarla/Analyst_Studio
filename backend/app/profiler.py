@@ -9,10 +9,30 @@ import numpy as np
 import pandas as pd
 
 NA_TOKENS = {"", "na", "n/a", "nan", "null", "none", "-", "--", "?", "missing", "undefined", "#n/a"}
-ID_NAME = re.compile(r"(?i:(^|[_\s\-])(id|uuid|guid|index)$|^(id|uuid)[_\s\-])|[a-z]Id$")      # the camelCase form is case-sensitive: customerId yes, Paid / Void / Android no
+ID_NAME = re.compile(r"(?i:(^|[_\s\-])(id|uuid|guid|index)$|^(id|uuid)[_\s\-]|(^|[_\s\-])(no|num|nr|number)\.?$)|[a-z]Id$")      # the camelCase form is case-sensitive: customerId yes, Paid / Void / Android no
 CODE_SHARE = 0.05      # an integer column with at least this many distinct values per row, and no declared kind, is a code
 CODE_MIN_UNIQUE = 50
 CODE_FILL = 0.5      # share of the min..max range the distinct values occupy; below it the integers are labels, not quantities
+
+
+CONTACT_NAME = re.compile(r"(?i)\b(?:phone|mobile|mob|contact|tel|telephone|whatsapp|cell|fax|aadhaar|aadhar)\b|(?:phone|mobile)(?:_?no|_?number)?$")
+SCI_ID = re.compile(r"^\s*\d(?:\.\d+)?[eE]\+?\d{6,}\s*$")      # 2.90285E+11: a long number a spreadsheet wrote in scientific notation
+
+
+def sci_id_like(s: pd.Series) -> bool:
+    """Most values are written in scientific notation with a large exponent: a long order or account number that a spreadsheet shortened, not a quantity."""
+    t = s.dropna()
+    return len(t) > 0 and t.map(lambda v: isinstance(v, str) and bool(SCI_ID.match(v))).mean() >= 0.8
+
+
+def digit_code_like(name: str, nn: pd.Series) -> bool:
+    """Whole numbers of eight or more digits, nearly all with the same number of digits, nearly all different (phone numbers, account numbers), or a column named like a contact detail: labels, never amounts."""
+    if not len(nn) or not bool((nn % 1 == 0).all()):
+        return False
+    if CONTACT_NAME.search(name):
+        return True
+    digits = nn.abs().astype("int64").astype(str).str.len() if nn.abs().max() < 1e15 else None
+    return digits is not None and nn.min() > 0 and (digits >= 8).mean() >= 0.95 and digits.nunique() <= 2 and nn.nunique() >= 0.3 * len(nn) and len(nn) >= 20
 
 
 def id_like(name: str, s: pd.Series, rule_role: str | None = None, brief_role: str | None = None, kind: str = "other") -> bool:
@@ -81,29 +101,34 @@ def check_row_limit(df: pd.DataFrame, name: str, limit: int | None = None) -> No
 
 
 def load_table(path: str | Path) -> pd.DataFrame:
+    from . import tableio
     p = Path(path)
     ext = p.suffix.lower()
-    if ext in (".xlsx", ".xls"):
+    if ext in (".xlsx", ".xls", ".xlsm"):
+        tables = tableio.read_workbook(p)
+        if tables:
+            return next(iter(tables.values()))
         df = pd.read_excel(p)
     elif ext == ".json":
         df = pd.read_json(p)
     else:
-        df = pd.read_csv(p, sep=_sniff_sep(p), encoding_errors="replace")
+        return tableio.read_delimited(p.read_bytes(), p.name)
     return _tidy_headers(df)
 
 
 def load_tables(path: str | Path) -> dict[str, pd.DataFrame]:
-    """One file -> one table, except Excel workbooks with several non-empty sheets (one table per sheet)."""
+    """One file -> one table, except Excel workbooks with several sheets of records (one table per sheet; sheets of notes are left out)."""
+    from . import tableio
     p = Path(path)
-    if p.suffix.lower() in (".xlsx", ".xls"):
-        sheets = {k: v for k, v in pd.read_excel(p, sheet_name=None).items() if not v.dropna(how="all").empty}
+    if p.suffix.lower() in (".xlsx", ".xls", ".xlsm"):
+        sheets = tableio.read_workbook(p)
         if len(sheets) > 1:
             for k, v in sheets.items():
                 check_row_limit(v, f"{p.name} ({k})")
-            return {f"{p.stem}_{k}": _tidy_headers(v) for k, v in sheets.items()}
+            return {f"{p.stem}_{k}": v for k, v in sheets.items()}
         if len(sheets) == 1:
             check_row_limit(next(iter(sheets.values())), p.name)
-            return {p.stem: _tidy_headers(next(iter(sheets.values())))}
+            return {p.stem: next(iter(sheets.values()))}
     df = load_table(p)
     check_row_limit(df, p.name)
     return {p.stem: df}
@@ -134,19 +159,37 @@ def normalize_strings(df: pd.DataFrame, log: list[dict] | None = None) -> tuple[
 
 
 _CURRENCY = re.compile(r"(?i)\b(?:rs|inr|usd|eur|gbp|rupees?)\b\.?|[,$€£₹%\s]")
+_SUFFIX = {"k": 1e3, "thousand": 1e3, "l": 1e5, "lac": 1e5, "lacs": 1e5, "lakh": 1e5, "lakhs": 1e5, "cr": 1e7, "crore": 1e7, "crores": 1e7, "m": 1e6, "mn": 1e6, "mm": 1e6, "million": 1e6, "b": 1e9, "bn": 1e9, "billion": 1e9}
+_AMOUNT = re.compile(r"^(-?)\(?(-?\d+(?:\.\d+)?|\.\d+)\)?([a-z]+)?(-?)$", re.I)
+
+
+def parse_amounts(t: pd.Series) -> pd.Series:
+    """Amounts written for people: "₹1,25,000", "Rs. 12.5k", "1.25 lakh", "(500)" (negative), "2 cr", "3.4 million". Anything else gives NaN."""
+    plain = pd.to_numeric(t, errors="coerce")
+    left = plain.isna() & t.notna()
+    if not left.any():
+        return plain
+    m = t[left].astype(str).str.lower().str.extract(_AMOUNT)
+    mult = pd.to_numeric(m[2].map(lambda w: _SUFFIX.get(w, np.nan) if isinstance(w, str) else 1.0), errors="coerce").astype(float)
+    val = (pd.to_numeric(m[1], errors="coerce").astype(float) * mult).to_numpy(dtype=float)
+    neg = ((m[0] == "-") | (m[3] == "-") | t[left].astype(str).str.strip().str.startswith("(")).to_numpy(dtype=bool)
+    plain = plain.astype(float)
+    plain.loc[left] = np.where(neg, -val, val)
+    return plain
 
 
 def try_numeric(s: pd.Series, thresh: float = 0.9):
     if pd.api.types.is_numeric_dtype(s):
         return s
     t = s.astype("object").map(lambda v: _CURRENCY.sub("", v) if isinstance(v, str) else v)
-    out = pd.to_numeric(t, errors="coerce")
+    out = parse_amounts(t)
     nn = s.notna().sum()
     if nn and out.notna().sum() / nn >= thresh:
         return out
     return None
 
 
+_TZ_SUFFIX = re.compile(r"\s*(?:Z|UTC|GMT|[+-]\d{2}:?\d{2})\s*$", re.I)
 _DMY = re.compile(r"^\s*(\d{1,2})[/.\-](\d{1,2})[/.\-]\d{2,4}")
 _DMY_FULL = re.compile(r"^\s*(\d{1,2})[/.\-](\d{1,2})[/.\-](\d{2,4})\s*$")
 
@@ -165,12 +208,23 @@ def infer_date_order(values: pd.Series) -> tuple[bool | None, bool]:
     return True, True
 
 
+def date_order_conflict(values: pd.Series) -> tuple[int, int, int]:
+    """(values that can only be day-first, values that can only be month-first, values that fit both) among the d/m/y-style strings. Both of the first two present: the column mixes the two orders."""
+    m = values.astype(str).str.extract(_DMY).dropna().astype(int)
+    if m.empty:
+        return 0, 0, 0
+    day_first = int((m[0] > 12).sum())
+    month_first = int((m[1] > 12).sum())
+    return day_first, month_first, int(len(m) - day_first - month_first)
+
+
 def parse_dates(s: pd.Series, dayfirst: bool | None = None) -> pd.Series:
     """Parse every value on its own, so a column holding several formats is read correctly. Numeric d/m/y values follow `dayfirst` (inferred
     from the whole column when None, day-first by default); everything else (ISO, dd-Mon-yyyy, with or without a time) is unambiguous."""
     if dayfirst is None:
         dayfirst = infer_date_order(s.dropna())[0] is not False
-    txt = s.astype("object").map(lambda v: v.strip() if isinstance(v, str) else v)
+    # a UTC offset written after the time ("2024-03-05 14:22:10 +0530") says where the clock was, not another moment: the date and time are kept as written, so one column never mixes zones
+    txt = s.astype("object").map(lambda v: _TZ_SUFFIX.sub("", v.strip()) if isinstance(v, str) and re.search(r"\d:\d\d", v) else v.strip() if isinstance(v, str) else v)
     parts = txt.astype(str).str.extract(_DMY_FULL)
     num = parts[0].notna() & txt.notna()
     out = pd.Series(pd.NaT, index=s.index, dtype="datetime64[ns]")
@@ -179,6 +233,12 @@ def parse_dates(s: pd.Series, dayfirst: bool | None = None) -> pd.Series:
         y = y.where(y >= 100, y + np.where(y < 70, 2000, 1900))
         day, mon = (a, b) if dayfirst else (b, a)
         out.loc[num] = pd.to_datetime(pd.DataFrame({"year": y, "month": mon, "day": day}), errors="coerce")
+        bad = num & out.isna()                      # not a date in the chosen order (a 25 where the month goes): a value written the other way round, read that way
+        if bad.any():
+            a2, b2, y2 = (pd.to_numeric(parts.loc[bad, i]) for i in (0, 1, 2))
+            y2 = y2.where(y2 >= 100, y2 + np.where(y2 < 70, 2000, 1900))
+            d2, m2 = (b2, a2) if dayfirst else (a2, b2)
+            out.loc[bad] = pd.to_datetime(pd.DataFrame({"year": y2, "month": m2, "day": d2}), errors="coerce")
     rest = ~num & txt.notna()
     iso = rest & txt.astype(str).str.match(r"^\s*\d{4}[-/.]")      # year-first is never day/month ambiguous, and dayfirst would swap its month and day
     for mask, first in ((iso, False), (rest & ~iso, bool(dayfirst))):
@@ -213,6 +273,8 @@ ORDINAL_NAME = re.compile(r"rating|score|stars|satisf|grade|rank|nps|severity|pr
 
 def _numeric_role(name: str, nn: pd.Series) -> str:
     n, u = len(nn), nn.nunique()
+    if n and digit_code_like(name, nn):
+        return "id"
     if u == 2:
         return "binary"
     integer_valued = bool(np.all(np.mod(nn.values.astype(float), 1) == 0)) if n else False
@@ -239,7 +301,7 @@ def infer_column(s: pd.Series, name: str) -> tuple[str, str | None]:
         return _numeric_role(name, nn), None
     num = try_numeric(s)
     if num is not None:
-        return _numeric_role(name, num.dropna()), "numeric"
+        return ("id" if sci_id_like(s) else _numeric_role(name, num.dropna())), "numeric"
     dt = try_datetime(s)
     if dt is not None:
         return "date", "date"
@@ -253,6 +315,17 @@ def infer_column(s: pd.Series, name: str) -> tuple[str, str | None]:
     return "text", None
 
 
+def safe_skew(x: pd.Series) -> float | None:
+    """Skew of a series, or None where it does not exist: fewer than three values, or no spread at all (every value identical).
+    The zero-spread case is decided here by comparing min and max, never by what the library returns: pandas 2.x gives NaN for a constant column,
+    pandas 3.x gives 0.0, and a column of one repeated decimal (0.1 x 100) gets a bogus +-1.0 from rounding noise in the variance."""
+    x = pd.to_numeric(x, errors="coerce").dropna()
+    if len(x) < 3 or x.min() == x.max():
+        return None
+    v = float(x.skew())
+    return v if np.isfinite(v) else None
+
+
 def _col_stats(s: pd.Series, role: str, conv: str | None) -> dict:
     work = s
     if conv == "numeric":
@@ -264,10 +337,12 @@ def _col_stats(s: pd.Series, role: str, conv: str | None) -> dict:
         return {}
     if role in ("numeric", "binary", "categorical", "id") and pd.api.types.is_numeric_dtype(nn) and role != "id":
         try:
-            return {"min": float(nn.min()), "median": float(nn.median()), "mean": float(nn.mean()),
-                    "max": float(nn.max()), "std": float(nn.std() or 0), "skew": float(nn.skew() if len(nn) > 2 else 0)}
+            st = {"min": float(nn.min()), "median": float(nn.median()), "mean": float(nn.mean()),
+                  "max": float(nn.max()), "std": float(nn.std()), "skew": safe_skew(nn)}
         except (TypeError, ValueError):
             return {}
+        # A statistic that is not a real number is left out, never written as 0: one value has no spread, a constant column has no skew.
+        return {k: v for k, v in st.items() if v is not None and np.isfinite(v)}
     if role == "date":
         return {"min": str(nn.min())[:10], "max": str(nn.max())[:10]}
     if role in ("categorical", "binary"):
@@ -287,7 +362,12 @@ def profile_df(df: pd.DataFrame) -> dict:
             "unique": int(s.nunique(dropna=True)),
             "stats": _col_stats(s, role, conv),
         })
-    return {"rows": int(len(df)), "cols": int(df.shape[1]), "duplicates": int(df.duplicated().sum()), "columns": cols}
+    out = {"rows": int(len(df)), "cols": int(df.shape[1]), "duplicates": int(df.duplicated().sum()), "columns": cols}
+    from .grain import detect
+    g = detect(df, {c['name']: c['role'] for c in cols})
+    if g:
+        out["grain"] = g          # several rows per order: the order count is the number of different keys, not the number of rows
+    return out
 
 
 def compact_profile(profile: dict, limit: int = 80) -> list[dict]:

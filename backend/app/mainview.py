@@ -618,8 +618,10 @@ def tiles(state: dict, view: dict) -> list[tuple[str, str]]:
         return (0 if target and target in label else 1 if summary.mentions(label.replace("Total ", ""), goal) else 2)
     kpis = sorted(kpis, key=rank)
     loss = loss_tile(state, view)
-    first = kpis[:TILES_MAX - 2 - bool(loss)]
-    out = [(readable(state, m["label"]), m["value"]) for m in first[:1]] + ([loss] if loss else []) + [(readable(state, m["label"]), m["value"]) for m in first[1:]]
+    grain = (state.get("profile") or {}).get("grain")
+    first = kpis[:TILES_MAX - 2 - bool(loss) - bool(grain)]
+    order_tile = [(grain["label"], f"{grain['orders']:,}")] if grain else []          # several rows per order: the order count (by key), next to the first figure, never the row count
+    out = [(readable(state, m["label"]), m["value"]) for m in first[:1]] + order_tile + ([loss] if loss else []) + [(readable(state, m["label"]), m["value"]) for m in first[1:]]
     if period:
         out.append((period["label"], period["value"]))
     prof = state.get("profile") or {}

@@ -50,28 +50,28 @@ def test_clients_are_built_without_their_own_retries():
     assert llm_mod.MAX_RETRIES == 0       # the SDK default of 2 turned one 429 into three requests, and our retry doubled that
 
 
-def test_a_429_with_retry_after_waits_that_long_and_retries_three_times(sleeps):
+def test_a_429_with_retry_after_waits_that_long_and_retries_twice(sleeps):
     llm = Flaky(RateLimited(headers={"retry-after": "7"}))
     out, reason = llm_mod.ask_json_ex(llm, "s", "u")
     assert out is None and reason == "rate limit"
-    assert llm.requests == 4 and sleeps == [7.0, 7.0, 7.0]       # 1 request + 3 retries, nothing multiplied
+    assert llm.requests == 3 and sleeps == [7.0, 7.0]       # 1 request + 2 retries, nothing multiplied
 
 
 def test_a_429_without_retry_after_still_retries_with_a_default_wait(sleeps):
     llm = Flaky(RateLimited())
     out, reason = llm_mod.ask_json_ex(llm, "s", "u")
     assert out is None and reason == "rate limit"
-    assert llm.requests == 4 and sleeps == [llm_mod.RATE_LIMIT_BACKOFF_S] * 3
+    assert llm.requests == 3 and sleeps == [llm_mod.RATE_LIMIT_BACKOFF_S] * 2
 
 
 def test_retry_after_is_capped_at_60_seconds(sleeps):
     llm_mod.ask_json_ex(Flaky(RateLimited(headers={"retry-after": "900"})), "s", "u")
-    assert sleeps == [60, 60, 60]
+    assert sleeps == [60, 60]
 
 
 def test_retry_after_ms_is_understood(sleeps):
     llm_mod.ask_json_ex(Flaky(RateLimited(headers={"retry-after-ms": "2500"})), "s", "u")
-    assert sleeps == [2.5, 2.5, 2.5]
+    assert sleeps == [2.5, 2.5]
 
 
 def test_a_retry_that_succeeds_ends_the_waiting(sleeps):
@@ -124,7 +124,7 @@ def test_a_failed_call_is_not_cached(sleeps):
 def test_propose_does_not_ask_again_after_a_rate_limit(sleeps):
     llm = Flaky(RateLimited(headers={"retry-after": "1"}))
     out = propose(llm, "x", "s", "v", lambda o: (o, []), lambda: "rules")
-    assert out["source"] == "fallback" and out["value"] == "rules" and llm.requests == 4     # one ask with its 3 retries, no repair ask
+    assert out["source"] == "fallback" and out["value"] == "rules" and llm.requests == 3     # one ask with its 2 retries, no repair ask
 
 
 @pytest.mark.parametrize("error,header", [

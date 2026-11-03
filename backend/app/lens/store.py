@@ -31,6 +31,8 @@ def load(wd: Path) -> dict:
     d.setdefault("chips", {})
     d.setdefault("asked", 0)
     d.setdefault("views", {})
+    d.setdefault("view_edits", {})
+    d.setdefault("briefs", [])
     return d
 
 
@@ -120,3 +122,47 @@ def remove_view(wd: Path, name: str) -> bool:
         del d["views"][name]
         save(wd, d)
         return True
+
+
+def replace_turn(wd: Path, turn: dict) -> None:
+    """Saves a turn again after its answer was changed (for example a message replaced by the server)."""
+    with LOCK:
+        d = load(wd)
+        d["turns"] = [turn if t["id"] == turn["id"] else t for t in d["turns"]]
+        save(wd, d)
+
+
+def get_view_state(wd: Path) -> dict:
+    """The view edits saved with the run (hidden items, short views, order, titles, pins, and the history Undo uses)."""
+    return load(wd).get("view_edits") or {}
+
+
+def set_view_state(wd: Path, state: dict) -> None:
+    with LOCK:
+        d = load(wd)
+        d["view_edits"] = state
+        save(wd, d)
+
+
+def get_briefs(wd: Path) -> list[dict]:
+    return list(load(wd).get("briefs") or [])
+
+
+def put_briefs(wd: Path, briefs: list[dict]) -> None:
+    with LOCK:
+        d = load(wd)
+        d["briefs"] = briefs[-60:]
+        save(wd, d)
+
+
+def remember_chips(wd: Path, chips: list[dict]) -> None:
+    """Keeps the request each chip stands for, so that a chip offered earlier (or behind "More ideas") still runs when it is tapped."""
+    with LOCK:
+        d = load(wd)
+        changed = False
+        for c in chips:
+            if c["id"] not in d["chips"]:
+                d["chips"][c["id"]] = {k: c[k] for k in ("text", "query", "intent") if k in c}
+                changed = True
+        if changed:
+            save(wd, d)

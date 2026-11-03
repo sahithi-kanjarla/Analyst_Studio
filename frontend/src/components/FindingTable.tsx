@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Finding } from "../api";
+import { humanise } from "../display";
 
-const SHOWN = 10;
+const SHOWN = 6;
 
-/** A finding's table: ten rows, with a button to show all of them. */
+/** A finding's table: the first six rows, with a button to show all of them. */
 export default function FindingTable({ f }: { f: Finding }) {
   const [all, setAll] = useState(false);
   if (!f.table) return null;
@@ -14,7 +15,7 @@ export default function FindingTable({ f }: { f: Finding }) {
     <div className="tablewrap">
       <table className="table">
         <thead>
-          <tr>{f.table.columns.map((c) => <th key={c}>{c}</th>)}</tr>
+          <tr>{f.table.columns.map((c) => <th key={c}>{humanise(c)}</th>)}</tr>
         </thead>
         <tbody>
           {shown.map((r, i) => (
@@ -25,7 +26,7 @@ export default function FindingTable({ f }: { f: Finding }) {
       {total > SHOWN && (
         <p className="muted small">
           Showing {shown.length} of {total} rows.{" "}
-          <button className="link" onClick={() => setAll(!all)}>{all ? "Show top 10" : `Show all ${total}`}</button>
+          <button className="link" onClick={() => setAll(!all)}>{all ? `Show ${SHOWN}` : `Show all (${total})`}</button>
         </p>
       )}
     </div>

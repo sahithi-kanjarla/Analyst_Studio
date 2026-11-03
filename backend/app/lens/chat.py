@@ -12,50 +12,20 @@ from pathlib import Path
 import pandas as pd
 
 from .. import llm as llmmod
+from .. import viewedit
 from . import chips as chipmod
 from . import context as ctxmod
-from . import engine, howtext, reasoning, records, render, reports, rules, store
+from . import agent, engine, howtext, starters, reasoning, records, render, reports, rules, store, viewchat
 from . import max_questions
 from . import query as qmod
 
 MAX_AI_CALLS = 2
-REPORT_KINDS = ("app", "summary", "priority", "strategy", "general")      # answers about the report and the app, not calculations on the table
+REPORT_KINDS = ("app", "summary", "priority", "strategy", "general", "view")      # answers about the report and the app, not calculations on the table
 HISTORY_TO_AI = 6
 MAX_TABLE_ROWS = 60
 CHIP_MATCH = 0.95          # typed text runs a suggested question only when it is that question (same words, or a typo away): a near miss with another column name must not be answered with the wrong one
 DAILY_PAUSE_S = 600
 _DAILY = {"until": 0.0}        # a per-day AI limit stops every run's AI questions in this process for a while: waiting a minute will not help
-
-SYSTEM = """You are Lens, the part of a data report that answers questions. You never calculate and never write a number: you choose ONE action as JSON and code does everything else.
-Reply with exactly one of:
-{"action":"query","query":{...}}                    a question answered by calculating on the data
-{"action":"clarify","question":"<one short question>","choices":[{"label":"<2-4 words>","query":{...}},{"label":"...","query":{...}}]}   (2 or 3 choices, each a complete query)
-{"action":"unsupported","reason":"<one plain sentence, no numbers>"}
-{"action":"app","topic":"tab|trust|cleaning|definitions|understanding|goal|data_gaps|insights|strategies"}   about the app or the report itself ("what does this tab show?", "why is trust Medium?", "what did you clean?")
-{"action":"summary","length":"short|standard"}      "summarise" or "shorten" the report
-{"action":"priority","priority":"<what the user cares about, 1-4 words>","terms":["<up to 5 words or close synonyms a report would use for it>"]}   "what matters most for me?", "I care about returns" (terms empty if no priority is named)
-{"action":"strategy","focus":"<what to act on, 1-4 words, or empty>"}   "what should we do about X?"
-{"action":"general","answer":"<at most 3 short sentences, no numbers>"}   a question that is not about this data or report (how a term is defined, how something works in general)
-
-"action" is exactly one of those words (never an operation name). Example: {"action":"query","query":{"op":"top","measure":"<col>","agg":"sum","group_by":["<col>"],"n":3,"direction":"top"}}
-A query is one of these operations. Every "filters" entry looks like: """ + qmod.FILTER_HELP + """
-""" + "\n".join(f"- {h}" for h in qmod.OP_HELP.values()) + """
-"chart" is optional: auto|bar|line|stacked_bar|share|histogram|scatter|table. "n" is how many groups to show.
-
-Rules:
-- Use column names exactly as written in COLUMNS ("name"). Never invent a column or a value. Only "measure" columns can be added up or averaged; group by "category", "flag" or "id" columns only; time comes from "date" columns.
-- A value the user names (a city, a tier) goes in a filter or in "a"/"b" exactly as the user wrote it. Code finds the real value.
-- A follow-up ("and for Delhi?", "make it monthly", "as a line", "top 5") changes only what the user asked in the previous query (see PREVIOUS TURNS) and keeps the rest.
-- "last month", "this year" and similar mean the latest period in DATE SPANS, written as a period such as "2023-11" or "2023".
-- A "why" question ("why is X the top?"): return the "query" for the number being asked about (use the main measure when none is named; "revenue" means the money column). Never clarify a "why" question and never explain a cause yourself: code shows what is behind the number. If the question assumes something ("why is X the top?"), still return the query; code checks the assumption.
-- Ask to clarify only when two readings give different answers (for example two columns could be "sales"); one short question with 2 or 3 choices. Never ask to confirm something obvious.
-- "Any sudden drop or rise?", "any spikes?", "anything unusual over time?" is the unusual_changes operation (use the main measure when none is named).
-- "Which groups lose money?" is a top query with direction "bottom" and "only_negative":true.
-- A request for the best idea or strategy, with or without "and why", is {"action":"strategy"}. A request to change what a tab, a chart or the report shows or looks like ("make the ideas tab shorter", "remove this chart") is "unsupported".
-- Use "unsupported" for forecasts, opinions, anything that needs a column that is not listed, or changing data. If margin or profit is asked and no column holds it, that is unsupported.
-- For app and report questions use REPORT RECORDS; for anything else about the data use COLUMNS. Never put a number from your own knowledge in any field.
-- Return the JSON object only."""
-
 
 def _norm(t: str) -> str:
     return " ".join("".join(ch.lower() if ch.isalnum() else " " for ch in t).split())
@@ -124,13 +94,20 @@ def _starter_intents(result: dict) -> list[dict]:
     return [reports.ichip("Summarise this report", {"kind": "summary", "length": "standard"}), reports.ichip("What matters most for me?", {"kind": "priority", "terms": []})]
 
 
-def _plain(status: str, text: str, wd, ctx, df, result, ai_calls: int = 0, question: str = "") -> tuple[dict, list[dict]]:
-    """A reply that is not a calculation (cannot answer, AI not available, limit reached): the message and two questions that fit the topic and were not just offered."""
+def _plain(status: str, text: str, wd, ctx, df, result, ai_calls: int = 0, question: str = "", tab: str = "") -> tuple[dict, list[dict]]:
+    """A reply that is not a calculation (cannot answer, AI not available, limit reached): the message and two questions that fit the topic and were not just offered.
+    When no AI is available the suggestions are at most 4, chosen for the open tab and the conversation, with the rest behind "More ideas"."""
+    more: list[dict] = []
     if status == "unavailable":
-        pick = chipmod.start(ctx, df, result) + _starter_intents(result)
+        pick, more = starters.for_tab(ctx, df, result, tab, False, wd)
     else:
         pick = chipmod.relevant(ctx, df, result, question, _last_query(wd), reports.prev_chip_ids(wd), 2)
-    return {"status": status, "text": text, "chips": [{"id": c["id"], "text": c["text"]} for c in pick], "ai_calls": ai_calls}, pick
+        if len(pick) < 2:                         # a refusal always shows two concrete questions
+            pick = pick + [c for c in chipmod.start(ctx, df, result) if c["id"] not in {p["id"] for p in pick}][:2 - len(pick)]
+    ans = {"status": status, "text": text, "chips": [{"id": c["id"], "text": c["text"]} for c in pick], "ai_calls": ai_calls}
+    if more:
+        ans["more"] = [{"id": c["id"], "text": c["text"]} for c in more]
+    return ans, pick + more
 
 
 def _run_checked(wd: Path, ch: qmod.Checked, ctx, df, result, ai_calls: int, asked: str = ""):
@@ -151,7 +128,13 @@ def _clarify(question: str, choices: list[dict], wd, ctx, df, result, ai_calls: 
         ch = qmod.check(c.get("query"), ctx, df)
         if ch.query and isinstance(c.get("label"), str) and c["label"].strip():
             good.append({"id": "k" + store.new_id()[:6], "label": c["label"].strip()[:60], "query": c["query"]})
-    if len(good) == 1:
+        elif isinstance(c.get("commands"), list) and isinstance(c.get("label"), str) and c["label"].strip():        # a choice that is a view change (an ambiguous reference to an item: the titles are the choices)
+            try:
+                viewedit.apply_many(result, store.get_view_state(wd), c["commands"], viewedit.catalogue(result))
+            except viewedit.ViewError:
+                continue
+            good.append({"id": "k" + store.new_id()[:6], "label": c["label"].strip()[:60], "commands": c["commands"]})
+    if len(good) == 1 and "query" in good[0]:
         return _run_checked(wd, qmod.check(good[0]["query"], ctx, df), ctx, df, result, ai_calls, asked)
     if len(good) < 2:
         return _plain("no_fit", "I wasn't sure what you meant, and I can't narrow it down. Here are two questions I can answer.", wd, ctx, df, result, ai_calls, asked)
@@ -160,30 +143,6 @@ def _clarify(question: str, choices: list[dict], wd, ctx, df, result, ai_calls: 
 
 
 # ------------------------------------------------------------------ the AI step
-def _history(wd: Path) -> list[dict]:
-    out = []
-    for t in store.load(wd)["turns"][-HISTORY_TO_AI:]:
-        a = t["answer"]
-        item = {"question": t["question"], "outcome": a["status"]}
-        if a.get("query"):
-            item["query"] = a["query"]
-        if a["status"] == "answered":
-            item["answer"] = a["text"][:240]
-        elif a["status"] == "clarify":
-            item["asked"] = a["text"]
-            item["choices"] = [c["label"] for c in a["clarify"]["choices"]]
-        out.append(item)
-    return out
-
-
-def build_prompt(ctx, question: str, hist: list[dict], tab: str, result: dict | None = None) -> str:
-    spans = {ctx.label(k): list(v) for k, v in ctx.spans.items()}
-    return ("CURRENT TAB: " + (tab or "unknown") + f"\nTABLE: {ctx.rows} rows" + (f", amounts in {ctx.currency}" if ctx.currency else "")
-            + "\nDATE SPANS: " + json.dumps(spans, ensure_ascii=False) + "\nCOLUMNS: " + json.dumps(ctxmod.for_prompt(ctx), ensure_ascii=False)
-            + ("\nREPORT RECORDS (no rows): " + records.for_prompt(result, tab) if result is not None else "")
-            + "\nPREVIOUS TURNS (oldest first, at most 6): " + json.dumps(hist, ensure_ascii=False, default=str) + "\n\nQUESTION: " + question)
-
-
 def _fail_text(reason: str) -> str:
     low = (reason or "").lower()
     if "daily" in low:
@@ -195,61 +154,6 @@ def _fail_text(reason: str) -> str:
     if "auth" in low:
         return "The AI could not be used because its key was refused. The suggested questions still work."
     return "I couldn't get an answer from the AI just now. Please try again, or pick one of the suggested questions."
-
-
-def _safe_reason(text) -> str:
-    t = " ".join(str(text or "").split())
-    return t[:160] if t and not any(ch.isdigit() for ch in t) else ""
-
-
-def translate(llm, wd: Path, ctx, df, question: str, tab: str, result: dict | None = None):
-    """(action, ai_calls, failure reason). At most MAX_AI_CALLS calls: the second is used only to repair a reply that was not JSON or a query that failed the checks."""
-    model = llmmod.deterministic(llm)
-    user = build_prompt(ctx, question, _history(wd), tab, result)
-    feedback, calls = "", 0
-    with llmmod.capture() as cap:
-        for attempt in range(MAX_AI_CALLS):
-            obj, why = llmmod.ask_json_ex(model, SYSTEM, user + feedback, repair=False)
-            calls = cap.calls
-            if obj is None:
-                if why.startswith("bad JSON") and attempt == 0 and calls < MAX_AI_CALLS:
-                    feedback = "\n\nYour previous reply was not valid JSON. Answer again with only the JSON object."
-                    continue
-                return None, calls, why
-            act = _action_of(obj)
-            if act == "query":
-                ch = qmod.check(obj.get("query"), ctx, df)
-                if ch.query or ch.ambiguity or attempt == 1 or calls >= MAX_AI_CALLS:
-                    return {"kind": "checked", "checked": ch}, calls, ""
-                hints = "".join(f" Real values of {ctx.label(c)} include: {', '.join(v)}." for c, v in ch.hints.items())
-                feedback = f"\n\nYour previous query was rejected by the checks: {' '.join(ch.errors)}{hints} Answer again with a corrected JSON object, or action \"unsupported\" if it cannot be done."
-                continue
-            if act == "clarify":
-                return {"kind": "clarify", "question": obj.get("question"), "choices": obj.get("choices") if isinstance(obj.get("choices"), list) else []}, calls, ""
-            if act == "unsupported":
-                return {"kind": "unsupported", "reason": _safe_reason(obj.get("reason"))}, calls, ""
-            if act in REPORT_KINDS:
-                return {"kind": act, "obj": obj}, calls, ""
-            if attempt == 0 and calls < MAX_AI_CALLS:
-                feedback = "\n\nYour previous reply did not have a valid \"action\". Answer again with only the JSON object."
-                continue
-            return {"kind": "unsupported", "reason": ""}, calls, ""
-    return None, calls, "no usable reply"
-
-
-def _action_of(obj: dict) -> str | None:
-    """query | clarify | unsupported. A reply that carries a query (or is one) is a query even when its "action" is an operation name or missing: the checks decide, not the label."""
-    a = str(obj.get("action") or "").lower()
-    if a in ("clarify", "unsupported") or a in REPORT_KINDS:
-        return a
-    if a == "why" and isinstance(obj.get("query"), dict):
-        return "query"
-    if isinstance(obj.get("query"), dict):
-        return "query"
-    if obj.get("op") in qmod.OPS:
-        obj["query"] = {k: v for k, v in obj.items() if k != "action"}
-        return "query"
-    return "query" if a == "query" else None
 
 
 # ------------------------------------------------------------------ typed text that is really a suggested question
@@ -280,12 +184,15 @@ def _patch_label(s: dict) -> str:
     return "Change the chart"
 
 
-def info(wd: Path, result: dict, demo: bool, enabled: bool = True) -> dict:
+def info(wd: Path, result: dict, demo: bool, enabled: bool = True, tab: str = "", ai: bool = False) -> dict:
     d = store.load(wd)
     out = {"enabled": enabled, "ai": False, "chips": [], "history": d["turns"], "pins": d["pins"], "views": d["views"], "limit": {"asked": d["asked"], "max": max_questions()}}
     if enabled and (Path(wd) / "clean.pkl").exists():
         df, ctx = load_data(wd, result)
-        out["chips"] = [{"id": c["id"], "text": c["text"]} for c in chipmod.start(ctx, df, result) + _starter_intents(result)]
+        head, more = starters.for_tab(ctx, df, result, tab, ai, wd)
+        out["chips"] = [{"id": c["id"], "text": c["text"]} for c in head]
+        out["more"] = [{"id": c["id"], "text": c["text"]} for c in more]
+        store.remember_chips(wd, head + more)          # a chip's request is kept so that tapping it later still runs it
     return out
 
 
@@ -386,10 +293,12 @@ def _recheck(wd: Path, ctx, df, result):
 
 
 # ------------------------------------------------------------------ the report and app answers
-def _report_answer(wd: Path, result: dict, ctx, df, kind: str, spec: dict, question: str, tab: str, llm, ai_ok: bool, ai_calls: int):
+def _report_answer(wd: Path, result: dict, ctx, df, kind: str, spec: dict, question: str, tab: str, llm, ai_ok: bool, ai_calls: int, focus_id: str | None = None, view_state: dict | None = None):
     """(answer, chips, AI calls used here, failure reason). `spec` is what the AI chose, or what a plain rule or a suggested question stands for."""
-    if kind == "view":
-        return (*reports.answer_view(result, wd), 0, "")
+    if kind in ("view", "view_cmd"):
+        return viewchat.answer(wd, result, spec, question, tab, llm, ai_ok, ai_calls, focus_id, view_state)
+    if kind == "focus":
+        return (*reports.answer_focus(result, focus_id or "", wd, ai_calls), 0, "")
     if kind == "recheck":
         return (*_recheck(wd, ctx, df, result), 0, "")
     if kind == "app":
@@ -406,14 +315,30 @@ def _report_answer(wd: Path, result: dict, ctx, df, kind: str, spec: dict, quest
     if kind == "general":
         return (*reports.answer_general(spec.get("answer"), result, wd, ai_calls), 0, "")
     length = spec.get("length") if spec.get("length") in reports.SUMMARY_LINES else "standard"
-    return reports.answer_summary(result, wd, llm, length, MAX_AI_CALLS - ai_calls, ai_ok, ai_calls)
+    env = agent.make_env(wd, result, df, ctx, question, tab, llm, ai_ok, None, None)
+    env.calls = ai_calls
+    from .agent.tools.summarise import Summarise
+    r = Summarise().run({"length": length, "scope": str(spec.get("scope") or rules.summary_scope(question))}, env, [])
+    return r.answer, r.chips, env.calls - ai_calls, r.error
+
+
+def _readable_names(ans: dict, ctx) -> None:
+    """Report answers quote the report's own wording, which may carry a raw column name (discount_pct): show the display name instead. Wording only."""
+    if ans.get("kind") not in ("strategy", "priority", "summary", "general", "custom"):        # records quoted word for word (cleaning log, definitions) stay as saved
+        return
+    for k in ("text",):
+        if isinstance(ans.get(k), str):
+            ans[k] = ctx.readable(ans[k])
+    if isinstance(ans.get("lines"), list):
+        ans["lines"] = [ctx.readable(x) if isinstance(x, str) else x for x in ans["lines"]]
 
 
 def ask(wd: Path, result: dict, *, question: str = "", chip: str | None = None, choice: dict | None = None, patch: dict | None = None, tab: str = "",
-        llm=None, allow_ai: bool = True) -> dict:
+        llm=None, allow_ai: bool = True, focus: dict | None = None, view_state: dict | None = None) -> dict:
     """Answers one question and saves the turn. Exactly one of question / chip / choice / patch is used (in that order of the checks below)."""
     question = " ".join((question or "").split())[:300]
     df, ctx = load_data(wd, result)
+    focus_ctx = viewedit.item_context(result, str((focus or {}).get("id") or "")) if focus else None       # "Ask Lens about this": the item's own words, from the saved report
     ai_calls, count_ai, label, raw, route = 0, False, question, None, None
     ans, nxt = None, []
     asked = store.load(wd)["asked"]
@@ -433,6 +358,8 @@ def ask(wd: Path, result: dict, *, question: str = "", chip: str | None = None, 
         c = next((x for x in ((t or {}).get("answer", {}).get("clarify") or {}).get("choices", []) if x["id"] == choice.get("choice")), None)
         if not c:
             ans, nxt = _plain("no_fit", "That choice is no longer available. Please ask again.", wd, ctx, df, result)
+        elif c.get("commands"):
+            label, route = c["label"], {"kind": "view_cmd", "cmds": c["commands"]}
         else:
             label, raw = c["label"], c["query"]
     elif patch:
@@ -444,11 +371,17 @@ def ask(wd: Path, result: dict, *, question: str = "", chip: str | None = None, 
         else:
             label, raw = _patch_label(s), {**base, **s}
     elif question:
-        gap = rules.margin_gap(question, ctx)
+        gap = None if (agent.suggest.request_kind(question, ctx, df) == "view" or agent.loop.ABOUT_DATA.search(question)) else rules.margin_gap(question, ctx)        # a missing cost column is no reason to refuse a change to what is shown
         pool = chipmod.start(ctx, df, result) + _starter_intents(result) + [{"id": k, **v} for k, v in store.load(wd)["chips"].items()]
-        hit = match_chip(question, pool)
-        found = (hit or {}).get("intent") or rules.route(question)
-        if not found and rules.asks_choice(question) and _last_turn_kind(wd) in ("strategy",):
+        hit = match_chip(question, [c for c in pool if (c.get("intent") or {}).get("kind") != "view_cmd"])         # typed words that read like a change to the view mean the tab that is open now, not the one a chip was made for
+        found = (hit or {}).get("intent") or (None if ai_ok else rules.route(question))          # plain-word routing is the no-AI fallback; with an AI the planner decides
+        if not ai_ok and not (hit or {}).get("intent"):           # "show the cleaning log" when it is hidden is a view change, not a question about cleaning
+            hid = viewedit.normalise(view_state if view_state is not None else store.get_view_state(wd))["hidden"]
+            if hid and viewchat.toggle_cmds(question, viewedit.catalogue(result), hid):
+                found = {"kind": "view"}
+        if not found and not ai_ok and focus_ctx and viewchat.parse_rules(question, tab, viewedit.catalogue(result), focus_ctx["id"]) is not None:
+            found = {"kind": "view"}          # "hide this", "pin it", "rename this to ...", "show it as a line": a change to the item in focus
+        if not found and not ai_ok and rules.asks_choice(question) and _last_turn_kind(wd) in ("strategy",):
             found = {"kind": "strategy_why"}
         if found and found["kind"] == "priority" and ai_ok and not (hit or {}).get("intent"):
             found = None          # the AI picks the framing of "what matters to me": it is asked below
@@ -461,55 +394,55 @@ def ask(wd: Path, result: dict, *, question: str = "", chip: str | None = None, 
         elif (llm is None or not allow_ai) and ctx.date_col and rules.asks_unusual(question):
             m = chipmod.main_measure(ctx, result)
             raw = {"op": "unusual_changes", "agg": "sum" if m else "count", "measure": m.name if m else None, "date": ctx.date_col, "grain": "month"}
+        elif (llm is None or not allow_ai) and focus_ctx:
+            route = {"kind": "focus"}
         elif llm is None or not allow_ai:
-            out = _data_reply(wd, question, None, ctx, df, result, 0) if reasoning.asserts(question, df, ctx) else None
-            ans, nxt = out if out else _plain("unavailable", "Without an AI model I can answer the suggested questions only. Pick one of these.", wd, ctx, df, result)
+            fb = agent.run_fallback(wd, result, df, ctx, question, tab, focus_ctx, view_state)
+            out = _data_reply(wd, question, None, ctx, df, result, 0) if fb is None and reasoning.asserts(question, df, ctx) else None
+            if fb is not None:
+                ans, nxt = fb.ans, fb.chips
+            elif out:
+                ans, nxt = out
+            else:
+                agent.log_unmet(wd, question, tab)
+                ans, nxt = _plain("unavailable", "Without an AI model I can answer the suggested questions only. Pick one of these.", wd, ctx, df, result, 0, "", tab)
         elif asked >= max_questions():
             ans, nxt = _plain("limit", f"You've reached this run's limit of {max_questions()} questions that use the AI. The suggested questions still work.", wd, ctx, df, result)
         elif time.time() < _DAILY["until"]:
-            ans, nxt = _plain("unavailable", _fail_text("daily limit"), wd, ctx, df, result)
+            ans, nxt = _plain("unavailable", _fail_text("daily limit"), wd, ctx, df, result, 0, "", tab)
         else:
             llmmod.begin_run()       # this request starts clean: no stop or call record left over from another request on the same thread
-            count_ai = True
-            act, ai_calls, why = translate(llm, wd, ctx, df, question, tab, result)
-            if act is None:
-                if "daily" in why:
+            out = agent.run_request(wd, result, df, ctx, question, tab, llm, True, focus_ctx, view_state)
+            ai_calls, count_ai = out.calls, out.calls > 0
+            if out.ans is None:
+                if "daily" in out.fail:
                     _DAILY["until"] = time.time() + DAILY_PAUSE_S
-                ans, nxt = _plain("unavailable", _fail_text(why), wd, ctx, df, result, ai_calls)
-            elif act["kind"] == "checked":
-                out = _data_reply(wd, question, act["checked"], ctx, df, result, ai_calls)
-                ans, nxt = out if out else _run_checked(wd, act["checked"], ctx, df, result, ai_calls, question)
-            elif act["kind"] == "clarify":
-                first = next((qmod.check(c.get("query"), ctx, df) for c in act["choices"] if isinstance(c, dict)), None)
-                out = (_data_reply(wd, question, first, ctx, df, result, ai_calls) if first is not None and first.query and (rules.is_why(question) or reasoning.asserts(question, df, ctx)) else None)
-                ans, nxt = out if out else _clarify(act["question"], act["choices"], wd, ctx, df, result, ai_calls, question)       # a 'why' is never answered with a question: the first reading is used
-            elif act["kind"] in REPORT_KINDS:
-                route = {**act["obj"], "kind": act["kind"]}
+                ans, nxt = _plain("unavailable", _fail_text(out.fail), wd, ctx, df, result, ai_calls, "", tab)
             else:
-                out = _data_reply(wd, question, None, ctx, df, result, ai_calls, ai_said_no=True) if (rules.is_why(question) or reasoning.asserts(question, df, ctx)) else None
-                if out:
-                    ans, nxt = out
-                else:
-                    lead = "I can't answer that from this data" + (f": {act['reason'].rstrip('.')}." if act["reason"] else ".")
-                    ans, nxt = _plain("no_fit", lead + " Here are two questions I can answer.", wd, ctx, df, result, ai_calls, question)
+                ans, nxt = out.ans, out.chips
+                ans["ai_calls"] = ai_calls
     else:
         ans, nxt = _plain("no_fit", "Type a question about your data, or pick one of these.", wd, ctx, df, result)
 
     if ans is None and route is not None:
         if route["kind"] == "summary" and ai_ok and not count_ai:
             llmmod.begin_run()
-        ans, nxt, used, fail = _report_answer(wd, result, ctx, df, route["kind"], route, label or question, tab, llm, ai_ok, ai_calls)
+        ans, nxt, used, fail = _report_answer(wd, result, ctx, df, route["kind"], route, label or question, tab, llm, ai_ok, ai_calls, (focus_ctx or {}).get("id"), view_state)
         ai_calls += used
         if used:
             count_ai = True
         if "daily" in fail:
             _DAILY["until"] = time.time() + DAILY_PAUSE_S
         ans["ai_calls"] = ai_calls
+        _readable_names(ans, ctx)
         ans["source"] = "chip" if chip else "ai" if count_ai else "code"
     if ans is None:
         ans, nxt = _run_checked(wd, qmod.check(raw, ctx, df), ctx, df, result, ai_calls, label)
         ans["source"] = "chip" if chip else "choice" if choice else "patch" if patch else "typed-chip"
+    ans["chips"] = ans.get("chips", [])[:(starters.MAX_NO_AI if ans.get("status") == "unavailable" else 3)]          # after an answer: at most 3 "what to ask next" (4 when no AI is there to take a typed request)
     ans.setdefault("source", "ai" if count_ai else "code")
+    if focus_ctx:
+        ans["focus"] = {"id": focus_ctx["id"], "title": focus_ctx["title"]}
     turn = {"id": store.new_id(), "at": time.time(), "question": label or "(no question)", "tab": tab, "answer": ans}
     store.add_turn(wd, turn, nxt, count_ai)
     return turn

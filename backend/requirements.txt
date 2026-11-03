@@ -1,3 +1,4 @@
+# Minimum versions. The exact versions the tests passed on are pinned in constraints.txt (used by the Dockerfile; see DEPLOY.md).
 fastapi>=0.110
 uvicorn[standard]>=0.29
 python-multipart>=0.0.9
@@ -19,3 +20,5 @@ langchain-groq>=0.2  # the default free LLM provider (Groq)
 # --- Dev ---
 pytest>=8
 httpx>=0.27
+duckdb>=1.0
+sqlglot>=25

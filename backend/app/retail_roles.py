@@ -15,6 +15,7 @@ from .profiler import id_like
 MIN_ROWS = 30
 MAX_COUNT_DISTINCT = 30
 MIN_RATE_DISTINCT = 15
+MIN_LINE_RATE_DISTINCT = 5
 PER_UNIT_RATIO = 1.25        # rate of multi-unit lines over rate of single-unit lines: below this the rate does not grow with the count
 PRICE_MAGNITUDE = 0.2        # a rate candidate whose median is under this share of the largest median is a percentage, not a price
 LINE_TOTAL_TOLERANCE = 0.25 # ... and within this of the average count it grows with it, so it is a line total
@@ -50,10 +51,10 @@ def demote_quantities(df: pd.DataFrame, roles: dict, brief_roles: dict | None = 
     return {c: ("numeric" if r in ("categorical", "binary") and c in df.columns and is_quantity(df[c], brief_roles.get(c)) else r) for c, r in roles.items()}
 
 
-def is_rate_like(x: pd.Series) -> bool:
+def is_rate_like(x: pd.Series, min_distinct: int = MIN_RATE_DISTINCT) -> bool:
     """Positive, many distinct values, and not a whole-number percentage-sized column."""
     nn = x.dropna()
-    if len(nn) < MIN_ROWS or (nn > 0).mean() < 0.99 or nn.nunique() < MIN_RATE_DISTINCT:
+    if len(nn) < MIN_ROWS or (nn > 0).mean() < 0.99 or nn.nunique() < min_distinct:
         return False
     if nn.max() <= 100 and (nn % 1 == 0).mean() >= 0.95:
         return False
@@ -120,6 +121,11 @@ def derive_product_measure(df: pd.DataFrame, cols: dict, kinds: dict | None = No
     MIN_RULE_MEAN_COUNT, nothing is derived. Ids and codes are never a count or a rate."""
     plan = (brief or {}).get("derived")
     nums = _number_columns(df, cols, kinds, (brief or {}).get("roles"))
+    from .grain import detect
+    lines = detect(df, {n: c["role"] for n, c in cols.items()})          # one row per order line: the count and the price are the line's, never the order's total, shipping or tax
+    if lines:
+        nums = {n: x for n, x in nums.items() if n in lines["line_columns"]}
+    min_rate = MIN_LINE_RATE_DISTINCT if lines else MIN_RATE_DISTINCT          # a shop of a few dozen products has few distinct prices
     if plan and plan.get("answered"):
         return _ai_product(df, nums, plan)
     qs = [n for n, x in nums.items() if is_count_like(x) and (kinds or {}).get(n, "additive") == "additive"]
@@ -129,7 +135,7 @@ def derive_product_measure(df: pd.DataFrame, cols: dict, kinds: dict | None = No
     q = qs[0]
     if nums[q].mean() < MIN_RULE_MEAN_COUNT:
         return None
-    ps = [n for n, x in nums.items() if n != q and is_rate_like(x) and (kinds or {}).get(n) != "additive"]
+    ps = [n for n, x in nums.items() if n != q and is_rate_like(x, min_rate) and (kinds or {}).get(n) != "additive"]
     if len(ps) > 1:      # percentage-sized columns (0-100 with decimals) sit far below the real price: keep the largest typical magnitude
         top = max(float(nums[n].median()) for n in ps)
         ps = [n for n in ps if float(nums[n].median()) >= PRICE_MAGNITUDE * top]

@@ -16,7 +16,7 @@ IMG = re.compile(r"!\[[^\]]*\]\((charts/[^)]+)\)")
 
 
 def fake(charts_json=None, actions_json=None, calls=None):
-    def ask(llm, system, user):
+    def ask(llm, system, user, **_):
         (calls if calls is not None else []).append(user[:40])
         if "GOAL QUESTIONS AND THEIR CHARTS" in user:
             return charts_json or {}
@@ -106,7 +106,7 @@ def test_a_caption_with_a_wrong_or_untagged_figure_is_replaced_by_a_plain_one(tm
     plain = plain_caption()
     assert "s0" in plain and "s9" in plain
     assert caption_for(tmp_path, monkeypatch, "Segment a is highest at 9,999 [r1].") == plain
-    assert caption_for(tmp_path, monkeypatch, "Segment a is highest at 100.") == plain                    # a figure with no fact id
+    assert caption_for(tmp_path, monkeypatch, "Segment a is highest at 9,999.") == plain                  # a wrong figure with no fact id: the code adds the chart's own id, the figure still fails
     assert caption_for(tmp_path, monkeypatch, "Segment a is highest at 100 [r7].") == plain               # an id that does not exist
 
 
@@ -179,3 +179,94 @@ def test_without_a_work_folder_the_report_has_no_charts_and_nothing_changes():
     st = state_for([Q1], [ranking("r1", "segment", bars=BARS)], {Q1: ["r1"]})
     md = go(st)
     assert not pngs(md) and "How to read this" not in md and "Supported by" not in md
+
+
+# ------------------------------------------------------------------ captions without an id, and the cache after a rejection
+import json  # noqa: E402
+
+from app import aicache, llm as llm_mod  # noqa: E402
+
+HOW_TO_READ = "Bars display sales amount change by region from Q1 to Q4 2023."
+
+
+def test_a_how_to_read_caption_without_an_id_is_kept_even_with_period_labels(tmp_path, monkeypatch):
+    assert caption_for(tmp_path, monkeypatch, HOW_TO_READ) == HOW_TO_READ                                  # Q1, Q4 and 2023 are labels, not figures
+
+
+def test_a_caption_whose_figure_has_no_id_gets_the_charts_own_id_when_it_matches(tmp_path, monkeypatch):
+    assert caption_for(tmp_path, monkeypatch, "Segment a is highest at 100; compare the other bars with it.") == "Segment a is highest at 100; compare the other bars with it."
+
+
+def test_a_caption_with_the_correct_id_is_kept_and_the_id_is_not_shown(tmp_path, monkeypatch):
+    assert caption_for(tmp_path, monkeypatch, "Bars show revenue by segment from Q1 to Q4 2023 [r1].") == "Bars show revenue by segment from Q1 to Q4 2023."
+
+
+def test_a_caption_with_a_wrong_figure_is_still_rejected_with_or_without_an_id(tmp_path, monkeypatch):
+    plain = plain_caption()
+    for text in ("Segment a is highest at 9,999 [r1].", "Segment a is highest at 9,999.", "In Q1 segment a reaches 42%."):
+        assert caption_for(tmp_path, monkeypatch, text) == plain, text
+
+
+class Msg:
+    def __init__(self, content):
+        self.content = content
+
+
+class Seq:
+    """A fake chat model answering from a list in order (the last repeats) and counting its calls."""
+    model_name, temperature = "fake-caption", 0.2
+
+    def __init__(self, replies):
+        self.replies, self.calls = replies, 0          # `calls` counts only the chart-caption calls
+
+    def invoke(self, messages):
+        if "GOAL QUESTIONS AND THEIR CHARTS" not in messages[1][1]:          # summary, actions and the rest: a harmless generic answer
+            return Msg(json.dumps({"summary": "Fine [counts].", "recommendations": ["Do it."], "actions": []}))
+        self.calls += 1
+        return Msg(json.dumps(self.replies[min(self.calls, len(self.replies)) - 1]))
+
+
+def charts_reply(text):
+    return {"charts": [{"question": 1, "chart": "r1:bars", "caption": text}]}
+
+
+def test_a_rejected_caption_reply_is_not_cached_so_a_rerun_can_recover(tmp_path, monkeypatch):
+    monkeypatch.setenv("AI_CACHE", "on")
+    monkeypatch.setenv("AI_CACHE_DIR", str(tmp_path / "cache"))
+    model = Seq([charts_reply("Segment a is highest at 9,999 [r1]."), charts_reply("Segment a is highest at 100 [r1].")])
+    plain = plain_caption()
+
+    llm_mod.begin_run()
+    st = charted(tmp_path)
+    go(st, model)
+    assert st["chart_plan"]["cards"][Q1][0]["caption"] == plain                         # run 1: rejected, replaced by the plain caption
+    assert any(d["decision"] == "report_chart_caption" for d in st["decisions"])
+    assert not list((tmp_path / "cache").glob("*.json")) or all("9,999" not in f.read_text() for f in (tmp_path / "cache").glob("*.json"))
+
+    llm_mod.begin_run()
+    st2 = charted(tmp_path / "second")
+    (tmp_path / "second").mkdir()
+    go(st2, model)
+    assert model.calls >= 2                                                                # the bad reply was not reused: the model was asked again
+    assert st2["chart_plan"]["cards"][Q1][0]["caption"] == "Segment a is highest at 100."
+
+
+def test_an_accepted_caption_reply_is_cached_and_a_changed_check_makes_it_a_miss(tmp_path, monkeypatch):
+    monkeypatch.setenv("AI_CACHE", "on")
+    monkeypatch.setenv("AI_CACHE_DIR", str(tmp_path / "cache"))
+    model = Seq([charts_reply(HOW_TO_READ)])
+    llm_mod.begin_run()
+    go(charted(tmp_path), model)
+    first = model.calls
+    llm_mod.begin_run()
+    (tmp_path / "again").mkdir()
+    go(charted(tmp_path / "again"), model)
+    assert model.calls == first                                                            # same prompt, same checks: answered from the saved reply
+    monkeypatch.setattr(cited_mod, "version", lambda: "changed-validator")
+    llm_mod.begin_run()
+    (tmp_path / "third").mkdir()
+    go(charted(tmp_path / "third"), model)
+    assert model.calls > first                                                             # a changed validator: the old saved reply is not used
+
+
+from app import cited as cited_mod  # noqa: E402

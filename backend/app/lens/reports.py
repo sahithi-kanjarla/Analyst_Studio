@@ -32,6 +32,11 @@ A percent change must name what it is a change of (the measure as the fact words
 Return JSON: {"lines": ["...", "..."]}"""
 
 
+def starter_intents(result: dict) -> list[dict]:
+    """The two report questions that run without any AI."""
+    return [ichip("Summarise this report", {"kind": "summary", "length": "standard"}), ichip("What matters most for me?", {"kind": "priority", "terms": []})]
+
+
 def ichip(text: str, intent: dict) -> dict:
     return {"id": "i_" + hashlib.sha1((text + json.dumps(intent, sort_keys=True)).encode()).hexdigest()[:10], "text": text, "intent": intent}
 
@@ -184,14 +189,27 @@ def ai_lines(llm, result: dict, n: int) -> tuple[list[dict], str, int]:
             dropped += 1
             continue
         good.append({"text": text.strip(), "ids": list(dict.fromkeys(ids))})
-    return good[:n], "", dropped
+    from .agent import superlatives
+    good, bad = superlatives.check(good, result)          # "highest", "lowest", "most": true of that measure and level, the level named, no two lines in conflict
+    dropped += len(bad)
+    # a reworded line must still pass the figure checks
+    final = []
+    for g in good:
+        t, why = cited.verify(g["text"] + "".join(f" [{i}]" for i in g["ids"][:1]), known) if g["ids"] else (g["text"], None)
+        if why:
+            dropped += 1
+            continue
+        final.append(g)
+    return final[:n], "", dropped
 
 
-def answer_summary(result: dict, wd, llm, length: str, budget: int, allow_ai: bool, ai_calls_before: int = 0) -> tuple[dict, list[dict], int, str]:
+def answer_summary(result: dict, wd, llm, length: str, budget: int, allow_ai: bool, ai_calls_before: int = 0, scope_label: str = "the whole report", lines_override: list[dict] | None = None) -> tuple[dict, list[dict], int, str]:
     """(answer, chips, AI calls used here, failure reason). The short version has at most 5 lines (3 when asked to shorten) plus the top 3 actions."""
     n = SUMMARY_LINES.get(length, 5)
     used, fail, dropped, lines, source = 0, "", 0, [], "code"
-    if llm is not None and allow_ai and budget >= 1:
+    if lines_override is not None:
+        lines = lines_override[:n]
+    elif llm is not None and allow_ai and budget >= 1:
         with llmmod.capture() as cap:
             lines, fail, dropped = ai_lines(llm, result, n)
             used = cap.calls
@@ -206,7 +224,7 @@ def answer_summary(result: dict, wd, llm, length: str, budget: int, allow_ai: bo
     notes.append("The actions are the report's own top actions, copied as written." if acts else "The report lists no actions.")
     how = howtext.record_how("Shortened the report using only its checked facts" + (" (the AI chose the wording; code checked every figure against the fact it cites)" if source == "ai" else " (the report's own sentences, shortened by code)"),
                              ["the report's headline facts", "the report's insights", "the report's actions"], ids, notes)
-    lead = f"A short version of the report, using only its checked facts{'' if lines else ': there is nothing to summarise'}."
+    lead = f"Summary of {scope_label}." if lines else f"There is nothing to summarise in {scope_label}."
     chips = next_chips(result, "summary", "", prev_chip_ids(wd))
     ans, chips = _base("summary", lead, "Summary from the report's checked facts", how, chips, used, lines=[ln["text"] for ln in lines], actions=[a["text"] for a in acts], fact_ids=ids,
                        view_offer={"name": "short", "label": "Use as my short version"}, source_of_words=source)
@@ -340,7 +358,8 @@ def explain_lines(result: dict, picked: list[dict], rest: list[dict]) -> tuple[l
         lines.append("No other idea in the report fits, so there is no runner-up.")
     else:
         why = _worse(s, nxt)
-        reason = "; ".join(why) if why else "it scored the same on impact, confidence and effort, so the report's own order (alphabetical by title when scores are equal) put it second"
+        reason = "; ".join(why) if why else ("it scored the same on impact, confidence and effort, and the data it rests on shows a smaller checked effect" if float(s.get("effect_size") or 0) > float(nxt.get("effect_size") or 0)
+                                               else "it scored the same on impact, confidence and effort, so the report's own order put it second")
         lines.append(f"The runner-up is “{nxt['title'].rstrip('.')}” (impact {nxt.get('impact')}, confidence {nxt.get('confidence')}, effort {nxt.get('effort')}). It ranked lower because {reason}.")
         ev += list(nxt.get("evidence") or [])
     return lines, list(dict.fromkeys(ev))
@@ -404,6 +423,16 @@ def answer_general(text, result: dict, wd, ai_calls: int = 0) -> tuple[dict, lis
                              ["Sentences with a figure were left out, because a figure must come from your data or the report's checked facts."])
     chips = next_chips(result, "general", "", prev_chip_ids(wd))
     return _base("general", body, GENERAL_LABEL, how, chips, ai_calls)
+
+
+def answer_focus(result: dict, item_id: str, wd, ai_calls: int = 0) -> tuple[dict, list[dict]]:
+    """No AI: a question asked about one item (Ask Lens about this) is answered by quoting the item's own saved words."""
+    from .. import viewedit
+    it = viewedit.item_context(result, item_id) or {"title": "this item", "text": "", "fact_ids": []}
+    body = it["text"] or "The report has no more to say about this item."
+    how = howtext.record_how(f"Quoted what the report says about “{it['title']}”", ["the report's own text for this item"], it.get("fact_ids") or [], ["Nothing was recalculated; the wording is copied from the saved report. With an AI model, typed questions about this item are answered using it."])
+    chips = next_chips(result, "app", "tab", prev_chip_ids(wd))
+    return _base("app", f"About “{it['title']}”: {_first_sentence(body, 600)}", "From your report", how, chips, ai_calls, lines=[x for x in re.split(r"(?<=[.!?])\s+", body)[:6] if x], fact_ids=it.get("fact_ids") or [])
 
 
 def answer_view(result: dict, wd) -> tuple[dict, list[dict]]:

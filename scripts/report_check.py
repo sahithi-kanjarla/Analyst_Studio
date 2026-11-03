@@ -126,9 +126,13 @@ def rule_biggest_matches_top(md: str, rankings: list[dict]) -> tuple[bool, str]:
     """A claim that a group is the biggest, highest or top names the group the analysis computed as the top one."""
     checked, wrong = 0, []
     text = visible_text(md)
-    for group in {r.get("group") for r in rankings if r.get("group")}:
+    groups = {r.get("group") for r in rankings if r.get("group")}
+    for group in groups:
+        longer = [g.lower() for g in groups if len(g) > len(group) and g.lower().startswith(group.lower())]          # "Shipping" is the start of "Shipping Method": a claim about the longer name is not about this one
         for m in list(re.compile(rf"\b{re.escape(group)}\s+(?P<name>[^,.;:()]+?)\s+is\s+(?:the\s+)?{CLAIM_WORDS}\b", re.I).finditer(text)) + \
                 list(re.compile(rf"Top \d+ {re.escape(group)}\s+by [^:]+:\s+{re.escape(group)}\s+(?P<name>.+?)\s+[\d€$₹-]", re.I).finditer(text)):
+            if any(text[m.start():m.start() + len(g)].lower() == g for g in longer):
+                continue
             checked += 1
             # a claim about totals is checked against the total ranking, a claim about averages or rates against the others
             near = text[max(0, m.start() - 60): m.end() + 60].lower()

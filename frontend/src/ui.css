@@ -26,3 +26,68 @@
   .dialog-back { padding: 0; place-items: stretch; }
   .dialog { width: 100%; max-height: none; height: 100%; border-radius: 0; border: 0; padding: var(--sp-5) var(--sp-4); }
 }
+
+/* ---------- view edits: Hide / Change / Ask Lens controls, the view bar, Show more, hidden items ---------- */
+.view-item { position: relative; }
+.view-inline > .view-pin { position: absolute; top: -8px; left: 8px; font-size: 11px; background: var(--accent, #1f6f5c); color: #fff; padding: 1px 8px; border-radius: 999px; }
+.view-edited { font-size: 11px; font-weight: 500; color: var(--muted, #6b665c); margin-left: 6px; }
+.view-note { margin: 4px 0 0; }
+.view-hidden { display: none !important; }
+.view-status { min-height: 1em; margin: 0; }
+.view-section { position: relative; }
+.insight-chart { position: relative; }
+.lens-focus { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 6px 12px 0; }
+.lens-focus-chip { display: inline-flex; align-items: center; gap: 6px; background: var(--accent-soft, #e3f1ec); color: var(--accent, #1f6f5c); border-radius: 999px; padding: 3px 6px 3px 10px; font-size: 13px; max-width: 100%; }
+.lens-focus-chip button { border: 0; background: transparent; cursor: pointer; font-size: 13px; color: inherit; padding: 2px 4px; }
+@media print {
+  .view-controls, .view-pin,   .view-hidden { display: none !important; }
+  .view-hidden.view-print { display: block !important; }
+  li.view-hidden.view-print { display: list-item !important; }
+  }
+
+/* ---------- Lens agent: briefs, export, custom analysis, thumbs ---------- */
+.lens-brief { border: 1px solid var(--line, #d9d4c8); border-radius: 12px; padding: 12px 14px; margin: 10px 0; background: var(--surface, #fff); }
+.lens-brief h4 { margin: 0 0 6px; font-size: 15px; }
+.lens-brief h5 { margin: 10px 0 4px; font-size: 13px; }
+.lens-brief-head { font-weight: 600; margin: 6px 0; }
+.lens-brief-figs, .lens-brief ol { margin: 4px 0 4px 18px; padding: 0; }
+.lens-brief figure { margin: 8px 0; } .lens-brief img { max-width: 100%; border-radius: 8px; }
+.lens-brief-quality { margin-top: 10px; background: var(--bg-soft, #f6f3ec); border: 1px solid var(--line, #d9d4c8); border-radius: 8px; padding: 8px 10px; font-size: 13px; }
+.lens-brief-quality ul { margin: 4px 0 0 18px; padding: 0; }
+.lens-sql pre { white-space: pre-wrap; word-break: break-word; font-size: 12px; background: var(--bg-soft, #f6f3ec); padding: 8px; border-radius: 8px; }
+.lens-second { border-left: 3px solid var(--warn, #b4691f); padding-left: 10px; margin: 8px 0; }
+.lens-export { display: inline-block; text-decoration: none; }
+.lens-export-text { white-space: pre-wrap; font-size: 12px; background: var(--bg-soft, #f6f3ec); padding: 8px; border-radius: 8px; width: 100%; }
+.lens-thumbs { display: flex; gap: 6px; margin-top: 8px; }
+.lens-thumbs .chip { padding: 2px 10px; }
+
+/* ---------- a calm view: nothing on a card at rest; click to select; one slim bar; one quiet link ---------- */
+.view-item[data-focusable] { cursor: pointer; outline: 1px solid transparent; outline-offset: 3px; border-radius: 10px; transition: outline-color .12s; }
+.view-item[data-focusable]:hover { outline-color: var(--line, #d9d4c8); }
+.view-item[data-focusable]:focus-visible, .view-item.is-selected { outline: 1.5px solid var(--accent, #1f6f5c); }
+.view-bar.slim { margin: 0 0 12px; font-size: 13px; color: var(--muted, #6b665c); }
+.view-bar-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.view-bar-text { border: 0; background: none; padding: 0; font: inherit; color: inherit; cursor: default; }
+button.view-bar-text { cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
+.view-bar-end { margin-left: 0; display: inline-flex; gap: 12px; }
+.view-bar-end::before { content: "·"; margin-right: 0; }
+.view-bar-link, .view-all-link { border: 0; background: none; padding: 0; font: inherit; color: var(--accent, #1f6f5c); cursor: pointer; text-decoration: none; }
+.view-bar-link:hover, .view-all-link:hover { text-decoration: underline; }
+.view-hidden-list { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.view-hidden-list li { display: flex; gap: 12px; align-items: center; }
+.view-all { margin: 14px 0 4px; font-size: 13px; text-align: center; }
+.view-status { min-height: 0; margin: 0; }
+.lens-menu-wrap { position: relative; display: flex; justify-content: flex-end; }
+.lens-more { border: 0; background: transparent; font-size: 20px; line-height: 1; padding: 0 8px; cursor: pointer; color: var(--muted, #6b665c); border-radius: 8px; }
+.lens-more:hover, .lens-more[aria-expanded="true"] { background: var(--bg-soft, #f0ece3); }
+.lens-menu { position: absolute; top: 100%; right: 0; z-index: 6; min-width: 200px; max-width: 92vw; display: flex; flex-direction: column; gap: 2px; padding: 6px; background: var(--surface, #fff); border: 1px solid var(--line, #d9d4c8); border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,.12); }
+.lens-menu-item { text-align: left; border: 0; background: none; padding: 7px 10px; border-radius: 8px; font: inherit; color: inherit; cursor: pointer; text-decoration: none; }
+.lens-menu-item:hover { background: var(--bg-soft, #f0ece3); }
+.lens-menu .lens-controls { border-top: 1px solid var(--line, #d9d4c8); margin-top: 4px; padding-top: 6px; display: flex; flex-direction: column; gap: 6px; }
+.lens-teach { padding: 4px 12px 0; }
+.lens-brief-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
+.lens-brief-top h4 { margin: 0; }
+.lens-brief-actions { display: flex; align-items: center; gap: 8px; }
+.lens-brief-quality { margin: 8px 0 10px; }
+.lens-brief-rename { display: flex; gap: 6px; flex: 1; } .lens-brief-rename input { flex: 1; min-width: 0; padding: 5px 8px; border: 1px solid var(--line, #d9d4c8); border-radius: 8px; font: inherit; }
+.lens-brief-edit { width: 100%; font: inherit; padding: 6px 8px; border: 1px solid var(--line, #d9d4c8); border-radius: 8px; }

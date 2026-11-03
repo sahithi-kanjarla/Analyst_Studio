@@ -1,17 +1,20 @@
 import { useState } from "react";
 import { api, Finding, RunResult, isDemo } from "../api";
+import { humanise } from "../display";
 import FindingTable from "./FindingTable";
 import InsightCard from "./InsightCard";
+import { ShowMore, ViewImg, ViewItem, ViewTitle } from "./view/ViewUI";
 
 const TOP = 4;
 const LEVEL: Record<string, string> = { high: "tag tag-ok", medium: "tag tag-mid", low: "tag tag-warn", exploratory: "tag tag-info", descriptive: "tag" };
 
-function Tile({ f, onOpen }: { f: Finding; onOpen: () => void }) {
-  const ins = f.insight!;
+function Tile({ f, onOpen, und }: { f: Finding; onOpen: () => void; und?: RunResult["understanding"] }) {
+  const ins = { ...f.insight!, headline: humanise(f.insight!.headline, und) };
+  const id = `dashboard:chart:${f.id}`;
   return (
-    <article className="tile">
+    <ViewItem id={id} tag="article" className="tile">
       <header>
-        <h4>{ins.headline}</h4>
+        <ViewTitle id={id} tag="h4" text={ins.headline} />
         <div className="meta">
           <span className={LEVEL[ins.confidence.level] ?? "tag"}>{ins.confidence.label}</span>
           {f.chart_type && <span className="muted" title={f.chart_why}>{f.chart_type}</span>}
@@ -19,7 +22,7 @@ function Tile({ f, onOpen }: { f: Finding; onOpen: () => void }) {
       </header>
       {f.chart_url ? (
         <button className="tile-img" onClick={onOpen} aria-label={`Open details: ${ins.headline}`}>
-          <img src={f.chart_url} alt={f.title} loading="lazy" />
+          <ViewImg id={id} src={f.chart_url} alt={humanise(f.title, und)} />
         </button>
       ) : (
         <FindingTable f={f} />
@@ -27,7 +30,7 @@ function Tile({ f, onOpen }: { f: Finding; onOpen: () => void }) {
       <footer>
         <button className="link" onClick={onOpen}>Details, trust and next steps →</button>
       </footer>
-    </article>
+    </ViewItem>
   );
 }
 
@@ -66,7 +69,7 @@ export default function FindingGallery({ run }: { run: RunResult }) {
           <strong>Answer to your goal:</strong> {ans.sentence} {ans.groups_sentence}
           {answerCharts.length > 0 && (
             <div className="tile-grid" style={{ marginTop: 12 }}>
-              {answerCharts.map((f) => <Tile key={f.id} f={f} onOpen={() => setOpen(f)} />)}
+              <ShowMore tab="dashboard" items={answerCharts.map((f) => ({ id: `dashboard:chart:${f.id}`, node: <Tile key={f.id} f={f} und={run.understanding} onOpen={() => setOpen(f)} /> }))} />
             </div>
           )}
         </section>
@@ -74,14 +77,14 @@ export default function FindingGallery({ run }: { run: RunResult }) {
 
       <section className="dash-section">
         <h4>Key findings <span className="muted">· highest value first</span></h4>
-        <div className="tile-grid">{top.map((f) => <Tile key={f.id} f={f} onOpen={() => setOpen(f)} />)}</div>
+        <div className="tile-grid"><ShowMore tab="dashboard" items={top.map((f) => ({ id: `dashboard:chart:${f.id}`, node: <Tile key={f.id} f={f} und={run.understanding} onOpen={() => setOpen(f)} /> }))} /></div>
       </section>
 
       {more.length > 0 && (
-        <details className="more-charts">
-          <summary>More charts ({more.length})</summary>
-          <div className="tile-grid" style={{ marginTop: 12 }}>{more.map((f) => <Tile key={f.id} f={f} onOpen={() => setOpen(f)} />)}</div>
-        </details>
+        <section className="dash-section more-charts">
+          <h4>More charts <span className="muted">· {more.length}</span></h4>
+          <div className="tile-grid"><ShowMore tab="dashboard" items={more.map((f) => ({ id: `dashboard:chart:${f.id}`, node: <Tile key={f.id} f={f} und={run.understanding} onOpen={() => setOpen(f)} /> }))} /></div>
+        </section>
       )}
 
       {dm && (dm.created.length > 0 || dm.rejected.length > 0) && (

@@ -99,6 +99,7 @@ export interface ReportPageData {
   mode: string;
   goal: string;
   trust: string;
+  ai_partly?: string[];
   headline: string;
   headline_more: string;
   tiles: { label: string; value: string }[];
@@ -111,8 +112,18 @@ export interface ReportPageData {
 
 export interface LensTable { columns: string[]; rows: (string | number | null)[][]; shown: string[][]; total_rows: number; truncated: boolean }
 export interface LensChart { type: string; path: string | null; url: string; note: string }
+export interface BriefLine { text: string; ids: string[]; edited?: boolean }
+export interface Brief {
+  id: string; title: string; title_edited?: boolean; audience: string; focus: string; source: string; no_info: string; edited: number;
+  headline: BriefLine | null; key_figures: BriefLine[]; recommendations: BriefLine[]; charts: { path: string; title: string }[];
+  quality: { trust: string; notes: string[] };
+}
 export interface LensHow {
   operation: string;
+  /** Custom analysis: the SQL (shown collapsed) and its plain description. */
+  sql?: string;
+  plain?: string;
+  steps?: { n: number; tool: string; summary: string; ok: boolean }[];
   /** The lines the box shows, written once on the server so it is never empty. */
   lines?: string[];
   columns?: { name: string; label: string; role: string }[];
@@ -129,6 +140,16 @@ export interface LensHow {
 export interface LensControls { chart_types: string[]; grains: string[]; can_top_n: boolean; chart: string }
 export interface LensChip { id: string; text: string }
 export interface LensAnswer {
+  more?: LensChip[];
+  briefs?: Brief[];
+  export?: { what: string; label: string; url: string; browser: boolean; text?: string };
+  second_method?: { label: string; text: string; table: LensTable };
+  disagree?: boolean;
+  unmet?: boolean;
+  feedback?: "up" | "down";
+  agent?: { plan: { tool: string; args: Record<string, unknown> }[]; tools: string[]; steps: { n: number; tool: string; summary: string; ok: boolean }[]; calls: number };
+  view?: { changed: boolean; commands?: ViewCommand[]; undo?: boolean; state?: ViewState; preview?: boolean; count?: number };
+  focus?: { id: string; title: string };
   status: "answered" | "clarify" | "no_fit" | "unavailable" | "limit";
   /** data (default) | why | app | summary | priority | strategy | general | view */
   kind?: string;
@@ -153,8 +174,23 @@ export interface LensAnswer {
 export interface LensTurn { id: string; at: number; question: string; tab: string; answer: LensAnswer }
 export interface LensPin { id: string; turn_id: string; target: "report" | "dashboard"; title: string; text: string; table?: LensTable; chart?: LensChart; how?: LensHow; created: number }
 export interface LensView { name: string; title: string; lines: string[]; actions: string[]; fact_ids: string[]; from_turn: string; created: number }
-export interface LensInfo { enabled: boolean; ai: boolean; chips: LensChip[]; history: LensTurn[]; pins: LensPin[]; views?: Record<string, LensView>; limit: { asked: number; max: number } }
-export type LensAsk = { question?: string; chip?: string; choice?: { turn: string; choice: string }; patch?: { turn: string; set: Record<string, unknown> }; tab?: string };
+export interface LensInfo { enabled: boolean; ai: boolean; chips: LensChip[]; more?: LensChip[]; history: LensTurn[]; pins: LensPin[]; views?: Record<string, LensView>; limit: { asked: number; max: number } }
+export interface ViewState { hidden: string[]; short: Record<string, boolean>; top_n: Record<string, number>; only_supporting: Record<string, boolean>; chart: Record<string, { chart?: string; grain?: string; n?: number }>; order: Record<string, string[]>; titles: Record<string, string>; pinned: string[]; details?: boolean; history: unknown[] }
+export interface ViewTab { order: string[]; hidden: string[]; folded: string[]; short: boolean; top_n: number | null; only_supporting: boolean; items: string[]; sections: string[] }
+export interface ViewItemInfo { id: string; tab: string; kind: "section" | "card" | "chart" | "insight" | "action" | "strategy"; title: string; section: string | null; score?: number; changeable?: string[]; card?: string }
+export interface ViewData {
+  state: ViewState;
+  resolved: { tabs: Record<string, ViewTab>; titles: Record<string, string>; chart: Record<string, { chart?: string; grain?: string; n?: number }>; pinned: string[]; hidden: string[]; original: boolean; details?: boolean };
+  redrawn: Record<string, { url: string; note: string }>;
+  message: string;
+  bar?: { show: boolean; text: string; hidden: number };
+  can_undo: boolean;
+  items: Record<string, ViewItemInfo>;
+  sections: Record<string, string[]>;
+  local?: boolean;
+}
+export type ViewCommand = Record<string, unknown> & { cmd: string };
+export type LensAsk = { question?: string; chip?: string; choice?: { turn: string; choice: string }; patch?: { turn: string; set: Record<string, unknown> }; tab?: string ; focus?: { id: string }; view_state?: ViewState };
 
 export interface DataGap {
   severity: "warn" | "info";
@@ -334,7 +370,8 @@ export interface Decision {
 }
 
 export interface RunResult {
-  profile?: { rows: number; cols: number };
+  profile?: { rows: number; cols: number; columns?: { name: string; dtype: string; role: string; missing_pct: number; unique: number }[] };
+  understanding?: { source?: string; columns?: Record<string, { display_name?: string; meaning?: string; role?: string }> };
   decisions?: Decision[];
   run_mode?: string;
   stage_sources?: Record<string, string>;
@@ -452,8 +489,27 @@ async function json<T>(res: Response): Promise<T> {
 export const DEMO_RUN_ID = "5a1e5d3e0001";
 export const isDemo = (id: string) => id === DEMO_RUN_ID;
 
+/** The access code the visitor typed on the upload panel (kept for this tab only). The server asks for it only when UPLOADS_REQUIRE_CODE is set. */
+export function getAccessCode(): string {
+  try {
+    return sessionStorage.getItem("access_code") ?? "";
+  } catch {
+    return "";
+  }
+}
+export function setAccessCode(code: string) {
+  try {
+    sessionStorage.setItem("access_code", code);
+  } catch {
+    /* storage can be blocked: the code is then asked for again */
+  }
+}
+const JSON_HEADERS = (): Record<string, string> => ({ "Content-Type": "application/json", ...(getAccessCode() ? { "X-Access-Code": getAccessCode() } : {}) });
+
 export const api = {
-  health: () => fetch("/api/health").then((r) => json<{ status: string; llm: string; chatbot?: string }>(r)),
+  health: () => fetch("/api/health").then((r) => json<{ status: string; version: string }>(r)),
+  siteConfig: () => fetch("/api/config").then((r) => json<{ llm: string; chatbot?: string; requires_code?: boolean; public_demo?: boolean; retention_days?: number; daily_ai_runs?: number; daily_lens_questions?: number }>(r)),
+  deleteRun: (id: string) => fetch(`/api/runs/${id}`, { method: "DELETE" }).then((r) => json<{ deleted: string; files_removed: number }>(r)),
   listRuns: () => fetch("/api/runs").then((r) => json<RunSummary[]>(r)),
   getRun: (id: string) => fetch(`/api/runs/${id}`).then((r) => json<RunResult>(r)),
   createRun: (files: File[], goal: string, ctx?: BusinessContextInput) => {
@@ -465,11 +521,23 @@ export const api = {
       if (ctx.explore) fd.append("explore", "true");
       if (ctx.review_saved) fd.append("review_saved", "true");
     }
+    if (getAccessCode()) fd.append("access_code", getAccessCode());
     return fetch("/api/runs", { method: "POST", body: fd }).then((r) => json<{ run_id: string }>(r));
   },
-  lensInfo: (id: string) => fetch(`/api/runs/${id}/lens`).then((r) => json<LensInfo>(r)),
+  viewGet: (id: string) => fetch(`/api/runs/${id}/view`).then((r) => json<ViewData>(r)),
+  viewApply: (id: string, body: { command?: ViewCommand; commands?: ViewCommand[]; state?: ViewState }) =>
+    fetch(`/api/runs/${id}/view`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }).then((r) => json<ViewData>(r)),
+  briefsList: (id: string) => fetch(`/api/runs/${id}/briefs`).then((r) => json<{ briefs: Brief[] }>(r)),
+  briefRename: (id: string, brief: string, title: string) =>
+    fetch(`/api/runs/${id}/briefs/${brief}/rename`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title }) }).then((r) => json<Brief>(r)),
+  briefEdit: (id: string, brief: string, section: string, index: number | null, text: string) =>
+    fetch(`/api/runs/${id}/briefs/${brief}/edit`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ section, index, text }) }).then((r) => json<Brief>(r)),
+  briefDelete: (id: string, brief: string) => fetch(`/api/runs/${id}/briefs/${brief}`, { method: "DELETE" }).then((r) => json<{ deleted: string }>(r)),
+  lensFeedback: (id: string, turn: string, vote: "up" | "down") =>
+    fetch(`/api/runs/${id}/lens/feedback`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ turn, vote }) }).then((r) => json<{ recorded: string }>(r)),
+  lensInfo: (id: string, tab = "") => fetch(`/api/runs/${id}/lens${tab ? `?tab=${encodeURIComponent(tab)}` : ""}`).then((r) => json<LensInfo>(r)),
   lensAsk: (id: string, body: LensAsk) =>
-    fetch(`/api/runs/${id}/lens/ask`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }).then((r) => json<LensTurn>(r)),
+    fetch(`/api/runs/${id}/lens/ask`, { method: "POST", headers: JSON_HEADERS(), body: JSON.stringify(body) }).then((r) => json<LensTurn>(r)),
   lensPin: (id: string, turn: string, target: "report" | "dashboard") =>
     fetch(`/api/runs/${id}/lens/pins`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ turn, target }) }).then((r) => json<LensPin>(r)),
   lensSaveView: (id: string, turn: string) =>
@@ -478,10 +546,10 @@ export const api = {
   lensUnpin: (id: string, pin: string) => fetch(`/api/runs/${id}/lens/pins/${pin}`, { method: "DELETE" }).then((r) => json<{ removed: string }>(r)),
   openDemo: () => fetch("/api/demo", { method: "POST" }).then((r) => json<{ run_id: string; read_only: boolean }>(r)),
   removeDerived: (id: string, names: string[]) =>
-    fetch(`/api/runs/${id}/remove-derived`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ names }) }).then((r) => json<{ run_id: string }>(r)),
+    fetch(`/api/runs/${id}/remove-derived`, { method: "POST", headers: JSON_HEADERS(), body: JSON.stringify({ names }) }).then((r) => json<{ run_id: string }>(r)),
   getAnswersReview: (id: string) => fetch(`/api/runs/${id}/answers-review`).then((r) => json<{ workspace: string; status: string; answers: AnswerRow[] }>(r)),
   rerunWithAnswers: (id: string, answers: Record<string, string>, ask_again: string[]) =>
-    fetch(`/api/runs/${id}/rerun-answers`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ answers, ask_again }) }).then((r) => json<{ run_id: string }>(r)),
+    fetch(`/api/runs/${id}/rerun-answers`, { method: "POST", headers: JSON_HEADERS(), body: JSON.stringify({ answers, ask_again }) }).then((r) => json<{ run_id: string }>(r)),
   getDashboard: (id: string) => fetch(`/api/runs/${id}/dashboard`).then((r) => json<DashData>(r)),
   getSources: (id: string) => fetch(`/api/runs/${id}/sources`).then((r) => json<DataSource[]>(r)),
   downloadUrl: (id: string, source: string) => `/api/runs/${id}/data/download?source=${encodeURIComponent(source)}`,
@@ -493,7 +561,7 @@ export const api = {
   eventsUrl: (id: string) => `/api/runs/${id}/events`,
   getQuestions: (id: string) => fetch(`/api/runs/${id}/questions`).then((r) => json<QuestionSet>(r)),
   submitAnswers: (id: string, body: { answers: Record<string, string>; notes: string; definitions: Record<string, string>; skip: boolean }) =>
-    fetch(`/api/runs/${id}/answers`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }).then((r) => json<{ status: string }>(r)),
+    fetch(`/api/runs/${id}/answers`, { method: "POST", headers: JSON_HEADERS(), body: JSON.stringify(body) }).then((r) => json<{ status: string }>(r)),
   listGlossary: () => fetch("/api/glossary").then((r) => json<{ workspaces: Record<string, GlossaryEntry> }>(r)),
   putGlossary: (workspace: string, entry: GlossaryEntry) =>
     fetch(`/api/glossary?workspace=${encodeURIComponent(workspace)}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(entry) }).then((r) => json<GlossaryEntry>(r)),

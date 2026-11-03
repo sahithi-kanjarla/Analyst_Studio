@@ -4,25 +4,26 @@ import RunView from "./components/RunView";
 import Glossary from "./components/Glossary";
 import History from "./components/History";
 
-function useHashRun(): [string | null, (id: string | null) => void] {
+/** The open run and, for an old link (#/run/<id>/powerbi, /chat, /cleaning ...), the name of the tab it points to. */
+function useHashRun(): [string | null, string | null, (id: string | null) => void] {
   const read = () => {
-    const m = window.location.hash.match(/^#\/run\/([a-f0-9]{12})$/);
-    return m ? m[1] : null;
+    const m = window.location.hash.match(/^#\/run\/([a-f0-9]{12})(?:\/([\w-]+))?\/?$/);
+    return m ? { id: m[1], tab: m[2] ?? null } : { id: null, tab: null };
   };
-  const [id, setId] = useState<string | null>(read);
+  const [at, setAt] = useState(read);
   useEffect(() => {
-    const on = () => setId(read());
+    const on = () => setAt(read());
     window.addEventListener("hashchange", on);
     return () => window.removeEventListener("hashchange", on);
   }, []);
   const go = (next: string | null) => {
     window.location.hash = next ? `#/run/${next}` : "#/";
   };
-  return [id, go];
+  return [at.id, at.tab, go];
 }
 
 export default function App() {
-  const [runId, go] = useHashRun();
+  const [runId, runTab, go] = useHashRun();
   const readPage = () => (window.location.hash === "#/glossary" ? "glossary" : window.location.hash === "#/history" ? "history" : window.location.hash === "#/new" ? "new" : "");
   const [page, setPage] = useState(readPage);
   useEffect(() => {
@@ -32,6 +33,7 @@ export default function App() {
   }, []);
   return (
     <div className="shell">
+      {runId ? <div id="runbar-slot" className="runbar-slot" /> : (
       <header className="topbar">
         <a className="brand" href="#/" onClick={() => go(null)}>
           <span className="logo-mark">
@@ -45,7 +47,8 @@ export default function App() {
           <a className={`navlink ${page === "glossary" ? "navlink-on" : ""}`} href="#/glossary">Glossary</a>
         </div>
       </header>
-      <main>{page === "glossary" ? <Glossary /> : page === "history" ? <History /> : runId ? <RunView key={runId} runId={runId} /> : <StartPage onOpenRun={(id) => go(id)} openNew={page === "new"} />}</main>
+      )}
+      <main>{page === "glossary" ? <Glossary /> : page === "history" ? <History /> : runId ? <RunView key={runId} runId={runId} tab={runTab} /> : <StartPage onOpenRun={(id) => go(id)} openNew={page === "new"} />}</main>
       <footer className="foot">
         <span>Analyst Studio</span>
         <span>The AI suggests. Code calculates.</span>

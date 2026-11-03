@@ -15,7 +15,7 @@ import threading
 import time
 from pathlib import Path
 
-from .config import ROOT
+from .config import DATA_DIR, ROOT
 
 NOTES_MAX = 500          # characters of free-text notes per workspace
 DEF_TEXT_MAX = 300       # characters per definition
@@ -28,7 +28,7 @@ _lock = threading.Lock()
 
 
 def glossary_path() -> Path:
-    return Path(os.environ.get("GLOSSARY_PATH") or ROOT / "data" / "glossary.json")
+    return Path(os.environ.get("GLOSSARY_PATH") or DATA_DIR / "glossary.json")
 
 
 def workspace_key(ctx: dict | None) -> str:

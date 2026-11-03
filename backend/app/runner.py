@@ -10,7 +10,7 @@ import traceback
 import uuid
 from pathlib import Path
 
-from .config import DEMO_DIR, RETENTION_DAYS, RUNS_DIR
+from .config import DEMO_DIR, RUNS_DIR, retention_days
 from . import reporter
 from .events import emit, set_quiet
 
@@ -138,6 +138,9 @@ def _execute(run_id: str) -> None:
     finally:
         try:
             llm_mod.save_usage(wd)      # every run, finished, paused or failed, keeps its AI calls
+            t = llm_mod.usage_summary()
+            if t["calls"]:
+                emit(run_id, "System", f"AI usage: {t['sent']} call(s) sent, {t['cached']} from saved results; {t['input_tokens']:,} input and {t['output_tokens']:,} output tokens" + (" (estimated)" if t["estimated"] else "") + " - per stage in ai_usage.json")
         except OSError:
             pass
 
@@ -146,7 +149,7 @@ def purge_expired(days: float | None = None, now: float | None = None) -> list[s
     """Delete finished or failed runs (their status, result and uploads) older than RETENTION_DAYS. Runs still queued or running are never touched,
     and days=0 keeps everything. Returns the ids that were deleted."""
     import shutil
-    days = RETENTION_DAYS if days is None else days
+    days = retention_days() if days is None else days
     if days <= 0 or not RUNS_DIR.exists():
         return []
     cutoff = (time.time() if now is None else now) - days * 86400

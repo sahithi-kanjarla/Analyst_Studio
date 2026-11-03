@@ -404,8 +404,12 @@ def ranking_facts(state: dict, df) -> list[dict]:
     out: list[dict] = []
     date = (state.get("plan") or {}).get("date_col")
     focus = group_columns(state, df)
+    lines = (state.get("profile") or {}).get("grain") or {}          # several rows per order: an order's own amounts (kept on the order's first row) are not split by what a line holds
+    order_level, line_level = set(lines.get("order_columns") or []), set(lines.get("line_columns") or [])
     for group in group_columns(state, df, every=True):
         for m in (cols if group in focus else cols[:1]):       # the main additive KPI, and its growth, by every category column; the other KPIs and ratios only by the focus columns
+            if m in order_level and group in line_level:
+                continue
             if m != group and (fact := _rank_additive(df, state, group, m, len(out) + 1)):
                 out.append({**fact, "focus": group in focus})
             if date in df.columns and m != group and _clean_groups(df, group).nunique() <= MAX_GROUPS and (fact := _growth_fact(df, state, group, m, date, len(out) + 1)):
@@ -492,7 +496,7 @@ def rules_pick(q: str, items: list[dict], main: str = "") -> list[str]:
 
 
 # ------------------------------------------------------------------ LLM: ids from the closed list
-ITEMS_MAX, ITEM_CHARS_MAX = 40, 160       # the prompt never grows with the data: a free-tier per-minute limit fails a call that is too large
+ITEMS_MAX, ITEM_CHARS_MAX = 24, 140       # the prompt never grows with the data: a free-tier per-minute limit fails a call that is too large
 
 
 def _trim_items(questions: list[str], items: list[dict], state: dict) -> list[dict]:
@@ -598,13 +602,20 @@ def pick(llm, state: dict, rankings: list[dict]) -> dict:
     """{"rankings", "picks": {question: [ids]}, "source"} for every planned question."""
     asked = questions(state)
     items = catalog(state, rankings)
-    chosen = llm_pick(llm, asked, items, state) or {}
+    sure = bool(asked) and all(goal_pick(q, state, items, rankings) for q in asked)          # every question has a result the rules link to it by name, by value or by time word: nothing for the model to decide
+    if sure and llm is not None:
+        state.setdefault("decisions", []).append({"decision": "summary_answers", "source": "rules", "chosen": "rules matching", "why": "every question already had a confident rule match, so no AI call was made", "errors": [], "raw_output": ""})
+    chosen = (llm_pick(llm, asked, items, state) if not sure else None) or {}
     picks, used_llm = {}, False
     for i, q in enumerate(asked):
         if chosen.get(i):
             picks[q], used_llm = chosen[i] + _record_rankings(q, chosen[i], state, rankings), True
         else:
             picks[q] = goal_pick(q, state, items, rankings) or rules_pick(q, items, main_measure(state, rankings))
+    time_ids = {it["id"] for it in items if it["tool"] in TIME_TOOLS or it.get("kind") == "growth"}
+    for q in asked:          # a question about time is answered by a trend (or a change between periods) over a date column, never by a split by some other column; when there is none, it says so
+        if wording.TREND_Q.search(q):
+            picks[q] = [i for i in picks.get(q, []) if i in time_ids]
     return {"rankings": rankings, "picks": picks, "source": "llm" if used_llm else "rules"}
 
 
@@ -619,6 +630,8 @@ def _text_of(i: str, by_id: dict, facts: dict, detail: bool = False) -> str:
 
 
 def not_answered_reason(q: str, items: list[dict]) -> str:
+    if wording.TREND_Q.search(q) and not any(it["tool"] in TIME_TOOLS or it.get("kind") == "growth" for it in items):
+        return "this run has no usable trend: no date column with enough periods to follow over time"
     return "no analysis in this run splits that measure by what the question asks about"
 
 

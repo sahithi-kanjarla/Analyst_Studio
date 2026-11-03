@@ -3,6 +3,7 @@ cleaned table. This is the ONLY description of the data the AI ever sees; it nev
 understanding record (or the profile when there is no AI record) and are cross-checked against the real dtypes."""
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 
 import pandas as pd
@@ -46,6 +47,14 @@ class Ctx:
     def label(self, name: str) -> str:
         c = self.cols.get(name)
         return c.display if c else str(name)
+
+    def readable(self, text: str) -> str:
+        """The text with every internal column name that is not readable as it is (underscores, camelCase) replaced by its display name. Wording only: no figure is touched."""
+        names = {n: c.display for n, c in self.cols.items() if c.display and c.display != n and re.search(r"_|[a-z0-9][A-Z]", n)}
+        if not names or not text:
+            return text
+        rx = re.compile(r"(?<![A-Za-z0-9_])(" + "|".join(re.escape(n) for n in sorted(names, key=len, reverse=True)) + r")(?![A-Za-z0-9_])")
+        return rx.sub(lambda m: names[m.group(1)], text)
 
     def find(self, text) -> Col | None:
         """A column by exact name, then case-insensitive name or display name. Never a fuzzy guess."""

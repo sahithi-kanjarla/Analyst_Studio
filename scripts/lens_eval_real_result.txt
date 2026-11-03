@@ -1,0 +1,54 @@
+category          n    plan  outcome    ran
+brief             1      0%       0%     0%
+brief_manage      1      0%     100%     0%
+catalog           1      0%     100%   100%
+chart_edit        1    100%     100%   100%
+clarify           1      0%       0%     0%
+custom            1    100%     100%   100%
+data_closed       1    100%     100%   100%
+explain           1    100%     100%   100%
+export            1    100%     100%   100%
+followup          1      0%     100%     0%
+general           1    100%     100%   100%
+glossary          1    100%     100%   100%
+impossible        1    100%     100%   100%
+informal          1      0%       0%     0%
+multi             1      0%       0%     0%
+premise           1    100%     100%   100%
+strategy          1    100%     100%   100%
+summary           1    100%     100%   100%
+view_edit         1      0%     100%     0%
+why               1    100%     100%   100%
+ALL              20     60%      80%    65%
+(4 request(s) have several valid plans)
+
+7 failure(s):
+- e047 [followup] “and now only for 2025”  (plan, ran)
+    expected ['data_query/aggregate']
+    planned  ['data_query/aggregate', 'data_query/aggregate']   status answered: Total Revenue by Segment: Enterprise (64,318, 37.0% of the total), SMB (60,635), Consumer (49,065). Total Revenue by Region: W (48,607, 27.9% of the total), S (
+    outcome  got chart, untraceable numbers [], internal terms []
+- e067 [brief] “write a brief for my new warehouse manager about regions”  (plan, outcome, ran)
+    expected ['brief/1']
+    planned  ['data_query/aggregate', 'report_facts', 'brief/1']   status answered: Here is a short brief for your new warehouse manager focusing on regional revenue performance. Total Revenue by Region: W (48,607, 27.9% of the total), S (47,92
+    outcome  got chart, untraceable numbers [], internal terms []
+- e077 [view_edit] “make the insights tab shorter with only needed charts”  (plan, ran)
+    expected ['view_edit/set_mode+only_supporting']
+    planned  ['view_edit/set_mode']   status answered: Switched the Insights tab to short view, showing only the top insights and their charts. Insights shows only the charts that support an action or the summary. T
+    outcome  got view_change, untraceable numbers [], internal terms []
+- e116 [informal] “wich segmnt makes the most mony”  (plan, outcome, ran)
+    expected ['data_query/top']
+    planned  ['report_facts']   status answered: Enterprise is the top‑earning segment From the report's checked facts:
+    outcome  got text, untraceable numbers [], internal terms []
+- e126 [brief_manage] “what briefs do I have”  (plan, ran)
+    expected ['brief_manage/list']
+    planned  ['brief/1']   status answered: By total revenue, segment Enterprise is highest at 64,318 (37.0% of the total revenue) and segment Consumer is lowest at 49,065
+    outcome  got brief, untraceable numbers [], internal terms []
+- e130 [clarify] “hide the chart”  (plan, outcome, ran)
+    expected ['clarify']
+    planned  ['view_edit/hide+hide+hide']   status answered: Hidden: “Interactive charts”. It stays in your saved report and can be restored from Hidden items. Hidden: “Charts from the findings”. It stays in your saved re
+    outcome  got view_change, untraceable numbers [], internal terms []
+- e133 [multi] “show revenue by region and then make that chart a share chart”  (plan, outcome, ran)
+    expected ['data_query/aggregate', 'chart_edit']
+    planned  []   status unavailable: The AI has reached its daily limit, so only the suggested questions work for now. It resets on its own.
+    outcome  got refusal, untraceable numbers [], internal terms []
+total tokens sent to and from the AI: 147,819 (7,390 a request); counted from the prompts and replies, about 4 characters a token

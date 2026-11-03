@@ -4,7 +4,8 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from .profiler import infer_date_order, normalize_strings, parse_dates, try_datetime, try_numeric
+from .grain import count_order_amounts_once, detect as detect_grain, fill_order_details
+from .profiler import date_order_conflict, infer_date_order, normalize_strings, parse_dates, try_datetime, try_numeric
 
 
 def merge_labels(df: pd.DataFrame, log: list[dict]) -> pd.DataFrame:
@@ -37,6 +38,9 @@ def coerce_types(df: pd.DataFrame, profile: dict, date_order: dict | None = None
     log: list[dict] = []
     df = df.copy()
     df.columns = [str(c).strip() for c in df.columns]
+    roles = {c['name']: c['role'] for c in profile['columns']}
+    df = fill_order_details(df, log, roles)
+    df = count_order_amounts_once(df, log, roles)
     df, n_na = normalize_strings(df, log)
     if n_na:
         log.append({"step": "Standardise missing values", "detail": "Trimmed whitespace and converted placeholders like 'N/A', 'null', '-' to real missing values", "count": n_na})
@@ -52,7 +56,8 @@ def coerce_types(df: pd.DataFrame, profile: dict, date_order: dict | None = None
                 df[name] = conv_s
                 log.append({"step": "Convert to number", "detail": f"converted {was_text:,} values in {name} (currency words/symbols, thousands separators and spaces stripped)" + (f"; {bad} unparseable values set to missing" if bad else ""), "count": int(df[name].notna().sum())})
         elif conv == "date":
-            dayfirst, ambiguous = infer_date_order(df[name].dropna())
+            raw_dates = df[name].dropna()
+            dayfirst, ambiguous = infer_date_order(raw_dates)
             conv_s = try_datetime(df[name])
             given = (date_order or {}).get(name)
             if conv_s is not None and given is not None and dayfirst is not None:
@@ -64,6 +69,9 @@ def coerce_types(df: pd.DataFrame, profile: dict, date_order: dict | None = None
                 warn = " ALL values were ambiguous (day and month both ≤ 12), so day-first was assumed - please verify." if ambiguous else ""
                 span = f" Each value was parsed on its own, so mixed formats are handled. Range: {conv_s.min():%d %b %Y} to {conv_s.max():%d %b %Y}."
                 log.append({"step": "Convert to date", "detail": f"'{name}' parsed as dates, order inferred as {order}.{warn}{span}", "count": int(df[name].notna().sum())})
+                d1, m1, both = date_order_conflict(raw_dates)
+                if d1 and m1:
+                    log.append({"step": "Dates written in two orders", "detail": f"'{name}' has {d1:,} dates that can only be day/month and {m1:,} that can only be month/day, so the file mixes the two orders. Each was read the way it can only be read; {both:,} that fit both ways were read {'day-first' if dayfirst is not False else 'month-first'} and may have day and month swapped - please check them.", "count": both})
     df = merge_labels(df, log)
     before = len(df)
     # Exact duplicates are only safely "errors" when rows could plausibly be unique (an ID, a number, a date or free text exists).
@@ -71,7 +79,9 @@ def coerce_types(df: pd.DataFrame, profile: dict, date_order: dict | None = None
     # Runs last, so rows that only differed by formatting (a currency prefix, a label's case) count as duplicates too.
     can_identify = any(c["role"] in ("id", "numeric", "date", "text") for c in profile["columns"])
     n_dup = int(df.duplicated().sum())
-    if can_identify:
+    if n_dup and detect_grain(df, {c['name']: c['role'] for c in profile['columns']}):
+        log.append({"step": "Kept duplicates", "detail": f"{n_dup} identical rows were KEPT: in a file with several rows per order, the same product listed twice in one order is two lines, not a repeated record", "count": n_dup})
+    elif can_identify:
         df = df.drop_duplicates().reset_index(drop=True)
         if before - len(df):
             log.append({"step": "Remove duplicates", "detail": f"Dropped {before - len(df):,} exact duplicate rows", "count": before - len(df)})

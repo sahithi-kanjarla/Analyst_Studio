@@ -16,18 +16,35 @@ import pandas as pd
 
 from . import aicache
 from . import context as ctxmod
-from .concerns import fact_sheet
+from .concerns import fact_sheet as full_fact_sheet
 from .llm import ask_json_ex, deterministic
 from .measures import ROWS_LABEL
 
 ROLES = ("measure", "category", "date", "id", "flag", "free_text", "other")
 MEASURE_KINDS = ("money", "cost", "quantity", "count", "rate")      # what a measure column holds; any other label is dropped (unknown)
-MAX_RETRIES = 2
+MAX_RETRIES = 1          # one repair, showing the model what failed
 MAX_COLUMNS = 120          # a wider table is not sent: the reply would not fit
 MAX_TERMS = 20
 REASON_CHARS = 110
 DISPLAY_CHARS = 40
 NONE = "none"
+
+LEAN_DROP = ("q1", "q3", "rarest", "distinct_days", "distinct_months", "distinct_years", "distinct_months_overall", "mode_count")
+LEAN_TOP = 5
+
+
+def fact_sheet(df: pd.DataFrame, profile: dict, goal: str = "") -> dict:
+    """What this stage needs of each column: type, role, distinct and missing counts, a number's min, median and max, a date's range and the most common values. Not the quartiles, the rare values or the date parts the
+    data-quality stage reads from the full sheet. Same columns, same order, same omitted list."""
+    sheet = full_fact_sheet(df, profile, goal)
+    for rec in sheet["columns"].values():
+        for k in LEAN_DROP:
+            rec.pop(k, None)
+        if rec.get("top"):
+            rec["top"] = [v for v, _ in rec["top"][:LEAN_TOP]]          # the values, not their counts: the meaning of a column does not depend on how often each value occurs
+        rec.pop("dtype", None) if rec.get("dtype") in ("str", "object") else None
+    return sheet
+
 
 SYSTEM = """You are a data analyst reading a FACT SHEET about each column of a table (type, distinct and missing counts, the most and least common values, quartiles, date range), the user's GOAL and a short business description. You never see raw rows.
 Write the data understanding record that every later step will read.
@@ -157,7 +174,7 @@ def resolve(llm, df: pd.DataFrame, profile: dict, goal: str, ctx: dict | None, s
             return rec
         if attempt < MAX_RETRIES:
             retries += 1
-            ask = view + "\n\nYour previous answer failed the structure test:\n" + json.dumps(obj, ensure_ascii=False, default=str)[:3000] + "\nProblems:\n" + "\n".join(f"- {e}" for e in errors[:20]) \
+            ask = view + "\n\nYour previous answer failed the structure test:\n" + json.dumps(obj, ensure_ascii=False, default=str)[:1500] + "\nProblems:\n" + "\n".join(f"- {e}" for e in errors[:20]) \
                 + "\nAnswer again with the complete corrected JSON. List every column exactly once and use only existing column names."
     return _fallback(state, errors[0] if errors else "the structure test failed", retries, errors)
 

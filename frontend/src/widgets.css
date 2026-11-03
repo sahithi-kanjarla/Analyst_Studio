@@ -1,0 +1,182 @@
+/* The UI clarity pass: the widgets each tab reads as, and the one folded "How we got this".
+   Loaded last, so these rules win. Colours, sizes and spacing come from tokens.css and nothing else, so both themes follow. */
+
+/* ---------------------------------------------------------------- the one fold: supporting detail, clearly named */
+.fold-working {
+  margin: var(--sp-4) 0 0;
+  border: var(--border);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--muted) 4%, transparent);
+}
+.fold-working > summary {
+  cursor: pointer;
+  padding: var(--sp-3) var(--sp-4);
+  font-size: var(--fs-2);
+  font-weight: 600;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--sp-1) var(--sp-3);
+  border-radius: var(--radius);
+}
+.fold-working > summary:hover { background: color-mix(in srgb, var(--muted) 7%, transparent); }
+.fold-working > summary:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.fold-working[open] > summary { border-bottom: var(--border); border-radius: var(--radius) var(--radius) 0 0; }
+.fold-working > :not(summary) { padding: 0 var(--sp-4); }
+.fold-working > :last-child:not(summary) { padding-bottom: var(--sp-4); }
+.fold-hint { font-weight: 400; font-size: var(--fs-1); color: var(--muted); }
+
+/* ---------------------------------------------------------------- badges */
+.tag-kind {
+  background: color-mix(in srgb, var(--brand) 12%, transparent);
+  color: var(--brand);
+  font-weight: 600;
+}
+
+/* ---------------------------------------------------------------- empty and loading states */
+.empty-state {
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  padding: var(--sp-6) var(--sp-5);
+  margin: var(--sp-4) 0;
+  color: var(--muted);
+  max-width: var(--read);
+}
+.empty-state h3 { margin: 0 0 var(--sp-2); color: var(--ink); font-size: var(--fs-4); }
+.empty-state p { margin: 0; line-height: var(--lh-body); }
+
+.bi-skel {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--muted) 7%, transparent) 25%, color-mix(in srgb, var(--muted) 12%, transparent) 37%, color-mix(in srgb, var(--muted) 7%, transparent) 63%);
+  background-size: 400% 100%;
+  animation: skel 1.4s var(--ease) infinite;
+  border: var(--border);
+  border-radius: var(--radius);
+  min-height: 112px;
+}
+.bi-grid > .bi-skel { min-height: 260px; }
+@keyframes skel { from { background-position: 100% 0; } to { background-position: 0 0; } }
+@media (prefers-reduced-motion: reduce) { .bi-skel { animation: none; } }
+
+/* ---------------------------------------------------------------- dashboard: the control under a chart */
+.bi-card-foot { margin: var(--sp-3) 0 0; }
+.bi-card h4 small { display: block; font-weight: 400; font-size: var(--fs-1); color: var(--muted); margin-top: 2px; line-height: 1.35; }
+
+/* ---------------------------------------------------------------- Ideas to try, as cards */
+.strat-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: var(--sp-4);
+  margin: var(--sp-4) 0 var(--sp-5);
+}
+.strat-grid { display: grid; gap: var(--sp-4); }
+@media (min-width: 1100px) { .strat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; } }
+
+.strat-why { font-size: var(--fs-2); line-height: var(--lh-body); margin: var(--sp-3) 0 0; }
+.strat-evidence { list-style: none; margin: var(--sp-3) 0 0; padding: 0; display: grid; gap: var(--sp-1); }
+.strat-evidence li {
+  font-size: var(--fs-1);
+  color: var(--muted);
+  padding-left: var(--sp-4);
+  position: relative;
+  line-height: 1.45;
+}
+.strat-evidence li::before { content: ""; position: absolute; left: 0; top: .55em; width: 6px; height: 6px; border-radius: 50%; background: var(--brand); opacity: .55; }
+
+.strat-first {
+  margin: var(--sp-4) 0 0;
+  padding: var(--sp-3) var(--sp-4);
+  border-left: 3px solid var(--brand);
+  background: color-mix(in srgb, var(--brand) 6%, transparent);
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+.strat-first h5 { margin: 0 0 var(--sp-1) !important; color: var(--brand) !important; }
+.strat-first p { margin: 0; font-weight: 500; }
+.strat-foundations { margin-top: var(--sp-5); }
+
+/* the impact/effort grid: a pill now carries its name, not only its rank */
+.mx-pill {
+  width: auto;
+  height: auto;
+  border-radius: 999px;
+  padding: 3px var(--sp-2);
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--sp-1);
+  font-size: var(--fs-1);
+  max-width: 100%;
+}
+.mx-pill-name { font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 860px) { .mx-pill-name { display: none; } .mx-pill { width: 22px; height: 22px; justify-content: center; padding: 0; } }
+
+/* ---------------------------------------------------------------- a finding's table sits in the page, never behind an arrow */
+.key-table { margin: var(--sp-4) 0 0; }
+.key-table h5 { margin-bottom: var(--sp-2) !important; }
+.key-table .muted.small { margin-top: var(--sp-2); }
+
+/* ---------------------------------------------------------------- one column on a phone, and nothing wider than the screen */
+@media (max-width: 760px) {
+  .insight-body { grid-template-columns: minmax(0, 1fr); }
+  .strat-cols { grid-template-columns: minmax(0, 1fr); }
+  .fold-working > summary { padding: var(--sp-3); }
+}
+
+/* sortable table headers */
+.th-sort { all: unset; cursor: pointer; font: inherit; color: inherit; }
+.th-sort:hover { text-decoration: underline; }
+.th-sort:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+/* Ideas to try: steps and KPIs are on the card; only the long evidence and risk lists are folded */
+.strat-evidence-num { margin: var(--sp-3) 0 0; font-size: var(--fs-1); line-height: 1.45; }
+.strat-steps { margin: var(--sp-4) 0 0; padding: var(--sp-3) var(--sp-4); border-left: 3px solid var(--brand); background: color-mix(in srgb, var(--brand) 6%, transparent); border-radius: 0 var(--radius) var(--radius) 0; }
+.strat-steps h5, .strat-kpis h5 { margin: 0 0 var(--sp-2) !important; }
+.strat-steps h5 { color: var(--brand) !important; }
+.strat-steps ol { margin: 0; padding-left: 1.2em; }
+.strat-test { margin: var(--sp-3) 0 0; font-size: var(--fs-2); }
+.strat-kpis { margin: var(--sp-4) 0 0; }
+.chip-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.chip-static { border: var(--border); border-radius: 999px; padding: 3px var(--sp-3); font-size: var(--fs-1); background: var(--card); }
+
+/* ---------------------------------------------------------------- Insights as widgets */
+.iw-theme { margin: var(--sp-6) 0 0; }
+.iw-theme-title { margin: 0 0 var(--sp-3); font-size: var(--fs-4); }
+.iw-theme-title small { display: block; font-size: var(--fs-1); font-weight: 400; color: var(--muted); margin-top: 2px; }
+.iw-grid { display: grid; gap: var(--sp-4); grid-template-columns: minmax(0, 1fr); align-items: stretch; }
+@media (min-width: 900px) { .iw-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.iw-grid > .view-card { display: flex; min-width: 0; }
+.iw { display: flex; flex-direction: column; gap: var(--sp-3); width: 100%; border: var(--border); border-radius: var(--radius); background: var(--card); padding: var(--sp-4) var(--sp-5); min-width: 0; }
+.iw-head h4 { margin: var(--sp-2) 0 0; font-size: var(--fs-3); line-height: 1.3; }
+.iw-body { display: grid; gap: var(--sp-4); grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 560px) { .iw-body:has(.iw-stat) { grid-template-columns: 150px minmax(0, 1fr); } }
+.iw-stat { border: var(--border); border-radius: var(--radius); padding: var(--sp-3) var(--sp-4); align-self: start; background: color-mix(in srgb, var(--muted) 4%, transparent); }
+.iw-stat-val { display: block; font-size: var(--fs-5); font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; overflow-wrap: anywhere; }
+.iw-stat-label { display: block; margin-top: var(--sp-1); font-size: var(--fs-1); color: var(--muted); line-height: 1.35; }
+.iw-up .iw-stat-val { color: var(--ok); } .iw-down .iw-stat-val { color: var(--err); }
+.iw-chart { min-width: 0; }
+.iw-chart img { max-width: 100%; height: auto; border-radius: 8px; }
+.iw-viz { margin: 0; }
+.iw-viz-title { font-size: var(--fs-2); font-weight: 600; margin-bottom: var(--sp-2); }
+.iw-viz-title small { display: block; font-weight: 400; font-size: var(--fs-1); color: var(--muted); margin-top: 2px; }
+.iw-rank { list-style: none; margin: 0 0 var(--sp-2); padding: 0; display: grid; gap: 6px; }
+.iw-rank li { display: grid; grid-template-columns: minmax(70px, 30%) minmax(0, 1fr) auto; align-items: center; gap: var(--sp-2); font-size: var(--fs-1); }
+.iw-rank-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.iw-rank-bar { height: 8px; background: color-mix(in srgb, var(--muted) 14%, transparent); border-radius: 4px; overflow: hidden; }
+.iw-rank-bar s { display: block; height: 100%; background: var(--brand); border-radius: 4px; text-decoration: none; }
+.iw-rank-val { font-variant-numeric: tabular-nums; }
+.iw-share { display: flex; height: 16px; border-radius: 8px; overflow: hidden; background: color-mix(in srgb, var(--muted) 14%, transparent); }
+.iw-share i { display: block; height: 100%; }
+.iw-legend { list-style: none; margin: var(--sp-2) 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px var(--sp-3); font-size: var(--fs-1); }
+.iw-legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; }
+.iw-vs { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); }
+.iw-vs-card { border: var(--border); border-radius: var(--radius); padding: var(--sp-2) var(--sp-3); display: grid; gap: 2px; min-width: 0; font-size: var(--fs-1); }
+.iw-vs-card b { font-size: var(--fs-2); overflow-wrap: anywhere; }
+.iw-take { margin: 0; font-size: var(--fs-2); line-height: var(--lh-body); }
+.iw-action { margin: 0; font-size: var(--fs-1); }
+.iw-chip { display: inline-block; background: var(--brand); color: var(--brand-ink); border-radius: 999px; padding: 2px var(--sp-3); font-weight: 600; font-size: 12px; margin-right: var(--sp-2); }
+.iw .fold-working { margin-top: auto; }
+
+/* wide tables scroll inside their own card, never past the screen edge */
+.fold-working table, .bi-table { display: block; max-width: 100%; overflow-x: auto; }
+@media (max-width: 760px) { .bi-table th, .bi-table td { padding: 6px 8px; } }
+
+/* badges sit together at the left of a card, never spread across it */
+.iw-head .meta { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: var(--sp-2); }

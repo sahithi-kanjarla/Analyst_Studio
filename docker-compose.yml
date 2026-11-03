@@ -1,0 +1,25 @@
+# One service: the backend and the built frontend on one port.
+#   cp .env.example .env     (add your own key if you want AI; never commit .env)
+#   docker compose up --build
+services:
+  analyst-studio:
+    build: .
+    ports:
+      - "${PORT:-8000}:${PORT:-8000}"
+    env_file:
+      - .env
+    environment:
+      PORT: "${PORT:-8000}"
+      DATA_DIR: /data
+    volumes:
+      - analyst-data:/data          # every run, upload, the glossary and the AI cache
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os,urllib.request;urllib.request.urlopen('http://127.0.0.1:%s/api/health' % os.environ.get('PORT', '8000'), timeout=4)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  analyst-data:

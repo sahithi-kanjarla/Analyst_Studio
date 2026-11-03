@@ -168,9 +168,9 @@ def test_graph_is_wrong_rechecks_the_latest_chart(kav):
     ask(kav, FakeAI(q(op="aggregate", measure="profit", agg="sum", group_by=["category"])), question="total profit by category")
     t2 = ask(kav, FakeAI(q(op="trend", measure="profit", agg="sum", grain="month")), question="show total profit over time")
     for words in ("the graph is not plotted properly", "this graph is wrong"):
-        ai = FakeAI({"action": "unsupported", "reason": "x"})
+        ai = FakeAI({"plan": [{"tool": "recheck_chart", "args": {}}]})
         a = ask(kav, ai, question=words)["answer"]
-        assert ai.calls == 0                                         # plain rules: no AI needed
+        assert ai.calls == 1                                         # with an AI the planner picks the tool (plain-word routing is the no-AI fallback; the next test has no AI)
         assert a["status"] == "answered" and a["kind"] == "recheck" and a["query"]["op"] == "trend"       # the most recent chart, not the first
         assert "every one matches the computed table" in a["text"] and "Nothing is plotted wrongly" in a["text"]
         n = df["order_date"].dt.to_period("M").nunique()
@@ -201,13 +201,13 @@ def test_graph_check_reports_a_mismatch_in_plain_words(kav, monkeypatch):
 # ------------------------------------------------------------------ 4. a request to change what a tab shows is not a summary
 @pytest.mark.parametrize("text", ["make the ideas tab shorter", "simplify this tab", "remove this chart", "shorten the ideas tab", "hide this tab", "Make the dashboard simpler"])
 def test_view_changes_are_not_summarised(kav, text):
-    ai = FakeAI({"action": "summary", "length": "short"})
-    a = ask(kav, ai, question=text)["answer"]
-    assert ai.calls == 0 and a["kind"] == "view" and a["status"] == "answered"
-    assert "coming soon" in a["text"]
-    for what in ("Use as my short version", "Pin to report", "Change the chart"):
-        assert what in a["text"]
-    assert not a.get("lines")
+    a = ask(kav, None, question=text)["answer"]            # no AI: the plain-word router (the fallback) reads it
+    assert a["ai_calls"] == 0 and a["kind"] == "view" and a["status"] == "answered"       # a view request is never turned into a summary
+    ai = FakeAI({"plan": [], "unsupported": "nothing to change on this run"})              # with an AI the planner is asked, and an empty plan is never a summary either
+    a2 = ask(kav, ai, question=text)["answer"]
+    assert ai.calls == 1 and a2.get("kind") != "summary" and not a2.get("lines")
+    assert "coming soon" not in a["text"] and a["label"] in ("View changes", "Not changed", "View changed", "No change")
+    assert a["chips"] and not a.get("lines")
 
 
 def test_summaries_still_work_and_data_requests_are_not_view_changes():
@@ -322,7 +322,7 @@ REPEAT = "Clothing customers: Clothing is 40.0% of the total amount [r1]."
 def test_summary_lines_are_short_plain_sentences_and_still_checked(shop):
     rid, wd, result, df = shop
     a = ask(shop, FakeAI({"lines": [PLAIN1, LONG, REPEAT, PLAIN2]}), question="Summarise this report")["answer"]
-    assert a["lines"] == ["Clothing brings in the most: 40.0% of the total amount.", "The return rate trend is up 12%."]
+    assert a["lines"] == ["Clothing category brings in the most: 40.0% of the total amount.", "The return rate trend is up 12%."]       # the level is named, so the claim is clear
     assert all(reports.words_in(x) <= 20 and not reports.repeats_a_label(x) for x in a["lines"])
     assert "2 lines the AI wrote did not pass" in " ".join(a["how"]["notes"])
     known = records.known_facts(result)

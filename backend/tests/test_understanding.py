@@ -186,7 +186,9 @@ def test_plural_goal_word_links_the_differently_named_column_in_the_summary_answ
     assert {"category", "ship-state"} <= set(by_group)
     # the AI links the question to one ranking only; the record's goal terms add the other column the question names
     monkeypatch.setattr(summary, "ask_json", lambda *a, **k: {"answers": [{"question": 0, "ids": [by_group["category"]]}]})
-    facts = summary.pick(object(), state, rankings)
+    with monkeypatch.context() as m:          # the rules match this question confidently now and skip the AI call; here the rules find nothing, so the model decides
+        m.setattr(summary, "goal_pick", lambda *a: [])
+        facts = summary.pick(object(), state, rankings)
     assert facts["source"] == "llm" and set(facts["picks"][GOAL]) == {by_group["category"], by_group["ship-state"]}
     answer = summary.answers(state, facts)[0]["answer"]
     assert "ship-state" in answer and "category" in answer
@@ -196,7 +198,9 @@ def test_plural_goal_word_links_the_differently_named_column_in_the_summary_answ
     # without the record, the AI's single id stands (that is the defect the record fixes)
     plain = summary_state(df, None)
     monkeypatch.setattr(summary, "ask_json", lambda *a, **k: {"answers": [{"question": 0, "ids": [by_group["category"]]}]})
-    assert summary.pick(object(), plain, summary.ranking_facts(plain, df))["picks"][GOAL] == [by_group["category"]]
+    with monkeypatch.context() as m:
+        m.setattr(summary, "goal_pick", lambda *a: [])
+        assert summary.pick(object(), plain, summary.ranking_facts(plain, df))["picks"][GOAL] == [by_group["category"]]
 
 
 def test_a_goal_column_named_by_the_record_is_listed_as_uncovered_when_no_answer_uses_it():

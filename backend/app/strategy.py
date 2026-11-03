@@ -13,7 +13,7 @@ from __future__ import annotations
 import json
 import re
 
-from . import cited, context as ctxmod, wording
+from . import cited, context as ctxmod, understanding as undmod, wording
 from .measures import measure_kind
 from .insights import allowed_numbers, effect_label, polarity
 from .llm import ask_json
@@ -284,17 +284,42 @@ def candidates(state: dict) -> list[dict]:
     return data_backed + foundations
 
 
-def prioritise(cands: list[dict]) -> list[dict]:
-    for c in cands:
+def _effect_size(f: dict) -> float:
+    """How large the checked effect of one finding is, on a 0..1 scale that is comparable across the effect measures (Cramer's V is squared to be eta-squared-like)."""
+    st = f.get("stats") or {}
+    e, name = st.get("effect"), st.get("effect_name")
+    if e is None:
+        return 0.0
+    try:
+        e = abs(float(e))
+    except (TypeError, ValueError):
+        return 0.0
+    return e * e if name == "cramers_v" else e
+
+
+def effect_of(c: dict, findings: list[dict] | None) -> float:
+    """The largest checked effect among the findings a strategy cites (0 when it cites none, as foundation steps do)."""
+    by_id = {f.get("id"): f for f in findings or []}
+    return max((_effect_size(by_id[i]) for i in c.get("evidence") or [] if i in by_id), default=0.0)
+
+
+def prioritise(cands: list[dict], findings: list[dict] | None = None) -> list[dict]:
+    """Ranks by impact, confidence and effort; a tie goes to the larger checked effect in the data the strategy cites, then to the order the candidates were found in (never by name)."""
+    for pos, c in enumerate(cands):
         c["horizon"] = HORIZON[c["effort"]]
         c["priority_score"] = 2 * IMPACT_PTS[c["impact"]] + CONF_PTS.get(c["confidence"], 0) - EFFORT_PTS[c["effort"]]
-    cands.sort(key=lambda c: (c["kind"] != "data", -c["priority_score"], c["title"]))
+        c["effect_size"] = round(effect_of(c, findings), 6)
+        c["_pos"] = pos
+    cands.sort(key=lambda c: (c["kind"] != "data", -c["priority_score"], -c["effect_size"], c["_pos"]))
+    for c in cands:
+        c.pop("_pos", None)
     for i, c in enumerate(cands, 1):
         c["id"] = f"s{i}"
         c["rank"] = i
     return cands
 
 
+FACT_CHARS, FACTS_PER_CANDIDATE = 240, 3          # what each candidate carries to the model
 REFINE_SYSTEM = """You are a senior strategy consultant adapting candidate strategies to a specific company.
 Rewrite wording so it fits the company's industry and vocabulary. You may change: title, objective, actions (3-5), risks (2-3), kpis, how_to_test.
 You may NOT add strategies, change ids, evidence, impact or effort, or introduce any number that is not already in the candidate or the facts.
@@ -312,7 +337,7 @@ def refine_with_llm(llm, state: dict, strategies: list[dict]) -> int:
     if not cands:
         return 0
     payload = [{"id": s["id"], "title": s["title"], "objective": s["objective"], "actions": s["actions"], "risks": s["risks"], "kpis": s["kpis"], "how_to_test": s["how_to_test"],
-                "facts": [{"id": f["id"], "text": f["text"].replace("**", "")} for f in state["findings"] if f["id"] in s["evidence"]]} for s in cands]
+                "facts": [{"id": f["id"], "text": f["text"].replace("**", "")[:FACT_CHARS]} for f in state["findings"] if f["id"] in s["evidence"]][:FACTS_PER_CANDIDATE]} for s in cands]
     out = ask_json(llm, REFINE_SYSTEM, (f"COMPANY CONTEXT (user-written, unverified):\n{ctx_txt}\n\n" if ctx_txt else "") + f"GOAL: {state['goal']}\nCANDIDATES:\n{json.dumps(payload, default=str, ensure_ascii=False)}")
     if not out or not isinstance(out.get("strategies"), list):
         return 0
@@ -374,6 +399,13 @@ def summary_text(strategies: list[dict], state: dict) -> str:
 
 
 def build_strategies(state: dict, llm) -> tuple[list[dict], str, int]:
-    strategies = prioritise(candidates(state))
+    strategies = prioritise(candidates(state), state.get("findings"))
     improved = refine_with_llm(llm, state, strategies)
+    for s in strategies:           # wording only: a raw column name (discount_pct) is shown as its display name
+        for k in ("title", "objective", "rationale", "how_to_test"):
+            if isinstance(s.get(k), str):
+                s[k] = undmod.readable(s[k], state)
+        for k in ("actions", "kpis", "risks"):
+            if isinstance(s.get(k), list):
+                s[k] = [undmod.readable(x, state) if isinstance(x, str) else x for x in s[k]]
     return strategies, summary_text(strategies, state), improved

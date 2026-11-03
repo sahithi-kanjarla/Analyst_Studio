@@ -7,6 +7,7 @@ import time
 import json
 import re
 
+from . import labels
 from . import aicache, cited, context as ctxmod, mainview, reportcharts, strategy as strat_mod, summary as summary_mod, tiering, wording
 from . import understanding as und
 from .clarify import named_in_goal
@@ -72,13 +73,16 @@ def _trim_rankings(rankings: list[dict], state: dict) -> list[dict]:
     return out
 
 
+SUMMARY_FINDINGS, SUMMARY_FACT_CHARS = 8, 260
+
+
 def llm_summary(llm, state: dict) -> tuple[str, list[str], bool] | None:
     """(summary, recommendations, partial). Sentences/recommendations with numbers not in the findings are dropped; None only if nothing is left."""
     ctx_txt = ctxmod.context_text(state.get("context"))
     asked = summary_mod.questions(state)
     c = wording.counts(state["findings"])
     rankings = _trim_rankings((state.get("summary_facts") or {}).get("rankings") or [], state)
-    ranked = _rank(state["findings"])[:12]
+    ranked = _rank(state["findings"])[:SUMMARY_FINDINGS]
     payload = [{"id": f["id"], "headline": f["insight"]["headline"], "facts": f["text"].replace("**", ""), "confidence": f["insight"]["confidence"]["label"],
                 "survives_correction": f["stats"].get("survives_correction")} for f in ranked] + [{"id": r["id"], "headline": r["text"], "facts": r["text"], "confidence": "computed from the data", "survives_correction": None} for r in rankings]
     scopes = {x["id"]: cited.scope_of(x) for x in [*ranked, *rankings]}
@@ -100,11 +104,12 @@ def llm_summary(llm, state: dict) -> tuple[str, list[str], bool] | None:
             "Be plain and concise, distinguish association from causation, and respect the caveats. If company context is given, use its vocabulary. "
             "Every figure carries its unit and what it is (for example 'average 862 per order'). " + strat_mod.CONCENTRATION_RULE +
             "In a 'so_what' never name which category is the largest part of a total: the report states that itself. "
+            "Call a grouping by its column's own name; a column whose values are states of something (paid, pending, refunded) is a status, never 'customer segments'. "
             + cited.CITE_RULE + "Use the id 'counts' for a number from COUNTS, 'data' for the row or column count and 'context' for a number from the company context. "
             "Return JSON: {\"summary\": \"3-5 sentence executive summary answering the goal\", \"recommendations\": [3-5 concrete, prioritized actions tied to specific findings], "
             "\"so_what\": [{\"question\": <number of a goal question below>, \"text\": \"ONE plain sentence on why that answer matters; no statistics terms\"}]}",
             (f"COMPANY CONTEXT (user-written, unverified):\n{ctx_txt}\n" if ctx_txt else "") +
-            f"GOAL: {state['goal']}\nGOAL QUESTIONS: {json.dumps(dict(enumerate(asked)), ensure_ascii=False)}\nCOUNTS (quote these exactly, never recount): {json.dumps(c, ensure_ascii=False)}\nCAVEATS: {json.dumps([i['text'] for i in state['critique']['issues']][:8], ensure_ascii=False)}\nFINDINGS: {json.dumps(payload, default=str, ensure_ascii=False)}",
+            f"GOAL: {state['goal']}\nGOAL QUESTIONS: {json.dumps(dict(enumerate(asked)), ensure_ascii=False)}\nCOUNTS (quote these exactly, never recount): {json.dumps(c, ensure_ascii=False)}\nCAVEATS: {json.dumps([i['text'] for i in state['critique']['issues']][:8], ensure_ascii=False)}\nFINDINGS: {json.dumps([{**p, 'facts': p['facts'][:SUMMARY_FACT_CHARS]} for p in payload], default=str, ensure_ascii=False)}",          # the checks above read the whole text; the model is sent its first sentences
         )
     why = cap.reason
     if not out:
@@ -119,7 +124,10 @@ def llm_summary(llm, state: dict) -> tuple[str, list[str], bool] | None:
         """(text without ids, kept?, the computed fact it contradicts). A dropped text is recorded in `dropped` and `rejected`."""
         clean, bad = cited.verify(text, facts)
         wrong = None if bad else cited.contradicts(clean, computed)
-        if wording.unsupported_profit_claim(clean, state):
+        if (bad_label := labels.invented_grouping(clean, [c["name"] for c in (state.get("profile") or {}).get("columns") or []])):
+            dropped.append(f"{what} dropped (calls a column '{bad_label}', a grouping the data does not have; a column is called by its own name): {clean}")
+            rejected.append(f"invented grouping {bad_label}")
+        elif wording.unsupported_profit_claim(clean, state):
             dropped.append(f"{what} dropped (no cost or profit column in the data): {clean}")
         elif (clash := wording.audience_clash(clean, state)):
             dropped.append(f"{what} dropped (names '{clash}' as the audience; the reader is {ctxmod.audience(state.get('context'))}): {clean}")
@@ -196,30 +204,61 @@ def plan_charts(llm, state: dict, view: dict, cs: list[dict], plan: dict) -> dic
     avail = {n: v for n, v in avail.items() if v}
     q_of = {c["n"]: c["question"] for c in cs}
     picked: dict[int, list[tuple[str, str]]] = {}          # question number -> [(chart id, AI caption)]
+    computed = cited.claims((state.get("summary_facts") or {}).get("rankings") or [])
+    by_spec_all = {sp["id"]: sp for specs in avail.values() for sp in specs}
+
+    def judge_caption(text: str, sp: dict) -> tuple[str, str | None]:
+        """(caption without ids, None) when the caption may be shown, else (caption, why not). The chart is known to the code, so a caption that does not end with an id gets this chart's own fact id
+        attached before the check; a figure must then match that fact, a period label or year is not a figure, and a caption with no figure needs no id at all."""
+        fid = sp["fact"]
+        tagged = text if re.search(r"\[[^\]]*\]\s*[.!?]?\s*$", text) else f"{text.rstrip()} [{fid}]"
+        labels = {m.group(0).rstrip(".,") for s in [sp.get("title", ""), *(str(g) for g, _ in sp.get("data") or [])] for m in cited.NUM_RE.finditer(s)}
+        clean, bad = cited.verify(tagged, _chart_facts([fid], by_id, r_by_id), labels)
+        clean = clean.strip()
+        if bad:
+            return clean, bad
+        if not clean or len(clean.split()) > reportcharts.CAPTION_WORDS:
+            return clean, "caption too long"
+        if cited.contradicts(clean, computed):
+            return clean, "caption disagrees with a computed share"
+        return clean, None
+
+    def rows_of(out) -> list[tuple[int, str, str]]:
+        rows = out.get("charts") if isinstance(out, dict) else None
+        res = []
+        for row in rows if isinstance(rows, list) else []:
+            try:
+                n, cid = int(row["question"]), str(row["chart"])
+            except (KeyError, TypeError, ValueError):
+                continue
+            if n in avail and any(sp["id"] == cid for sp in avail[n]):
+                res.append((n, cid, str(row.get("caption") or "")))
+        return res
+
+    def all_captions_ok(out) -> bool:
+        """The reply is saved for reuse only when none of its captions was rejected: a rerun may then get a better one."""
+        return all(not text or judge_caption(text, by_spec_all[cid])[1] is None for _, cid, text in rows_of(out))
+
     if llm is not None and avail:
         with capture() as cap:
             out = ask_json(
                 llm,
                 "You choose charts for a business report. For each goal question below pick the ONE or TWO charts from its list that best answer the question, and write for each a caption "
                 f"of at most {reportcharts.CAPTION_WORDS} words that tells the reader how to read it (what the bars or line show, what to look at). Use only chart ids from the list. "
-                + cited.CITE_RULE + "A caption needs no figure; if it has one it must end with the id of the fact in square brackets. "
+                + cited.CITE_RULE + "Every chart in the list names its source fact under 'fact': end each caption with that fact id in square brackets, e.g. 'Bars show sales amount by region [r1]'. "
+                "A caption that only explains how to read the chart and states no figure, ranking or comparison may leave the id out. A figure in a caption must be a figure of that fact. "
                 "Return JSON: {\"charts\": [{\"question\": <question number>, \"chart\": \"<chart id>\", \"caption\": \"...\"}]}",
-                "GOAL QUESTIONS AND THEIR CHARTS: " + json.dumps({n: {"question": q_of[n], "charts": {sp["id"]: {"title": sp["title"], "fact": sp["fact"]} for sp in specs}} for n, specs in avail.items()}, ensure_ascii=False))
-        rows = out.get("charts") if isinstance(out, dict) else None
-        for row in rows if isinstance(rows, list) else []:
-            try:
-                n, cid = int(row["question"]), str(row["chart"])
-            except (KeyError, TypeError, ValueError):
-                continue
-            if n in avail and any(sp["id"] == cid for sp in avail[n]) and cid not in [c for v in picked.values() for c, _ in v] and len(picked.setdefault(n, [])) < reportcharts.PER_CARD:
-                picked[n].append((cid, str(row.get("caption") or "")))
+                "GOAL QUESTIONS AND THEIR CHARTS: " + json.dumps({n: {"question": q_of[n], "charts": {sp["id"]: {"title": sp["title"], "fact": sp["fact"]} for sp in specs}} for n, specs in avail.items()}, ensure_ascii=False),
+                cache_ok=all_captions_ok, cache_tag=f"caption:{cited.version()}:{reportcharts.CAPTION_WORDS}")          # a reply with a rejected caption is not saved; changed checks make old saved replies unused
+        for n, cid, text in rows_of(out):
+            if cid not in [c for v in picked.values() for c, _ in v] and len(picked.setdefault(n, [])) < reportcharts.PER_CARD:
+                picked[n].append((cid, text))
         if not picked:
             state.setdefault("decisions", []).append({"decision": "report_charts", "source": "fallback", "chosen": "first chart of each card", "why": cap.reason or "the model chose no listed chart",
                                                       "errors": [], "raw_output": json.dumps(out, default=str)[:500]})
     taken: set[str] = {c for v in picked.values() for c, _ in v}
     cards: dict[str, list[dict]] = {}
     budget = reportcharts.MAX_CHARTS
-    computed = cited.claims((state.get("summary_facts") or {}).get("rankings") or [])
     for n, specs in avail.items():
         by_spec = {sp["id"]: sp for sp in specs}
         chosen = list(picked.get(n, []))
@@ -233,13 +272,12 @@ def plan_charts(llm, state: dict, view: dict, cs: list[dict], plan: dict) -> dic
             sp = by_spec[cid]
             caption = reportcharts.fallback_caption(sp)
             if text:
-                clean, bad = cited.verify(text, _chart_facts([sp["fact"]], by_id, r_by_id))
-                clean = clean.strip()
-                if not bad and clean and len(clean.split()) <= reportcharts.CAPTION_WORDS and not cited.contradicts(clean, computed):
+                clean, bad = judge_caption(text, sp)
+                if not bad:
                     caption = clean
                 else:
-                    state.setdefault("decisions", []).append({"decision": "report_chart_caption", "source": "fallback", "chosen": "plain caption", "why": bad or "caption too long or disagrees with a computed share",
-                                                              "errors": [bad or clean], "raw_output": text[:300]})
+                    state.setdefault("decisions", []).append({"decision": "report_chart_caption", "source": "fallback", "chosen": "plain caption", "why": bad,
+                                                              "errors": [bad], "raw_output": text[:300]})
             cards.setdefault(q_of[n], []).append({"id": cid, "path": reportcharts.draw(sp, folder), "title": sp["title"], "fact": sp["fact"], "caption": caption})
             budget -= 1
     shown = {c["path"] for v in cards.values() for c in v}
@@ -561,7 +599,7 @@ def _setup_section(state: dict) -> list[str]:
     u = llmmod.usage_summary()
     if u["calls"]:
         tok = f"about {u['input_tokens']:,} input and {u['output_tokens']:,} output tokens" + (" (estimated)" if u["estimated"] else "")
-        L += [f"**AI usage so far:** {u['sent']} call(s) sent, {u['cached']} answered from saved or repeated results; {tok}; {u['seconds']} s in AI calls. Per call: ai_usage.json.", ""]
+        L += [f"**AI usage so far:** {u['sent']} call(s) sent, {u['cached']} answered from saved or repeated results; {tok}; {u['seconds']} s in AI calls. Per stage and per call: ai_usage.json. Biggest stages: " + ", ".join(f"{r['stage'].rsplit('.', 1)[-1].replace('_', ' ')} ({r['input_tokens'] + r['output_tokens']:,})" for r in sorted(llmmod.by_stage(llmmod.usage_calls()), key=lambda r: -(r["input_tokens"] + r["output_tokens"]))[:3]) + ".", ""]
     else:
         L += ["**AI usage:** no AI calls in this run (rules only).", ""]
     cn = state.get("concerns") or {}
@@ -793,9 +831,10 @@ def _page(state: dict, run_mode: str, cs: list[dict], plan: dict, ts: list, answ
             seen.add(ch["path"])
             charts.append(ch)
     first = cards[0] if cards else {}
+    fell_back = list(dict.fromkeys(re.sub(r"^AI unavailable:\s*", "", str(d.get("decision") or "")) for d in state.get("decisions") or [] if d.get("source") == "fallback"))          # the stages whose AI answer was not used
     i = lines.index("**View more**") if "**View more**" in lines else len(lines)
     return {"title": "Analysis report", "company": ctx.get("company", ""), "date": time.strftime("%d %b %Y"), "mode": run_mode or derive_mode(state.get("stage_sources")),
-            "goal": state.get("goal", ""), "trust": first.get("trust", ""), "headline": ans.get("sentence") or (first.get("lines") or [""])[0], "headline_more": ans.get("groups_sentence") or "",
+            "goal": state.get("goal", ""), "trust": first.get("trust", ""), "ai_partly": fell_back, "headline": ans.get("sentence") or (first.get("lines") or [""])[0], "headline_more": ans.get("groups_sentence") or "",
             "tiles": [{"label": l, "value": v} for l, v in ts][:4], "cards": cards, "actions": actions, "charts": charts,
             "no_action": [r for n, r in sorted(plan["none"].items()) if num.get(n)], "behind_md": "\n".join(lines[i + 1:]).strip()}
 

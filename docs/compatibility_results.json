@@ -1,0 +1,489 @@
+[
+ {
+  "file": "a_shopify_orders.csv",
+  "layout": "documented",
+  "checks": {
+   "no_crash": {
+    "ok": true,
+    "detail": ""
+   },
+   "time_memory": {
+    "ok": true,
+    "detail": "15.2 s, 267 MB peak"
+   },
+   "understanding": {
+    "ok": true,
+    "detail": ""
+   },
+   "long_format": {
+    "ok": true,
+    "detail": ""
+   },
+   "no_double_count": {
+    "ok": true,
+    "detail": "n/a (no fees, refunds or totals rows in this file)"
+   },
+   "report": {
+    "ok": true,
+    "detail": ""
+   },
+   "data_card": {
+    "ok": true,
+    "detail": ""
+   },
+   "custom_analysis": {
+    "ok": true,
+    "detail": ""
+   }
+  },
+  "notes": {
+   "questions_answered_with_defaults": 3,
+   "rows_per_order": 1.99
+  },
+  "seconds": 15.2,
+  "peak_mb": 267,
+  "rows": 638,
+  "columns": 50,
+  "cleaning_log": [
+   "Left out empty columns: left out 7 columns with nothing in them ('Lineitem compare at price', 'Billing Address2', 'Billing Company', 'Shipping Address2', 'Shipp",
+   "Convert to date: 'Paid at' parsed as dates, order inferred as ISO / year-first. Each value was parsed on its own, so mixed formats are handled. Range: 02 Jan 20",
+   "Convert to date: 'Fulfilled at' parsed as dates, order inferred as ISO / year-first. Each value was parsed on its own, so mixed formats are handled. Range: 01 J",
+   "Convert to date: 'Created at' parsed as dates, order inferred as ISO / year-first. Each value was parsed on its own, so mixed formats are handled. Range: 01 Jan",
+   "Convert to date: 'Cancelled at' parsed as dates, order inferred as ISO / year-first. Each value was parsed on its own, so mixed formats are handled. Range: 03 J",
+   "Remove duplicates: Dropped 2 exact duplicate rows",
+   "Scope to the goal: Columns not needed for this goal were left untouched and excluded from analysis: Name, Email, Fulfilled at, Accepts Marketing, Currency, Disc",
+   "Too much missing: 'Discount Amount' is 50% missing; left as-is (not imputed) and used with caution",
+   "Impute category: 'Billing City': 49.8% missing labelled 'Unknown'",
+   "Missing dates: 'Paid at': 55.0% rows have no date and are skipped in time-trend analysis",
+   "Blanks left blank: 318 blank values in Subtotal left blank, not counted in totals",
+   "Blanks left blank: 318 blank values in Taxes left blank, not counted in totals"
+  ]
+ },
+ {
+  "file": "b_flipkart_payout.xlsx",
+  "layout": "documented",
+  "checks": {
+   "no_crash": {
+    "ok": true,
+    "detail": ""
+   },
+   "time_memory": {
+    "ok": true,
+    "detail": "11.5 s, 280 MB peak"
+   },
+   "understanding": {
+    "ok": true,
+    "detail": ""
+   },
+   "long_format": {
+    "ok": true,
+    "detail": ""
+   },
+   "no_double_count": {
+    "ok": true,
+    "detail": ""
+   },
+   "report": {
+    "ok": true,
+    "detail": ""
+   },
+   "data_card": {
+    "ok": true,
+    "detail": ""
+   },
+   "custom_analysis": {
+    "ok": true,
+    "detail": ""
+   }
+  },
+  "notes": {
+   "questions_answered_with_defaults": 3,
+   "rows_per_order": 1.0
+  },
+  "seconds": 11.5,
+  "peak_mb": 280,
+  "rows": 260,
+  "columns": 19,
+  "cleaning_log": [
+   "[b_flipkart_payout_Orders] Left out a sheet of notes: left out the sheet 'Help': it reads as instructions, not records",
+   "[b_flipkart_payout_Orders] Convert to date: 'Order Date' parsed as dates, order inferred as day-first (dd/mm/yyyy). Each value was parsed on its own, so mixed f",
+   "[b_flipkart_payout_Orders] Convert to date: 'Dispatch Date' parsed as dates, order inferred as day-first (dd/mm/yyyy). Each value was parsed on its own, so mixe",
+   "[b_flipkart_payout_Orders] Convert to date: 'Settlement Date' parsed as dates, order inferred as day-first (dd/mm/yyyy). Each value was parsed on its own, so mi",
+   "[b_flipkart_payout_Returns] Convert to date: 'Return Date' parsed as dates, order inferred as day-first (dd/mm/yyyy). Each value was parsed on its own, so mixed",
+   "[b_flipkart_payout_Cancellations] Convert to date: 'Cancel Date' parsed as dates, order inferred as day-first (dd/mm/yyyy). Each value was parsed on its own, so",
+   "Scope to the goal: Columns not needed for this goal were left untouched and excluded from analysis: Order ID, Order Item ID, Dispatch Date, Settlement Date, Fix",
+   "Flag outliers: 'Sale Amount': 19 values (7.3%) outside 1.5\u00d7IQR. Flagged, NOT removed - they may be real",
+   "Flag outliers: 'Commission Fee': 19 values (7.3%) outside 1.5\u00d7IQR. Flagged, NOT removed - they may be real",
+   "Flag outliers: 'Collection Fee': 19 values (7.3%) outside 1.5\u00d7IQR. Flagged, NOT removed - they may be real",
+   "Flag outliers: 'Net Settlement': 13 values (5.0%) outside 1.5\u00d7IQR. Flagged, NOT removed - they may be real",
+   "Flag outliers: 'Commission Fee Waiver': 50 values (19.2%) outside 1.5\u00d7IQR. Flagged, NOT removed - they may be real"
+  ]
+ },
+ {
+  "file": "c_amazon_settlement.txt",
+  "layout": "typical pattern",
+  "checks": {
+   "no_crash": {
+    "ok": true,
+    "detail": ""
+   },
+   "time_memory": {
+    "ok": true,
+    "detail": "6.6 s, 263 MB peak"
+   },
+   "understanding": {
+    "ok": true,
+    "detail": ""
+   },
+   "long_format": {
+    "ok": true,
+    "detail": ""
+   },
+   "no_double_count": {
+    "ok": true,
+    "detail": ""
+   },
+   "report": {
+    "ok": true,
+    "detail": ""
+   },
+   "data_card": {
+    "ok": true,
+    "detail": ""
+   },
+   "custom_analysis": {
+    "ok": true,
+    "detail": ""
+   }
+  },
+  "notes": {
+   "questions_answered_with_defaults": 2,
+   "rows_per_order": 4.15
+  },
+  "seconds": 6.6,
+  "peak_mb": 263,
+  "rows": 996,
+  "columns": 12,
+  "cleaning_log": [
+   "Left out empty columns: left out 6 columns with nothing in them ('merchant-order-id', 'adjustment-id', 'shipment-id', 'merchant-order-item-id', 'merchant-adjust",
+   "Removed a summary row: removed 1 row that described the file rather than one record (settlement-id = 88123456789.0, settlement-start-date = 2024-03-01T00:00:00+",
+   "Counted order amounts once: quantity-purchased repeat the same figure on every row of an order (several rows per order-id), so each is kept on the first row of ",
+   "Convert to date: 'posted-date' parsed as dates, order inferred as ISO / year-first. Each value was parsed on its own, so mixed formats are handled. Range: 01 Ma",
+   "Convert to date: 'posted-date-time' parsed as dates, order inferred as ISO / year-first. Each value was parsed on its own, so mixed formats are handled. Range: ",
+   "Scope to the goal: Columns not needed for this goal were left untouched and excluded from analysis: order-id, marketplace-name, posted-date-time, order-item-cod",
+   "Flag outliers: 'amount': 250 values (25.1%) outside 1.5\u00d7IQR. Flagged, NOT removed - they may be real"
+  ]
+ },
+ {
+  "file": "d_tally_gst_sales_register.xlsx",
+  "layout": "typical pattern",
+  "checks": {
+   "no_crash": {
+    "ok": true,
+    "detail": ""
+   },
+   "time_memory": {
+    "ok": true,
+    "detail": "5.1 s, 276 MB peak"
+   },
+   "understanding": {
+    "ok": true,
+    "detail": ""
+   },
+   "long_format": {
+    "ok": true,
+    "detail": "n/a (one row per record)"
+   },
+   "no_double_count": {
+    "ok": true,
+    "detail": ""
+   },
+   "report": {
+    "ok": true,
+    "detail": ""
+   },
+   "data_card": {
+    "ok": true,
+    "detail": ""
+   },
+   "custom_analysis": {
+    "ok": true,
+    "detail": ""
+   }
+  },
+  "notes": {
+   "questions_answered_with_defaults": 3
+  },
+  "seconds": 5.1,
+  "peak_mb": 276,
+  "rows": 220,
+  "columns": 13,
+  "cleaning_log": [
+   "Skipped title rows: the header is on row 5; the 4 rows above it (a title or a period) are not data",
+   "Removed totals rows: removed 1 totals row ('Grand Total') so no figure is counted twice",
+   "Scope to the goal: Columns not needed for this goal were left untouched and excluded from analysis: Particulars, Voucher Type, Voucher No., GSTIN/UIN, Round Off",
+   "Flag outliers: 'Taxable Value': 10 values (4.5%) outside 1.5\u00d7IQR. Flagged, NOT removed - they may be real",
+   "Flag outliers: 'Gross Total': 10 values (4.5%) outside 1.5\u00d7IQR. Flagged, NOT removed - they may be real",
+   "Flag outliers: 'CGST': 18 values (8.2%) outside 1.5\u00d7IQR. Flagged, NOT removed - they may be real",
+   "Flag outliers: 'SGST': 18 values (8.2%) outside 1.5\u00d7IQR. Flagged, NOT removed - they may be real",
+   "Flag outliers: 'IGST': 49 values (22.3%) outside 1.5\u00d7IQR. Flagged, NOT removed - they may be real"
+  ]
+ },
+ {
+  "file": "e_hindi_headers.csv",
+  "layout": "typical pattern",
+  "checks": {
+   "no_crash": {
+    "ok": true,
+    "detail": ""
+   },
+   "time_memory": {
+    "ok": true,
+    "detail": "6.0 s, 266 MB peak"
+   },
+   "understanding": {
+    "ok": true,
+    "detail": ""
+   },
+   "long_format": {
+    "ok": true,
+    "detail": "n/a (one row per record)"
+   },
+   "no_double_count": {
+    "ok": true,
+    "detail": "n/a (no fees, refunds or totals rows in this file)"
+   },
+   "report": {
+    "ok": true,
+    "detail": ""
+   },
+   "data_card": {
+    "ok": true,
+    "detail": ""
+   },
+   "custom_analysis": {
+    "ok": true,
+    "detail": ""
+   }
+  },
+  "notes": {},
+  "seconds": 6.0,
+  "peak_mb": 266,
+  "rows": 240,
+  "columns": 11,
+  "cleaning_log": [
+   "Convert to date: 'Tarikh' parsed as dates, order inferred as day-first (dd/mm/yyyy). Each value was parsed on its own, so mixed formats are handled. Range: 01 M",
+   "Scope to the goal: Columns not needed for this goal were left untouched and excluded from analysis: Bill No, Grahak ka naam, Mobile no.",
+   "Flag outliers: 'Kul rashi': 4 values (1.7%) outside 1.5\u00d7IQR. Flagged, NOT removed - they may be real"
+  ]
+ },
+ {
+  "file": "f_wide_80_columns.csv",
+  "layout": "typical pattern",
+  "checks": {
+   "no_crash": {
+    "ok": true,
+    "detail": ""
+   },
+   "time_memory": {
+    "ok": true,
+    "detail": "11.9 s, 267 MB peak"
+   },
+   "understanding": {
+    "ok": true,
+    "detail": ""
+   },
+   "long_format": {
+    "ok": true,
+    "detail": "n/a (one row per record)"
+   },
+   "no_double_count": {
+    "ok": true,
+    "detail": "n/a (no fees, refunds or totals rows in this file)"
+   },
+   "report": {
+    "ok": true,
+    "detail": ""
+   },
+   "data_card": {
+    "ok": true,
+    "detail": ""
+   },
+   "custom_analysis": {
+    "ok": true,
+    "detail": ""
+   }
+  },
+  "notes": {},
+  "seconds": 11.9,
+  "peak_mb": 267,
+  "rows": 300,
+  "columns": 80,
+  "cleaning_log": [
+   "Convert to date: 'order_date' parsed as dates, order inferred as ISO / year-first. Each value was parsed on its own, so mixed formats are handled. Range: 01 Jan",
+   "Scope to the goal: Columns not needed for this goal were left untouched and excluded from analysis: record_id, category_03, category_06, category_09, category_1",
+   "Impute category: 'notes': 22.0% missing labelled 'Unknown'",
+   "Flag outliers: 'revenue': 3 values (1.0%) outside 1.5\u00d7IQR. Flagged, NOT removed - they may be real",
+   "Flag outliers: 'cost': 6 values (2.0%) outside 1.5\u00d7IQR. Flagged, NOT removed - they may be real",
+   "Flag outliers: 'metric_14': 7 values (2.3%) outside 1.5\u00d7IQR. Flagged, NOT removed - they may be real",
+   "Flag outliers: 'metric_09': 12 values (4.0%) outside 1.5\u00d7IQR. Flagged, NOT removed - they may be real",
+   "Flag outliers: 'metric_24': 4 values (1.3%) outside 1.5\u00d7IQR. Flagged, NOT removed - they may be real",
+   "Flag outliers: 'metric_12': 3 values (1.0%) outside 1.5\u00d7IQR. Flagged, NOT removed - they may be real",
+   "Flag outliers: 'metric_01': 7 values (2.3%) outside 1.5\u00d7IQR. Flagged, NOT removed - they may be real",
+   "Flag outliers: 'metric_02': 8 values (2.7%) outside 1.5\u00d7IQR. Flagged, NOT removed - they may be real",
+   "Flag outliers: 'metric_03': 3 values (1.0%) outside 1.5\u00d7IQR. Flagged, NOT removed - they may be real"
+  ]
+ },
+ {
+  "file": "g_mixed_dates_amounts.csv",
+  "layout": "typical pattern",
+  "checks": {
+   "no_crash": {
+    "ok": true,
+    "detail": ""
+   },
+   "time_memory": {
+    "ok": true,
+    "detail": "2.5 s, 259 MB peak"
+   },
+   "understanding": {
+    "ok": true,
+    "detail": ""
+   },
+   "long_format": {
+    "ok": true,
+    "detail": "n/a (one row per record)"
+   },
+   "no_double_count": {
+    "ok": true,
+    "detail": "n/a (no fees, refunds or totals rows in this file)"
+   },
+   "report": {
+    "ok": true,
+    "detail": ""
+   },
+   "data_card": {
+    "ok": true,
+    "detail": ""
+   },
+   "custom_analysis": {
+    "ok": true,
+    "detail": ""
+   }
+  },
+  "notes": {},
+  "seconds": 2.5,
+  "peak_mb": 259,
+  "rows": 260,
+  "columns": 5,
+  "cleaning_log": [
+   "Convert to date: 'Date' parsed as dates, order inferred as day-first (dd/mm/yyyy). Each value was parsed on its own, so mixed formats are handled. Range: 01 Jan",
+   "Dates written in two orders: 'Date' has 59 dates that can only be day/month and 41 that can only be month/day, so the file mixes the two orders. Each was read t",
+   "Convert to number: converted 260 values in Amount (currency words/symbols, thousands separators and spaces stripped)",
+   "Scope to the goal: Columns not needed for this goal were left untouched and excluded from analysis: Invoice, Customer"
+  ]
+ },
+ {
+  "file": "h_quantities_no_money.csv",
+  "layout": "typical pattern",
+  "checks": {
+   "no_crash": {
+    "ok": true,
+    "detail": ""
+   },
+   "time_memory": {
+    "ok": true,
+    "detail": "3.4 s, 261 MB peak"
+   },
+   "understanding": {
+    "ok": true,
+    "detail": ""
+   },
+   "long_format": {
+    "ok": true,
+    "detail": "n/a (one row per record)"
+   },
+   "no_double_count": {
+    "ok": true,
+    "detail": "n/a (no fees, refunds or totals rows in this file)"
+   },
+   "report": {
+    "ok": true,
+    "detail": ""
+   },
+   "data_card": {
+    "ok": true,
+    "detail": ""
+   },
+   "custom_analysis": {
+    "ok": true,
+    "detail": ""
+   }
+  },
+  "notes": {},
+  "seconds": 3.4,
+  "peak_mb": 261,
+  "rows": 280,
+  "columns": 7,
+  "cleaning_log": [
+   "Convert to date: 'order_date' parsed as dates, order inferred as ISO / year-first. Each value was parsed on its own, so mixed formats are handled. Range: 01 Jun",
+   "Scope to the goal: Columns not needed for this goal were left untouched and excluded from analysis: order_id"
+  ]
+ },
+ {
+  "file": "i_messy_headers.csv",
+  "layout": "typical pattern",
+  "checks": {
+   "no_crash": {
+    "ok": true,
+    "detail": ""
+   },
+   "time_memory": {
+    "ok": true,
+    "detail": "3.9 s, 263 MB peak"
+   },
+   "understanding": {
+    "ok": true,
+    "detail": ""
+   },
+   "long_format": {
+    "ok": true,
+    "detail": "n/a (one row per record)"
+   },
+   "no_double_count": {
+    "ok": true,
+    "detail": "n/a (no fees, refunds or totals rows in this file)"
+   },
+   "report": {
+    "ok": true,
+    "detail": ""
+   },
+   "data_card": {
+    "ok": true,
+    "detail": ""
+   },
+   "custom_analysis": {
+    "ok": true,
+    "detail": ""
+   }
+  },
+  "notes": {
+   "questions_answered_with_defaults": 3
+  },
+  "seconds": 3.9,
+  "peak_mb": 263,
+  "rows": 220,
+  "columns": 10,
+  "cleaning_log": [
+   "Left out empty columns: left out 3 columns with nothing in them ('column_7', 'column_8', 'Empty')",
+   "Kept placeholder as label: kept '-' as a label in Status (53 rows)",
+   "Kept placeholder as label: kept '-' as a label in Remarks (61 rows)",
+   "Convert to date: 'Date' parsed as dates, order inferred as ISO / year-first. Each value was parsed on its own, so mixed formats are handled. Range: 01 Jul 2024 ",
+   "Scope to the goal: Columns not needed for this goal were left untouched and excluded from analysis: Order No, Customer, Phone, Email",
+   "Impute category: 'Remarks': 48.6% missing labelled 'Unknown'",
+   "Impute category: 'Status': 14.5% missing labelled 'Unknown'",
+   "Flag outliers: 'Amount': 10 values (4.5%) outside 1.5\u00d7IQR. Flagged, NOT removed - they may be real",
+   "Flag outliers: 'Amount_2': 10 values (4.5%) outside 1.5\u00d7IQR. Flagged, NOT removed - they may be real"
+  ]
+ }
+]

@@ -13,6 +13,7 @@ import re
 
 import pandas as pd
 
+from . import labels
 from . import context as ctxmod
 from . import derived as derivedmod
 from . import directives as dv
@@ -426,13 +427,18 @@ def heuristic_plan(df: pd.DataFrame, profile: dict, goal: str, context: dict | N
                                   + [c for s, _ in flag_rate_specs(df, roles, goal, explore, target) for c in s["params"].values()]))
     relevant += plausible_dimensions(df, roles, uniques, target, relevant)
     relevant = goal_groups(roles, uniques, goal, relevant, ov.get("goal_columns"))
-    questions = [f"What explains differences or changes in {target}?" if target else "What does this dataset contain?"]
+    say = labels.shown          # the questions are read by people: a column by its own name, an underscore name as words
+    questions = [f"What explains differences or changes in {say(target)}?" if target else "What does this dataset contain?"]
     if target and groups:
-        questions.append(f"Which segments ({', '.join(groups[:3])}) perform best and worst on {target}?")
+        status, other = labels.split_groups(groups[:3], lambda g: df[g].dropna().unique()[:13] if g in df.columns else [])
+        if other:
+            questions.append(f"Which segments ({', '.join(say(g) for g in other)}) perform best and worst on {say(target)}?")
+        if status:          # a column of states is a status, not a customer segment
+            questions.append(f"How does {say(target)} differ by status ({', '.join(say(g) for g in status)})?")
     if date and target:
-        questions.append(f"Is {target} trending up or down over time?")
+        questions.append(f"Is {say(target)} trending up or down over time?")
     if context.get("kpis") and target and (_name_tokens(target) & kpi_tokens or target in kpi_cols):
-        questions.append(f"How is {target}, one of the KPIs you named, behaving and what is it linked to?")
+        questions.append(f"How is {say(target)}, one of the KPIs you named, behaving and what is it linked to?")
     objective = goal if not explore else "Explore the data and surface the most important patterns for the business (no specific goal was given)."
     return {"objective": objective, "questions": questions, "target": target, "date_col": date, "relevant_columns": relevant,
             "analyses": analyses, "skipped": rule_skipped(profile, relevant, ov), "source": "rules", "explore": bool(explore), "derived": list(ov.get("derived") or [])}
@@ -452,6 +458,7 @@ Rules:
 - If the goal says exploratory mode: choose the 1-2 most business-relevant outcome columns and a broad, varied set of analyses.
 - Skip identifier and free-text columns. List notable skipped columns with a reason.
 - Answer with names and words only, never numbers.
+- In "questions" call a column by its own name from the profile. Never call it "customer segments" or any other grouping word the profile does not give; a column whose values are states of something (paid, pending, refunded, open, closed) is a status.
 {ctxmod.CONTEXT_RULE}
 Return JSON with keys: objective (string), questions (list of 2-4 strings), target (column or null), date_col (column or null),
 relevant_columns (list), analyses (list of {{tool, params, why}}), skipped (list of {{column, reason}})."""
@@ -487,6 +494,10 @@ def plan_validator(roles: dict, uniques: dict, ids: set, cap: int):
             elif spec_signature(ok) not in seen:
                 seen.add(spec_signature(ok))
                 good.append({**ok, "origin": "ai"})
+        status_cols = [c for c, v in uniques.items() if isinstance(c, str) and c in roles and labels.is_status_like(c, ())]
+        for q in obj.get("questions") or []:
+            if isinstance(q, str) and re.search(r"\bsegments?\b", q, re.I) and any(labels.shown(c).lower() in q.lower() for c in status_cols) and not any("segment" in str(c).lower() for c in roles):
+                errors.append(f"the question \"{q[:80]}\" calls a status column a segment: call the column by its own name and say it is a status")
         if len(good) < 2 and not errors:
             errors.append("a plan needs at least 2 different analyses")
         for key, role in (("target", ("numeric", "binary")), ("date_col", ("date",))):

@@ -5,9 +5,11 @@ import Results from "./Results";
 import AgentFlow from "./AgentFlow";
 import QuestionForm from "./QuestionForm";
 import { LensProvider } from "./lens/LensContext";
+import { ViewProvider } from "./view/ViewContext";
 import LensDock from "./lens/LensDock";
+import RunBar from "./nav/RunBar";
 
-export default function RunView({ runId }: { runId: string }) {
+export default function RunView({ runId, tab }: { runId: string; tab?: string | null }) {
   const [events, setEvents] = useState<AgentEvent[]>([]);
   const [run, setRun] = useState<RunResult | null>(null);
   const [error, setError] = useState("");
@@ -56,6 +58,7 @@ export default function RunView({ runId }: { runId: string }) {
 
   return (
     <div className={`runview ${sideOpen ? "" : "side-closed"}`}>
+      {run?.status !== "done" && <RunBar name={running ? "Analysing your data…" : run?.status === "needs_input" ? "A few questions" : "Report"} />}
       <button className="side-toggle" onClick={toggleSide} aria-expanded={sideOpen} aria-label={sideOpen ? "Hide agent activity" : "Show agent activity"} title={sideOpen ? "Hide agent activity" : "Show agent activity"}>
         ☰ <span>{sideOpen ? "Hide agent activity" : "Agent activity"}</span>
       </button>
@@ -79,10 +82,12 @@ export default function RunView({ runId }: { runId: string }) {
         {run?.status === "needs_input" && <QuestionForm runId={runId} onSubmitted={() => setAttempt((a) => a + 1)} />}
         {run?.status === "error" && <div className="error">The analysis failed: {run.error}</div>}
         {run?.status === "done" && (
-          <LensProvider runId={runId}>
-            <Results run={run} />
-            <LensDock />
-          </LensProvider>
+          <ViewProvider runId={runId}>
+            <LensProvider runId={runId}>
+              <Results run={run} target={tab} />
+              <LensDock />
+            </LensProvider>
+          </ViewProvider>
         )}
       </section>
     </div>

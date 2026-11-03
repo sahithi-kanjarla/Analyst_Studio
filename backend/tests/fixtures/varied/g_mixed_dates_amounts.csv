@@ -1,0 +1,261 @@
+Invoice,Date,Customer,Amount,Mode
+INV-0001,01-03-24,Kiara Joshi,Rs. 15k,Card
+INV-0002,25/06/2024,Kabir Verma,"₹4,500",UPI
+INV-0003,17 Jul 2024,Yash Menon,"₹ 12,500.00",Card
+INV-0004,18/09/2024,Kabir Joshi,"₹1,25,000",Cash
+INV-0005,2024-11-18,Aarav Rao,"₹ 4,500.00",Card
+INV-0006,03/07/2024,Arjun Gupta,"₹ 12,500.00",UPI
+INV-0007,25 Apr 2024,Nisha Patel,Rs. 98k,UPI
+INV-0008,03/17/2024,Tara Sharma,"₹ 250,000.00",Cash
+INV-0009,17 Nov 2024,Diya Patel,0.075005 lakh,UPI
+INV-0010,2024-02-08,Pooja Reddy,"₹15,000",Card
+INV-0011,02/15/2024,Karan Verma,Rs. 125k,UPI
+INV-0012,16 May 2024,Sana Menon,"₹ 4,500.00",Card
+INV-0013,20-01-24,Arjun Nair,"₹2,50,000",Card
+INV-0014,08 Jul 2024,Rohan Das,"₹1,25,000",UPI
+INV-0015,03 Jan 2024,Rohan Sharma,15000,Card
+INV-0016,08/20/2024,Vihaan Reddy,Rs. 15k,Cash
+INV-0017,14/10/2024,Sana Sharma,"₹ 98,000.00",Cash
+INV-0018,17 May 2024,Nisha Das,"₹12,500",Card
+INV-0019,14/10/2024,Kiara Sharma,"₹ 4,500.00",UPI
+INV-0020,01/14/2024,Kiara Reddy,Rs. 250k,Card
+INV-0021,05/26/2024,Rohan Bose,Rs. 125k,Cash
+INV-0022,2024-01-05,Rohan Bose,0.125 lakh,Cash
+INV-0023,09/13/2024,Nisha Gupta,"₹15,000",Card
+INV-0024,05/04/2024,Rohan Rao,1.25 lakh,Cash
+INV-0025,2024-11-05,Sana Patel,2.5 lakh,Card
+INV-0026,2024-06-10,Aarav Bose,"₹ 15,000.00",UPI
+INV-0027,03 Jun 2024,Arjun Menon,"₹ 98,000.00",Cash
+INV-0028,06/19/2024,Karan Iyer,Rs. 7.5005k,UPI
+INV-0029,07/04/2024,Aarav Sharma,"₹2,50,000",UPI
+INV-0030,11/09/2024,Isha Iyer,Rs. 12.5k,Card
+INV-0031,2024-11-09,Dev Das,"₹98,000",Cash
+INV-0032,04/02/2024,Dev Bose,"₹15,000",Card
+INV-0033,16/10/2024,Kabir Das,"₹98,000",Cash
+INV-0034,15-06-24,Arjun Das,98000,Card
+INV-0035,08/21/2024,Dev Verma,0.045 lakh,Cash
+INV-0036,2024-10-12,Zoya Rao,"₹ 7,500.50",Cash
+INV-0037,13-07-24,Yash Mehta,"₹ 4,500.00",Cash
+INV-0038,26-11-24,Isha Iyer,"₹ 12,500.00",UPI
+INV-0039,09-02-24,Aarav Menon,"₹ 4,500.00",UPI
+INV-0040,07 Jan 2024,Isha Mehta,"₹ 4,500.00",UPI
+INV-0041,2024-05-17,Rohan Singh,"₹ 7,500.50",Cash
+INV-0042,03/26/2024,Arjun Khan,"₹ 250,000.00",Card
+INV-0043,29 Jan 2024,Vihaan Reddy,"₹ 7,500.50",UPI
+INV-0044,30/03/2024,Tara Iyer,12500,UPI
+INV-0045,07/01/2024,Dev Gupta,Rs. 15k,Cash
+INV-0046,05 Mar 2024,Sana Mehta,125000,Card
+INV-0047,2024-03-15,Imran Das,"₹98,000",Cash
+INV-0048,01/25/2024,Rohan Iyer,2.5 lakh,UPI
+INV-0049,2024-01-06,Rahul Gupta,"₹1,25,000",Card
+INV-0050,28 Oct 2024,Vihaan Patel,"₹1,25,000",Cash
+INV-0051,2024-07-03,Arjun Nair,0.045 lakh,Cash
+INV-0052,08/03/2024,Meera Nair,"₹ 125,000.00",UPI
+INV-0053,04/16/2024,Karan Sharma,"₹2,50,000",Card
+INV-0054,25-05-24,Yash Reddy,125000,Card
+INV-0055,2024-10-25,Tara Rao,1.25 lakh,Card
+INV-0056,21-01-24,Rahul Joshi,Rs. 7.5005k,Cash
+INV-0057,04-07-24,Kiara Gupta,"₹1,25,000",Card
+INV-0058,09-06-24,Karan Das,"₹12,500",Card
+INV-0059,02-02-24,Isha Menon,Rs. 98k,UPI
+INV-0060,28/01/2024,Kiara Nair,"₹15,000",UPI
+INV-0061,01/07/2024,Pooja Nair,Rs. 98k,Cash
+INV-0062,2024-04-19,Nisha Bose,"₹98,000",UPI
+INV-0063,02/07/2024,Isha Sharma,Rs. 98k,Cash
+INV-0064,12 Sep 2024,Meera Gupta,15000,Card
+INV-0065,10/03/2024,Meera Menon,Rs. 250k,UPI
+INV-0066,01/17/2024,Tara Menon,0.15 lakh,Card
+INV-0067,03/23/2024,Zoya Verma,"₹ 98,000.00",Cash
+INV-0068,2024-06-17,Rahul Iyer,Rs. 15k,Cash
+INV-0069,24/01/2024,Meera Iyer,"₹ 98,000.00",Card
+INV-0070,27 Jan 2024,Zoya Iyer,125000,UPI
+INV-0071,2024-06-08,Diya Singh,"₹15,000",UPI
+INV-0072,29-10-24,Rahul Bose,"₹4,500",UPI
+INV-0073,2024-03-31,Pooja Menon,"₹ 98,000.00",Cash
+INV-0074,2024-02-12,Zoya Iyer,7500.5,Card
+INV-0075,09/20/2024,Yash Mehta,"₹ 7,500.50",UPI
+INV-0076,29 Jun 2024,Karan Nair,"₹12,500",Card
+INV-0077,2024-08-30,Imran Verma,4500,Card
+INV-0078,02-10-24,Rohan Khan,"₹98,000",UPI
+INV-0079,24/05/2024,Nisha Reddy,"₹ 98,000.00",UPI
+INV-0080,2024-03-12,Dev Patel,"₹7,500",Cash
+INV-0081,01/02/2024,Anaya Patel,Rs. 98k,Card
+INV-0082,25-09-24,Isha Singh,Rs. 7.5005k,Card
+INV-0083,2024-02-08,Zoya Bose,"₹98,000",UPI
+INV-0084,2024-02-24,Diya Reddy,250000,UPI
+INV-0085,28-07-24,Tara Das,"₹2,50,000",Card
+INV-0086,2024-03-07,Rahul Bose,"₹12,500",Card
+INV-0087,18-03-24,Sana Reddy,Rs. 250k,UPI
+INV-0088,06/14/2024,Aarav Khan,"₹7,500",UPI
+INV-0089,07/09/2024,Vihaan Gupta,0.045 lakh,UPI
+INV-0090,22-06-24,Anaya Bose,"₹7,500",UPI
+INV-0091,06/21/2024,Aarav Khan,7500.5,UPI
+INV-0092,07/04/2024,Pooja Nair,Rs. 98k,Cash
+INV-0093,16 Feb 2024,Aarav Sharma,98000,UPI
+INV-0094,2024-10-28,Isha Reddy,"₹ 15,000.00",Cash
+INV-0095,15 Mar 2024,Anaya Reddy,Rs. 4.5k,UPI
+INV-0096,01/30/2024,Rahul Das,0.98 lakh,Card
+INV-0097,06/05/2024,Isha Iyer,"₹ 12,500.00",UPI
+INV-0098,2024-05-18,Rahul Singh,Rs. 98k,Card
+INV-0099,2024-10-16,Kiara Reddy,"₹ 4,500.00",Card
+INV-0100,2024-08-02,Rohan Joshi,"₹7,500",Cash
+INV-0101,01/14/2024,Imran Singh,98000,Cash
+INV-0102,18-01-24,Arjun Rao,15000,UPI
+INV-0103,27-02-24,Anaya Khan,Rs. 4.5k,UPI
+INV-0104,11/07/2024,Aarav Bose,0.125 lakh,Card
+INV-0105,18 Sep 2024,Sana Das,Rs. 125k,UPI
+INV-0106,2024-04-24,Sana Patel,0.125 lakh,UPI
+INV-0107,24-07-24,Meera Bose,"₹ 98,000.00",Card
+INV-0108,27 Jul 2024,Nisha Khan,Rs. 98k,UPI
+INV-0109,04/02/2024,Tara Patel,0.98 lakh,UPI
+INV-0110,12/01/2024,Dev Singh,Rs. 250k,Cash
+INV-0111,11-02-24,Tara Das,"₹1,25,000",Cash
+INV-0112,2024-07-20,Karan Das,Rs. 250k,Cash
+INV-0113,23/10/2024,Anaya Patel,"₹2,50,000",Card
+INV-0114,2024-09-10,Meera Iyer,125000,UPI
+INV-0115,01/29/2024,Karan Reddy,7500.5,Card
+INV-0116,12 Apr 2024,Kiara Gupta,"₹ 7,500.50",Cash
+INV-0117,30-03-24,Dev Khan,"₹ 98,000.00",UPI
+INV-0118,24 Aug 2024,Anaya Mehta,0.125 lakh,UPI
+INV-0119,03/21/2024,Arjun Iyer,0.15 lakh,UPI
+INV-0120,10-08-24,Karan Das,2.5 lakh,UPI
+INV-0121,10 Feb 2024,Zoya Mehta,0.15 lakh,Cash
+INV-0122,20-10-24,Aarav Menon,"₹ 250,000.00",UPI
+INV-0123,05/10/2024,Rahul Iyer,"₹ 12,500.00",Card
+INV-0124,19 Sep 2024,Arjun Patel,0.15 lakh,Cash
+INV-0125,08/11/2024,Rohan Singh,15000,Cash
+INV-0126,07-03-24,Aarav Bose,12500,Card
+INV-0127,20 Aug 2024,Nisha Menon,0.15 lakh,Card
+INV-0128,26/11/2024,Pooja Patel,7500.5,Card
+INV-0129,26 Oct 2024,Isha Nair,125000,UPI
+INV-0130,07 Sep 2024,Isha Mehta,Rs. 4.5k,Cash
+INV-0131,12/05/2024,Tara Singh,2.5 lakh,UPI
+INV-0132,02/17/2024,Rohan Bose,"₹ 15,000.00",Card
+INV-0133,21/11/2024,Karan Mehta,"₹ 98,000.00",UPI
+INV-0134,02/16/2024,Aarav Sharma,"₹4,500",Card
+INV-0135,09/19/2024,Arjun Das,Rs. 125k,Card
+INV-0136,23/03/2024,Imran Reddy,125000,UPI
+INV-0137,2024-10-17,Yash Singh,"₹ 98,000.00",Card
+INV-0138,07 Mar 2024,Karan Iyer,250000,Cash
+INV-0139,05/08/2024,Rohan Reddy,Rs. 98k,Card
+INV-0140,06 Mar 2024,Tara Reddy,Rs. 125k,Card
+INV-0141,01/28/2024,Dev Das,"₹4,500",Cash
+INV-0142,17 Jul 2024,Rahul Patel,"₹4,500",UPI
+INV-0143,10/08/2024,Rahul Gupta,"₹12,500",UPI
+INV-0144,04/07/2024,Yash Mehta,98000,UPI
+INV-0145,27-06-24,Arjun Menon,"₹15,000",Card
+INV-0146,08 Aug 2024,Anaya Rao,125000,Cash
+INV-0147,10/11/2024,Kiara Reddy,2.5 lakh,Cash
+INV-0148,01 Feb 2024,Zoya Singh,250000,Cash
+INV-0149,07/31/2024,Karan Rao,"₹15,000",Card
+INV-0150,07-10-24,Anaya Patel,"₹ 4,500.00",Card
+INV-0151,24-10-24,Anaya Nair,4500,UPI
+INV-0152,24 Jul 2024,Aarav Iyer,Rs. 12.5k,Cash
+INV-0153,09/26/2024,Kabir Verma,"₹98,000",Card
+INV-0154,17-07-24,Tara Menon,"₹ 7,500.50",UPI
+INV-0155,09/02/2024,Sana Iyer,125000,Cash
+INV-0156,26 Oct 2024,Sana Iyer,"₹ 7,500.50",UPI
+INV-0157,06/05/2024,Anaya Nair,0.98 lakh,UPI
+INV-0158,06 Mar 2024,Anaya Patel,0.045 lakh,UPI
+INV-0159,2024-09-05,Zoya Nair,125000,UPI
+INV-0160,07/07/2024,Anaya Rao,Rs. 98k,UPI
+INV-0161,05/01/2024,Tara Joshi,125000,Cash
+INV-0162,10/18/2024,Dev Menon,"₹2,50,000",UPI
+INV-0163,13/09/2024,Sana Rao,0.98 lakh,UPI
+INV-0164,14 Sep 2024,Vihaan Das,Rs. 250k,UPI
+INV-0165,23 Apr 2024,Yash Reddy,Rs. 4.5k,Cash
+INV-0166,11-03-24,Meera Das,"₹12,500",UPI
+INV-0167,01/20/2024,Meera Iyer,0.98 lakh,Card
+INV-0168,25-07-24,Rohan Rao,"₹ 125,000.00",Card
+INV-0169,2024-05-14,Kabir Bose,7500.5,Cash
+INV-0170,2024-04-03,Meera Reddy,"₹ 7,500.50",UPI
+INV-0171,30-01-24,Zoya Iyer,"₹7,500",Card
+INV-0172,05/28/2024,Arjun Sharma,0.125 lakh,UPI
+INV-0173,09/05/2024,Imran Rao,125000,Card
+INV-0174,2024-10-17,Isha Khan,Rs. 7.5005k,Cash
+INV-0175,17 Apr 2024,Anaya Khan,12500,UPI
+INV-0176,12 Jan 2024,Kabir Menon,2.5 lakh,Cash
+INV-0177,07 Oct 2024,Anaya Joshi,2.5 lakh,Card
+INV-0178,22 Sep 2024,Tara Verma,"₹12,500",Card
+INV-0179,02 Jan 2024,Kabir Nair,"₹1,25,000",Cash
+INV-0180,29 Oct 2024,Aarav Reddy,"₹98,000",Card
+INV-0181,2024-01-04,Dev Sharma,"₹7,500",Cash
+INV-0182,01/31/2024,Tara Verma,Rs. 12.5k,Cash
+INV-0183,11-08-24,Arjun Bose,"₹2,50,000",Cash
+INV-0184,28 Jun 2024,Diya Khan,0.15 lakh,UPI
+INV-0185,2024-02-10,Sana Patel,"₹ 250,000.00",Card
+INV-0186,06-06-24,Meera Rao,125000,UPI
+INV-0187,08/02/2024,Anaya Nair,0.98 lakh,Cash
+INV-0188,09 May 2024,Nisha Reddy,Rs. 4.5k,UPI
+INV-0189,10/16/2024,Rohan Das,15000,UPI
+INV-0190,04/15/2024,Aarav Sharma,"₹ 12,500.00",Cash
+INV-0191,2024-03-25,Aarav Khan,"₹ 125,000.00",Card
+INV-0192,13-05-24,Diya Gupta,12500,Card
+INV-0193,26 Apr 2024,Kabir Joshi,"₹2,50,000",Cash
+INV-0194,04/26/2024,Rohan Nair,"₹ 15,000.00",Card
+INV-0195,04/25/2024,Isha Sharma,"₹ 7,500.50",Card
+INV-0196,31-10-24,Rahul Iyer,"₹ 125,000.00",Card
+INV-0197,08/30/2024,Rahul Bose,"₹7,500",Card
+INV-0198,2024-01-03,Zoya Mehta,"₹7,500",UPI
+INV-0199,30-05-24,Diya Sharma,12500,UPI
+INV-0200,09/14/2024,Isha Singh,"₹4,500",UPI
+INV-0201,19/01/2024,Kiara Rao,"₹2,50,000",UPI
+INV-0202,03/03/2024,Sana Mehta,Rs. 12.5k,UPI
+INV-0203,15/09/2024,Pooja Gupta,"₹ 15,000.00",UPI
+INV-0204,25 May 2024,Meera Mehta,0.075005 lakh,Cash
+INV-0205,06/05/2024,Kabir Mehta,2.5 lakh,Card
+INV-0206,2024-11-04,Imran Joshi,"₹2,50,000",Cash
+INV-0207,12 Jun 2024,Nisha Das,0.125 lakh,UPI
+INV-0208,04-07-24,Rohan Iyer,1.25 lakh,Cash
+INV-0209,2024-05-04,Aarav Bose,Rs. 250k,Card
+INV-0210,09/07/2024,Arjun Joshi,Rs. 125k,Cash
+INV-0211,23-02-24,Diya Menon,0.075005 lakh,UPI
+INV-0212,08/15/2024,Rohan Bose,"₹ 250,000.00",UPI
+INV-0213,25/08/2024,Meera Rao,"₹98,000",Card
+INV-0214,07/22/2024,Aarav Iyer,125000,UPI
+INV-0215,09/06/2024,Anaya Reddy,"₹1,25,000",Cash
+INV-0216,2024-04-25,Kabir Menon,250000,UPI
+INV-0217,11/11/2024,Kiara Patel,Rs. 125k,UPI
+INV-0218,08/15/2024,Zoya Sharma,4500,UPI
+INV-0219,2024-04-20,Rohan Rao,Rs. 250k,Cash
+INV-0220,09 Jul 2024,Kiara Bose,Rs. 4.5k,UPI
+INV-0221,04-02-24,Diya Patel,Rs. 4.5k,UPI
+INV-0222,21-08-24,Tara Khan,250000,Cash
+INV-0223,04/12/2024,Anaya Khan,"₹2,50,000",UPI
+INV-0224,2024-09-06,Nisha Das,7500.5,Card
+INV-0225,2024-05-24,Imran Khan,Rs. 250k,Card
+INV-0226,02/10/2024,Isha Gupta,"₹12,500",UPI
+INV-0227,08 Jan 2024,Nisha Sharma,0.045 lakh,Cash
+INV-0228,03-11-24,Dev Rao,15000,Cash
+INV-0229,15-10-24,Sana Verma,125000,Cash
+INV-0230,14/09/2024,Pooja Nair,98000,Card
+INV-0231,2024-02-22,Aarav Das,1.25 lakh,Card
+INV-0232,12 Jun 2024,Anaya Sharma,0.98 lakh,Card
+INV-0233,02-06-24,Rahul Khan,Rs. 250k,UPI
+INV-0234,2024-09-26,Diya Singh,"₹2,50,000",UPI
+INV-0235,03/06/2024,Arjun Bose,"₹12,500",Card
+INV-0236,17-04-24,Imran Nair,4500,Card
+INV-0237,09/27/2024,Rohan Menon,0.98 lakh,Cash
+INV-0238,02-08-24,Arjun Das,1.25 lakh,UPI
+INV-0239,24-07-24,Dev Rao,"₹1,25,000",UPI
+INV-0240,30-09-24,Kiara Iyer,"₹ 125,000.00",Card
+INV-0241,15 Apr 2024,Rohan Gupta,Rs. 125k,UPI
+INV-0242,14/03/2024,Diya Verma,1.25 lakh,Card
+INV-0243,17-05-24,Dev Singh,"₹ 7,500.50",Cash
+INV-0244,18/11/2024,Yash Bose,15000,UPI
+INV-0245,23-10-24,Karan Joshi,1.25 lakh,Cash
+INV-0246,29-04-24,Diya Rao,15000,UPI
+INV-0247,25-04-24,Rahul Nair,7500.5,Card
+INV-0248,10 Apr 2024,Imran Reddy,Rs. 7.5005k,Card
+INV-0249,01/11/2024,Rohan Nair,Rs. 4.5k,UPI
+INV-0250,13-06-24,Rahul Patel,"₹ 12,500.00",UPI
+INV-0251,02-11-24,Vihaan Mehta,"₹2,50,000",Card
+INV-0252,01/01/2024,Anaya Reddy,"₹ 250,000.00",UPI
+INV-0253,25-07-24,Rahul Nair,"₹7,500",UPI
+INV-0254,28-03-24,Rohan Nair,1.25 lakh,Cash
+INV-0255,2024-07-09,Vihaan Nair,Rs. 15k,Cash
+INV-0256,14/11/2024,Sana Reddy,Rs. 125k,Card
+INV-0257,14 Oct 2024,Diya Das,Rs. 4.5k,UPI
+INV-0258,01/17/2024,Rohan Patel,1.25 lakh,UPI
+INV-0259,2024-04-21,Tara Khan,125000,Cash
+INV-0260,26-01-24,Diya Joshi,"₹ 15,000.00",Card

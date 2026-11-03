@@ -94,6 +94,12 @@ def run(monkeypatch):
     return rid, wd, result, df
 
 
+def data_chips(wd, result):
+    """The suggested data questions Lens offers on open and behind "More ideas" (the opening few also hold a view example and a summary)."""
+    i = chat.info(wd, result, False)
+    return [c for c in i["chips"] + i.get("more", []) if c["id"].startswith("c_")]
+
+
 def ask(run, ai=None, **kw):
     rid, wd, result, df = run
     return chat.ask(wd, result, llm=ai, allow_ai=ai is not None, **kw)
@@ -300,8 +306,8 @@ def test_a_value_found_in_two_columns_is_a_clarifying_question(run):
 def test_a_suggested_question_is_answered_without_the_ai(run, monkeypatch):
     monkeypatch.setattr(llm, "get_llm", lambda: (_ for _ in ()).throw(AssertionError("a chip called the model")))
     rid, wd, result, df = run
-    cs = chat.info(wd, result, False)["chips"]
-    assert len(cs) >= 6
+    cs = data_chips(wd, result)
+    assert len(cs) >= 4 and len(chat.info(wd, result, False)["chips"]) <= 4
     for c in [c for c in cs if c["id"].startswith("c_")]:         # the opening data questions; the report questions (i_...) are tested in test_lens_stage2a
         t = chat.ask(wd, result, chip=c["id"], llm=None, allow_ai=False)
         assert t["answer"]["status"] == "answered", (c, t["answer"]["text"])
@@ -314,16 +320,16 @@ def test_a_suggested_question_is_answered_without_the_ai(run, monkeypatch):
 
 def test_typed_text_that_matches_a_chip_runs_it_and_other_text_offers_the_chips(run):
     rid, wd, result, df = run
-    chip = chat.info(wd, result, False)["chips"][0]
+    chip = data_chips(wd, result)[0]
     ai = FakeAI({"action": "unsupported", "reason": ""})
     t = chat.ask(wd, result, question=chip["text"].lower().rstrip("?"), llm=ai, allow_ai=True)
     assert t["answer"]["status"] == "answered" and ai.calls == 0
     t = chat.ask(wd, result, question="what is the weather like", llm=None, allow_ai=False)
-    assert t["answer"]["status"] == "unavailable" and len(t["answer"]["chips"]) >= 6 and "suggested questions" in t["answer"]["text"]
+    assert t["answer"]["status"] == "unavailable" and 2 <= len(t["answer"]["chips"]) <= 4 and t["answer"]["more"] and "suggested questions" in t["answer"]["text"]
 
 
 def test_chart_controls_are_applied_by_code(run):
-    first = ask(run, None, chip=chat.info(run[1], run[2], False)["chips"][0]["id"])
+    first = ask(run, None, chip=data_chips(run[1], run[2])[0]["id"])
     a = first["answer"]
     assert a["chart"]["type"] == "bar" and "table" in a["controls"]["chart_types"] and "line" in a["controls"]["chart_types"]
     t = ask(run, None, patch={"turn": first["id"], "set": {"chart": "table"}})
@@ -377,17 +383,20 @@ def test_the_ai_gets_the_understanding_record_and_tab_but_never_rows(run):
     p = ai.prompts[0]
     assert "CURRENT TAB: Dashboard" in p and "membership level" in p and '"label": "Tier"' in p and "money" in p
     df = run[3]
-    for city in df.city.unique():
-        assert city not in p
-    assert df["customer_id"].iloc[0] not in p and "Gold" not in p
+    assert df["customer_id"].iloc[0] not in p                       # no identifier, no row
+    assert "DATA CARD" in p and "values: " in p and all(f"{c} (" in p for c in df.city.unique())          # the data card lists the category values, each only with its count and share (the card is how Lens knows what the data holds)
+    assert not any(f"{v:.2f}" in p for v in df["amount"].head(5))   # a row's own figures are not there
 
 
 def test_only_the_last_six_turns_are_passed(run):
     ai = FakeAI(q(op="aggregate", measure="amount", agg="sum"))
     for i in range(8):
         ask(run, ai, question=f"question number {i + 1:02d} about totals")
-    prev = ai.prompts[-1].split("PREVIOUS TURNS")[1].split("QUESTION:")[0]
-    assert prev.count('"question"') == 6 and "number 07" in prev and "number 02" in prev and "number 01" not in prev
+    from app.lens.agent import context
+    turns = context.history(run[1])                                    # the most the AI is ever given: the last six
+    assert len(turns) == 6 and "number 08" in turns[-1]["question"] and "number 03" in turns[0]["question"] and all("number 02" not in t["question"] for t in turns)
+    prev = ai.prompts[-1].split("PREVIOUS TURNS")[1].split("REQUEST:")[0]          # a request that leans on nothing before it gets only the last turn, in brief
+    assert prev.count('"question"') == 1 and "number 07" in prev and '"answer":' not in prev
 
 
 def test_question_cap_per_run(run, monkeypatch):
@@ -397,7 +406,7 @@ def test_question_cap_per_run(run, monkeypatch):
     assert ask(run, ai, question="two please")["answer"]["status"] == "answered"
     t = ask(run, ai, question="three please")
     assert t["answer"]["status"] == "limit" and "limit of 2 questions" in t["answer"]["text"] and ai.calls == 2
-    assert ask(run, None, chip=chat.info(run[1], run[2], False)["chips"][0]["id"])["answer"]["status"] == "answered"     # suggested questions never cost anything
+    assert ask(run, None, chip=data_chips(run[1], run[2])[0]["id"])["answer"]["status"] == "answered"     # suggested questions never cost anything
     assert chat.info(run[1], run[2], False)["limit"] == {"asked": 2, "max": 2}
 
 
@@ -441,7 +450,7 @@ def test_flag_modes(monkeypatch):
 def test_history_survives_a_reload(run):
     rid, wd, result, df = run
     ask(run, FakeAI(q(op="aggregate", measure="amount", agg="sum")), question="total amount")
-    ask(run, None, chip=chat.info(wd, result, False)["chips"][0]["id"])
+    ask(run, None, chip=data_chips(wd, result)[0]["id"])
     chat._FRAMES.clear()                      # a new process: nothing in memory
     info = client.get(f"/api/runs/{rid}/lens").json()
     assert [t["question"] for t in info["history"]][0] == "total amount" and len(info["history"]) == 2
@@ -451,7 +460,7 @@ def test_history_survives_a_reload(run):
 
 def test_pin_adds_a_section_item_and_never_changes_the_original_report(run):
     rid, wd, result, df = run
-    t = ask(run, None, chip=chat.info(wd, result, False)["chips"][0]["id"])
+    t = ask(run, None, chip=data_chips(wd, result)[0]["id"])
     before = {f: hashlib.sha256((wd / f).read_bytes()).hexdigest() for f in ("result.json", "report.md")}
     r = client.post(f"/api/runs/{rid}/lens/pins", json={"turn": t["id"], "target": "report"})
     assert r.status_code == 200 and r.json()["text"] == t["answer"]["text"]
@@ -476,7 +485,7 @@ def test_api_end_to_end_with_a_fake_model(run, monkeypatch):
     assert r.status_code == 200
     a = r.json()["answer"]
     assert a["status"] == "answered" and a["chart"]["url"].startswith(f"/api/runs/{rid}/files/charts/lens_") and client.get(a["chart"]["url"]).status_code == 200
-    assert client.get(f"/api/health").json()["chatbot"] == "on"
+    assert client.get("/api/config").json()["chatbot"] == "on"
 
 
 def test_off_flag_hides_lens(run, monkeypatch):

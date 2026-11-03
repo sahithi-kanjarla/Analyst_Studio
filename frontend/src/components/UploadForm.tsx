@@ -1,5 +1,5 @@
-import { useRef, useState } from "react";
-import { api, BusinessContextInput } from "../api";
+import { useEffect, useRef, useState } from "react";
+import { api, BusinessContextInput, getAccessCode, setAccessCode } from "../api";
 
 const EXAMPLES = [
   "Which customer segment drives the most revenue, and is it growing? What should we focus on?",
@@ -32,6 +32,12 @@ export default function UploadForm({ onStarted }: { onStarted: (id: string) => v
   const [error, setError] = useState("");
   const [drag, setDrag] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [needCode, setNeedCode] = useState(false);
+  const [site, setSite] = useState<{ public_demo?: boolean; retention_days?: number }>({});
+  const [code, setCode] = useState(getAccessCode());
+  useEffect(() => {
+    api.siteConfig().then((h) => { setNeedCode(Boolean(h.requires_code)); setSite(h); }).catch(() => undefined);      // the server asks for a code only when UPLOADS_REQUIRE_CODE is set (or on a public demo)
+  }, []);
 
   const setC = <K extends keyof BusinessContextInput>(k: K, v: BusinessContextInput[K]) => setCtx((c) => ({ ...c, [k]: v }));
   const ctxFilled = ["company", "industry", "description", "kpis", "audience", "notes"].filter((k) => (ctx as unknown as Record<string, string>)[k].trim()).length;
@@ -52,9 +58,11 @@ export default function UploadForm({ onStarted }: { onStarted: (id: string) => v
     e.preventDefault();
     if (files.length === 0) return setError("Choose at least one data file first.");
     if (!ctx.explore && goal.trim().length < 5) return setError("Tell the agent what you want to find out, or tick “I'm not sure what to look for”.");
+    if (needCode && !code.trim()) return setError("Enter the access code you were given to upload your own data. The sample report needs no code.");
     setBusy(true);
     setError("");
     try {
+      setAccessCode(code.trim());
       const { run_id } = await api.createRun(files, ctx.explore ? "" : goal.trim(), ctx);
       onStarted(run_id);
     } catch (err) {
@@ -198,6 +206,17 @@ export default function UploadForm({ onStarted }: { onStarted: (id: string) => v
           </div>
         )}
 
+        {needCode && (
+          <label className="field access-code">
+            <span>Access code</span>
+            <input type="password" autoComplete="off" value={code} onChange={(e) => setCode(e.target.value)} placeholder="Needed to upload your own data" />
+            <small className="muted">The sample report and demo are open to everyone and need no code.</small>
+          </label>
+        )}
+        <p className="privacy-note muted small" role="note">
+          <strong>Privacy.</strong> Your files and the results are stored on this server{site.retention_days ? ` for ${site.retention_days === 1 ? "1 day" : `${site.retention_days} days`}, then deleted automatically` : " until you delete them"}.
+          You can delete a run, with its uploaded files, at any time with “Delete my run” in the menu of its report. When an AI model is used, it is sent summaries of your data (column names, counts, ranges and a few common values), never individual rows.
+        </p>
         {error && <div className="error">{error}</div>}
         <div className="form-actions">
           <button className="primary" disabled={busy}>
