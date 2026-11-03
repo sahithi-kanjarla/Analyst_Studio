@@ -145,3 +145,27 @@ See the sections below, written as each tab was done.
 - `Tiers.tsx`: findings grouped under theme headings (ordered by the most important finding in each theme), 2-column grid on desktop, one column on a phone. Lower-ranked findings are visible too (first 4, "Show all (n)"); the column profile is the one fold.
 - FindingGallery tiles on the Dashboard and `FindingTable` use plain names (no raw ids), 6 rows then "Show all (n)". Stat labels lose a leading "Total".
 - New browser test `tests/test_ui_widgets.py` + `tests/ui/widgets_check.js`: per tab, chart + explanation + action visible without a click; Show all reveals the rest; Expand all details opens folds; no underscore / raw id / "Total" / "(sum)" in titles; print = screen.
+
+### Step 4 — designer pass: DONE
+- Wide tables (Markdown tables in "How we got this", the dashboard table) scroll inside their card; no page-level sideways scroll at 390 / 768 on any of 4 runs x 5 tabs.
+- Badges sit together at the left of each insight card; light and dark themes (system preference) checked on Dashboard and Insights.
+- Kept on purpose: the Insights "Headline findings" and "What to do" lists, because Lens view edits address them by id (`insights:headline:*`, `insights:action:*`).
+- Print uses the same default content as the screen (checked by count of insight widgets under print media).
+
+## Final run
+- `npm run build`: clean (the `color-mix()` minify note in landing.css is old).
+- UI browser tests: `test_ui_nav` 10, `test_ui_simplify` all, `test_ui_widgets` 6, `test_chartsize` 10: pass.
+- Full suite: 1276 passed, 2 failed — `test_nonfinite_stats.py::test_a_statistic_that_is_undefined_is_left_out_not_written_as_zero` and `::test_the_shopify_orders_file_opens_over_the_api` (`'skew'` present for a constant column).
+  They are in backend statistics code this branch does not touch (`backend/app` differs from `studio-v3-deploy` only in `viewedit.py`), so they look like a library-version difference in this container; not investigated further.
+- Test changes for the new default (`DEFAULT_SHORT = ()`): the short view is now opt-in; `test_simplify`, `test_partb_view`, `test_lens_misses`, `lens_eval/requests.jsonl` (e063, e087), `simplify_check.js`, `nav_check.js`.
+
+## Decisions
+- Every tab opens in the full view; "Show less" offers the short view; Lens can still ask for it.
+- Server-drawn finding charts (Report and Insights images) keep their inner titles and top-N: changing them is backend work, so ranking lists and share bars are drawn in the browser from each finding's own table instead.
+- Insight widget is chosen from analysis type, table shape and sentence only; the stat figure is read from the sentence as written; direction (arrow, colour) only when the sentence or its sign says so.
+
+## NOT tested
+- Real AI wording of insights (all runs rules-only; `LLM_PROVIDER=none`).
+- Screen sizes beyond 390, 768, 1024, 1280 and 1440 px.
+- Browsers other than headless Chromium; the PDF export itself (print was checked by media emulation only).
+- Dashboard speed on the 40,000-row file was not re-measured; only the loading skeleton was confirmed present.
