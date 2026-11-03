@@ -33,7 +33,9 @@ def place(tab: str) -> str:
     return f"the {TAB_NAMES.get(tab, tab)} tab"
 
 
-DEFAULT_SHORT = ("report", "insights", "dashboard")      # these tabs open in the short view; "Show all" switches a tab to the full view
+DEFAULT_SHORT = ()      # every tab opens showing everything: a reader should never have to click to reach a chart or its sentence.
+# "Show less" switches a tab to the short view, and Lens can still ask for it ("short view", "top 5"), which is what SHORT_INSIGHTS
+# and MAX_SHORT_CHARTS below are for. Only supporting detail stays folded, in the one "How we got this" section of an item.
 SHORT_INSIGHTS = 5            # the short Insights view: the top 5, ranked by the report's own order
 MAX_SHORT_CHARTS = 6          # the short Report and Dashboard: at most 6 charts, and only those an action or the summary cites
 MAX_N = 50

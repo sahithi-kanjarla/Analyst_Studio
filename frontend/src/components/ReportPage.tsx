@@ -1,4 +1,5 @@
 import { RunResult } from "../api";
+import { humanise, Understanding } from "../display";
 import LensChat from "./lens/LensChat";
 import { LensProvider } from "./lens/LensContext";
 import LensPins from "./lens/LensPins";
@@ -16,9 +17,15 @@ function splitAction(text: string): { title: string; why: string } {
   return { title: text.slice(0, i).trim(), why: text.slice(j + 1).trim() };
 }
 
-/** Display only: the statistic in brackets is left to "Behind the numbers", the sentence itself is unchanged. */
+/** Display only: the statistic in brackets is left to "How we got this", the sentence itself is unchanged. */
 const plainStats = (t: string) => t.replace(/\s*\((?:p\s*[=<>]\s*[\d.]+)[^)]*\)/g, "");
 const meaning = (caption: string) => caption.replace(/^How to read this:\s*/i, "");
+
+/** A chart's own title, in plain words and sentence case: no internal column name ever reaches the heading. */
+const chartHeading = (title: string, und?: Understanding | null) => {
+  const t = humanise(String(title ?? ""), und).replace(/^\s*(total|sum of)\s+/i, "");
+  return t.charAt(0).toUpperCase() + t.slice(1);
+};
 
 /** The report as a designed page: the short answer, the key figures, what to do, the evidence, and everything else folded away. */
 export default function ReportPage({ run, embedded = false, startChat = false, startPrint = false }: { run: RunResult; embedded?: boolean; startChat?: boolean; startPrint?: boolean }) {
@@ -61,8 +68,8 @@ export default function ReportPage({ run, embedded = false, startChat = false, s
           "report:short": (
           <section className="rp-headline" data-kind="summary" aria-label="The short answer">
           <p className="rp-kicker">The short answer</p>
-          <p className="rp-big">{plainStats(page.headline)}</p>
-          {page.headline_more && <p className="rp-more">{page.headline_more}</p>}
+          <p className="rp-big">{humanise(plainStats(page.headline), run.understanding)}</p>
+          {page.headline_more && <p className="rp-more">{humanise(page.headline_more, run.understanding)}</p>}
         </section>
 
           ),
@@ -85,12 +92,12 @@ export default function ReportPage({ run, embedded = false, startChat = false, s
                   <ShowMore tab="report" items={page.actions.map((a, i) => {
                     const { title: t, why } = splitAction(a.text);
                     return { id: `report:action:${i}`, node: (
-                      <ViewItem key={i} id={`report:action:${i}`} tag="li" className="rp-action">
+                      <ViewItem key={i} id={`report:action:${i}`} tag="li" className="rp-action" data-kind="action">
                         <span className="rp-num" aria-hidden>{i + 1}</span>
                         <div>
-                          <h3><ViewTitle id={`report:action:${i}`} text={t} /></h3>
-                          {why && !short && <p>{why}</p>}
-                          {a.figure && !short && <p className="rp-support">{a.figure.replace(/^Supported by:\s*/i, "")}</p>}
+                          <h3><ViewTitle id={`report:action:${i}`} text={humanise(t, run.understanding)} /></h3>
+                          {why && !short && <p>{humanise(why, run.understanding)}</p>}
+                          {a.figure && !short && <p className="rp-support" data-kind="evidence">{humanise(a.figure.replace(/^Supported by:\s*/i, ""), run.understanding)}</p>}
                         </div>
                       </ViewItem>) };
                   })} />
@@ -108,14 +115,14 @@ export default function ReportPage({ run, embedded = false, startChat = false, s
                   <ShowMore tab="report" items={page.charts.slice(0, 6).map((c) => {
                     const cid = `report:chart:${c.path.split("/").pop()!.replace(/\.\w+$/, "")}`;
                     return { id: cid, node: (
-                      <ViewItem key={c.path} id={cid} tag="article" className="rp-chart surface span-6">
-                        <h3><ViewTitle id={cid} text={c.title.charAt(0).toUpperCase() + c.title.slice(1)} /></h3>
+                      <ViewItem key={c.path} id={cid} tag="article" className="rp-chart surface span-6" data-kind="chart">
+                        <h3><ViewTitle id={cid} text={chartHeading(c.title, run.understanding)} /></h3>
                         <ViewImg id={cid} src={c.url ?? ""} alt={c.title} />
-                        <figcaption><strong>What this means:</strong> {meaning(c.caption)}</figcaption>
-                        {c.details.length > 0 && !short && (
-                          <details>
-                            <summary>Details</summary>
-                            <ul>{c.details.map((d, i) => <li key={i}>{d}</li>)}</ul>
+                        <figcaption data-kind="takeaway"><strong>What this means:</strong> {humanise(meaning(c.caption), run.understanding)}</figcaption>
+                        {c.details.length > 0 && (
+                          <details className="fold fold-working">
+                            <summary>How we got this</summary>
+                            <ul>{c.details.map((d, i) => <li key={i}>{humanise(d, run.understanding)}</li>)}</ul>
                           </details>
                         )}
                       </ViewItem>) };
@@ -125,22 +132,20 @@ export default function ReportPage({ run, embedded = false, startChat = false, s
             ) : <></>
           ),
           "report:behind": (
-            <section className="rp-section behind" aria-labelledby="rp-behind">
-              <h2 id="rp-behind"><ViewTitle id="report:behind" text="Behind the numbers" /></h2>
-              <p className="muted read">Everything we worked out to get here: how the data was set up, what we cleaned, how things were calculated. Open any part you want to check.</p>
-              <Md md={page.behind_md} />
+            <section className="rp-section behind" data-kind="working" aria-label="How we got this">
+              <details className="fold fold-working">
+                <summary>
+                  <ViewTitle id="report:behind" text="How we got this" />
+                  <span className="fold-hint">the working: how the data was set up, what we cleaned, how each figure was calculated</span>
+                </summary>
+                <Md md={page.behind_md} />
+              </details>
             </section>
           ),
         }} />
         <ShowAllLink tab="report" />
 
         <LensPins target="report" />
-
-        <section className="rp-section behind" aria-labelledby="rp-behind">
-          <h2 id="rp-behind">Behind the numbers</h2>
-          <p className="muted read">Everything we worked out to get here: how the data was set up, what we cleaned, how things were calculated. Open any part you want to check.</p>
-          <Md md={page.behind_md} />
-        </section>
 
         <footer className="rp-foot">
           <span>Mode: {page.mode}</span>

@@ -1,5 +1,7 @@
 import { RefObject, useEffect, useRef, useState } from "react";
 import { api, isDemo, RunResult } from "../api";
+import { planTable } from "../chartsize";
+import { displayName } from "../display";
 import { backendTab, DATA_LABEL, DATA_VIEWS, DataView, NAV_TABS, NavTab, resolveTarget, Tab, TAB_LABEL } from "../tabs";
 import Dialog from "./Dialog";
 import ExportMenu, { BriefsDialog, ExportItem } from "./nav/ExportMenu";
@@ -33,6 +35,8 @@ function summariseChosen(v: unknown): string {
   if (v && typeof v === "object" && !Array.isArray(v)) return Object.entries(v as Record<string, unknown>).map(([k, x]) => `${k}: ${String(x)}`).join(", ");
   return String(v ?? "");
 }
+
+const COLUMN_ROWS = 10;          // rows of the column table shown before "Show all (n)": enough to see the shape of a wide file
 
 const DETAILS_KEY = (runId: string) => `analyst-studio.details.${runId}`;
 const NAV_KEY = (runId: string) => `analyst-studio.nav.${runId}`;
@@ -193,7 +197,7 @@ export default function Results({ run, target }: { run: RunResult; target?: stri
                 {expanded ? "Collapse details" : "Expand all details"}
               </button>
             </div>
-            {backend !== "dashboard" && backend !== "report" && run.key_metrics && run.key_metrics.length > 0 && (
+            {backend === "insights" && run.key_metrics && run.key_metrics.length > 0 && (
               <div className="kpi-strip">
                 {run.key_metrics.map((m) => (
                   <div className="kpi" key={m.label} title={m.note}>
@@ -216,20 +220,23 @@ export default function Results({ run, target }: { run: RunResult; target?: stri
 /** What each column of the table holds, in plain words: its name, kind, the meaning the analysis worked out for it when it did, and how complete it is. Part of Your data. */
 function ColumnMeanings({ run }: { run: RunResult }) {
   const cols = run.profile?.columns ?? [];
+  const [all, setAll] = useState(false);
   if (!cols.length) return null;
   const KIND: Record<string, string> = { id: "identifier", categorical: "category", numeric: "number", date: "date", text: "free text", flag: "yes / no", other: "other" };
   const und = run.understanding?.columns ?? {};
+  // A wide file has dozens of columns: show enough to get the idea, the rest on one click, so the page never opens as a wall.
+  const plan = planTable(cols, { all, rows: COLUMN_ROWS });
   return (
-    <section className="column-meanings" aria-label="How the data was set up">
-      <h3>How the data was set up</h3>
-      <p className="muted read">What each column holds, and how the analysis read it.</p>
+    <section className="column-meanings" aria-label="How the data was set up" data-kind="table">
+      <h3>What each column holds</h3>
+      <p className="muted read">{plan.subtitle} {cols.length === 1 ? "column" : "columns"} in your file, and how the analysis read each one.</p>
       <div className="tablewrap">
         <table className="table">
           <thead><tr><th>Column</th><th>Kind</th><th>What it holds</th><th>Missing</th><th>Different values</th></tr></thead>
           <tbody>
-            {cols.map((c) => (
+            {plan.items.map((c) => (
               <tr key={c.name}>
-                <td>{und[c.name]?.display_name ? <>{und[c.name].display_name} <span className="muted small">({c.name})</span></> : c.name}</td>
+                <td>{und[c.name]?.display_name ? <>{und[c.name].display_name} <span className="muted small">({c.name})</span></> : displayName(c.name, run.understanding)}</td>
                 <td>{KIND[c.role] ?? c.role}</td>
                 <td>{und[c.name]?.meaning || <span className="muted">–</span>}</td>
                 <td>{c.missing_pct ? `${c.missing_pct}%` : "none"}</td>
@@ -239,6 +246,11 @@ function ColumnMeanings({ run }: { run: RunResult }) {
           </tbody>
         </table>
       </div>
+      {(plan.showAll || all) && (
+        <p className="muted small no-print">
+          <button type="button" className="chip" aria-expanded={all} onClick={() => setAll(!all)}>{all ? `Show ${COLUMN_ROWS}` : `Show all (${cols.length})`}</button>
+        </p>
+      )}
     </section>
   );
 }
@@ -360,18 +372,23 @@ export function TabBody({ run, tab, embedded = false, startChat = false, startPr
       {tab === "insights" && (
         <div className="insights">
           {run.context?.company && <p className="muted">Tailored for <strong>{run.context.company}</strong>{run.context.explore ? " (exploratory run: no specific question was set)" : ""}.</p>}
-          {run.report_view ? <Tiers view={run.report_view} goalAnswer={run.goal_answer} /> : ranked.map((f, i) => <InsightCard key={f.id} f={f} index={i + 1} />)}
-          {!ranked.length && <p>No insights were produced.</p>}
+          {run.report_view ? <Tiers view={run.report_view} goalAnswer={run.goal_answer} understanding={run.understanding} /> : ranked.map((f, i) => <InsightCard key={f.id} f={f} index={i + 1} />)}
+          {!ranked.length && !run.report_view && <p className="empty-state">No insights came out of this data. The Data tab shows what was read and cleaned.</p>}
         </div>
       )}
 
       {tab === "strategy" && !run.strategies && <p className="lead">No ideas to try were produced for this report.</p>}
       {tab === "strategy" && run.strategies && (
-        <StrategyView strategies={run.report_view?.strategies.strategies ?? run.strategies} foundation={run.report_view?.strategies.foundation} dropped={run.report_view?.strategies.dropped ?? 0} summary={run.strategy_summary ?? ""} gaps={run.data_gaps ?? []} findings={run.findings ?? []} />
+        <StrategyView strategies={run.report_view?.strategies.strategies ?? run.strategies} foundation={run.report_view?.strategies.foundation} dropped={run.report_view?.strategies.dropped ?? 0} summary={run.strategy_summary ?? ""} gaps={run.data_gaps ?? []} findings={run.findings ?? []} understanding={run.understanding} />
       )}
 
       {tab === "model" && run.data_model && <><TabViewBar tab="model" /><ViewItem id="model:links" tag="section" className="view-section"><DataModel model={run.data_model} /></ViewItem></>}
-      {tab === "model" && !run.data_model && <p className="lead">This analysis used one table, so there are no files to connect.</p>}
+      {tab === "model" && !run.data_model && (
+        <section className="empty-state" aria-label="How files connect">
+          <h3>One file, so nothing to connect</h3>
+          <p>This analysis read a single table, so there are no links between files to show. Upload several files together — orders and customers, say — and this page shows how they join up.</p>
+        </section>
+      )}
 
       {tab === "cleaning" && <CleaningLog run={run} />}
 

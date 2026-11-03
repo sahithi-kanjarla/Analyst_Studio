@@ -1,5 +1,8 @@
+import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { CardTable, ReportCard as Card } from "../api";
+import { planTable, TABLE_ROWS } from "../chartsize";
+import { humanise, prettify, Understanding } from "../display";
 import { ViewImg, ViewItem, ViewTitle } from "./view/ViewUI";
 
 const LEVEL_CLASS: Record<string, string> = {
@@ -10,93 +13,127 @@ const LEVEL_CLASS: Record<string, string> = {
   descriptive: "tag",
 };
 
-const LONG_TABLE = 8;          // the key table of a finding is open; one longer than this is supporting detail and folds
+/** What kind of finding this is, in the reader's words, taken from the analysis that produced it. Never from a column name. */
+const KIND: Record<string, string> = {
+  trend: "Trend",
+  seasonality: "Seasonal pattern",
+  group_compare: "Ranking",
+  rate_compare: "Ranking",
+  ranking: "Ranking",
+  group_table: "Ranking",
+  outliers: "Unusual values",
+  distribution: "Spread",
+  composition: "Mix",
+  correlation: "Moves together",
+  scatter: "Moves together",
+  chi_square: "Linked",
+  concentration: "Concentration",
+  growth: "Change over time",
+};
+const kindOf = (tool: string) => KIND[tool] ?? (tool ? prettify(tool) : "");
 
-function Table({ t }: { t: CardTable }) {
-  const long = t.rows.length > LONG_TABLE;
-  const body = (
-    <div className="tablewrap">
-      <table className="table">
-        <thead>
-          <tr>{t.columns.map((c) => <th key={c}>{c}</th>)}</tr>
-        </thead>
-        <tbody>
-          {t.rows.map((r, i) => (
-            <tr key={i}>{r.map((v, j) => <td key={j} className={j > 0 ? "num" : ""}>{String(v)}</td>)}</tr>
-          ))}
-        </tbody>
-      </table>
-      {t.total > t.rows.length && <p className="muted small">Showing {t.rows.length} of {t.total} rows; the Data tab shows all of them.</p>}
-    </div>
+/** The table under a finding: a few rows in the chart's own order, the rest behind "Show all (n)". It is never hidden behind an arrow. */
+function Table({ t, und }: { t: CardTable; und?: Understanding | null }) {
+  const [all, setAll] = useState(false);
+  const plan = planTable(t.rows, { all });
+  return (
+    <section className="key-table" data-kind="table">
+      <h5>{humanise(t.title, und)}</h5>
+      <div className="tablewrap">
+        <table className="table">
+          <thead>
+            <tr>{t.columns.map((c) => <th key={c}>{humanise(c, und)}</th>)}</tr>
+          </thead>
+          <tbody>
+            {plan.items.map((r, i) => (
+              <tr key={i}>{r.map((v, j) => <td key={j} className={j > 0 ? "num" : ""}>{String(v)}</td>)}</tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="muted small">
+        {plan.showAll || all ? (
+          <button type="button" className="chip no-print" aria-expanded={all} onClick={() => setAll(!all)}>
+            {all ? `Show ${TABLE_ROWS}` : `Show all (${t.rows.length})`}
+          </button>
+        ) : null}
+        {t.total > t.rows.length && <> {plan.subtitle} of the {t.total.toLocaleString()} in your data; the Data tab shows every row.</>}
+      </p>
+    </section>
   );
-  return long
-    ? <details className="fold"><summary>Per-group figures: {t.title}</summary>{body}</details>
-    : <section className="key-table"><h5>Per-group figures: {t.title}</h5>{body}</section>;
 }
 
-/** One finding with its median check on one line, a ratio of the same measure as a sub-section, and per-group tables collapsed. */
-export default function ReportCard({ c, index, compact = false }: { c: Card; index: number; compact?: boolean }) {
+/** One finding: what kind it is and how far to trust it as badges, its chart, what it says in one or two sentences,
+ *  its per-group figures, and the working folded into one clearly named section. */
+export default function ReportCard({ c, index, compact = false, understanding }: { c: Card; index: number; compact?: boolean; understanding?: Understanding | null }) {
   const st = c.stats;
+  const und = understanding;
+  const say = (t: string) => humanise(t, und);
+  const kind = kindOf(c.tool);
+  const working = c.confidence.reasons.length > 0 || c.checks.length > 0 || c.hypotheses.length > 0 || c.check_next.length > 0 || st.n != null || st.p != null;
   return (
-    <article className="insight">
+    <article className="insight" data-kind="insight">
       <header className="insight-head">
         <span className="insight-num">{index}</span>
         <div className="insight-title">
-          <ViewTitle id={`insights:card:${c.id}`} tag="h4" text={c.headline} />
+          <ViewTitle id={`insights:card:${c.id}`} tag="h4" text={say(c.headline)} />
           <div className="meta">
+            {kind && <span className="tag tag-kind">{kind}</span>}
             <span className={LEVEL_CLASS[c.confidence.level] ?? "tag"} title={c.confidence.reasons.join(" ")}>{c.confidence.label} confidence</span>
             {c.kpi_related && <span className="tag tag-kpi">your KPI</span>}
-            <span className="muted">{c.title} · {c.members.join(", ")}</span>
+            <span className="muted">{say(c.title)}</span>
           </div>
         </div>
       </header>
 
       <div className="insight-body">
-        {c.chart_url && <ViewItem id={`insights:chart:${c.id}`} className="insight-chart"><ViewImg id={`insights:chart:${c.id}`} src={c.chart_url} alt={c.title} /></ViewItem>}
+        {c.chart_url && <ViewItem id={`insights:chart:${c.id}`} className="insight-chart" data-kind="chart"><ViewImg id={`insights:chart:${c.id}`} src={c.chart_url} alt={say(c.title)} /></ViewItem>}
         {!compact && <div className="insight-text">
-          <section>
+          <section data-kind="takeaway">
             <h5>What we see</h5>
-            <ReactMarkdown>{c.observation}</ReactMarkdown>
+            <ReactMarkdown>{say(c.observation)}</ReactMarkdown>
           </section>
           {c.why_it_matters && (
-            <section>
+            <section data-kind="reason">
               <h5>Why it matters</h5>
-              <p>{c.why_it_matters}</p>
+              <p>{say(c.why_it_matters)}</p>
             </section>
           )}
-          <section>
-            <h5>How much to trust it</h5>
-            <ul className="tight">
-              {c.confidence.reasons.map((r, i) => <li key={i}>{r}</li>)}
-              {c.checks.map((x, i) => <li key={`c${i}`}>{x}</li>)}
-            </ul>
-          </section>
           {c.also.map((a) => (
             <section key={a.id}>
-              <h5>Same split, {a.target}</h5>
-              <p><strong>{a.headline}.</strong></p>
-              <ReactMarkdown>{a.observation}</ReactMarkdown>
-              {a.checks.length > 0 && <ul className="tight">{a.checks.map((x, i) => <li key={i}>{x}</li>)}</ul>}
+              <h5>Same split, {say(a.target)}</h5>
+              <p><strong>{say(a.headline)}.</strong></p>
+              <ReactMarkdown>{say(a.observation)}</ReactMarkdown>
             </section>
           ))}
-          {[...c.tables, ...c.also.flatMap((a) => a.tables)].map((t) => <Table key={t.id} t={t} />)}
-          {c.hypotheses.length > 0 && (
-            <section>
-              <h5>Possible explanations to test <span className="muted">(not conclusions)</span></h5>
-              <ul className="tight">{c.hypotheses.map((h, i) => <li key={i}>{h}</li>)}</ul>
-            </section>
+          {[...c.tables, ...c.also.flatMap((a) => a.tables)].map((t) => <Table key={t.id} t={t} und={und} />)}
+          {working && (
+            <details className="fold fold-working">
+              <summary>How we got this<span className="fold-hint">how far to trust it, the checks we ran and what to look at next</span></summary>
+              <ul className="tight">
+                {c.confidence.reasons.map((r, i) => <li key={i}>{say(r)}</li>)}
+                {c.checks.map((x, i) => <li key={`c${i}`}>{say(x)}</li>)}
+                {c.also.flatMap((a) => a.checks).map((x, i) => <li key={`a${i}`}>{say(x)}</li>)}
+              </ul>
+              {c.hypotheses.length > 0 && (
+                <>
+                  <h5>Possible explanations to test <span className="muted">(not conclusions)</span></h5>
+                  <ul className="tight">{c.hypotheses.map((h, i) => <li key={i}>{say(h)}</li>)}</ul>
+                </>
+              )}
+              {c.check_next.length > 0 && (
+                <>
+                  <h5>Check next</h5>
+                  <ul className="tight">{c.check_next.map((x, i) => <li key={i}>{say(x)}</li>)}</ul>
+                </>
+              )}
+              <p className="stats">
+                {st.n != null && <>n = {String(st.n)} </>}
+                {st.p != null && <>· {st.p < 0.001 ? "p < 0.001" : `p = ${st.p.toPrecision(2)}`} </>}
+                {st.p_adjusted != null && <>· adjusted {st.p_adjusted < 0.001 ? "p < 0.001" : `p = ${st.p_adjusted.toPrecision(2)}`}</>}
+              </p>
+            </details>
           )}
-          {c.check_next.length > 0 && (
-            <section>
-              <h5>Check next</h5>
-              <ul className="tight">{c.check_next.map((x, i) => <li key={i}>{x}</li>)}</ul>
-            </section>
-          )}
-          <p className="stats">
-            {st.n != null && <>n = {String(st.n)} </>}
-            {st.p != null && <>· {st.p < 0.001 ? "p < 0.001" : `p = ${st.p.toPrecision(2)}`} </>}
-            {st.p_adjusted != null && <>· adjusted {st.p_adjusted < 0.001 ? "p < 0.001" : `p = ${st.p_adjusted.toPrecision(2)}`}</>}
-          </p>
         </div>}
       </div>
     </article>

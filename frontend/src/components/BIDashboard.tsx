@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { api, DashData, DashMeasure, Finding, RunResult } from "../api";
+import { planRanked, planShare, planTable, plural, rankedLimit, SHARE_SLICES, TABLE_ROWS } from "../chartsize";
+import { chartTitle, displayName, humanise } from "../display";
 import FindingGallery from "./FindingGallery";
 import InsightCard from "./InsightCard";
 import { Columns, Donut, HBar, Item, PALETTE } from "./charts";
@@ -46,11 +48,12 @@ function periodLabel(key: string, grain: "month" | "day", multiYear: boolean) {
   return multiYear ? `${MONTHS[Number(mo) - 1]} ${y.slice(2)}` : MONTHS[Number(mo) - 1];
 }
 
-function Card({ title, sub, wide, children }: { title: string; sub?: string; wide?: boolean; children: React.ReactNode }) {
+function Card({ title, sub, wide, kind, action, children }: { title: string; sub?: string; wide?: boolean; kind?: string; action?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <section className={`bi-card ${wide ? "bi-wide" : ""}`}>
+    <section className={`bi-card ${wide ? "bi-wide" : ""}`} data-kind={kind}>
       <h4>{title}{sub && <small>{sub}</small>}</h4>
       {children}
+      {action && <p className="bi-card-foot no-print">{action}</p>}
     </section>
   );
 }
@@ -63,10 +66,19 @@ export default function BIDashboard({ run }: { run: RunResult }) {
   const [f, setF] = useState<Filters>(EMPTY);
   const [open, setOpen] = useState<string | null>(null);
   const [allRows, setAllRows] = useState(false);
+  const [allDims, setAllDims] = useState<Record<string, boolean>>({});
+  const [vw, setVw] = useState(() => (typeof window === "undefined" ? 1440 : window.innerWidth));
 
   useEffect(() => {
     api.getDashboard(run.run_id).then(setData).catch((e) => setErr(e.message));
   }, [run.run_id]);
+
+  // how many bars fit is decided from the real width, so a phone shows fewer and the subtitle matches what is drawn
+  useEffect(() => {
+    const on = () => setVw(window.innerWidth);
+    window.addEventListener("resize", on);
+    return () => window.removeEventListener("resize", on);
+  }, []);
 
   const rows: Row[] = useMemo(() => {
     if (!data) return [];
@@ -87,6 +99,8 @@ export default function BIDashboard({ run }: { run: RunResult }) {
   const m = measures[Math.min(mIdx, measures.length - 1)];
   const cur = data?.currency ?? "";
   const fmt = formatter(m, cur);
+  /** What a column is called on screen: the name the analysis worked out for it, never the name in the file. */
+  const label = (col: string) => displayName(col, run.understanding);
 
   const months = useMemo(() => new Set(rows.map((r) => r.ym).filter(Boolean)).size, [rows]);
   const grain: "month" | "day" = months >= 3 ? "month" : "day";
@@ -133,7 +147,17 @@ export default function BIDashboard({ run }: { run: RunResult }) {
   const toggleDim = (col: string, k: string) => setF((p) => ({ ...p, dims: { ...p.dims, [col]: toggle(p.dims[col] ?? [], k) } }));
 
   if (err) return <div className="error">Could not build the dashboard: {err}</div>;
-  if (!data) return <div className="bi"><p className="bi-muted">Building dashboard…</p></div>;
+  // A large file sends a lot of rows and every figure is worked out in the browser, so hold the page's shape while that happens
+  // instead of letting a bare line of text be replaced by a full grid.
+  if (!data) {
+    return (
+      <div className="bi bi-loading" aria-busy="true">
+        <p className="bi-muted" role="status">Building your dashboard…</p>
+        <div className="bi-kpis">{[0, 1, 2, 3].map((i) => <div className="bi-kpi bi-skel" key={i} aria-hidden />)}</div>
+        <div className="bi-grid">{[0, 1, 2].map((i) => <div className={`bi-card bi-skel ${i === 0 ? "bi-wide" : ""}`} key={i} aria-hidden />)}</div>
+      </div>
+    );
+  }
 
   // ---------------- KPIs
   const overall = total(rows, m);
@@ -148,7 +172,7 @@ export default function BIDashboard({ run }: { run: RunResult }) {
   const other = measures.find((x) => x !== m && x.col !== "__count");
   if (m.agg === "sum" && m.col !== "__count") kpis.push({ label: `Average per record`, value: fmt(filtered.length ? now / filtered.length : 0) });
   else if (other) kpis.push({ label: other.label, value: formatter(other, cur)(total(filtered, other)) });
-  if (lead && data.dims[0]) kpis.push({ label: `Top ${data.dims[0].col}`, value: lead.key, note: m.agg === "sum" && now ? `${trim((lead.value / now) * 100, 0)}% of ${m.label.toLowerCase()}` : fmt(lead.value) });
+  if (lead && data.dims[0]) kpis.push({ label: `Top ${label(data.dims[0].col).toLowerCase()}`, value: lead.key, note: m.agg === "sum" && now ? `${trim((lead.value / now) * 100, 0)}% of ${m.label.toLowerCase()}` : fmt(lead.value) });
   if (last && prev && prev.value) {
     const ch = (last.value - prev.value) / Math.abs(prev.value);
     // too few periods, or dates present on under 70% of the days, make the latest-vs-previous change unreliable: say so on the tile
@@ -161,30 +185,31 @@ export default function BIDashboard({ run }: { run: RunResult }) {
     ? group(rows.filter((r) => passes(r, undefined, true)), period, m).sort((a, b) => (a.key < b.key ? -1 : 1)).map((g) => ({ key: g.key, label: periodLabel(g.key, grain, years.length > 1), value: g.value }))
     : [];
 
-  // A donut only reads well for a few additive, non-negative parts; anything else gets ranked bars.
-  const donutDim = m.agg === "sum"
-    ? data.dims.find((d) => d.unique >= 2 && d.unique <= 6 && group(rows, (r) => r.d[d.col], m).every((g) => g.value >= 0))
-    : undefined;
-  const dimItems = (col: string, max: number) => {
-    const all = group(rows.filter((r) => passes(r, col)), (r) => r.d[col], m).sort((a, b) => b.value - a.value);
-    // top `max` by the plotted value, always keeping the best and the worst group, then one pooled "Other" bar (total, or pooled mean)
-    let shown = all.slice(0, max);
-    const worst = all[all.length - 1];
-    if (worst && !shown.includes(worst)) shown = [...shown.slice(0, max - 1), worst];
-    const rest = all.filter((g) => !shown.includes(g));
-    const items: Item[] = shown.map((g) => ({ key: g.key, label: g.key, value: g.value, n: g.n }));
-    if (rest.length) {
-      const n = rest.reduce((s, g) => s + g.n, 0), sum = rest.reduce((s, g) => s + g.s, 0), wsum = rest.reduce((s, g) => s + g.c, 0);
-      items.push({ key: "__other", label: `Other (${rest.length} groups)`, value: m.agg === "sum" ? sum : wsum ? sum / wsum : 0, n, other: true });
-    }
-    return { items, more: rest.length, shown: shown.length, total: all.length };
+  // How many of a dimension's values to draw, and the line that says which ones: one shared rule for every chart (chartsize.ts).
+  // A total may be pooled into "Other"; an average or a rate may not, so those keep the top N and the full list behind "Show all".
+  const measureKind = m.agg === "sum" ? "additive" : "rate";
+  const dimValues = (col: string): Item[] =>
+    group(rows.filter((r) => passes(r, col)), (r) => r.d[col], m).sort((a, b) => b.value - a.value)
+      .map((g) => ({ key: g.key, label: g.key, value: g.value, n: g.n }));
+  const dimPlan = (col: string) => {
+    const values = dimValues(col);
+    const plan = planRanked(values, { width: vw, measure: measureKind, group: label(col), measureLabel: m.label });
+    if (!allDims[col] || !plan.showAll) return plan;
+    return { ...plan, items: values, shown: values.length, pooled: false, subtitle: `All ${values.length} ${plural(label(col).toLowerCase())} by ${m.label.toLowerCase()}` };
   };
+  // A share chart only reads well, and is only honest, for a few parts of a total that add up with nothing negative: chartsize decides.
+  const donutCandidate = data.dims.find((d) => d.unique >= 2 && d.unique <= SHARE_SLICES);
+  const donutPlan = donutCandidate
+    ? planShare(dimValues(donutCandidate.col), { measure: measureKind, group: label(donutCandidate.col), measureLabel: m.label })
+    : null;
+  const donutDim = donutPlan?.suitable ? donutCandidate : undefined;
   const tableDim = data.dims[0];
   const tableRows = tableDim
     ? group(rows.filter((r) => passes(r, tableDim.col)), (r) => r.d[tableDim.col], m).sort((a, b) => b.value - a.value)
     : [];
+  const tablePlan = planTable(tableRows, { all: allRows });
   const tableAll = tableRows.length;
-  const tableShown = allRows ? tableRows : tableRows.slice(0, 10);
+  const tableShown = tablePlan.items;
   const tableTotal = tableRows.reduce((s, r) => s + r.value, 0) || 1;
   const tableMax = Math.max(...tableRows.map((r) => Math.abs(r.value)), 0.0001);
 
@@ -196,13 +221,12 @@ export default function BIDashboard({ run }: { run: RunResult }) {
   const openFinding = (run.findings ?? []).find((x) => x.id === open);
 
   const chips = [
-    ...Object.entries(f.dims).flatMap(([col, vs]) => vs.map((v) => ({ label: `${col}: ${v}`, drop: () => toggleDim(col, v) }))),
+    ...Object.entries(f.dims).flatMap(([col, vs]) => vs.map((v) => ({ label: `${label(col)}: ${v}`, drop: () => toggleDim(col, v) }))),
     ...f.years.map((v) => ({ label: `Year ${v}`, drop: () => setF((p) => ({ ...p, years: toggle(p.years, v) })) })),
     ...f.quarters.map((v) => ({ label: v, drop: () => setF((p) => ({ ...p, quarters: toggle(p.quarters, v) })) })),
     ...f.time.map((v) => ({ label: periodLabel(v, grain, years.length > 1), drop: () => setF((p) => ({ ...p, time: toggle(p.time, v) })) })),
   ];
 
-  const donutItems = donutDim ? dimItems(donutDim.col, 6).items : [];
   const barDims = data.dims.filter((d) => d !== donutDim);
 
   return (
@@ -236,7 +260,7 @@ export default function BIDashboard({ run }: { run: RunResult }) {
             const opts = [...new Set(rows.map((r) => r.d[d.col]).filter((v): v is string => !!v))].sort();
             return (
               <label className="bi-slicer" key={d.col}>
-                <span>{d.col}</span>
+                <span>{label(d.col)}</span>
                 <select value={sel.length === 1 ? sel[0] : sel.length > 1 ? "__multi" : ""} onChange={(e) => setF((p) => ({ ...p, dims: { ...p.dims, [d.col]: e.target.value ? [e.target.value] : [] } }))}>
                   <option value="">All</option>
                   {sel.length > 1 && <option value="__multi" disabled>{sel.length} selected</option>}
@@ -277,28 +301,35 @@ export default function BIDashboard({ run }: { run: RunResult }) {
       ) : (
         <div className="bi-grid">
           {trend.length > 1 && (
-            <Card title={`${m.label} over time, by ${grain}`} sub={`${trend[0].label} to ${trend[trend.length - 1].label} · click a ${grain} to filter`} wide>
+            <Card kind="series" title={chartTitle(m.label, undefined, run.understanding) + ` per ${grain}`}
+              sub={`All ${trend.length} ${plural(grain)}, ${trend[0].label} to ${trend[trend.length - 1].label} · click one to filter`} wide>
               <Columns items={trend} selected={f.time} onToggle={(k) => setF((p) => ({ ...p, time: toggle(p.time, k) }))} fmt={fmt} />
             </Card>
           )}
-          {donutDim && (
-            <Card title={`${donutDim.col} share of ${m.label}`} sub={`how ${m.label.toLowerCase()} splits across ${donutDim.unique} ${donutDim.col} values`}>
-              <Donut items={donutItems} selected={f.dims[donutDim.col] ?? []} onToggle={(k) => toggleDim(donutDim.col, k)} fmt={fmt} />
+          {donutDim && donutPlan && (
+            <Card kind="share" title={`Share of ${chartTitle(m.label, undefined, run.understanding).toLowerCase()} by ${label(donutDim.col).toLowerCase()}`} sub={donutPlan.subtitle}>
+              <Donut items={donutPlan.items as Item[]} selected={f.dims[donutDim.col] ?? []} onToggle={(k) => toggleDim(donutDim.col, k)} fmt={fmt} />
             </Card>
           )}
           {barDims.map((d) => {
-            const { items, more, shown, total } = dimItems(d.col, d.top ?? 8);
+            const plan = dimPlan(d.col);
             return (
-              <Card key={d.col} title={`${m.label} by ${d.col}`} sub={more ? `showing top ${shown} of ${total} groups; totals and filters use all ${total}` : "highest first"}>
-                <HBar items={items} selected={f.dims[d.col] ?? []} onToggle={(k) => toggleDim(d.col, k)} fmt={fmt} />
+              <Card key={d.col} kind="ranked" title={chartTitle(m.label, d.col, run.understanding)} sub={plan.subtitle}
+                action={plan.showAll ? (
+                  <button type="button" className="bi-chip" aria-expanded={!!allDims[d.col]} onClick={() => setAllDims((p) => ({ ...p, [d.col]: !p[d.col] }))}>
+                    {allDims[d.col] ? `Show top ${rankedLimit(vw)}` : `Show all (${plan.total})`}
+                  </button>
+                ) : undefined}>
+                <HBar items={plan.items as Item[]} selected={f.dims[d.col] ?? []} onToggle={(k) => toggleDim(d.col, k)} fmt={fmt} />
               </Card>
             );
           })}
           {tableDim && tableRows.length > 0 && (
-            <Card title={`${tableDim.col} breakdown`} sub={m.agg === "sum" ? `each ${tableDim.col}'s share of ${m.label.toLowerCase()}` : `each ${tableDim.col} vs the overall average`} wide>
+            <Card kind="table" title={`${chartTitle(m.label, tableDim.col, run.understanding)}, in full`}
+              sub={m.agg === "sum" ? `${tablePlan.subtitle} · each one's share of ${m.label.toLowerCase()}` : `${tablePlan.subtitle} · each one against the overall average`} wide>
               <table className="bi-table">
                 <thead>
-                  <tr><th>{tableDim.col}</th><th className="r">Records</th><th className="r">{m.label}</th><th>{m.agg === "sum" ? "Share" : "vs average"}</th></tr>
+                  <tr><th>{label(tableDim.col)}</th><th className="r">Records</th><th className="r">{m.label}</th><th>{m.agg === "sum" ? "Share" : "vs average"}</th></tr>
                 </thead>
                 <tbody>
                   {tableShown.map((r, i) => {
@@ -321,8 +352,8 @@ export default function BIDashboard({ run }: { run: RunResult }) {
                   })}
                 </tbody>
               </table>
-              {tableAll > 10 && (
-                <p className="bi-muted small">Showing {tableShown.length} of {tableAll}. <button className="bi-chip" onClick={() => setAllRows(!allRows)}>{allRows ? "Show top 10" : `Show all ${tableAll}`}</button></p>
+              {(tablePlan.showAll || allRows) && (
+                <p className="bi-muted small no-print"><button className="bi-chip" aria-expanded={allRows} onClick={() => setAllRows(!allRows)}>{allRows ? `Show top ${TABLE_ROWS}` : `Show all (${tableAll})`}</button></p>
               )}
             </Card>
           )}
@@ -340,7 +371,7 @@ export default function BIDashboard({ run }: { run: RunResult }) {
           <h4>What stands out</h4>
           <ul>
             {takeaways.map((x) => (
-              <li key={x.id}><button onClick={() => setOpen(x.id)}>{x.insight!.headline}<span className={`bi-tag ${x.insight!.confidence.level}`}>{x.insight!.confidence.level}</span></button></li>
+              <li key={x.id}><button onClick={() => setOpen(x.id)}>{humanise(x.insight!.headline, run.understanding)}<span className={`bi-tag ${x.insight!.confidence.level}`}>{x.insight!.confidence.level}</span></button></li>
             ))}
             {topStrategy && <li className="bi-reco"><b>Recommended:</b> {topStrategy.title}</li>}
           </ul>
