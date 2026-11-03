@@ -1,0 +1,901 @@
+order_id,order_date,item_code,item,category,quantity,unit_price,unit_cost,amount,cost_amount,payment_mode,customer_type,outlet
+B00001,2026-09-09,BAK-CUP1,Vanilla Cupcake,Cakes,2,60,34,120,68,UPI,Walk-in,Baner
+B00002,2026-05-06,BAK-CHO1,Chocolate Cake 1kg,Cakes,6,650,410,3900,2460,UPI,Walk-in,FC Road
+B00003,2026-07-27,BAK-BIR2,Birthday Cake 2kg,Cakes,4,1450,920,5800,3680,Card,Walk-in,FC Road
+B00004,2026-09-29,BAK-DOU1,Doughnut,Cakes,1,70,41,70,41,UPI,Walk-in,Baner
+B00005,2026-09-08,BAK-CRO1,Croissant,Breads,4,85,49,340,196,Card,Walk-in,FC Road
+B00006,2026-04-05,BAK-BRW1,Walnut Brownie,Cookies,3,95,56,285,168,UPI,Online,FC Road
+B00007,2026-04-27,BAK-BRW1,Walnut Brownie,Cookies,1,95,56,95,56,Cash,Walk-in,Baner
+B00008,2026-06-25,BAK-RUS3,Rusk 300g,Breads,1,55,34,55,34,Cash,Online,Baner
+B00009,2026-07-16,BAK-BRD1,Brown Bread,Breads,1,45,28,45,28,Card,Walk-in,FC Road
+B00010,2026-03-22,BAK-BRD1,Brown Bread,Breads,1,45,28,45,28,UPI,Online,Baner
+B00011,2026-03-23,BAK-COO2,Butter Cookies 250g,Cookies,4,180,108,720,432,Card,Regular,Baner
+B00012,2026-09-11,BAK-RUS3,Rusk 300g,Breads,2,55,34,110,68,UPI,Walk-in,Baner
+B00013,2026-09-24,BAK-DOU1,Doughnut,Cakes,1,70,41,70,41,UPI,Walk-in,Baner
+B00014,2026-05-15,BAK-RUS3,Rusk 300g,Breads,3,55,34,165,102,Cash,Online,Baner
+B00015,2026-01-19,BAK-BRW1,Walnut Brownie,Cookies,2,95,56,190,112,UPI,Regular,FC Road
+B00016,2026-03-25,BAK-BIR2,Birthday Cake 2kg,Cakes,4,1450,920,5800,3680,UPI,Regular,Baner
+B00017,2026-01-11,BAK-COO2,Butter Cookies 250g,Cookies,1,180,108,180,108,UPI,Online,FC Road
+B00018,2026-08-14,BAK-CGB1,Cheese Garlic Bread,Breads,6,120,71,720,426,UPI,Walk-in,FC Road
+B00019,2026-09-27,BAK-DOU1,Doughnut,Cakes,1,70,41,70,41,Cash,Walk-in,Baner
+B00020,2026-08-23,BAK-PIN1,Pineapple Pastry,Cakes,2,75,44,150,88,UPI,Walk-in,FC Road
+B00021,2026-02-28,BAK-PUF1,Veg Puff,Savouries,3,30,17,90,51,UPI,Regular,FC Road
+B00022,2026-05-21,BAK-CHO1,Chocolate Cake 1kg,Cakes,1,650,410,650,410,UPI,Walk-in,Baner
+B00023,2026-09-08,BAK-DOU1,Doughnut,Cakes,2,70,41,140,82,Card,Walk-in,Baner
+B00024,2026-06-05,BAK-CRO1,Croissant,Breads,3,85,49,255,147,Card,Walk-in,Baner
+B00025,2026-09-23,BAK-CGB1,Cheese Garlic Bread,Breads,1,120,71,120,71,Card,Regular,FC Road
+B00026,2026-07-17,BAK-BRD1,Brown Bread,Breads,1,45,28,45,28,Cash,Regular,FC Road
+B00027,2026-07-30,BAK-PIN1,Pineapple Pastry,Cakes,1,75,44,75,44,UPI,Walk-in,Baner
+B00028,2026-01-22,BAK-CRO1,Croissant,Breads,2,85,49,170,98,Card,Regular,Baner
+B00029,2026-04-01,BAK-RUS3,Rusk 300g,Breads,1,55,34,55,34,UPI,Walk-in,Baner
+B00030,2026-05-25,BAK-COO2,Butter Cookies 250g,Cookies,4,180,108,720,432,Card,Regular,Baner
+B00031,2026-07-15,BAK-CGB1,Cheese Garlic Bread,Breads,4,120,71,480,284,Cash,Regular,Baner
+B00032,2026-07-25,BAK-RUS3,Rusk 300g,Breads,6,55,34,330,204,UPI,Walk-in,Baner
+B00033,2026-02-26,BAK-BIR2,Birthday Cake 2kg,Cakes,4,1450,920,5800,3680,Cash,Walk-in,FC Road
+B00034,2026-01-08,BAK-DOU1,Doughnut,Cakes,4,70,41,280,164,UPI,Walk-in,FC Road
+B00035,2026-09-01,BAK-DOU1,Doughnut,Cakes,2,70,41,140,82,UPI,Regular,FC Road
+B00036,2026-04-29,BAK-COO2,Butter Cookies 250g,Cookies,1,180,108,180,108,UPI,Online,FC Road
+B00037,2026-03-08,BAK-CRO1,Croissant,Breads,2,85,49,170,98,Card,Regular,Baner
+B00038,2026-02-08,BAK-BRD1,Brown Bread,Breads,4,45,28,180,112,UPI,Online,Baner
+B00039,2026-08-02,BAK-CUP1,Vanilla Cupcake,Cakes,1,60,34,60,34,Card,Regular,FC Road
+B00040,2026-07-22,BAK-DOU1,Doughnut,Cakes,3,70,41,210,123,Card,Online,Baner
+B00041,2026-05-15,BAK-BRD1,Brown Bread,Breads,1,45,28,45,28,UPI,Walk-in,FC Road
+B00042,2026-05-17,BAK-CUP1,Vanilla Cupcake,Cakes,1,60,34,60,34,UPI,Online,FC Road
+B00043,2026-08-01,BAK-CUP1,Vanilla Cupcake,Cakes,2,60,34,120,68,Card,Walk-in,Baner
+B00044,2026-05-29,BAK-RUS3,Rusk 300g,Breads,4,55,34,220,136,UPI,Walk-in,FC Road
+B00045,2026-08-17,BAK-PUF1,Veg Puff,Savouries,1,30,17,30,17,UPI,Online,FC Road
+B00046,2026-08-27,BAK-BIR2,Birthday Cake 2kg,Cakes,1,1450,920,1450,920,UPI,Regular,Baner
+B00047,2026-09-11,BAK-CGB1,Cheese Garlic Bread,Breads,2,120,71,240,142,Cash,Regular,FC Road
+B00048,2026-09-26,BAK-RUS3,Rusk 300g,Breads,2,55,34,110,68,Card,Online,Baner
+B00049,2026-05-31,BAK-CGB1,Cheese Garlic Bread,Breads,6,120,71,720,426,Card,Walk-in,Baner
+B00050,2026-04-30,BAK-BIR2,Birthday Cake 2kg,Cakes,4,1450,920,5800,3680,UPI,Walk-in,FC Road
+B00051,2026-09-04,BAK-CUP1,Vanilla Cupcake,Cakes,3,60,34,180,102,UPI,Walk-in,FC Road
+B00052,2026-01-25,BAK-BRW1,Walnut Brownie,Cookies,1,95,56,95,56,Card,Regular,Baner
+B00053,2026-10-01,BAK-CUP1,Vanilla Cupcake,Cakes,2,60,34,120,68,Card,Online,FC Road
+B00054,2026-03-24,BAK-BRD1,Brown Bread,Breads,1,45,28,45,28,UPI,Regular,Baner
+B00055,2026-08-29,BAK-PUF1,Veg Puff,Savouries,4,30,17,120,68,Cash,Walk-in,Baner
+B00056,2026-04-17,BAK-BRD1,Brown Bread,Breads,1,45,28,45,28,Card,Online,FC Road
+B00057,2026-03-14,BAK-PIN1,Pineapple Pastry,Cakes,4,75,44,300,176,UPI,Walk-in,FC Road
+B00058,2026-07-29,BAK-CUP1,Vanilla Cupcake,Cakes,6,60,34,360,204,Cash,Walk-in,Baner
+B00059,2026-07-05,BAK-BIR2,Birthday Cake 2kg,Cakes,1,1450,920,1450,920,Card,Online,FC Road
+B00060,2026-07-08,BAK-BRW1,Walnut Brownie,Cookies,2,95,56,190,112,Cash,Online,FC Road
+B00061,2026-05-17,BAK-BIR2,Birthday Cake 2kg,Cakes,1,1450,920,1450,920,UPI,Walk-in,Baner
+B00062,2026-02-25,BAK-CUP1,Vanilla Cupcake,Cakes,3,60,34,180,102,UPI,Walk-in,FC Road
+B00063,2026-10-01,BAK-CUP1,Vanilla Cupcake,Cakes,2,60,34,120,68,UPI,Walk-in,FC Road
+B00064,2026-09-15,BAK-CGB1,Cheese Garlic Bread,Breads,2,120,71,240,142,Card,Regular,Baner
+B00065,2026-09-29,BAK-CUP1,Vanilla Cupcake,Cakes,6,60,34,360,204,UPI,Walk-in,Baner
+B00066,2026-03-14,BAK-BIR2,Birthday Cake 2kg,Cakes,2,1450,920,2900,1840,UPI,Walk-in,FC Road
+B00067,2026-07-02,BAK-BRD1,Brown Bread,Breads,4,45,28,180,112,UPI,Online,Baner
+B00068,2026-07-13,BAK-RUS3,Rusk 300g,Breads,3,55,34,165,102,UPI,Walk-in,FC Road
+B00069,2026-02-19,BAK-DOU1,Doughnut,Cakes,1,70,41,70,41,UPI,Regular,FC Road
+B00070,2026-03-17,BAK-PUF1,Veg Puff,Savouries,1,30,17,30,17,UPI,Regular,FC Road
+B00071,2026-02-19,BAK-PIN1,Pineapple Pastry,Cakes,1,75,44,75,44,Card,Online,FC Road
+B00072,2026-05-08,BAK-DOU1,Doughnut,Cakes,3,70,41,210,123,Cash,Regular,Baner
+B00073,2026-03-18,BAK-BIR2,Birthday Cake 2kg,Cakes,4,1450,920,5800,3680,Cash,Regular,Baner
+B00074,2026-08-25,BAK-CHO1,Chocolate Cake 1kg,Cakes,2,650,410,1300,820,UPI,Online,Baner
+B00075,2026-01-10,BAK-PUF1,Veg Puff,Savouries,6,30,17,180,102,UPI,Online,FC Road
+B00076,2026-08-27,BAK-PUF1,Veg Puff,Savouries,4,30,17,120,68,UPI,Regular,FC Road
+B00077,2026-10-01,BAK-BRW1,Walnut Brownie,Cookies,2,95,56,190,112,UPI,Walk-in,FC Road
+B00078,2026-04-01,BAK-DOU1,Doughnut,Cakes,2,70,41,140,82,UPI,Online,Baner
+B00079,2026-02-27,BAK-BIR2,Birthday Cake 2kg,Cakes,1,1450,920,1450,920,UPI,Regular,Baner
+B00080,2026-02-12,BAK-BIR2,Birthday Cake 2kg,Cakes,4,1450,920,5800,3680,UPI,Regular,Baner
+B00081,2026-05-24,BAK-CHO1,Chocolate Cake 1kg,Cakes,4,650,410,2600,1640,UPI,Regular,Baner
+B00082,2026-07-20,BAK-RUS3,Rusk 300g,Breads,3,55,34,165,102,UPI,Walk-in,FC Road
+B00083,2026-03-18,BAK-BIR2,Birthday Cake 2kg,Cakes,6,1450,920,8700,5520,Card,Online,Baner
+B00084,2026-07-24,BAK-CUP1,Vanilla Cupcake,Cakes,1,60,34,60,34,Cash,Online,Baner
+B00085,2026-03-05,BAK-DOU1,Doughnut,Cakes,3,70,41,210,123,Card,Regular,FC Road
+B00086,2026-07-16,BAK-COO2,Butter Cookies 250g,Cookies,1,180,108,180,108,Card,Walk-in,FC Road
+B00087,2026-05-21,BAK-PIN1,Pineapple Pastry,Cakes,6,75,44,450,264,Card,Online,FC Road
+B00088,2026-06-03,BAK-BRW1,Walnut Brownie,Cookies,1,95,56,95,56,Card,Regular,Baner
+B00089,2026-03-13,BAK-COO2,Butter Cookies 250g,Cookies,1,180,108,180,108,Cash,Walk-in,Baner
+B00090,2026-05-26,BAK-CHO1,Chocolate Cake 1kg,Cakes,4,650,410,2600,1640,UPI,Walk-in,Baner
+B00091,2026-08-25,BAK-CUP1,Vanilla Cupcake,Cakes,3,60,34,180,102,Cash,Online,Baner
+B00092,2026-08-13,BAK-BRW1,Walnut Brownie,Cookies,4,95,56,380,224,UPI,Walk-in,FC Road
+B00093,2026-08-19,BAK-CRO1,Croissant,Breads,6,85,49,510,294,UPI,Walk-in,FC Road
+B00094,2026-03-30,BAK-COO2,Butter Cookies 250g,Cookies,1,180,108,180,108,UPI,Regular,FC Road
+B00095,2026-07-03,BAK-BIR2,Birthday Cake 2kg,Cakes,3,1450,920,4350,2760,UPI,Walk-in,Baner
+B00096,2026-07-19,BAK-CUP1,Vanilla Cupcake,Cakes,4,60,34,240,136,Card,Regular,Baner
+B00097,2026-08-19,BAK-BRW1,Walnut Brownie,Cookies,2,95,56,190,112,Cash,Walk-in,FC Road
+B00098,2026-06-23,BAK-CRO1,Croissant,Breads,2,85,49,170,98,UPI,Online,Baner
+B00099,2026-05-02,BAK-COO2,Butter Cookies 250g,Cookies,6,180,108,1080,648,Cash,Walk-in,FC Road
+B00100,2026-06-28,BAK-COO2,Butter Cookies 250g,Cookies,1,180,108,180,108,UPI,Walk-in,Baner
+B00101,2026-04-14,BAK-BRW1,Walnut Brownie,Cookies,2,95,56,190,112,UPI,Regular,Baner
+B00102,2026-03-28,BAK-CRO1,Croissant,Breads,2,85,49,170,98,Cash,Walk-in,Baner
+B00103,2026-04-22,BAK-PUF1,Veg Puff,Savouries,1,30,17,30,17,Cash,Walk-in,FC Road
+B00104,2026-05-10,BAK-PIN1,Pineapple Pastry,Cakes,2,75,44,150,88,UPI,Regular,FC Road
+B00105,2026-08-29,BAK-BIR2,Birthday Cake 2kg,Cakes,1,1450,920,1450,920,UPI,Online,Baner
+B00106,2026-04-10,BAK-CHO1,Chocolate Cake 1kg,Cakes,4,650,410,2600,1640,UPI,Walk-in,FC Road
+B00107,2026-04-11,BAK-BRW1,Walnut Brownie,Cookies,3,95,56,285,168,UPI,Walk-in,Baner
+B00108,2026-07-15,BAK-DOU1,Doughnut,Cakes,6,70,41,420,246,Cash,Online,Baner
+B00109,2026-07-24,BAK-CGB1,Cheese Garlic Bread,Breads,2,120,71,240,142,Cash,Walk-in,FC Road
+B00110,2026-07-07,BAK-BRD1,Brown Bread,Breads,2,45,28,90,56,Cash,Online,FC Road
+B00111,2026-09-16,BAK-BRD1,Brown Bread,Breads,1,45,28,45,28,Card,Walk-in,Baner
+B00112,2026-08-08,BAK-BRD1,Brown Bread,Breads,1,45,28,45,28,Cash,Online,Baner
+B00113,2026-03-16,BAK-CGB1,Cheese Garlic Bread,Breads,6,120,71,720,426,UPI,Regular,FC Road
+B00114,2026-09-23,BAK-DOU1,Doughnut,Cakes,4,70,41,280,164,Card,Walk-in,FC Road
+B00115,2026-01-18,BAK-CHO1,Chocolate Cake 1kg,Cakes,6,650,410,3900,2460,Card,Walk-in,FC Road
+B00116,2026-03-15,BAK-PUF1,Veg Puff,Savouries,1,30,17,30,17,Card,Walk-in,FC Road
+B00117,2026-05-13,BAK-CRO1,Croissant,Breads,2,85,49,170,98,UPI,Online,FC Road
+B00118,2026-09-04,BAK-BIR2,Birthday Cake 2kg,Cakes,1,1450,920,1450,920,Card,Online,Baner
+B00119,2026-03-24,BAK-BRW1,Walnut Brownie,Cookies,1,95,56,95,56,UPI,Walk-in,FC Road
+B00120,2026-07-24,BAK-DOU1,Doughnut,Cakes,4,70,41,280,164,UPI,Online,Baner
+B00121,2026-03-16,BAK-BIR2,Birthday Cake 2kg,Cakes,3,1450,920,4350,2760,UPI,Regular,FC Road
+B00122,2026-03-26,BAK-BIR2,Birthday Cake 2kg,Cakes,1,1450,920,1450,920,Card,Walk-in,FC Road
+B00123,2026-09-19,BAK-COO2,Butter Cookies 250g,Cookies,1,180,108,180,108,Card,Regular,Baner
+B00124,2026-08-30,BAK-CRO1,Croissant,Breads,2,85,49,170,98,Cash,Walk-in,Baner
+B00125,2026-07-30,BAK-DOU1,Doughnut,Cakes,4,70,41,280,164,UPI,Walk-in,FC Road
+B00126,2026-06-13,BAK-CRO1,Croissant,Breads,1,85,49,85,49,UPI,Walk-in,Baner
+B00127,2026-06-09,BAK-BRD1,Brown Bread,Breads,3,45,28,135,84,UPI,Regular,FC Road
+B00128,2026-03-14,BAK-RUS3,Rusk 300g,Breads,1,55,34,55,34,UPI,Walk-in,Baner
+B00129,2026-05-01,BAK-CHO1,Chocolate Cake 1kg,Cakes,2,650,410,1300,820,Card,Regular,Baner
+B00130,2026-09-24,BAK-DOU1,Doughnut,Cakes,2,70,41,140,82,Card,Walk-in,FC Road
+B00131,2026-05-07,BAK-CRO1,Croissant,Breads,1,85,49,85,49,UPI,Walk-in,FC Road
+B00132,2026-02-11,BAK-CHO1,Chocolate Cake 1kg,Cakes,4,650,410,2600,1640,UPI,Walk-in,FC Road
+B00133,2026-05-11,BAK-CGB1,Cheese Garlic Bread,Breads,6,120,71,720,426,UPI,Online,FC Road
+B00134,2026-09-24,BAK-PUF1,Veg Puff,Savouries,1,30,17,30,17,UPI,Walk-in,Baner
+B00135,2026-07-12,BAK-PIN1,Pineapple Pastry,Cakes,2,75,44,150,88,UPI,Regular,Baner
+B00136,2026-02-08,BAK-CUP1,Vanilla Cupcake,Cakes,1,60,34,60,34,UPI,Walk-in,FC Road
+B00137,2026-04-04,BAK-DOU1,Doughnut,Cakes,2,70,41,140,82,UPI,Walk-in,Baner
+B00138,2026-06-05,BAK-PIN1,Pineapple Pastry,Cakes,1,75,44,75,44,UPI,Walk-in,Baner
+B00139,2026-05-31,BAK-COO2,Butter Cookies 250g,Cookies,1,180,108,180,108,UPI,Regular,FC Road
+B00140,2026-10-01,BAK-BRD1,Brown Bread,Breads,6,45,28,270,168,UPI,Regular,FC Road
+B00141,2026-01-16,BAK-PIN1,Pineapple Pastry,Cakes,2,75,44,150,88,UPI,Regular,FC Road
+B00142,2026-08-29,BAK-BRD1,Brown Bread,Breads,4,45,28,180,112,UPI,Online,FC Road
+B00143,2026-02-26,BAK-RUS3,Rusk 300g,Breads,1,55,34,55,34,Cash,Online,Baner
+B00144,2026-09-25,BAK-PIN1,Pineapple Pastry,Cakes,6,75,44,450,264,Cash,Regular,FC Road
+B00145,2026-09-04,BAK-PUF1,Veg Puff,Savouries,1,30,17,30,17,UPI,Walk-in,Baner
+B00146,2026-09-17,BAK-CGB1,Cheese Garlic Bread,Breads,2,120,71,240,142,UPI,Walk-in,Baner
+B00147,2026-04-22,BAK-CUP1,Vanilla Cupcake,Cakes,1,60,34,60,34,Card,Walk-in,Baner
+B00148,2026-05-11,BAK-PUF1,Veg Puff,Savouries,4,30,17,120,68,UPI,Walk-in,Baner
+B00149,2026-01-06,BAK-CRO1,Croissant,Breads,4,85,49,340,196,Card,Walk-in,FC Road
+B00150,2026-09-28,BAK-RUS3,Rusk 300g,Breads,2,55,34,110,68,UPI,Regular,FC Road
+B00151,2026-08-24,BAK-COO2,Butter Cookies 250g,Cookies,1,180,108,180,108,Cash,Online,Baner
+B00152,2026-06-18,BAK-BRD1,Brown Bread,Breads,3,45,28,135,84,Cash,Walk-in,FC Road
+B00153,2026-03-31,BAK-BIR2,Birthday Cake 2kg,Cakes,2,1450,920,2900,1840,UPI,Regular,FC Road
+B00154,2026-09-15,BAK-CHO1,Chocolate Cake 1kg,Cakes,1,650,410,650,410,Cash,Walk-in,FC Road
+B00155,2026-06-21,BAK-PIN1,Pineapple Pastry,Cakes,3,75,44,225,132,UPI,Walk-in,FC Road
+B00156,2026-08-18,BAK-PIN1,Pineapple Pastry,Cakes,4,75,44,300,176,UPI,Walk-in,FC Road
+B00157,2026-01-31,BAK-BRD1,Brown Bread,Breads,1,45,28,45,28,UPI,Regular,FC Road
+B00158,2026-08-17,BAK-PUF1,Veg Puff,Savouries,1,30,17,30,17,Cash,Walk-in,Baner
+B00159,2026-06-02,BAK-PUF1,Veg Puff,Savouries,3,30,17,90,51,UPI,Walk-in,FC Road
+B00160,2026-01-27,BAK-COO2,Butter Cookies 250g,Cookies,2,180,108,360,216,UPI,Walk-in,Baner
+B00161,2026-06-29,BAK-COO2,Butter Cookies 250g,Cookies,1,180,108,180,108,Card,Regular,FC Road
+B00162,2026-04-07,BAK-DOU1,Doughnut,Cakes,6,70,41,420,246,UPI,Walk-in,FC Road
+B00163,2026-04-16,BAK-RUS3,Rusk 300g,Breads,4,55,34,220,136,UPI,Walk-in,Baner
+B00164,2026-05-25,BAK-PUF1,Veg Puff,Savouries,2,30,17,60,34,UPI,Online,FC Road
+B00165,2026-05-23,BAK-BRW1,Walnut Brownie,Cookies,2,95,56,190,112,UPI,Online,Baner
+B00166,2026-08-06,BAK-CRO1,Croissant,Breads,1,85,49,85,49,UPI,Online,Baner
+B00167,2026-08-17,BAK-CHO1,Chocolate Cake 1kg,Cakes,2,650,410,1300,820,Card,Walk-in,Baner
+B00168,2026-07-11,BAK-DOU1,Doughnut,Cakes,1,70,41,70,41,UPI,Walk-in,FC Road
+B00169,2026-05-30,BAK-PIN1,Pineapple Pastry,Cakes,2,75,44,150,88,Card,Walk-in,Baner
+B00170,2026-03-20,BAK-BRW1,Walnut Brownie,Cookies,6,95,56,570,336,Cash,Walk-in,Baner
+B00171,2026-04-04,BAK-BRW1,Walnut Brownie,Cookies,4,95,56,380,224,Card,Online,Baner
+B00172,2026-05-23,BAK-BIR2,Birthday Cake 2kg,Cakes,6,1450,920,8700,5520,UPI,Walk-in,FC Road
+B00173,2026-07-24,BAK-PIN1,Pineapple Pastry,Cakes,1,75,44,75,44,Cash,Online,Baner
+B00174,2026-03-22,BAK-CRO1,Croissant,Breads,1,85,49,85,49,UPI,Online,FC Road
+B00175,2026-01-14,BAK-COO2,Butter Cookies 250g,Cookies,3,180,108,540,324,UPI,Walk-in,FC Road
+B00176,2026-05-01,BAK-PIN1,Pineapple Pastry,Cakes,2,75,44,150,88,Card,Regular,FC Road
+B00177,2026-04-07,BAK-DOU1,Doughnut,Cakes,2,70,41,140,82,Card,Regular,FC Road
+B00178,2026-01-22,BAK-CRO1,Croissant,Breads,6,85,49,510,294,UPI,Online,Baner
+B00179,2026-09-16,BAK-CHO1,Chocolate Cake 1kg,Cakes,1,650,410,650,410,Card,Walk-in,FC Road
+B00180,2026-03-06,BAK-CGB1,Cheese Garlic Bread,Breads,2,120,71,240,142,UPI,Online,Baner
+B00181,2026-07-11,BAK-DOU1,Doughnut,Cakes,1,70,41,70,41,UPI,Regular,FC Road
+B00182,2026-05-19,BAK-CUP1,Vanilla Cupcake,Cakes,2,60,34,120,68,UPI,Online,Baner
+B00183,2026-07-12,BAK-PUF1,Veg Puff,Savouries,3,30,17,90,51,UPI,Walk-in,FC Road
+B00184,2026-03-27,BAK-BIR2,Birthday Cake 2kg,Cakes,1,1450,920,1450,920,Cash,Walk-in,Baner
+B00185,2026-03-16,BAK-PIN1,Pineapple Pastry,Cakes,4,75,44,300,176,Cash,Regular,FC Road
+B00186,2026-06-22,BAK-COO2,Butter Cookies 250g,Cookies,1,180,108,180,108,UPI,Regular,Baner
+B00187,2026-06-17,BAK-RUS3,Rusk 300g,Breads,1,55,34,55,34,Card,Regular,Baner
+B00188,2026-08-16,BAK-DOU1,Doughnut,Cakes,3,70,41,210,123,UPI,Walk-in,FC Road
+B00189,2026-08-23,BAK-PIN1,Pineapple Pastry,Cakes,4,75,44,300,176,UPI,Online,FC Road
+B00190,2026-04-15,BAK-RUS3,Rusk 300g,Breads,6,55,34,330,204,Cash,Walk-in,FC Road
+B00191,2026-03-17,BAK-BRD1,Brown Bread,Breads,6,45,28,270,168,UPI,Regular,Baner
+B00192,2026-07-18,BAK-CUP1,Vanilla Cupcake,Cakes,2,60,34,120,68,UPI,Regular,FC Road
+B00193,2026-09-14,BAK-RUS3,Rusk 300g,Breads,1,55,34,55,34,UPI,Walk-in,Baner
+B00194,2026-06-03,BAK-CGB1,Cheese Garlic Bread,Breads,2,120,71,240,142,UPI,Online,Baner
+B00195,2026-04-19,BAK-CHO1,Chocolate Cake 1kg,Cakes,1,650,410,650,410,Cash,Walk-in,Baner
+B00196,2026-04-30,BAK-CRO1,Croissant,Breads,1,85,49,85,49,Card,Walk-in,FC Road
+B00197,2026-09-08,BAK-RUS3,Rusk 300g,Breads,2,55,34,110,68,Card,Regular,FC Road
+B00198,2026-06-08,BAK-BIR2,Birthday Cake 2kg,Cakes,6,1450,920,8700,5520,UPI,Walk-in,Baner
+B00199,2026-09-24,BAK-BRD1,Brown Bread,Breads,2,45,28,90,56,UPI,Walk-in,Baner
+B00200,2026-06-19,BAK-RUS3,Rusk 300g,Breads,1,55,34,55,34,UPI,Walk-in,Baner
+B00201,2026-06-01,BAK-COO2,Butter Cookies 250g,Cookies,1,180,108,180,108,UPI,Regular,FC Road
+B00202,2026-06-24,BAK-BRD1,Brown Bread,Breads,6,45,28,270,168,UPI,Regular,Baner
+B00203,2026-08-27,BAK-RUS3,Rusk 300g,Breads,1,55,34,55,34,UPI,Regular,Baner
+B00204,2026-02-01,BAK-BIR2,Birthday Cake 2kg,Cakes,4,1450,920,5800,3680,UPI,Online,FC Road
+B00205,2026-05-13,BAK-CUP1,Vanilla Cupcake,Cakes,2,60,34,120,68,Cash,Walk-in,FC Road
+B00206,2026-01-16,BAK-CHO1,Chocolate Cake 1kg,Cakes,3,650,410,1950,1230,UPI,Regular,Baner
+B00207,2026-05-05,BAK-CHO1,Chocolate Cake 1kg,Cakes,2,650,410,1300,820,UPI,Regular,FC Road
+B00208,2026-02-25,BAK-RUS3,Rusk 300g,Breads,1,55,34,55,34,Card,Regular,Baner
+B00209,2026-06-12,BAK-BRD1,Brown Bread,Breads,4,45,28,180,112,Cash,Walk-in,FC Road
+B00210,2026-02-28,BAK-RUS3,Rusk 300g,Breads,4,55,34,220,136,UPI,Online,Baner
+B00211,2026-07-01,BAK-PIN1,Pineapple Pastry,Cakes,3,75,44,225,132,Cash,Regular,FC Road
+B00212,2026-03-01,BAK-PIN1,Pineapple Pastry,Cakes,1,75,44,75,44,UPI,Walk-in,Baner
+B00213,2026-01-17,BAK-BIR2,Birthday Cake 2kg,Cakes,2,1450,920,2900,1840,Cash,Walk-in,FC Road
+B00214,2026-04-24,BAK-CGB1,Cheese Garlic Bread,Breads,3,120,71,360,213,UPI,Walk-in,Baner
+B00215,2026-02-23,BAK-PIN1,Pineapple Pastry,Cakes,1,75,44,75,44,Cash,Walk-in,Baner
+B00216,2026-09-10,BAK-CRO1,Croissant,Breads,3,85,49,255,147,Cash,Online,Baner
+B00217,2026-07-13,BAK-COO2,Butter Cookies 250g,Cookies,1,180,108,180,108,UPI,Walk-in,FC Road
+B00218,2026-02-03,BAK-BRW1,Walnut Brownie,Cookies,2,95,56,190,112,UPI,Regular,FC Road
+B00219,2026-09-24,BAK-BRD1,Brown Bread,Breads,6,45,28,270,168,UPI,Walk-in,FC Road
+B00220,2026-09-07,BAK-COO2,Butter Cookies 250g,Cookies,1,180,108,180,108,Cash,Online,FC Road
+B00221,2026-03-14,BAK-PUF1,Veg Puff,Savouries,2,30,17,60,34,UPI,Online,Baner
+B00222,2026-06-17,BAK-CRO1,Croissant,Breads,6,85,49,510,294,Cash,Walk-in,Baner
+B00223,2026-02-28,BAK-COO2,Butter Cookies 250g,Cookies,2,180,108,360,216,UPI,Regular,FC Road
+B00224,2026-04-25,BAK-CHO1,Chocolate Cake 1kg,Cakes,6,650,410,3900,2460,UPI,Walk-in,FC Road
+B00225,2026-06-29,BAK-PIN1,Pineapple Pastry,Cakes,1,75,44,75,44,UPI,Walk-in,FC Road
+B00226,2026-03-20,BAK-RUS3,Rusk 300g,Breads,1,55,34,55,34,UPI,Regular,Baner
+B00227,2026-07-06,BAK-DOU1,Doughnut,Cakes,1,70,41,70,41,UPI,Online,Baner
+B00228,2026-01-09,BAK-RUS3,Rusk 300g,Breads,4,55,34,220,136,Cash,Walk-in,FC Road
+B00229,2026-06-29,BAK-PIN1,Pineapple Pastry,Cakes,1,75,44,75,44,UPI,Regular,Baner
+B00230,2026-09-30,BAK-CRO1,Croissant,Breads,1,85,49,85,49,Cash,Regular,Baner
+B00231,2026-05-27,BAK-CRO1,Croissant,Breads,4,85,49,340,196,Card,Online,FC Road
+B00232,2026-06-30,BAK-RUS3,Rusk 300g,Breads,1,55,34,55,34,UPI,Online,FC Road
+B00233,2026-06-28,BAK-CHO1,Chocolate Cake 1kg,Cakes,6,650,410,3900,2460,Card,Walk-in,FC Road
+B00234,2026-04-29,BAK-BRW1,Walnut Brownie,Cookies,1,95,56,95,56,UPI,Regular,Baner
+B00235,2026-09-04,BAK-CGB1,Cheese Garlic Bread,Breads,2,120,71,240,142,UPI,Online,FC Road
+B00236,2026-05-13,BAK-BRW1,Walnut Brownie,Cookies,2,95,56,190,112,UPI,Walk-in,FC Road
+B00237,2026-03-07,BAK-CUP1,Vanilla Cupcake,Cakes,2,60,34,120,68,UPI,Online,FC Road
+B00238,2026-08-10,BAK-PUF1,Veg Puff,Savouries,6,30,17,180,102,UPI,Regular,Baner
+B00239,2026-03-23,BAK-DOU1,Doughnut,Cakes,2,70,41,140,82,UPI,Regular,Baner
+B00240,2026-01-18,BAK-DOU1,Doughnut,Cakes,4,70,41,280,164,UPI,Online,Baner
+B00241,2026-06-26,BAK-PIN1,Pineapple Pastry,Cakes,3,75,44,225,132,UPI,Online,FC Road
+B00242,2026-09-25,BAK-PIN1,Pineapple Pastry,Cakes,2,75,44,150,88,UPI,Walk-in,FC Road
+B00243,2026-06-21,BAK-PUF1,Veg Puff,Savouries,1,30,17,30,17,UPI,Online,FC Road
+B00244,2026-09-30,BAK-PIN1,Pineapple Pastry,Cakes,4,75,44,300,176,UPI,Walk-in,Baner
+B00245,2026-02-17,BAK-CRO1,Croissant,Breads,2,85,49,170,98,UPI,Walk-in,Baner
+B00246,2026-10-01,BAK-BRD1,Brown Bread,Breads,1,45,28,45,28,UPI,Online,Baner
+B00247,2026-08-19,BAK-BIR2,Birthday Cake 2kg,Cakes,3,1450,920,4350,2760,Cash,Online,FC Road
+B00248,2026-08-08,BAK-BRW1,Walnut Brownie,Cookies,1,95,56,95,56,Card,Walk-in,Baner
+B00249,2026-06-18,BAK-BRD1,Brown Bread,Breads,1,45,28,45,28,UPI,Regular,FC Road
+B00250,2026-01-26,BAK-PIN1,Pineapple Pastry,Cakes,1,75,44,75,44,Card,Regular,FC Road
+B00251,2026-01-17,BAK-COO2,Butter Cookies 250g,Cookies,2,180,108,360,216,UPI,Regular,FC Road
+B00252,2026-07-20,BAK-COO2,Butter Cookies 250g,Cookies,1,180,108,180,108,UPI,Online,Baner
+B00253,2026-02-25,BAK-PUF1,Veg Puff,Savouries,2,30,17,60,34,Cash,Walk-in,Baner
+B00254,2026-09-28,BAK-CGB1,Cheese Garlic Bread,Breads,1,120,71,120,71,Cash,Regular,Baner
+B00255,2026-04-29,BAK-CGB1,Cheese Garlic Bread,Breads,4,120,71,480,284,UPI,Walk-in,FC Road
+B00256,2026-03-25,BAK-DOU1,Doughnut,Cakes,2,70,41,140,82,UPI,Regular,FC Road
+B00257,2026-03-12,BAK-BIR2,Birthday Cake 2kg,Cakes,2,1450,920,2900,1840,UPI,Walk-in,FC Road
+B00258,2026-09-01,BAK-DOU1,Doughnut,Cakes,1,70,41,70,41,Cash,Walk-in,Baner
+B00259,2026-05-03,BAK-PIN1,Pineapple Pastry,Cakes,4,75,44,300,176,UPI,Regular,Baner
+B00260,2026-03-15,BAK-CUP1,Vanilla Cupcake,Cakes,1,60,34,60,34,Cash,Walk-in,FC Road
+B00261,2026-01-14,BAK-CGB1,Cheese Garlic Bread,Breads,1,120,71,120,71,Card,Online,FC Road
+B00262,2026-09-06,BAK-CUP1,Vanilla Cupcake,Cakes,2,60,34,120,68,UPI,Walk-in,Baner
+B00263,2026-08-23,BAK-BRW1,Walnut Brownie,Cookies,2,95,56,190,112,UPI,Online,FC Road
+B00264,2026-03-03,BAK-CGB1,Cheese Garlic Bread,Breads,2,120,71,240,142,Card,Regular,Baner
+B00265,2026-06-08,BAK-COO2,Butter Cookies 250g,Cookies,4,180,108,720,432,UPI,Regular,FC Road
+B00266,2026-04-16,BAK-BRD1,Brown Bread,Breads,1,45,28,45,28,Cash,Regular,Baner
+B00267,2026-10-01,BAK-PIN1,Pineapple Pastry,Cakes,6,75,44,450,264,UPI,Walk-in,FC Road
+B00268,2026-02-10,BAK-BRD1,Brown Bread,Breads,6,45,28,270,168,Card,Regular,Baner
+B00269,2026-03-02,BAK-BIR2,Birthday Cake 2kg,Cakes,6,1450,920,8700,5520,UPI,Walk-in,Baner
+B00270,2026-03-02,BAK-PIN1,Pineapple Pastry,Cakes,3,75,44,225,132,UPI,Online,Baner
+B00271,2026-08-23,BAK-BRD1,Brown Bread,Breads,3,45,28,135,84,UPI,Walk-in,FC Road
+B00272,2026-07-20,BAK-BRD1,Brown Bread,Breads,2,45,28,90,56,Cash,Walk-in,FC Road
+B00273,2026-08-06,BAK-CUP1,Vanilla Cupcake,Cakes,4,60,34,240,136,Card,Online,FC Road
+B00274,2026-05-15,BAK-COO2,Butter Cookies 250g,Cookies,1,180,108,180,108,UPI,Online,Baner
+B00275,2026-04-11,BAK-CRO1,Croissant,Breads,3,85,49,255,147,UPI,Walk-in,Baner
+B00276,2026-08-14,BAK-COO2,Butter Cookies 250g,Cookies,2,180,108,360,216,Card,Walk-in,Baner
+B00277,2026-05-17,BAK-CUP1,Vanilla Cupcake,Cakes,2,60,34,120,68,UPI,Walk-in,FC Road
+B00278,2026-02-15,BAK-PUF1,Veg Puff,Savouries,3,30,17,90,51,UPI,Regular,FC Road
+B00279,2026-04-23,BAK-CRO1,Croissant,Breads,6,85,49,510,294,UPI,Walk-in,FC Road
+B00280,2026-07-31,BAK-PUF1,Veg Puff,Savouries,1,30,17,30,17,Cash,Online,FC Road
+B00281,2026-05-24,BAK-RUS3,Rusk 300g,Breads,4,55,34,220,136,UPI,Walk-in,FC Road
+B00282,2026-03-16,BAK-CHO1,Chocolate Cake 1kg,Cakes,1,650,410,650,410,Cash,Walk-in,Baner
+B00283,2026-01-16,BAK-CHO1,Chocolate Cake 1kg,Cakes,1,650,410,650,410,Cash,Walk-in,FC Road
+B00284,2026-08-16,BAK-COO2,Butter Cookies 250g,Cookies,6,180,108,1080,648,UPI,Online,Baner
+B00285,2026-05-16,BAK-CRO1,Croissant,Breads,4,85,49,340,196,UPI,Walk-in,Baner
+B00286,2026-01-26,BAK-CRO1,Croissant,Breads,1,85,49,85,49,Cash,Regular,Baner
+B00287,2026-08-27,BAK-CUP1,Vanilla Cupcake,Cakes,6,60,34,360,204,UPI,Walk-in,Baner
+B00288,2026-06-18,BAK-BRD1,Brown Bread,Breads,3,45,28,135,84,Card,Regular,Baner
+B00289,2026-05-14,BAK-BIR2,Birthday Cake 2kg,Cakes,1,1450,920,1450,920,Cash,Walk-in,Baner
+B00290,2026-04-01,BAK-CGB1,Cheese Garlic Bread,Breads,2,120,71,240,142,Cash,Walk-in,Baner
+B00291,2026-02-21,BAK-COO2,Butter Cookies 250g,Cookies,2,180,108,360,216,UPI,Regular,Baner
+B00292,2026-07-18,BAK-COO2,Butter Cookies 250g,Cookies,1,180,108,180,108,UPI,Regular,FC Road
+B00293,2026-02-28,BAK-COO2,Butter Cookies 250g,Cookies,6,180,108,1080,648,Cash,Walk-in,FC Road
+B00294,2026-03-27,BAK-BRW1,Walnut Brownie,Cookies,3,95,56,285,168,UPI,Walk-in,Baner
+B00295,2026-05-12,BAK-BRW1,Walnut Brownie,Cookies,3,95,56,285,168,Cash,Walk-in,Baner
+B00296,2026-03-29,BAK-CUP1,Vanilla Cupcake,Cakes,2,60,34,120,68,UPI,Online,FC Road
+B00297,2026-08-20,BAK-BRW1,Walnut Brownie,Cookies,2,95,56,190,112,Card,Online,Baner
+B00298,2026-07-11,BAK-CGB1,Cheese Garlic Bread,Breads,2,120,71,240,142,UPI,Online,Baner
+B00299,2026-03-13,BAK-BIR2,Birthday Cake 2kg,Cakes,4,1450,920,5800,3680,UPI,Online,Baner
+B00300,2026-03-27,BAK-CUP1,Vanilla Cupcake,Cakes,3,60,34,180,102,Card,Online,FC Road
+B00301,2026-06-30,BAK-CUP1,Vanilla Cupcake,Cakes,3,60,34,180,102,Cash,Online,Baner
+B00302,2026-08-12,BAK-PUF1,Veg Puff,Savouries,1,30,17,30,17,UPI,Walk-in,FC Road
+B00303,2026-04-15,BAK-CGB1,Cheese Garlic Bread,Breads,2,120,71,240,142,UPI,Online,FC Road
+B00304,2026-09-24,BAK-BRD1,Brown Bread,Breads,4,45,28,180,112,Cash,Walk-in,Baner
+B00305,2026-08-27,BAK-BRW1,Walnut Brownie,Cookies,3,95,56,285,168,Cash,Walk-in,FC Road
+B00306,2026-04-06,BAK-BRW1,Walnut Brownie,Cookies,3,95,56,285,168,UPI,Walk-in,Baner
+B00307,2026-05-06,BAK-PUF1,Veg Puff,Savouries,6,30,17,180,102,Cash,Walk-in,Baner
+B00308,2026-02-23,BAK-BRD1,Brown Bread,Breads,3,45,28,135,84,Cash,Online,Baner
+B00309,2026-07-16,BAK-BRD1,Brown Bread,Breads,2,45,28,90,56,Cash,Online,FC Road
+B00310,2026-05-24,BAK-DOU1,Doughnut,Cakes,2,70,41,140,82,UPI,Walk-in,FC Road
+B00311,2026-07-06,BAK-RUS3,Rusk 300g,Breads,1,55,34,55,34,Cash,Walk-in,FC Road
+B00312,2026-08-13,BAK-BRW1,Walnut Brownie,Cookies,1,95,56,95,56,Card,Walk-in,Baner
+B00313,2026-07-08,BAK-RUS3,Rusk 300g,Breads,3,55,34,165,102,UPI,Regular,FC Road
+B00314,2026-04-04,BAK-CUP1,Vanilla Cupcake,Cakes,2,60,34,120,68,UPI,Regular,Baner
+B00315,2026-07-28,BAK-CGB1,Cheese Garlic Bread,Breads,2,120,71,240,142,Cash,Regular,Baner
+B00316,2026-02-13,BAK-CUP1,Vanilla Cupcake,Cakes,6,60,34,360,204,UPI,Walk-in,Baner
+B00317,2026-07-13,BAK-BRW1,Walnut Brownie,Cookies,6,95,56,570,336,UPI,Walk-in,Baner
+B00318,2026-07-26,BAK-CRO1,Croissant,Breads,2,85,49,170,98,Cash,Online,Baner
+B00319,2026-06-28,BAK-RUS3,Rusk 300g,Breads,4,55,34,220,136,UPI,Regular,FC Road
+B00320,2026-09-05,BAK-DOU1,Doughnut,Cakes,2,70,41,140,82,Cash,Walk-in,Baner
+B00321,2026-04-30,BAK-DOU1,Doughnut,Cakes,2,70,41,140,82,UPI,Walk-in,Baner
+B00322,2026-09-01,BAK-CUP1,Vanilla Cupcake,Cakes,2,60,34,120,68,UPI,Online,Baner
+B00323,2026-09-18,BAK-DOU1,Doughnut,Cakes,4,70,41,280,164,Card,Walk-in,Baner
+B00324,2026-02-19,BAK-BRW1,Walnut Brownie,Cookies,6,95,56,570,336,UPI,Online,Baner
+B00325,2026-04-14,BAK-PIN1,Pineapple Pastry,Cakes,3,75,44,225,132,Cash,Online,Baner
+B00326,2026-01-15,BAK-CGB1,Cheese Garlic Bread,Breads,2,120,71,240,142,UPI,Walk-in,Baner
+B00327,2026-04-13,BAK-RUS3,Rusk 300g,Breads,3,55,34,165,102,UPI,Walk-in,Baner
+B00328,2026-02-24,BAK-BIR2,Birthday Cake 2kg,Cakes,2,1450,920,2900,1840,Card,Regular,Baner
+B00329,2026-08-05,BAK-BIR2,Birthday Cake 2kg,Cakes,4,1450,920,5800,3680,Cash,Online,FC Road
+B00330,2026-05-03,BAK-CGB1,Cheese Garlic Bread,Breads,1,120,71,120,71,UPI,Regular,Baner
+B00331,2026-09-12,BAK-CGB1,Cheese Garlic Bread,Breads,3,120,71,360,213,UPI,Online,Baner
+B00332,2026-02-15,BAK-PUF1,Veg Puff,Savouries,4,30,17,120,68,UPI,Walk-in,Baner
+B00333,2026-04-15,BAK-CRO1,Croissant,Breads,2,85,49,170,98,Cash,Walk-in,Baner
+B00334,2026-01-26,BAK-RUS3,Rusk 300g,Breads,1,55,34,55,34,UPI,Walk-in,FC Road
+B00335,2026-06-13,BAK-CHO1,Chocolate Cake 1kg,Cakes,2,650,410,1300,820,UPI,Walk-in,FC Road
+B00336,2026-09-04,BAK-PIN1,Pineapple Pastry,Cakes,6,75,44,450,264,Card,Online,FC Road
+B00337,2026-06-21,BAK-BRD1,Brown Bread,Breads,6,45,28,270,168,UPI,Walk-in,Baner
+B00338,2026-02-23,BAK-PIN1,Pineapple Pastry,Cakes,4,75,44,300,176,Card,Regular,Baner
+B00339,2026-10-01,BAK-BRW1,Walnut Brownie,Cookies,6,95,56,570,336,UPI,Walk-in,Baner
+B00340,2026-09-20,BAK-CHO1,Chocolate Cake 1kg,Cakes,6,650,410,3900,2460,UPI,Walk-in,FC Road
+B00341,2026-06-06,BAK-PUF1,Veg Puff,Savouries,1,30,17,30,17,Card,Regular,FC Road
+B00342,2026-01-05,BAK-BIR2,Birthday Cake 2kg,Cakes,1,1450,920,1450,920,Card,Regular,Baner
+B00343,2026-07-14,BAK-CGB1,Cheese Garlic Bread,Breads,1,120,71,120,71,Card,Regular,Baner
+B00344,2026-01-26,BAK-CRO1,Croissant,Breads,3,85,49,255,147,Card,Walk-in,FC Road
+B00345,2026-05-15,BAK-COO2,Butter Cookies 250g,Cookies,1,180,108,180,108,Card,Walk-in,Baner
+B00346,2026-09-13,BAK-BIR2,Birthday Cake 2kg,Cakes,1,1450,920,1450,920,UPI,Walk-in,FC Road
+B00347,2026-06-13,BAK-COO2,Butter Cookies 250g,Cookies,3,180,108,540,324,UPI,Walk-in,FC Road
+B00348,2026-05-16,BAK-CHO1,Chocolate Cake 1kg,Cakes,3,650,410,1950,1230,UPI,Walk-in,FC Road
+B00349,2026-07-23,BAK-COO2,Butter Cookies 250g,Cookies,6,180,108,1080,648,Cash,Online,Baner
+B00350,2026-07-10,BAK-CGB1,Cheese Garlic Bread,Breads,2,120,71,240,142,UPI,Walk-in,FC Road
+B00351,2026-05-21,BAK-PIN1,Pineapple Pastry,Cakes,2,75,44,150,88,UPI,Walk-in,FC Road
+B00352,2026-02-06,BAK-RUS3,Rusk 300g,Breads,1,55,34,55,34,UPI,Regular,FC Road
+B00353,2026-02-13,BAK-CHO1,Chocolate Cake 1kg,Cakes,6,650,410,3900,2460,Card,Walk-in,Baner
+B00354,2026-03-28,BAK-BIR2,Birthday Cake 2kg,Cakes,1,1450,920,1450,920,UPI,Online,FC Road
+B00355,2026-01-11,BAK-PUF1,Veg Puff,Savouries,2,30,17,60,34,UPI,Walk-in,FC Road
+B00356,2026-02-15,BAK-PUF1,Veg Puff,Savouries,6,30,17,180,102,UPI,Walk-in,FC Road
+B00357,2026-05-07,BAK-RUS3,Rusk 300g,Breads,1,55,34,55,34,UPI,Online,FC Road
+B00358,2026-08-29,BAK-COO2,Butter Cookies 250g,Cookies,1,180,108,180,108,UPI,Walk-in,FC Road
+B00359,2026-06-03,BAK-BRW1,Walnut Brownie,Cookies,1,95,56,95,56,Card,Regular,FC Road
+B00360,2026-02-13,BAK-CUP1,Vanilla Cupcake,Cakes,1,60,34,60,34,UPI,Regular,Baner
+B00361,2026-08-27,BAK-BRD1,Brown Bread,Breads,1,45,28,45,28,Cash,Regular,Baner
+B00362,2026-01-19,BAK-CGB1,Cheese Garlic Bread,Breads,4,120,71,480,284,Card,Walk-in,Baner
+B00363,2026-07-07,BAK-COO2,Butter Cookies 250g,Cookies,3,180,108,540,324,Cash,Walk-in,Baner
+B00364,2026-01-13,BAK-PUF1,Veg Puff,Savouries,2,30,17,60,34,Card,Online,FC Road
+B00365,2026-08-08,BAK-PIN1,Pineapple Pastry,Cakes,3,75,44,225,132,Card,Walk-in,FC Road
+B00366,2026-03-09,BAK-BRW1,Walnut Brownie,Cookies,6,95,56,570,336,UPI,Walk-in,Baner
+B00367,2026-05-31,BAK-BRD1,Brown Bread,Breads,2,45,28,90,56,UPI,Regular,Baner
+B00368,2026-08-14,BAK-COO2,Butter Cookies 250g,Cookies,1,180,108,180,108,Card,Online,FC Road
+B00369,2026-04-10,BAK-CGB1,Cheese Garlic Bread,Breads,2,120,71,240,142,UPI,Walk-in,Baner
+B00370,2026-04-23,BAK-BIR2,Birthday Cake 2kg,Cakes,2,1450,920,2900,1840,UPI,Online,FC Road
+B00371,2026-04-30,BAK-CHO1,Chocolate Cake 1kg,Cakes,4,650,410,2600,1640,UPI,Walk-in,Baner
+B00372,2026-09-21,BAK-CHO1,Chocolate Cake 1kg,Cakes,1,650,410,650,410,UPI,Walk-in,FC Road
+B00373,2026-08-25,BAK-RUS3,Rusk 300g,Breads,2,55,34,110,68,UPI,Online,FC Road
+B00374,2026-05-16,BAK-CGB1,Cheese Garlic Bread,Breads,3,120,71,360,213,Cash,Online,Baner
+B00375,2026-04-29,BAK-COO2,Butter Cookies 250g,Cookies,6,180,108,1080,648,Card,Online,FC Road
+B00376,2026-08-24,BAK-RUS3,Rusk 300g,Breads,1,55,34,55,34,UPI,Walk-in,Baner
+B00377,2026-05-21,BAK-PUF1,Veg Puff,Savouries,1,30,17,30,17,Cash,Regular,Baner
+B00378,2026-09-03,BAK-COO2,Butter Cookies 250g,Cookies,6,180,108,1080,648,UPI,Online,FC Road
+B00379,2026-05-12,BAK-RUS3,Rusk 300g,Breads,1,55,34,55,34,Cash,Online,FC Road
+B00380,2026-06-14,BAK-PIN1,Pineapple Pastry,Cakes,3,75,44,225,132,Card,Online,FC Road
+B00381,2026-10-01,BAK-CGB1,Cheese Garlic Bread,Breads,4,120,71,480,284,UPI,Walk-in,Baner
+B00382,2026-04-03,BAK-RUS3,Rusk 300g,Breads,2,55,34,110,68,Card,Regular,Baner
+B00383,2026-01-31,BAK-BRD1,Brown Bread,Breads,2,45,28,90,56,UPI,Online,Baner
+B00384,2026-05-01,BAK-RUS3,Rusk 300g,Breads,1,55,34,55,34,UPI,Walk-in,FC Road
+B00385,2026-09-06,BAK-CGB1,Cheese Garlic Bread,Breads,6,120,71,720,426,Card,Walk-in,FC Road
+B00386,2026-02-04,BAK-RUS3,Rusk 300g,Breads,6,55,34,330,204,UPI,Walk-in,FC Road
+B00387,2026-09-05,BAK-PIN1,Pineapple Pastry,Cakes,3,75,44,225,132,Cash,Online,FC Road
+B00388,2026-09-15,BAK-CGB1,Cheese Garlic Bread,Breads,1,120,71,120,71,UPI,Walk-in,Baner
+B00389,2026-02-28,BAK-PIN1,Pineapple Pastry,Cakes,2,75,44,150,88,Card,Online,Baner
+B00390,2026-06-25,BAK-COO2,Butter Cookies 250g,Cookies,1,180,108,180,108,Card,Regular,FC Road
+B00391,2026-05-24,BAK-BRD1,Brown Bread,Breads,2,45,28,90,56,UPI,Regular,Baner
+B00392,2026-08-02,BAK-BRW1,Walnut Brownie,Cookies,1,95,56,95,56,UPI,Walk-in,FC Road
+B00393,2026-02-21,BAK-CHO1,Chocolate Cake 1kg,Cakes,2,650,410,1300,820,UPI,Walk-in,Baner
+B00394,2026-05-24,BAK-COO2,Butter Cookies 250g,Cookies,6,180,108,1080,648,UPI,Regular,Baner
+B00395,2026-06-10,BAK-CUP1,Vanilla Cupcake,Cakes,1,60,34,60,34,Card,Regular,FC Road
+B00396,2026-08-02,BAK-RUS3,Rusk 300g,Breads,2,55,34,110,68,UPI,Regular,FC Road
+B00397,2026-02-06,BAK-CGB1,Cheese Garlic Bread,Breads,1,120,71,120,71,UPI,Walk-in,FC Road
+B00398,2026-05-18,BAK-CRO1,Croissant,Breads,2,85,49,170,98,UPI,Regular,FC Road
+B00399,2026-05-28,BAK-PIN1,Pineapple Pastry,Cakes,4,75,44,300,176,UPI,Regular,Baner
+B00400,2026-04-01,BAK-CRO1,Croissant,Breads,1,85,49,85,49,UPI,Walk-in,FC Road
+B00401,2026-09-02,BAK-RUS3,Rusk 300g,Breads,1,55,34,55,34,Card,Walk-in,FC Road
+B00402,2026-03-05,BAK-CUP1,Vanilla Cupcake,Cakes,1,60,34,60,34,UPI,Regular,Baner
+B00403,2026-07-24,BAK-CRO1,Croissant,Breads,6,85,49,510,294,UPI,Regular,Baner
+B00404,2026-01-22,BAK-PIN1,Pineapple Pastry,Cakes,2,75,44,150,88,UPI,Regular,FC Road
+B00405,2026-04-17,BAK-COO2,Butter Cookies 250g,Cookies,3,180,108,540,324,UPI,Online,Baner
+B00406,2026-10-01,BAK-BIR2,Birthday Cake 2kg,Cakes,1,1450,920,1450,920,UPI,Online,Baner
+B00407,2026-06-14,BAK-CUP1,Vanilla Cupcake,Cakes,3,60,34,180,102,UPI,Online,Baner
+B00408,2026-05-19,BAK-RUS3,Rusk 300g,Breads,1,55,34,55,34,Card,Regular,Baner
+B00409,2026-04-20,BAK-BIR2,Birthday Cake 2kg,Cakes,4,1450,920,5800,3680,Card,Walk-in,Baner
+B00410,2026-02-21,BAK-CGB1,Cheese Garlic Bread,Breads,6,120,71,720,426,Cash,Walk-in,Baner
+B00411,2026-04-08,BAK-BRW1,Walnut Brownie,Cookies,1,95,56,95,56,Cash,Regular,FC Road
+B00412,2026-09-22,BAK-BRD1,Brown Bread,Breads,1,45,28,45,28,Card,Walk-in,Baner
+B00413,2026-03-27,BAK-DOU1,Doughnut,Cakes,1,70,41,70,41,Card,Walk-in,Baner
+B00414,2026-01-18,BAK-DOU1,Doughnut,Cakes,1,70,41,70,41,UPI,Online,FC Road
+B00415,2026-04-14,BAK-PUF1,Veg Puff,Savouries,1,30,17,30,17,Card,Walk-in,Baner
+B00416,2026-08-11,BAK-CRO1,Croissant,Breads,2,85,49,170,98,UPI,Regular,FC Road
+B00417,2026-08-10,BAK-DOU1,Doughnut,Cakes,6,70,41,420,246,UPI,Regular,Baner
+B00418,2026-06-28,BAK-BRD1,Brown Bread,Breads,3,45,28,135,84,UPI,Regular,Baner
+B00419,2026-08-03,BAK-COO2,Butter Cookies 250g,Cookies,2,180,108,360,216,UPI,Online,Baner
+B00420,2026-03-04,BAK-CGB1,Cheese Garlic Bread,Breads,1,120,71,120,71,UPI,Walk-in,Baner
+B00421,2026-02-04,BAK-DOU1,Doughnut,Cakes,4,70,41,280,164,Cash,Online,Baner
+B00422,2026-08-03,BAK-CGB1,Cheese Garlic Bread,Breads,6,120,71,720,426,UPI,Walk-in,FC Road
+B00423,2026-04-26,BAK-COO2,Butter Cookies 250g,Cookies,1,180,108,180,108,UPI,Regular,Baner
+B00424,2026-09-19,BAK-COO2,Butter Cookies 250g,Cookies,4,180,108,720,432,UPI,Walk-in,Baner
+B00425,2026-05-16,BAK-CHO1,Chocolate Cake 1kg,Cakes,6,650,410,3900,2460,UPI,Online,FC Road
+B00426,2026-08-19,BAK-PIN1,Pineapple Pastry,Cakes,3,75,44,225,132,UPI,Walk-in,Baner
+B00427,2026-09-29,BAK-BRD1,Brown Bread,Breads,2,45,28,90,56,UPI,Regular,FC Road
+B00428,2026-04-19,BAK-CHO1,Chocolate Cake 1kg,Cakes,1,650,410,650,410,UPI,Online,Baner
+B00429,2026-07-22,BAK-PIN1,Pineapple Pastry,Cakes,1,75,44,75,44,Card,Walk-in,Baner
+B00430,2026-08-02,BAK-RUS3,Rusk 300g,Breads,1,55,34,55,34,Card,Walk-in,FC Road
+B00431,2026-08-01,BAK-RUS3,Rusk 300g,Breads,1,55,34,55,34,Card,Walk-in,Baner
+B00432,2026-06-30,BAK-COO2,Butter Cookies 250g,Cookies,4,180,108,720,432,UPI,Walk-in,FC Road
+B00433,2026-09-28,BAK-DOU1,Doughnut,Cakes,2,70,41,140,82,UPI,Walk-in,FC Road
+B00434,2026-07-11,BAK-DOU1,Doughnut,Cakes,2,70,41,140,82,UPI,Walk-in,FC Road
+B00435,2026-08-26,BAK-PIN1,Pineapple Pastry,Cakes,1,75,44,75,44,Cash,Online,FC Road
+B00436,2026-03-20,BAK-BRW1,Walnut Brownie,Cookies,6,95,56,570,336,UPI,Regular,FC Road
+B00437,2026-08-04,BAK-CRO1,Croissant,Breads,4,85,49,340,196,Card,Regular,FC Road
+B00438,2026-01-14,BAK-CRO1,Croissant,Breads,2,85,49,170,98,Card,Walk-in,Baner
+B00439,2026-08-10,BAK-CHO1,Chocolate Cake 1kg,Cakes,3,650,410,1950,1230,Card,Walk-in,Baner
+B00440,2026-07-16,BAK-BIR2,Birthday Cake 2kg,Cakes,4,1450,920,5800,3680,Cash,Regular,Baner
+B00441,2026-06-09,BAK-CHO1,Chocolate Cake 1kg,Cakes,1,650,410,650,410,UPI,Online,Baner
+B00442,2026-07-04,BAK-BRW1,Walnut Brownie,Cookies,3,95,56,285,168,UPI,Regular,Baner
+B00443,2026-01-07,BAK-CGB1,Cheese Garlic Bread,Breads,1,120,71,120,71,Card,Walk-in,Baner
+B00444,2026-08-17,BAK-CUP1,Vanilla Cupcake,Cakes,4,60,34,240,136,UPI,Walk-in,Baner
+B00445,2026-01-14,BAK-PIN1,Pineapple Pastry,Cakes,1,75,44,75,44,UPI,Walk-in,FC Road
+B00446,2026-02-15,BAK-CHO1,Chocolate Cake 1kg,Cakes,4,650,410,2600,1640,UPI,Regular,Baner
+B00447,2026-09-23,BAK-COO2,Butter Cookies 250g,Cookies,2,180,108,360,216,Cash,Online,Baner
+B00448,2026-05-28,BAK-BRW1,Walnut Brownie,Cookies,6,95,56,570,336,Cash,Walk-in,FC Road
+B00449,2026-08-19,BAK-CRO1,Croissant,Breads,2,85,49,170,98,UPI,Regular,Baner
+B00450,2026-05-09,BAK-BIR2,Birthday Cake 2kg,Cakes,2,1450,920,2900,1840,UPI,Online,FC Road
+B00451,2026-01-15,BAK-BRW1,Walnut Brownie,Cookies,2,95,56,190,112,UPI,Walk-in,FC Road
+B00452,2026-03-04,BAK-DOU1,Doughnut,Cakes,2,70,41,140,82,UPI,Regular,Baner
+B00453,2026-06-13,BAK-PIN1,Pineapple Pastry,Cakes,4,75,44,300,176,UPI,Walk-in,Baner
+B00454,2026-01-11,BAK-DOU1,Doughnut,Cakes,1,70,41,70,41,Cash,Regular,FC Road
+B00455,2026-02-07,BAK-CRO1,Croissant,Breads,4,85,49,340,196,Cash,Regular,Baner
+B00456,2026-01-30,BAK-CRO1,Croissant,Breads,4,85,49,340,196,Cash,Walk-in,Baner
+B00457,2026-06-16,BAK-BRD1,Brown Bread,Breads,1,45,28,45,28,UPI,Online,Baner
+B00458,2026-02-23,BAK-CGB1,Cheese Garlic Bread,Breads,3,120,71,360,213,UPI,Regular,FC Road
+B00459,2026-02-20,BAK-BRW1,Walnut Brownie,Cookies,1,95,56,95,56,Card,Walk-in,Baner
+B00460,2026-04-10,BAK-CGB1,Cheese Garlic Bread,Breads,6,120,71,720,426,UPI,Online,Baner
+B00461,2026-02-14,BAK-PUF1,Veg Puff,Savouries,2,30,17,60,34,Cash,Online,FC Road
+B00462,2026-09-10,BAK-CUP1,Vanilla Cupcake,Cakes,1,60,34,60,34,Cash,Walk-in,FC Road
+B00463,2026-03-08,BAK-COO2,Butter Cookies 250g,Cookies,2,180,108,360,216,UPI,Walk-in,FC Road
+B00464,2026-06-20,BAK-RUS3,Rusk 300g,Breads,3,55,34,165,102,UPI,Regular,FC Road
+B00465,2026-05-09,BAK-DOU1,Doughnut,Cakes,2,70,41,140,82,Card,Online,Baner
+B00466,2026-05-29,BAK-DOU1,Doughnut,Cakes,1,70,41,70,41,UPI,Online,FC Road
+B00467,2026-04-30,BAK-RUS3,Rusk 300g,Breads,2,55,34,110,68,UPI,Walk-in,FC Road
+B00468,2026-06-29,BAK-BIR2,Birthday Cake 2kg,Cakes,1,1450,920,1450,920,Card,Walk-in,Baner
+B00469,2026-02-28,BAK-BRD1,Brown Bread,Breads,4,45,28,180,112,Cash,Online,FC Road
+B00470,2026-04-22,BAK-PUF1,Veg Puff,Savouries,2,30,17,60,34,UPI,Regular,Baner
+B00471,2026-03-19,BAK-BRD1,Brown Bread,Breads,4,45,28,180,112,UPI,Online,Baner
+B00472,2026-08-07,BAK-RUS3,Rusk 300g,Breads,4,55,34,220,136,UPI,Walk-in,FC Road
+B00473,2026-09-22,BAK-CGB1,Cheese Garlic Bread,Breads,2,120,71,240,142,UPI,Online,Baner
+B00474,2026-01-11,BAK-PUF1,Veg Puff,Savouries,2,30,17,60,34,UPI,Walk-in,FC Road
+B00475,2026-07-22,BAK-DOU1,Doughnut,Cakes,6,70,41,420,246,UPI,Walk-in,FC Road
+B00476,2026-02-04,BAK-DOU1,Doughnut,Cakes,4,70,41,280,164,Cash,Walk-in,FC Road
+B00477,2026-02-25,BAK-BRW1,Walnut Brownie,Cookies,6,95,56,570,336,UPI,Walk-in,FC Road
+B00478,2026-03-10,BAK-BIR2,Birthday Cake 2kg,Cakes,1,1450,920,1450,920,UPI,Walk-in,FC Road
+B00479,2026-08-10,BAK-CHO1,Chocolate Cake 1kg,Cakes,1,650,410,650,410,UPI,Online,Baner
+B00480,2026-03-06,BAK-DOU1,Doughnut,Cakes,1,70,41,70,41,Cash,Walk-in,Baner
+B00481,2026-06-05,BAK-CHO1,Chocolate Cake 1kg,Cakes,3,650,410,1950,1230,UPI,Walk-in,FC Road
+B00482,2026-08-25,BAK-DOU1,Doughnut,Cakes,4,70,41,280,164,Card,Online,Baner
+B00483,2026-03-05,BAK-CRO1,Croissant,Breads,1,85,49,85,49,UPI,Walk-in,Baner
+B00484,2026-02-11,BAK-BRW1,Walnut Brownie,Cookies,4,95,56,380,224,UPI,Regular,FC Road
+B00485,2026-06-06,BAK-BIR2,Birthday Cake 2kg,Cakes,6,1450,920,8700,5520,UPI,Walk-in,Baner
+B00486,2026-08-20,BAK-BRD1,Brown Bread,Breads,2,45,28,90,56,UPI,Regular,Baner
+B00487,2026-03-27,BAK-RUS3,Rusk 300g,Breads,4,55,34,220,136,Card,Regular,FC Road
+B00488,2026-02-10,BAK-CHO1,Chocolate Cake 1kg,Cakes,6,650,410,3900,2460,Cash,Walk-in,FC Road
+B00489,2026-01-07,BAK-CGB1,Cheese Garlic Bread,Breads,4,120,71,480,284,UPI,Online,FC Road
+B00490,2026-07-13,BAK-DOU1,Doughnut,Cakes,1,70,41,70,41,UPI,Online,FC Road
+B00491,2026-08-17,BAK-PUF1,Veg Puff,Savouries,1,30,17,30,17,UPI,Regular,FC Road
+B00492,2026-04-21,BAK-BRD1,Brown Bread,Breads,1,45,28,45,28,UPI,Online,Baner
+B00493,2026-04-16,BAK-CHO1,Chocolate Cake 1kg,Cakes,6,650,410,3900,2460,UPI,Walk-in,FC Road
+B00494,2026-06-07,BAK-RUS3,Rusk 300g,Breads,4,55,34,220,136,UPI,Walk-in,Baner
+B00495,2026-09-15,BAK-CHO1,Chocolate Cake 1kg,Cakes,1,650,410,650,410,Cash,Regular,Baner
+B00496,2026-09-09,BAK-RUS3,Rusk 300g,Breads,1,55,34,55,34,UPI,Online,FC Road
+B00497,2026-01-28,BAK-CHO1,Chocolate Cake 1kg,Cakes,4,650,410,2600,1640,Cash,Walk-in,Baner
+B00498,2026-09-24,BAK-BRD1,Brown Bread,Breads,2,45,28,90,56,UPI,Regular,Baner
+B00499,2026-09-03,BAK-COO2,Butter Cookies 250g,Cookies,2,180,108,360,216,UPI,Walk-in,FC Road
+B00500,2026-09-28,BAK-BRD1,Brown Bread,Breads,1,45,28,45,28,Card,Regular,Baner
+B00501,2026-09-15,BAK-DOU1,Doughnut,Cakes,1,70,41,70,41,UPI,Walk-in,FC Road
+B00502,2026-06-27,BAK-BIR2,Birthday Cake 2kg,Cakes,3,1450,920,4350,2760,UPI,Walk-in,FC Road
+B00503,2026-03-15,BAK-RUS3,Rusk 300g,Breads,4,55,34,220,136,Card,Walk-in,Baner
+B00504,2026-08-09,BAK-BRW1,Walnut Brownie,Cookies,1,95,56,95,56,Card,Walk-in,FC Road
+B00505,2026-08-25,BAK-CHO1,Chocolate Cake 1kg,Cakes,2,650,410,1300,820,UPI,Online,Baner
+B00506,2026-08-04,BAK-PUF1,Veg Puff,Savouries,2,30,17,60,34,UPI,Walk-in,FC Road
+B00507,2026-04-01,BAK-BRW1,Walnut Brownie,Cookies,4,95,56,380,224,Cash,Walk-in,Baner
+B00508,2026-08-12,BAK-CGB1,Cheese Garlic Bread,Breads,2,120,71,240,142,UPI,Regular,FC Road
+B00509,2026-02-22,BAK-BRD1,Brown Bread,Breads,1,45,28,45,28,UPI,Walk-in,FC Road
+B00510,2026-05-10,BAK-BRW1,Walnut Brownie,Cookies,6,95,56,570,336,UPI,Walk-in,FC Road
+B00511,2026-08-10,BAK-PIN1,Pineapple Pastry,Cakes,6,75,44,450,264,UPI,Regular,FC Road
+B00512,2026-04-12,BAK-PIN1,Pineapple Pastry,Cakes,4,75,44,300,176,UPI,Walk-in,Baner
+B00513,2026-02-26,BAK-DOU1,Doughnut,Cakes,4,70,41,280,164,UPI,Walk-in,Baner
+B00514,2026-03-01,BAK-CRO1,Croissant,Breads,2,85,49,170,98,UPI,Walk-in,FC Road
+B00515,2026-08-09,BAK-CGB1,Cheese Garlic Bread,Breads,1,120,71,120,71,UPI,Regular,FC Road
+B00516,2026-07-19,BAK-CHO1,Chocolate Cake 1kg,Cakes,2,650,410,1300,820,Cash,Walk-in,FC Road
+B00517,2026-08-02,BAK-BIR2,Birthday Cake 2kg,Cakes,1,1450,920,1450,920,UPI,Walk-in,FC Road
+B00518,2026-02-21,BAK-PUF1,Veg Puff,Savouries,1,30,17,30,17,UPI,Online,Baner
+B00519,2026-02-03,BAK-PUF1,Veg Puff,Savouries,1,30,17,30,17,Card,Walk-in,Baner
+B00520,2026-03-27,BAK-CRO1,Croissant,Breads,2,85,49,170,98,Card,Walk-in,Baner
+B00521,2026-09-11,BAK-RUS3,Rusk 300g,Breads,2,55,34,110,68,UPI,Walk-in,Baner
+B00522,2026-09-03,BAK-COO2,Butter Cookies 250g,Cookies,2,180,108,360,216,UPI,Walk-in,FC Road
+B00523,2026-03-29,BAK-PIN1,Pineapple Pastry,Cakes,3,75,44,225,132,Card,Walk-in,FC Road
+B00524,2026-03-18,BAK-CHO1,Chocolate Cake 1kg,Cakes,1,650,410,650,410,UPI,Walk-in,FC Road
+B00525,2026-07-21,BAK-PIN1,Pineapple Pastry,Cakes,2,75,44,150,88,Card,Walk-in,FC Road
+B00526,2026-07-30,BAK-RUS3,Rusk 300g,Breads,1,55,34,55,34,Card,Online,FC Road
+B00527,2026-04-24,BAK-CHO1,Chocolate Cake 1kg,Cakes,3,650,410,1950,1230,UPI,Walk-in,Baner
+B00528,2026-04-13,BAK-CHO1,Chocolate Cake 1kg,Cakes,1,650,410,650,410,UPI,Regular,FC Road
+B00529,2026-09-13,BAK-RUS3,Rusk 300g,Breads,2,55,34,110,68,Card,Walk-in,Baner
+B00530,2026-01-07,BAK-RUS3,Rusk 300g,Breads,4,55,34,220,136,Card,Walk-in,FC Road
+B00531,2026-08-04,BAK-BRD1,Brown Bread,Breads,1,45,28,45,28,UPI,Online,FC Road
+B00532,2026-04-08,BAK-RUS3,Rusk 300g,Breads,3,55,34,165,102,UPI,Regular,FC Road
+B00533,2026-07-20,BAK-CRO1,Croissant,Breads,1,85,49,85,49,Cash,Online,FC Road
+B00534,2026-09-11,BAK-DOU1,Doughnut,Cakes,2,70,41,140,82,UPI,Online,FC Road
+B00535,2026-09-01,BAK-CHO1,Chocolate Cake 1kg,Cakes,3,650,410,1950,1230,UPI,Walk-in,FC Road
+B00536,2026-06-29,BAK-CGB1,Cheese Garlic Bread,Breads,2,120,71,240,142,UPI,Online,FC Road
+B00537,2026-07-02,BAK-CHO1,Chocolate Cake 1kg,Cakes,6,650,410,3900,2460,UPI,Walk-in,Baner
+B00538,2026-06-27,BAK-BRD1,Brown Bread,Breads,3,45,28,135,84,UPI,Regular,Baner
+B00539,2026-02-23,BAK-CHO1,Chocolate Cake 1kg,Cakes,1,650,410,650,410,UPI,Walk-in,FC Road
+B00540,2026-05-12,BAK-BRD1,Brown Bread,Breads,6,45,28,270,168,UPI,Walk-in,FC Road
+B00541,2026-04-15,BAK-BRD1,Brown Bread,Breads,2,45,28,90,56,Cash,Online,Baner
+B00542,2026-05-06,BAK-PUF1,Veg Puff,Savouries,1,30,17,30,17,UPI,Online,Baner
+B00543,2026-04-14,BAK-BRD1,Brown Bread,Breads,3,45,28,135,84,Cash,Walk-in,FC Road
+B00544,2026-02-17,BAK-RUS3,Rusk 300g,Breads,4,55,34,220,136,UPI,Online,FC Road
+B00545,2026-08-16,BAK-CRO1,Croissant,Breads,3,85,49,255,147,Cash,Regular,Baner
+B00546,2026-01-08,BAK-BIR2,Birthday Cake 2kg,Cakes,6,1450,920,8700,5520,UPI,Walk-in,FC Road
+B00547,2026-08-01,BAK-PIN1,Pineapple Pastry,Cakes,4,75,44,300,176,UPI,Regular,FC Road
+B00548,2026-07-30,BAK-COO2,Butter Cookies 250g,Cookies,3,180,108,540,324,UPI,Online,FC Road
+B00549,2026-05-12,BAK-PUF1,Veg Puff,Savouries,1,30,17,30,17,Cash,Walk-in,FC Road
+B00550,2026-05-28,BAK-BRD1,Brown Bread,Breads,2,45,28,90,56,Card,Regular,Baner
+B00551,2026-05-05,BAK-RUS3,Rusk 300g,Breads,1,55,34,55,34,UPI,Walk-in,FC Road
+B00552,2026-02-24,BAK-CRO1,Croissant,Breads,4,85,49,340,196,Card,Regular,Baner
+B00553,2026-06-14,BAK-BIR2,Birthday Cake 2kg,Cakes,1,1450,920,1450,920,Cash,Online,Baner
+B00554,2026-02-15,BAK-BIR2,Birthday Cake 2kg,Cakes,6,1450,920,8700,5520,Card,Online,FC Road
+B00555,2026-07-22,BAK-DOU1,Doughnut,Cakes,3,70,41,210,123,UPI,Walk-in,FC Road
+B00556,2026-06-11,BAK-DOU1,Doughnut,Cakes,1,70,41,70,41,Cash,Walk-in,FC Road
+B00557,2026-08-25,BAK-COO2,Butter Cookies 250g,Cookies,3,180,108,540,324,Card,Regular,Baner
+B00558,2026-04-09,BAK-BRD1,Brown Bread,Breads,1,45,28,45,28,UPI,Regular,Baner
+B00559,2026-04-04,BAK-COO2,Butter Cookies 250g,Cookies,6,180,108,1080,648,Cash,Online,Baner
+B00560,2026-06-03,BAK-CGB1,Cheese Garlic Bread,Breads,1,120,71,120,71,Card,Online,FC Road
+B00561,2026-09-08,BAK-PIN1,Pineapple Pastry,Cakes,2,75,44,150,88,Cash,Online,FC Road
+B00562,2026-06-24,BAK-CRO1,Croissant,Breads,2,85,49,170,98,Card,Online,Baner
+B00563,2026-03-05,BAK-BRW1,Walnut Brownie,Cookies,1,95,56,95,56,Card,Walk-in,Baner
+B00564,2026-04-09,BAK-CGB1,Cheese Garlic Bread,Breads,2,120,71,240,142,UPI,Walk-in,FC Road
+B00565,2026-07-08,BAK-DOU1,Doughnut,Cakes,1,70,41,70,41,UPI,Walk-in,FC Road
+B00566,2026-01-26,BAK-PUF1,Veg Puff,Savouries,1,30,17,30,17,Cash,Online,Baner
+B00567,2026-05-26,BAK-BIR2,Birthday Cake 2kg,Cakes,1,1450,920,1450,920,UPI,Walk-in,FC Road
+B00568,2026-08-31,BAK-DOU1,Doughnut,Cakes,1,70,41,70,41,Card,Regular,FC Road
+B00569,2026-05-31,BAK-CGB1,Cheese Garlic Bread,Breads,2,120,71,240,142,UPI,Online,FC Road
+B00570,2026-02-14,BAK-BIR2,Birthday Cake 2kg,Cakes,6,1450,920,8700,5520,Card,Regular,Baner
+B00571,2026-05-11,BAK-CHO1,Chocolate Cake 1kg,Cakes,3,650,410,1950,1230,Cash,Walk-in,FC Road
+B00572,2026-09-03,BAK-COO2,Butter Cookies 250g,Cookies,1,180,108,180,108,Cash,Walk-in,Baner
+B00573,2026-07-22,BAK-CUP1,Vanilla Cupcake,Cakes,1,60,34,60,34,UPI,Walk-in,Baner
+B00574,2026-06-08,BAK-DOU1,Doughnut,Cakes,2,70,41,140,82,UPI,Regular,Baner
+B00575,2026-02-01,BAK-COO2,Butter Cookies 250g,Cookies,4,180,108,720,432,Cash,Walk-in,FC Road
+B00576,2026-09-06,BAK-PUF1,Veg Puff,Savouries,1,30,17,30,17,UPI,Walk-in,FC Road
+B00577,2026-04-21,BAK-BRW1,Walnut Brownie,Cookies,1,95,56,95,56,UPI,Walk-in,FC Road
+B00578,2026-05-19,BAK-PUF1,Veg Puff,Savouries,3,30,17,90,51,UPI,Online,Baner
+B00579,2026-01-30,BAK-CHO1,Chocolate Cake 1kg,Cakes,3,650,410,1950,1230,UPI,Walk-in,Baner
+B00580,2026-05-21,BAK-BRW1,Walnut Brownie,Cookies,2,95,56,190,112,Cash,Walk-in,Baner
+B00581,2026-05-17,BAK-COO2,Butter Cookies 250g,Cookies,1,180,108,180,108,Card,Walk-in,Baner
+B00582,2026-09-03,BAK-PIN1,Pineapple Pastry,Cakes,6,75,44,450,264,Cash,Regular,FC Road
+B00583,2026-03-02,BAK-CGB1,Cheese Garlic Bread,Breads,3,120,71,360,213,UPI,Regular,FC Road
+B00584,2026-06-17,BAK-CRO1,Croissant,Breads,4,85,49,340,196,Cash,Online,FC Road
+B00585,2026-01-15,BAK-PIN1,Pineapple Pastry,Cakes,4,75,44,300,176,UPI,Regular,FC Road
+B00586,2026-03-14,BAK-PUF1,Veg Puff,Savouries,1,30,17,30,17,UPI,Walk-in,Baner
+B00587,2026-05-06,BAK-BRD1,Brown Bread,Breads,1,45,28,45,28,Cash,Walk-in,Baner
+B00588,2026-09-11,BAK-CGB1,Cheese Garlic Bread,Breads,3,120,71,360,213,UPI,Walk-in,FC Road
+B00589,2026-03-19,BAK-RUS3,Rusk 300g,Breads,1,55,34,55,34,Card,Walk-in,FC Road
+B00590,2026-06-23,BAK-BRD1,Brown Bread,Breads,1,45,28,45,28,UPI,Online,FC Road
+B00591,2026-02-22,BAK-CUP1,Vanilla Cupcake,Cakes,1,60,34,60,34,UPI,Walk-in,FC Road
+B00592,2026-08-09,BAK-DOU1,Doughnut,Cakes,3,70,41,210,123,UPI,Online,FC Road
+B00593,2026-05-21,BAK-CRO1,Croissant,Breads,1,85,49,85,49,Cash,Walk-in,FC Road
+B00594,2026-06-22,BAK-CHO1,Chocolate Cake 1kg,Cakes,1,650,410,650,410,Card,Walk-in,Baner
+B00595,2026-08-23,BAK-CRO1,Croissant,Breads,3,85,49,255,147,Cash,Walk-in,Baner
+B00596,2026-03-13,BAK-BRD1,Brown Bread,Breads,1,45,28,45,28,Card,Walk-in,Baner
+B00597,2026-04-06,BAK-CGB1,Cheese Garlic Bread,Breads,2,120,71,240,142,UPI,Walk-in,FC Road
+B00598,2026-04-26,BAK-BIR2,Birthday Cake 2kg,Cakes,2,1450,920,2900,1840,UPI,Walk-in,FC Road
+B00599,2026-07-23,BAK-CRO1,Croissant,Breads,2,85,49,170,98,UPI,Walk-in,Baner
+B00600,2026-05-10,BAK-COO2,Butter Cookies 250g,Cookies,4,180,108,720,432,UPI,Regular,Baner
+B00601,2026-01-12,BAK-PUF1,Veg Puff,Savouries,6,30,17,180,102,UPI,Walk-in,FC Road
+B00602,2026-01-13,BAK-COO2,Butter Cookies 250g,Cookies,4,180,108,720,432,UPI,Walk-in,Baner
+B00603,2026-04-06,BAK-DOU1,Doughnut,Cakes,1,70,41,70,41,Card,Walk-in,Baner
+B00604,2026-08-19,BAK-DOU1,Doughnut,Cakes,6,70,41,420,246,UPI,Regular,Baner
+B00605,2026-09-06,BAK-CRO1,Croissant,Breads,4,85,49,340,196,UPI,Regular,FC Road
+B00606,2026-02-07,BAK-BRW1,Walnut Brownie,Cookies,1,95,56,95,56,UPI,Regular,Baner
+B00607,2026-03-20,BAK-CGB1,Cheese Garlic Bread,Breads,1,120,71,120,71,Card,Regular,Baner
+B00608,2026-06-15,BAK-PIN1,Pineapple Pastry,Cakes,6,75,44,450,264,UPI,Walk-in,FC Road
+B00609,2026-08-13,BAK-BRD1,Brown Bread,Breads,6,45,28,270,168,Cash,Regular,FC Road
+B00610,2026-03-16,BAK-BRW1,Walnut Brownie,Cookies,1,95,56,95,56,Card,Regular,FC Road
+B00611,2026-05-21,BAK-CGB1,Cheese Garlic Bread,Breads,1,120,71,120,71,Cash,Walk-in,Baner
+B00612,2026-02-08,BAK-PIN1,Pineapple Pastry,Cakes,6,75,44,450,264,Cash,Walk-in,Baner
+B00613,2026-02-02,BAK-RUS3,Rusk 300g,Breads,1,55,34,55,34,UPI,Walk-in,FC Road
+B00614,2026-09-14,BAK-CGB1,Cheese Garlic Bread,Breads,1,120,71,120,71,UPI,Online,Baner
+B00615,2026-03-18,BAK-PUF1,Veg Puff,Savouries,6,30,17,180,102,Cash,Walk-in,FC Road
+B00616,2026-07-04,BAK-PUF1,Veg Puff,Savouries,1,30,17,30,17,Card,Walk-in,FC Road
+B00617,2026-08-15,BAK-COO2,Butter Cookies 250g,Cookies,6,180,108,1080,648,UPI,Online,FC Road
+B00618,2026-09-16,BAK-DOU1,Doughnut,Cakes,1,70,41,70,41,Cash,Regular,FC Road
+B00619,2026-04-10,BAK-PUF1,Veg Puff,Savouries,3,30,17,90,51,Cash,Walk-in,Baner
+B00620,2026-03-25,BAK-PIN1,Pineapple Pastry,Cakes,4,75,44,300,176,UPI,Walk-in,Baner
+B00621,2026-07-19,BAK-CRO1,Croissant,Breads,6,85,49,510,294,UPI,Walk-in,FC Road
+B00622,2026-05-25,BAK-RUS3,Rusk 300g,Breads,2,55,34,110,68,UPI,Online,Baner
+B00623,2026-02-08,BAK-CGB1,Cheese Garlic Bread,Breads,3,120,71,360,213,Cash,Walk-in,Baner
+B00624,2026-09-09,BAK-PIN1,Pineapple Pastry,Cakes,1,75,44,75,44,Cash,Online,Baner
+B00625,2026-01-10,BAK-COO2,Butter Cookies 250g,Cookies,1,180,108,180,108,Card,Regular,Baner
+B00626,2026-06-07,BAK-BIR2,Birthday Cake 2kg,Cakes,3,1450,920,4350,2760,Card,Walk-in,FC Road
+B00627,2026-06-24,BAK-CRO1,Croissant,Breads,1,85,49,85,49,Cash,Walk-in,FC Road
+B00628,2026-04-26,BAK-DOU1,Doughnut,Cakes,1,70,41,70,41,UPI,Walk-in,FC Road
+B00629,2026-09-20,BAK-CUP1,Vanilla Cupcake,Cakes,6,60,34,360,204,UPI,Walk-in,FC Road
+B00630,2026-06-24,BAK-DOU1,Doughnut,Cakes,1,70,41,70,41,UPI,Walk-in,FC Road
+B00631,2026-04-02,BAK-CRO1,Croissant,Breads,1,85,49,85,49,UPI,Walk-in,Baner
+B00632,2026-02-22,BAK-CRO1,Croissant,Breads,1,85,49,85,49,UPI,Walk-in,Baner
+B00633,2026-01-05,BAK-CUP1,Vanilla Cupcake,Cakes,2,60,34,120,68,UPI,Regular,FC Road
+B00634,2026-07-18,BAK-BRD1,Brown Bread,Breads,1,45,28,45,28,Card,Walk-in,FC Road
+B00635,2026-01-19,BAK-CGB1,Cheese Garlic Bread,Breads,6,120,71,720,426,UPI,Walk-in,Baner
+B00636,2026-05-21,BAK-BRW1,Walnut Brownie,Cookies,3,95,56,285,168,Card,Regular,Baner
+B00637,2026-08-27,BAK-DOU1,Doughnut,Cakes,1,70,41,70,41,UPI,Regular,Baner
+B00638,2026-07-23,BAK-PIN1,Pineapple Pastry,Cakes,3,75,44,225,132,UPI,Online,Baner
+B00639,2026-08-15,BAK-CUP1,Vanilla Cupcake,Cakes,2,60,34,120,68,UPI,Walk-in,Baner
+B00640,2026-01-28,BAK-BRD1,Brown Bread,Breads,2,45,28,90,56,UPI,Walk-in,Baner
+B00641,2026-06-07,BAK-PIN1,Pineapple Pastry,Cakes,1,75,44,75,44,Cash,Regular,Baner
+B00642,2026-03-02,BAK-PUF1,Veg Puff,Savouries,3,30,17,90,51,UPI,Walk-in,Baner
+B00643,2026-05-11,BAK-DOU1,Doughnut,Cakes,2,70,41,140,82,UPI,Walk-in,Baner
+B00644,2026-09-01,BAK-DOU1,Doughnut,Cakes,1,70,41,70,41,Card,Online,Baner
+B00645,2026-02-25,BAK-CUP1,Vanilla Cupcake,Cakes,6,60,34,360,204,Cash,Online,Baner
+B00646,2026-08-03,BAK-PUF1,Veg Puff,Savouries,6,30,17,180,102,Card,Regular,FC Road
+B00647,2026-04-11,BAK-CHO1,Chocolate Cake 1kg,Cakes,1,650,410,650,410,UPI,Online,Baner
+B00648,2026-04-18,BAK-COO2,Butter Cookies 250g,Cookies,1,180,108,180,108,UPI,Online,Baner
+B00649,2026-01-08,BAK-RUS3,Rusk 300g,Breads,1,55,34,55,34,UPI,Walk-in,Baner
+B00650,2026-04-25,BAK-PUF1,Veg Puff,Savouries,1,30,17,30,17,Cash,Walk-in,Baner
+B00651,2026-01-09,BAK-BRD1,Brown Bread,Breads,3,45,28,135,84,UPI,Online,Baner
+B00652,2026-01-29,BAK-RUS3,Rusk 300g,Breads,1,55,34,55,34,UPI,Regular,Baner
+B00653,2026-08-05,BAK-PUF1,Veg Puff,Savouries,4,30,17,120,68,Card,Online,Baner
+B00654,2026-04-13,BAK-COO2,Butter Cookies 250g,Cookies,1,180,108,180,108,UPI,Walk-in,FC Road
+B00655,2026-02-24,BAK-BRW1,Walnut Brownie,Cookies,1,95,56,95,56,UPI,Online,Baner
+B00656,2026-02-12,BAK-PUF1,Veg Puff,Savouries,4,30,17,120,68,Cash,Walk-in,FC Road
+B00657,2026-04-21,BAK-CHO1,Chocolate Cake 1kg,Cakes,1,650,410,650,410,UPI,Regular,FC Road
+B00658,2026-03-04,BAK-BRW1,Walnut Brownie,Cookies,2,95,56,190,112,UPI,Walk-in,FC Road
+B00659,2026-04-24,BAK-CRO1,Croissant,Breads,2,85,49,170,98,Cash,Online,Baner
+B00660,2026-01-11,BAK-DOU1,Doughnut,Cakes,1,70,41,70,41,UPI,Online,FC Road
+B00661,2026-02-13,BAK-PIN1,Pineapple Pastry,Cakes,1,75,44,75,44,UPI,Regular,FC Road
+B00662,2026-06-27,BAK-CRO1,Croissant,Breads,6,85,49,510,294,Card,Regular,Baner
+B00663,2026-07-04,BAK-CHO1,Chocolate Cake 1kg,Cakes,6,650,410,3900,2460,UPI,Regular,FC Road
+B00664,2026-02-09,BAK-DOU1,Doughnut,Cakes,2,70,41,140,82,UPI,Online,FC Road
+B00665,2026-06-08,BAK-CUP1,Vanilla Cupcake,Cakes,2,60,34,120,68,Cash,Regular,Baner
+B00666,2026-06-27,BAK-CHO1,Chocolate Cake 1kg,Cakes,6,650,410,3900,2460,Cash,Walk-in,FC Road
+B00667,2026-09-04,BAK-BRW1,Walnut Brownie,Cookies,4,95,56,380,224,Card,Online,Baner
+B00668,2026-05-02,BAK-CHO1,Chocolate Cake 1kg,Cakes,2,650,410,1300,820,UPI,Regular,Baner
+B00669,2026-06-05,BAK-CHO1,Chocolate Cake 1kg,Cakes,1,650,410,650,410,UPI,Walk-in,FC Road
+B00670,2026-02-17,BAK-CUP1,Vanilla Cupcake,Cakes,1,60,34,60,34,Card,Walk-in,FC Road
+B00671,2026-03-26,BAK-CUP1,Vanilla Cupcake,Cakes,4,60,34,240,136,UPI,Walk-in,FC Road
+B00672,2026-08-18,BAK-CUP1,Vanilla Cupcake,Cakes,3,60,34,180,102,Card,Walk-in,Baner
+B00673,2026-09-16,BAK-DOU1,Doughnut,Cakes,1,70,41,70,41,UPI,Walk-in,Baner
+B00674,2026-01-20,BAK-BRW1,Walnut Brownie,Cookies,4,95,56,380,224,UPI,Walk-in,FC Road
+B00675,2026-01-07,BAK-BIR2,Birthday Cake 2kg,Cakes,1,1450,920,1450,920,UPI,Online,Baner
+B00676,2026-09-19,BAK-CRO1,Croissant,Breads,2,85,49,170,98,UPI,Walk-in,FC Road
+B00677,2026-08-08,BAK-PUF1,Veg Puff,Savouries,1,30,17,30,17,UPI,Regular,FC Road
+B00678,2026-08-03,BAK-CRO1,Croissant,Breads,2,85,49,170,98,Card,Online,Baner
+B00679,2026-09-16,BAK-CRO1,Croissant,Breads,6,85,49,510,294,Card,Walk-in,Baner
+B00680,2026-02-04,BAK-CGB1,Cheese Garlic Bread,Breads,2,120,71,240,142,UPI,Walk-in,FC Road
+B00681,2026-09-16,BAK-RUS3,Rusk 300g,Breads,1,55,34,55,34,UPI,Walk-in,FC Road
+B00682,2026-04-05,BAK-BIR2,Birthday Cake 2kg,Cakes,3,1450,920,4350,2760,UPI,Online,Baner
+B00683,2026-08-16,BAK-CUP1,Vanilla Cupcake,Cakes,6,60,34,360,204,UPI,Walk-in,Baner
+B00684,2026-09-02,BAK-CGB1,Cheese Garlic Bread,Breads,1,120,71,120,71,UPI,Walk-in,Baner
+B00685,2026-01-12,BAK-CRO1,Croissant,Breads,1,85,49,85,49,Cash,Regular,Baner
+B00686,2026-01-18,BAK-RUS3,Rusk 300g,Breads,3,55,34,165,102,UPI,Walk-in,Baner
+B00687,2026-02-06,BAK-RUS3,Rusk 300g,Breads,1,55,34,55,34,UPI,Walk-in,Baner
+B00688,2026-07-02,BAK-BRW1,Walnut Brownie,Cookies,1,95,56,95,56,UPI,Online,FC Road
+B00689,2026-02-05,BAK-PUF1,Veg Puff,Savouries,2,30,17,60,34,UPI,Walk-in,Baner
+B00690,2026-02-13,BAK-BRW1,Walnut Brownie,Cookies,1,95,56,95,56,UPI,Walk-in,FC Road
+B00691,2026-01-26,BAK-DOU1,Doughnut,Cakes,3,70,41,210,123,UPI,Online,FC Road
+B00692,2026-07-26,BAK-PUF1,Veg Puff,Savouries,6,30,17,180,102,UPI,Walk-in,FC Road
+B00693,2026-03-03,BAK-PUF1,Veg Puff,Savouries,1,30,17,30,17,Card,Walk-in,Baner
+B00694,2026-07-27,BAK-CUP1,Vanilla Cupcake,Cakes,2,60,34,120,68,Card,Online,Baner
+B00695,2026-01-27,BAK-PIN1,Pineapple Pastry,Cakes,4,75,44,300,176,Card,Online,Baner
+B00696,2026-02-14,BAK-CUP1,Vanilla Cupcake,Cakes,6,60,34,360,204,Cash,Regular,FC Road
+B00697,2026-04-06,BAK-CGB1,Cheese Garlic Bread,Breads,2,120,71,240,142,Card,Online,FC Road
+B00698,2026-03-29,BAK-PIN1,Pineapple Pastry,Cakes,4,75,44,300,176,Cash,Online,FC Road
+B00699,2026-07-11,BAK-BRW1,Walnut Brownie,Cookies,2,95,56,190,112,Cash,Walk-in,Baner
+B00700,2026-05-15,BAK-BRW1,Walnut Brownie,Cookies,1,95,56,95,56,UPI,Walk-in,Baner
+B00701,2026-07-19,BAK-DOU1,Doughnut,Cakes,2,70,41,140,82,UPI,Online,FC Road
+B00702,2026-08-10,BAK-CRO1,Croissant,Breads,2,85,49,170,98,Cash,Online,Baner
+B00703,2026-08-30,BAK-CRO1,Croissant,Breads,1,85,49,85,49,Card,Walk-in,Baner
+B00704,2026-04-25,BAK-BRD1,Brown Bread,Breads,1,45,28,45,28,UPI,Walk-in,Baner
+B00705,2026-08-28,BAK-BRW1,Walnut Brownie,Cookies,1,95,56,95,56,UPI,Regular,FC Road
+B00706,2026-08-19,BAK-COO2,Butter Cookies 250g,Cookies,2,180,108,360,216,UPI,Walk-in,FC Road
+B00707,2026-07-13,BAK-DOU1,Doughnut,Cakes,1,70,41,70,41,Cash,Online,FC Road
+B00708,2026-07-07,BAK-PUF1,Veg Puff,Savouries,1,30,17,30,17,Cash,Regular,FC Road
+B00709,2026-07-27,BAK-PIN1,Pineapple Pastry,Cakes,2,75,44,150,88,UPI,Online,Baner
+B00710,2026-08-25,BAK-CRO1,Croissant,Breads,1,85,49,85,49,Card,Regular,FC Road
+B00711,2026-03-01,BAK-PIN1,Pineapple Pastry,Cakes,1,75,44,75,44,UPI,Walk-in,FC Road
+B00712,2026-08-06,BAK-DOU1,Doughnut,Cakes,2,70,41,140,82,Cash,Regular,FC Road
+B00713,2026-04-19,BAK-DOU1,Doughnut,Cakes,6,70,41,420,246,UPI,Online,Baner
+B00714,2026-06-29,BAK-RUS3,Rusk 300g,Breads,1,55,34,55,34,UPI,Regular,FC Road
+B00715,2026-02-01,BAK-DOU1,Doughnut,Cakes,3,70,41,210,123,UPI,Walk-in,Baner
+B00716,2026-06-10,BAK-CRO1,Croissant,Breads,1,85,49,85,49,Card,Walk-in,Baner
+B00717,2026-06-14,BAK-COO2,Butter Cookies 250g,Cookies,3,180,108,540,324,Card,Regular,Baner
+B00718,2026-05-25,BAK-BIR2,Birthday Cake 2kg,Cakes,2,1450,920,2900,1840,Card,Online,FC Road
+B00719,2026-09-02,BAK-CHO1,Chocolate Cake 1kg,Cakes,4,650,410,2600,1640,UPI,Walk-in,Baner
+B00720,2026-09-19,BAK-PIN1,Pineapple Pastry,Cakes,2,75,44,150,88,Card,Walk-in,FC Road
+B00721,2026-01-28,BAK-BRW1,Walnut Brownie,Cookies,2,95,56,190,112,Card,Walk-in,FC Road
+B00722,2026-09-18,BAK-COO2,Butter Cookies 250g,Cookies,1,180,108,180,108,UPI,Walk-in,Baner
+B00723,2026-03-02,BAK-BIR2,Birthday Cake 2kg,Cakes,4,1450,920,5800,3680,UPI,Walk-in,Baner
+B00724,2026-03-20,BAK-CUP1,Vanilla Cupcake,Cakes,2,60,34,120,68,UPI,Online,Baner
+B00725,2026-07-03,BAK-DOU1,Doughnut,Cakes,1,70,41,70,41,UPI,Regular,FC Road
+B00726,2026-02-13,BAK-DOU1,Doughnut,Cakes,6,70,41,420,246,UPI,Regular,FC Road
+B00727,2026-01-22,BAK-PIN1,Pineapple Pastry,Cakes,1,75,44,75,44,Card,Online,Baner
+B00728,2026-06-09,BAK-PUF1,Veg Puff,Savouries,2,30,17,60,34,Card,Walk-in,FC Road
+B00729,2026-06-09,BAK-PUF1,Veg Puff,Savouries,4,30,17,120,68,Cash,Regular,Baner
+B00730,2026-04-14,BAK-PIN1,Pineapple Pastry,Cakes,1,75,44,75,44,Card,Online,Baner
+B00731,2026-01-12,BAK-CHO1,Chocolate Cake 1kg,Cakes,1,650,410,650,410,UPI,Online,Baner
+B00732,2026-07-20,BAK-RUS3,Rusk 300g,Breads,4,55,34,220,136,UPI,Regular,Baner
+B00733,2026-09-11,BAK-PUF1,Veg Puff,Savouries,2,30,17,60,34,UPI,Regular,FC Road
+B00734,2026-09-04,BAK-CRO1,Croissant,Breads,4,85,49,340,196,Card,Regular,FC Road
+B00735,2026-03-17,BAK-BRD1,Brown Bread,Breads,2,45,28,90,56,UPI,Online,Baner
+B00736,2026-02-27,BAK-CRO1,Croissant,Breads,1,85,49,85,49,UPI,Regular,Baner
+B00737,2026-02-08,BAK-BRW1,Walnut Brownie,Cookies,2,95,56,190,112,Card,Regular,Baner
+B00738,2026-02-13,BAK-BRW1,Walnut Brownie,Cookies,2,95,56,190,112,UPI,Walk-in,FC Road
+B00739,2026-09-22,BAK-BRW1,Walnut Brownie,Cookies,2,95,56,190,112,UPI,Online,FC Road
+B00740,2026-03-19,BAK-RUS3,Rusk 300g,Breads,2,55,34,110,68,Cash,Walk-in,Baner
+B00741,2026-05-22,BAK-PIN1,Pineapple Pastry,Cakes,6,75,44,450,264,UPI,Regular,FC Road
+B00742,2026-01-18,BAK-BRW1,Walnut Brownie,Cookies,6,95,56,570,336,Cash,Online,FC Road
+B00743,2026-01-15,BAK-CUP1,Vanilla Cupcake,Cakes,1,60,34,60,34,UPI,Walk-in,Baner
+B00744,2026-03-27,BAK-BRD1,Brown Bread,Breads,1,45,28,45,28,UPI,Online,FC Road
+B00745,2026-06-26,BAK-CRO1,Croissant,Breads,2,85,49,170,98,Card,Online,FC Road
+B00746,2026-05-17,BAK-CHO1,Chocolate Cake 1kg,Cakes,1,650,410,650,410,UPI,Online,Baner
+B00747,2026-08-29,BAK-BRW1,Walnut Brownie,Cookies,3,95,56,285,168,UPI,Regular,FC Road
+B00748,2026-05-18,BAK-CUP1,Vanilla Cupcake,Cakes,1,60,34,60,34,UPI,Regular,FC Road
+B00749,2026-07-18,BAK-COO2,Butter Cookies 250g,Cookies,2,180,108,360,216,UPI,Walk-in,FC Road
+B00750,2026-04-03,BAK-PUF1,Veg Puff,Savouries,6,30,17,180,102,UPI,Regular,Baner
+B00751,2026-08-22,BAK-BRD1,Brown Bread,Breads,1,45,28,45,28,Card,Walk-in,Baner
+B00752,2026-03-07,BAK-BIR2,Birthday Cake 2kg,Cakes,3,1450,920,4350,2760,Card,Regular,Baner
+B00753,2026-06-04,BAK-CHO1,Chocolate Cake 1kg,Cakes,2,650,410,1300,820,UPI,Walk-in,FC Road
+B00754,2026-06-02,BAK-PUF1,Veg Puff,Savouries,1,30,17,30,17,Card,Walk-in,FC Road
+B00755,2026-03-31,BAK-BIR2,Birthday Cake 2kg,Cakes,6,1450,920,8700,5520,UPI,Walk-in,Baner
+B00756,2026-04-15,BAK-BIR2,Birthday Cake 2kg,Cakes,2,1450,920,2900,1840,Card,Regular,FC Road
+B00757,2026-09-11,BAK-COO2,Butter Cookies 250g,Cookies,1,180,108,180,108,Card,Walk-in,FC Road
+B00758,2026-03-11,BAK-BRD1,Brown Bread,Breads,3,45,28,135,84,UPI,Regular,Baner
+B00759,2026-07-02,BAK-CHO1,Chocolate Cake 1kg,Cakes,2,650,410,1300,820,Cash,Regular,FC Road
+B00760,2026-06-06,BAK-DOU1,Doughnut,Cakes,6,70,41,420,246,Cash,Walk-in,Baner
+B00761,2026-05-15,BAK-CHO1,Chocolate Cake 1kg,Cakes,1,650,410,650,410,UPI,Online,FC Road
+B00762,2026-09-23,BAK-PIN1,Pineapple Pastry,Cakes,1,75,44,75,44,UPI,Online,FC Road
+B00763,2026-01-28,BAK-CRO1,Croissant,Breads,6,85,49,510,294,Cash,Regular,Baner
+B00764,2026-06-18,BAK-CGB1,Cheese Garlic Bread,Breads,6,120,71,720,426,Card,Regular,Baner
+B00765,2026-08-21,BAK-BRW1,Walnut Brownie,Cookies,4,95,56,380,224,Card,Walk-in,FC Road
+B00766,2026-03-02,BAK-CUP1,Vanilla Cupcake,Cakes,1,60,34,60,34,UPI,Walk-in,FC Road
+B00767,2026-03-09,BAK-CHO1,Chocolate Cake 1kg,Cakes,2,650,410,1300,820,UPI,Walk-in,Baner
+B00768,2026-01-22,BAK-RUS3,Rusk 300g,Breads,3,55,34,165,102,UPI,Walk-in,Baner
+B00769,2026-04-01,BAK-CUP1,Vanilla Cupcake,Cakes,4,60,34,240,136,Cash,Regular,Baner
+B00770,2026-01-27,BAK-CHO1,Chocolate Cake 1kg,Cakes,1,650,410,650,410,UPI,Regular,Baner
+B00771,2026-06-29,BAK-PIN1,Pineapple Pastry,Cakes,6,75,44,450,264,Card,Walk-in,FC Road
+B00772,2026-02-25,BAK-BRW1,Walnut Brownie,Cookies,4,95,56,380,224,Card,Online,FC Road
+B00773,2026-09-04,BAK-BRD1,Brown Bread,Breads,1,45,28,45,28,Card,Regular,FC Road
+B00774,2026-04-02,BAK-CRO1,Croissant,Breads,3,85,49,255,147,UPI,Online,FC Road
+B00775,2026-02-18,BAK-DOU1,Doughnut,Cakes,1,70,41,70,41,UPI,Regular,FC Road
+B00776,2026-02-01,BAK-BRW1,Walnut Brownie,Cookies,2,95,56,190,112,Cash,Walk-in,Baner
+B00777,2026-08-31,BAK-BIR2,Birthday Cake 2kg,Cakes,1,1450,920,1450,920,UPI,Online,FC Road
+B00778,2026-07-29,BAK-CRO1,Croissant,Breads,2,85,49,170,98,Cash,Online,Baner
+B00779,2026-03-27,BAK-CUP1,Vanilla Cupcake,Cakes,4,60,34,240,136,UPI,Online,FC Road
+B00780,2026-06-18,BAK-PIN1,Pineapple Pastry,Cakes,2,75,44,150,88,Card,Online,FC Road
+B00781,2026-01-19,BAK-CUP1,Vanilla Cupcake,Cakes,3,60,34,180,102,Card,Regular,FC Road
+B00782,2026-06-15,BAK-PIN1,Pineapple Pastry,Cakes,1,75,44,75,44,UPI,Walk-in,FC Road
+B00783,2026-01-31,BAK-CGB1,Cheese Garlic Bread,Breads,1,120,71,120,71,Card,Walk-in,FC Road
+B00784,2026-09-12,BAK-CRO1,Croissant,Breads,2,85,49,170,98,UPI,Walk-in,Baner
+B00785,2026-04-06,BAK-DOU1,Doughnut,Cakes,1,70,41,70,41,Cash,Online,FC Road
+B00786,2026-03-22,BAK-RUS3,Rusk 300g,Breads,1,55,34,55,34,Card,Regular,Baner
+B00787,2026-04-17,BAK-CUP1,Vanilla Cupcake,Cakes,2,60,34,120,68,UPI,Regular,FC Road
+B00788,2026-05-29,BAK-PUF1,Veg Puff,Savouries,1,30,17,30,17,Cash,Walk-in,FC Road
+B00789,2026-06-10,BAK-DOU1,Doughnut,Cakes,1,70,41,70,41,UPI,Walk-in,Baner
+B00790,2026-04-28,BAK-PIN1,Pineapple Pastry,Cakes,3,75,44,225,132,Card,Regular,FC Road
+B00791,2026-03-28,BAK-BRD1,Brown Bread,Breads,2,45,28,90,56,UPI,Walk-in,Baner
+B00792,2026-08-18,BAK-PUF1,Veg Puff,Savouries,1,30,17,30,17,UPI,Walk-in,Baner
+B00793,2026-03-01,BAK-PIN1,Pineapple Pastry,Cakes,1,75,44,75,44,Card,Online,FC Road
+B00794,2026-01-18,BAK-PIN1,Pineapple Pastry,Cakes,3,75,44,225,132,UPI,Walk-in,Baner
+B00795,2026-06-17,BAK-RUS3,Rusk 300g,Breads,4,55,34,220,136,UPI,Regular,Baner
+B00796,2026-01-05,BAK-BRW1,Walnut Brownie,Cookies,1,95,56,95,56,UPI,Walk-in,Baner
+B00797,2026-01-08,BAK-BRW1,Walnut Brownie,Cookies,1,95,56,95,56,UPI,Regular,FC Road
+B00798,2026-08-09,BAK-PUF1,Veg Puff,Savouries,1,30,17,30,17,UPI,Walk-in,FC Road
+B00799,2026-09-24,BAK-CRO1,Croissant,Breads,2,85,49,170,98,UPI,Walk-in,FC Road
+B00800,2026-06-01,BAK-BIR2,Birthday Cake 2kg,Cakes,4,1450,920,5800,3680,Card,Regular,FC Road
+B00801,2026-05-20,BAK-COO2,Butter Cookies 250g,Cookies,1,180,108,180,108,UPI,Walk-in,Baner
+B00802,2026-01-27,BAK-CGB1,Cheese Garlic Bread,Breads,1,120,71,120,71,UPI,Online,FC Road
+B00803,2026-01-11,BAK-CUP1,Vanilla Cupcake,Cakes,6,60,34,360,204,UPI,Walk-in,FC Road
+B00804,2026-04-26,BAK-PUF1,Veg Puff,Savouries,1,30,17,30,17,Card,Online,Baner
+B00805,2026-08-21,BAK-CHO1,Chocolate Cake 1kg,Cakes,2,650,410,1300,820,Cash,Walk-in,FC Road
+B00806,2026-01-18,BAK-CGB1,Cheese Garlic Bread,Breads,6,120,71,720,426,UPI,Walk-in,FC Road
+B00807,2026-08-17,BAK-BRW1,Walnut Brownie,Cookies,1,95,56,95,56,Card,Walk-in,FC Road
+B00808,2026-07-29,BAK-COO2,Butter Cookies 250g,Cookies,2,180,108,360,216,Card,Online,Baner
+B00809,2026-05-27,BAK-DOU1,Doughnut,Cakes,2,70,41,140,82,Card,Regular,Baner
+B00810,2026-03-31,BAK-PUF1,Veg Puff,Savouries,1,30,17,30,17,UPI,Online,FC Road
+B00811,2026-09-10,BAK-RUS3,Rusk 300g,Breads,1,55,34,55,34,UPI,Walk-in,Baner
+B00812,2026-07-02,BAK-PUF1,Veg Puff,Savouries,1,30,17,30,17,UPI,Regular,Baner
+B00813,2026-05-02,BAK-PUF1,Veg Puff,Savouries,1,30,17,30,17,UPI,Regular,Baner
+B00814,2026-06-28,BAK-DOU1,Doughnut,Cakes,3,70,41,210,123,UPI,Online,Baner
+B00815,2026-07-27,BAK-BRW1,Walnut Brownie,Cookies,2,95,56,190,112,Cash,Walk-in,FC Road
+B00816,2026-05-08,BAK-DOU1,Doughnut,Cakes,1,70,41,70,41,Cash,Walk-in,FC Road
+B00817,2026-08-19,BAK-CGB1,Cheese Garlic Bread,Breads,1,120,71,120,71,UPI,Walk-in,Baner
+B00818,2026-06-03,BAK-CHO1,Chocolate Cake 1kg,Cakes,2,650,410,1300,820,Card,Online,Baner
+B00819,2026-07-02,BAK-BRD1,Brown Bread,Breads,1,45,28,45,28,UPI,Walk-in,Baner
+B00820,2026-04-07,BAK-PIN1,Pineapple Pastry,Cakes,4,75,44,300,176,UPI,Walk-in,Baner
+B00821,2026-07-02,BAK-BRW1,Walnut Brownie,Cookies,3,95,56,285,168,UPI,Online,FC Road
+B00822,2026-03-08,BAK-BRW1,Walnut Brownie,Cookies,3,95,56,285,168,UPI,Regular,Baner
+B00823,2026-04-13,BAK-RUS3,Rusk 300g,Breads,4,55,34,220,136,Cash,Online,Baner
+B00824,2026-09-19,BAK-BRW1,Walnut Brownie,Cookies,6,95,56,570,336,UPI,Regular,FC Road
+B00825,2026-08-14,BAK-BIR2,Birthday Cake 2kg,Cakes,1,1450,920,1450,920,Cash,Regular,FC Road
+B00826,2026-04-04,BAK-CRO1,Croissant,Breads,1,85,49,85,49,Card,Online,FC Road
+B00827,2026-08-25,BAK-COO2,Butter Cookies 250g,Cookies,3,180,108,540,324,Card,Online,Baner
+B00828,2026-04-11,BAK-RUS3,Rusk 300g,Breads,3,55,34,165,102,Card,Walk-in,FC Road
+B00829,2026-08-01,BAK-CRO1,Croissant,Breads,4,85,49,340,196,UPI,Walk-in,FC Road
+B00830,2026-01-21,BAK-CGB1,Cheese Garlic Bread,Breads,4,120,71,480,284,Cash,Regular,Baner
+B00831,2026-05-20,BAK-CUP1,Vanilla Cupcake,Cakes,2,60,34,120,68,UPI,Online,Baner
+B00832,2026-09-03,BAK-CHO1,Chocolate Cake 1kg,Cakes,2,650,410,1300,820,Cash,Walk-in,Baner
+B00833,2026-04-29,BAK-BRW1,Walnut Brownie,Cookies,4,95,56,380,224,Card,Walk-in,Baner
+B00834,2026-07-21,BAK-CGB1,Cheese Garlic Bread,Breads,1,120,71,120,71,UPI,Walk-in,FC Road
+B00835,2026-04-07,BAK-BRW1,Walnut Brownie,Cookies,1,95,56,95,56,UPI,Online,FC Road
+B00836,2026-05-08,BAK-CRO1,Croissant,Breads,3,85,49,255,147,UPI,Walk-in,Baner
+B00837,2026-03-14,BAK-COO2,Butter Cookies 250g,Cookies,1,180,108,180,108,UPI,Regular,Baner
+B00838,2026-03-09,BAK-CRO1,Croissant,Breads,3,85,49,255,147,UPI,Walk-in,Baner
+B00839,2026-05-11,BAK-COO2,Butter Cookies 250g,Cookies,1,180,108,180,108,Card,Walk-in,FC Road
+B00840,2026-06-06,BAK-BIR2,Birthday Cake 2kg,Cakes,1,1450,920,1450,920,UPI,Regular,Baner
+B00841,2026-08-11,BAK-BRD1,Brown Bread,Breads,4,45,28,180,112,UPI,Online,FC Road
+B00842,2026-02-27,BAK-RUS3,Rusk 300g,Breads,1,55,34,55,34,UPI,Online,FC Road
+B00843,2026-06-30,BAK-COO2,Butter Cookies 250g,Cookies,2,180,108,360,216,Card,Walk-in,FC Road
+B00844,2026-08-18,BAK-COO2,Butter Cookies 250g,Cookies,2,180,108,360,216,UPI,Online,Baner
+B00845,2026-06-14,BAK-CHO1,Chocolate Cake 1kg,Cakes,3,650,410,1950,1230,Cash,Online,FC Road
+B00846,2026-06-04,BAK-PUF1,Veg Puff,Savouries,1,30,17,30,17,UPI,Regular,FC Road
+B00847,2026-06-08,BAK-CHO1,Chocolate Cake 1kg,Cakes,1,650,410,650,410,UPI,Walk-in,Baner
+B00848,2026-07-04,BAK-DOU1,Doughnut,Cakes,2,70,41,140,82,Cash,Regular,FC Road
+B00849,2026-05-22,BAK-BRW1,Walnut Brownie,Cookies,2,95,56,190,112,UPI,Regular,Baner
+B00850,2026-07-04,BAK-PIN1,Pineapple Pastry,Cakes,1,75,44,75,44,UPI,Online,Baner
+B00851,2026-02-06,BAK-CRO1,Croissant,Breads,1,85,49,85,49,Card,Regular,FC Road
+B00852,2026-02-05,BAK-DOU1,Doughnut,Cakes,1,70,41,70,41,UPI,Walk-in,FC Road
+B00853,2026-09-22,BAK-RUS3,Rusk 300g,Breads,1,55,34,55,34,UPI,Regular,Baner
+B00854,2026-05-17,BAK-CHO1,Chocolate Cake 1kg,Cakes,1,650,410,650,410,UPI,Regular,FC Road
+B00855,2026-07-18,BAK-DOU1,Doughnut,Cakes,1,70,41,70,41,Cash,Online,Baner
+B00856,2026-07-25,BAK-CGB1,Cheese Garlic Bread,Breads,4,120,71,480,284,Card,Regular,FC Road
+B00857,2026-03-09,BAK-CUP1,Vanilla Cupcake,Cakes,2,60,34,120,68,Cash,Walk-in,Baner
+B00858,2026-01-24,BAK-RUS3,Rusk 300g,Breads,1,55,34,55,34,Card,Online,Baner
+B00859,2026-05-17,BAK-BRW1,Walnut Brownie,Cookies,1,95,56,95,56,UPI,Walk-in,Baner
+B00860,2026-07-13,BAK-CRO1,Croissant,Breads,2,85,49,170,98,UPI,Walk-in,Baner
+B00861,2026-02-16,BAK-BRD1,Brown Bread,Breads,1,45,28,45,28,Card,Walk-in,FC Road
+B00862,2026-01-10,BAK-CHO1,Chocolate Cake 1kg,Cakes,1,650,410,650,410,Card,Walk-in,FC Road
+B00863,2026-02-27,BAK-PUF1,Veg Puff,Savouries,3,30,17,90,51,UPI,Online,FC Road
+B00864,2026-07-10,BAK-BIR2,Birthday Cake 2kg,Cakes,2,1450,920,2900,1840,Cash,Online,Baner
+B00865,2026-07-05,BAK-BRW1,Walnut Brownie,Cookies,1,95,56,95,56,UPI,Walk-in,FC Road
+B00866,2026-08-06,BAK-DOU1,Doughnut,Cakes,1,70,41,70,41,Card,Regular,FC Road
+B00867,2026-09-11,BAK-BIR2,Birthday Cake 2kg,Cakes,1,1450,920,1450,920,UPI,Walk-in,Baner
+B00868,2026-05-15,BAK-CRO1,Croissant,Breads,2,85,49,170,98,UPI,Regular,Baner
+B00869,2026-04-02,BAK-COO2,Butter Cookies 250g,Cookies,6,180,108,1080,648,UPI,Walk-in,FC Road
+B00870,2026-07-17,BAK-BRD1,Brown Bread,Breads,2,45,28,90,56,UPI,Online,FC Road
+B00871,2026-07-26,BAK-DOU1,Doughnut,Cakes,1,70,41,70,41,Card,Online,FC Road
+B00872,2026-01-09,BAK-COO2,Butter Cookies 250g,Cookies,2,180,108,360,216,UPI,Online,Baner
+B00873,2026-02-24,BAK-CUP1,Vanilla Cupcake,Cakes,6,60,34,360,204,Cash,Regular,Baner
+B00874,2026-08-22,BAK-COO2,Butter Cookies 250g,Cookies,1,180,108,180,108,Cash,Walk-in,Baner
+B00875,2026-07-24,BAK-BRW1,Walnut Brownie,Cookies,3,95,56,285,168,Card,Walk-in,FC Road
+B00876,2026-04-06,BAK-CHO1,Chocolate Cake 1kg,Cakes,6,650,410,3900,2460,UPI,Online,Baner
+B00877,2026-01-14,BAK-BRW1,Walnut Brownie,Cookies,3,95,56,285,168,UPI,Walk-in,FC Road
+B00878,2026-01-26,BAK-BRD1,Brown Bread,Breads,3,45,28,135,84,UPI,Regular,Baner
+B00879,2026-05-13,BAK-DOU1,Doughnut,Cakes,1,70,41,70,41,UPI,Online,Baner
+B00880,2026-09-21,BAK-DOU1,Doughnut,Cakes,3,70,41,210,123,Cash,Walk-in,FC Road
+B00881,2026-08-06,BAK-PUF1,Veg Puff,Savouries,4,30,17,120,68,Card,Walk-in,Baner
+B00882,2026-04-13,BAK-PUF1,Veg Puff,Savouries,2,30,17,60,34,UPI,Walk-in,Baner
+B00883,2026-03-15,BAK-PIN1,Pineapple Pastry,Cakes,1,75,44,75,44,Card,Regular,Baner
+B00884,2026-07-21,BAK-PUF1,Veg Puff,Savouries,4,30,17,120,68,UPI,Online,Baner
+B00885,2026-06-02,BAK-PIN1,Pineapple Pastry,Cakes,6,75,44,450,264,UPI,Walk-in,FC Road
+B00886,2026-05-26,BAK-DOU1,Doughnut,Cakes,6,70,41,420,246,UPI,Regular,FC Road
+B00887,2026-06-28,BAK-CGB1,Cheese Garlic Bread,Breads,1,120,71,120,71,Card,Walk-in,FC Road
+B00888,2026-06-29,BAK-CUP1,Vanilla Cupcake,Cakes,1,60,34,60,34,UPI,Regular,FC Road
+B00889,2026-07-28,BAK-BRW1,Walnut Brownie,Cookies,6,95,56,570,336,Cash,Regular,Baner
+B00890,2026-05-13,BAK-BRW1,Walnut Brownie,Cookies,2,95,56,190,112,UPI,Regular,FC Road
+B00891,2026-06-18,BAK-BRW1,Walnut Brownie,Cookies,1,95,56,95,56,UPI,Walk-in,Baner
+B00892,2026-01-16,BAK-BRW1,Walnut Brownie,Cookies,1,95,56,95,56,UPI,Online,FC Road
+B00893,2026-06-12,BAK-CGB1,Cheese Garlic Bread,Breads,2,120,71,240,142,Cash,Walk-in,FC Road
+B00894,2026-04-21,BAK-CHO1,Chocolate Cake 1kg,Cakes,3,650,410,1950,1230,Card,Walk-in,FC Road
+B00895,2026-03-25,BAK-COO2,Butter Cookies 250g,Cookies,1,180,108,180,108,Card,Walk-in,FC Road
+B00896,2026-08-26,BAK-CHO1,Chocolate Cake 1kg,Cakes,3,650,410,1950,1230,UPI,Regular,FC Road
+B00897,2026-01-20,BAK-RUS3,Rusk 300g,Breads,1,55,34,55,34,Cash,Regular,Baner
+B00898,2026-07-12,BAK-CUP1,Vanilla Cupcake,Cakes,1,60,34,60,34,UPI,Online,Baner
+B00899,2026-04-08,BAK-BRD1,Brown Bread,Breads,2,45,28,90,56,UPI,Regular,FC Road
+B00900,2026-08-31,BAK-BIR2,Birthday Cake 2kg,Cakes,1,1450,920,1450,920,Card,Walk-in,FC Road

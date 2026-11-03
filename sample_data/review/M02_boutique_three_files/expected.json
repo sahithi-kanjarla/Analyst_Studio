@@ -1,0 +1,213 @@
+{
+  "id": "M02",
+  "business_type": "clothing boutique",
+  "kind": "connected (3 files)",
+  "what_it_tests": "three files, orphan ids on both links, and one customer_id that appears twice in the customer file so a careless join inflates the row count",
+  "app_should": "join on the right keys, report the orphans, and notice that the repeated customer_id makes the joined table longer than the order table",
+  "generated_by": "scripts/make_review_datasets.py",
+  "seed": 20261103,
+  "files": {
+    "orders.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "12 orders use unknown product ids, 15 use unknown customer ids",
+      "rows": 960,
+      "columns": 7,
+      "column_names": [
+        "order_id",
+        "order_date",
+        "customer_id",
+        "product_id",
+        "quantity",
+        "amount",
+        "channel"
+      ],
+      "missing_per_column": {
+        "order_id": 0,
+        "order_date": 0,
+        "customer_id": 0,
+        "product_id": 0,
+        "quantity": 0,
+        "amount": 0,
+        "channel": 0
+      },
+      "exact_duplicate_rows": 0
+    },
+    "customers.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "181 rows for 180 customers: B0041 appears twice",
+      "rows": 181,
+      "columns": 6,
+      "column_names": [
+        "customer_id",
+        "customer_name",
+        "email",
+        "phone",
+        "city",
+        "tier"
+      ],
+      "missing_per_column": {
+        "customer_id": 0,
+        "customer_name": 0,
+        "email": 0,
+        "phone": 0,
+        "city": 0,
+        "tier": 0
+      },
+      "exact_duplicate_rows": 0
+    },
+    "products.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "13 products; P999 was never ordered",
+      "rows": 13,
+      "columns": 6,
+      "column_names": [
+        "product_id",
+        "product_name",
+        "category",
+        "list_price",
+        "cost_price",
+        "fabric"
+      ],
+      "missing_per_column": {
+        "product_id": 0,
+        "product_name": 0,
+        "category": 0,
+        "list_price": 0,
+        "cost_price": 0,
+        "fabric": 0
+      },
+      "exact_duplicate_rows": 0
+    }
+  },
+  "cleaning_applied": [],
+  "answers": {
+    "row_count": {
+      "orders.csv": 960,
+      "customers.csv": 181,
+      "products.csv": 13
+    },
+    "main_total": {
+      "file": "orders.csv",
+      "column": "amount",
+      "means": "revenue",
+      "value": 1868177.0,
+      "rows_counted": 960,
+      "mean": 1946.02
+    },
+    "distinct_key_counts": {
+      "orders.csv.order_id": 960,
+      "orders.csv.customer_id": 185,
+      "orders.csv.product_id": 15,
+      "customers.csv.customer_id": 180,
+      "products.csv.product_id": 13,
+      "products.csv.category": 5
+    },
+    "duplicates": {
+      "orders.csv": {
+        "exact_duplicate_rows": 0
+      },
+      "customers.csv": {
+        "exact_duplicate_rows": 0,
+        "repeated_customer_id_values": [
+          "B0041"
+        ]
+      },
+      "products.csv": {
+        "exact_duplicate_rows": 0
+      }
+    },
+    "missing_values_per_column": {
+      "orders.csv": {
+        "order_id": 0,
+        "order_date": 0,
+        "customer_id": 0,
+        "product_id": 0,
+        "quantity": 0,
+        "amount": 0,
+        "channel": 0
+      },
+      "customers.csv": {
+        "customer_id": 0,
+        "customer_name": 0,
+        "email": 0,
+        "phone": 0,
+        "city": 0,
+        "tier": 0
+      },
+      "products.csv": {
+        "product_id": 0,
+        "product_name": 0,
+        "category": 0,
+        "list_price": 0,
+        "cost_price": 0,
+        "fabric": 0
+      }
+    },
+    "joins": [
+      {
+        "left": "orders.csv",
+        "right": "customers.csv",
+        "on": "customer_id = customer_id",
+        "left_rows": 960,
+        "right_rows": 181,
+        "inner_join_rows": 948,
+        "left_join_rows": 963,
+        "left_rows_with_no_match": 15,
+        "unmatched_ids_in_left": [
+          "B9001",
+          "B9002",
+          "B9003",
+          "B9004",
+          "B9005"
+        ],
+        "unmatched_ids_in_right": [],
+        "repeated_key_values_in_right": [
+          "B0041"
+        ],
+        "note": "the repeated customer_id is why the inner join has more rows than the matching orders"
+      },
+      {
+        "left": "orders.csv",
+        "right": "products.csv",
+        "on": "product_id = product_id",
+        "left_rows": 960,
+        "right_rows": 13,
+        "inner_join_rows": 948,
+        "left_join_rows": 960,
+        "left_rows_with_no_match": 12,
+        "unmatched_ids_in_left": [
+          "P777",
+          "P778",
+          "P780"
+        ],
+        "unmatched_ids_in_right": [
+          "P999"
+        ],
+        "repeated_key_values_in_right": [],
+        "note": "orders -> products"
+      }
+    ],
+    "duplicated_customer_id": "B0041",
+    "orphan_customer_ids_in_orders": [
+      "B9001",
+      "B9002",
+      "B9003",
+      "B9004",
+      "B9005"
+    ],
+    "orphan_product_ids_in_orders": [
+      "P777",
+      "P778",
+      "P780"
+    ],
+    "orders_with_unknown_customer": 15,
+    "orders_with_unknown_product": 12,
+    "products_never_ordered": [
+      "P999"
+    ],
+    "revenue_joined_to_a_known_product": 1861177.0
+  }
+}

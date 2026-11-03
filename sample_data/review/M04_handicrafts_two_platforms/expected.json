@@ -1,0 +1,225 @@
+{
+  "id": "M04",
+  "business_type": "handicrafts seller",
+  "kind": "connected (2 files, same business)",
+  "what_it_tests": "the same shop's sales from two platforms: different column names, different date formats, amounts as text on one side and numbers on the other, and no shared id",
+  "app_should": "see that the two files are the same kind of thing and can be stacked, match the columns across them, and give one combined total without inventing a join key",
+  "generated_by": "scripts/make_review_datasets.py",
+  "seed": 20261103,
+  "files": {
+    "platform_craftbazaar.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "'Order No', 'Order Date' as dd-mm-yyyy, 'Amount' as text like 'Rs. 1,250'",
+      "rows": 520,
+      "columns": 7,
+      "column_names": [
+        "Order No",
+        "Order Date",
+        "Item",
+        "Qty",
+        "Amount",
+        "Buyer City",
+        "Status"
+      ],
+      "missing_per_column": {
+        "Order No": 0,
+        "Order Date": 0,
+        "Item": 0,
+        "Qty": 0,
+        "Amount": 0,
+        "Buyer City": 0,
+        "Status": 0
+      },
+      "exact_duplicate_rows": 0
+    },
+    "platform_shopline.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "order_id, created_at as an ISO timestamp, total_inr as a plain number",
+      "rows": 440,
+      "columns": 7,
+      "column_names": [
+        "order_id",
+        "created_at",
+        "sku",
+        "units",
+        "total_inr",
+        "city",
+        "fulfilment_status"
+      ],
+      "missing_per_column": {
+        "order_id": 0,
+        "created_at": 0,
+        "sku": 0,
+        "units": 0,
+        "total_inr": 0,
+        "city": 0,
+        "fulfilment_status": 0
+      },
+      "exact_duplicate_rows": 0
+    }
+  },
+  "cleaning_applied": [
+    "parsed platform_craftbazaar's 'Amount' text into numbers (amount_parsed)",
+    "parsed its dd-mm-yyyy dates (date_parsed)"
+  ],
+  "answers": {
+    "row_count": {
+      "platform_craftbazaar.csv": 520,
+      "platform_shopline.csv": 440
+    },
+    "main_total": {
+      "file": "platform_craftbazaar.csv",
+      "column": "amount_parsed",
+      "means": "revenue on the craftbazaar platform",
+      "value": 644990.0,
+      "rows_counted": 520,
+      "mean": 1240.37
+    },
+    "top_3_main_category": {
+      "file": "platform_craftbazaar.csv",
+      "group_by": "Buyer City",
+      "ranked_by": "amount_parsed",
+      "items": [
+        {
+          "name": "Indore",
+          "total": 64190.0
+        },
+        {
+          "name": "Chennai",
+          "total": 61360.0
+        },
+        {
+          "name": "Hyderabad",
+          "total": 60510.0
+        }
+      ]
+    },
+    "top_3_cities_on_shopline": {
+      "file": "platform_shopline.csv",
+      "group_by": "city",
+      "ranked_by": "total_inr",
+      "items": [
+        {
+          "name": "Kochi",
+          "total": 99690.0
+        },
+        {
+          "name": "Nagpur",
+          "total": 72560.0
+        },
+        {
+          "name": "Pune",
+          "total": 72110.0
+        }
+      ]
+    },
+    "top_3_items_on_craftbazaar": {
+      "file": "platform_craftbazaar.csv",
+      "group_by": "Item",
+      "ranked_by": "amount_parsed",
+      "items": [
+        {
+          "name": "Madhubani Painting",
+          "total": 141600.0
+        },
+        {
+          "name": "Dhokra Figurine",
+          "total": 95760.0
+        },
+        {
+          "name": "Wooden Elephant",
+          "total": 77500.0
+        }
+      ]
+    },
+    "distinct_key_counts": {
+      "platform_craftbazaar.csv.Order No": 520,
+      "platform_craftbazaar.csv.Buyer City": 12,
+      "platform_shopline.csv.order_id": 440,
+      "platform_shopline.csv.city": 12
+    },
+    "shopline_total": {
+      "file": "platform_shopline.csv",
+      "column": "total_inr",
+      "means": "revenue on the shopline platform",
+      "value": 737200.0
+    },
+    "duplicates": {
+      "platform_craftbazaar.csv": {
+        "exact_duplicate_rows": 0
+      },
+      "platform_shopline.csv": {
+        "exact_duplicate_rows": 0
+      }
+    },
+    "missing_values_per_column": {
+      "platform_craftbazaar.csv": {
+        "Order No": 0,
+        "Order Date": 0,
+        "Item": 0,
+        "Qty": 0,
+        "Amount": 0,
+        "Buyer City": 0,
+        "Status": 0,
+        "amount_parsed": 0,
+        "date_parsed": 0
+      },
+      "platform_shopline.csv": {
+        "order_id": 0,
+        "created_at": 0,
+        "sku": 0,
+        "units": 0,
+        "total_inr": 0,
+        "city": 0,
+        "fulfilment_status": 0
+      }
+    },
+    "column_pairs": {
+      "Order No": "order_id",
+      "Order Date": "created_at",
+      "Item": "sku (by code, not name)",
+      "Qty": "units",
+      "Amount": "total_inr",
+      "Buyer City": "city",
+      "Status": "fulfilment_status"
+    },
+    "no_shared_key_between_the_two": true,
+    "craftbazaar_rows": 520,
+    "shopline_rows": 440,
+    "combined_total": 1382190.0,
+    "combined_rows": 960,
+    "craftbazaar_total": 644990.0,
+    "shopline_total_check": 737200.0
+  },
+  "files_after_cleaning": {
+    "platform_craftbazaar.csv": {
+      "rows": 520,
+      "columns": 9,
+      "column_names": [
+        "Order No",
+        "Order Date",
+        "Item",
+        "Qty",
+        "Amount",
+        "Buyer City",
+        "Status",
+        "amount_parsed",
+        "date_parsed"
+      ],
+      "missing_per_column": {
+        "Order No": 0,
+        "Order Date": 0,
+        "Item": 0,
+        "Qty": 0,
+        "Amount": 0,
+        "Buyer City": 0,
+        "Status": 0,
+        "amount_parsed": 0,
+        "date_parsed": 0
+      },
+      "exact_duplicate_rows": 0
+    }
+  }
+}

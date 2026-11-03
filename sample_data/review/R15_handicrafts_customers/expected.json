@@ -1,0 +1,140 @@
+{
+  "id": "R15",
+  "business_type": "handicrafts seller",
+  "kind": "customers",
+  "what_it_tests": "column names in transliterated Hindi, phone numbers that must stay text, and a lifetime-spend column that is not per-order revenue",
+  "app_should": "work out what each Hindi-named column means from its values, not its name, and not treat 'Kul rashi' (lifetime spend) as this period's sales",
+  "generated_by": "scripts/make_review_datasets.py",
+  "seed": 20261103,
+  "files": {
+    "handicraft_grahak.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "UTF-8 with BOM, as a Windows spreadsheet saves it; headers are transliterated Hindi",
+      "rows": 500,
+      "columns": 10,
+      "column_names": [
+        "Grahak ID",
+        "Grahak ka naam",
+        "Mobile no.",
+        "Shehar",
+        "Pehli kharid ki tarikh",
+        "Kul kharid (sankhya)",
+        "Kul rashi",
+        "Pasandida saman",
+        "Sthiti",
+        "Bhugtan tarika"
+      ],
+      "missing_per_column": {
+        "Grahak ID": 0,
+        "Grahak ka naam": 0,
+        "Mobile no.": 0,
+        "Shehar": 0,
+        "Pehli kharid ki tarikh": 0,
+        "Kul kharid (sankhya)": 0,
+        "Kul rashi": 0,
+        "Pasandida saman": 0,
+        "Sthiti": 0,
+        "Bhugtan tarika": 0
+      },
+      "exact_duplicate_rows": 0
+    }
+  },
+  "cleaning_applied": [],
+  "answers": {
+    "row_count": {
+      "handicraft_grahak.csv": 500
+    },
+    "main_total": {
+      "file": "handicraft_grahak.csv",
+      "column": "Kul rashi",
+      "means": "lifetime spend per customer, not sales in a period",
+      "value": 1652000.7,
+      "rows_counted": 500,
+      "mean": 3304.0
+    },
+    "top_3_main_category": {
+      "file": "handicraft_grahak.csv",
+      "group_by": "Shehar",
+      "ranked_by": "Kul rashi",
+      "items": [
+        {
+          "name": "Bengaluru",
+          "total": 208988.57
+        },
+        {
+          "name": "Nagpur",
+          "total": 164691.1
+        },
+        {
+          "name": "Mumbai",
+          "total": 163739.27
+        }
+      ]
+    },
+    "top_3_favourite_items_by_lifetime_spend": {
+      "file": "handicraft_grahak.csv",
+      "group_by": "Pasandida saman",
+      "ranked_by": "Kul rashi",
+      "items": [
+        {
+          "name": "Madhubani Painting",
+          "total": 211544.37
+        },
+        {
+          "name": "Macrame Wall Hanging",
+          "total": 155932.54
+        },
+        {
+          "name": "Wooden Elephant",
+          "total": 153100.98
+        }
+      ]
+    },
+    "distinct_key_counts": {
+      "handicraft_grahak.csv.Grahak ID": 500,
+      "handicraft_grahak.csv.Mobile no.": 500,
+      "handicraft_grahak.csv.Shehar": 12,
+      "handicraft_grahak.csv.Sthiti": 3
+    },
+    "total_purchase_count": {
+      "file": "handicraft_grahak.csv",
+      "column": "Kul kharid (sankhya)",
+      "means": "purchases made, counted across all customers",
+      "value": 1725.0
+    },
+    "duplicates": {
+      "handicraft_grahak.csv": {
+        "exact_duplicate_rows": 0
+      }
+    },
+    "missing_values_per_column": {
+      "handicraft_grahak.csv": {
+        "Grahak ID": 0,
+        "Grahak ka naam": 0,
+        "Mobile no.": 0,
+        "Shehar": 0,
+        "Pehli kharid ki tarikh": 0,
+        "Kul kharid (sankhya)": 0,
+        "Kul rashi": 0,
+        "Pasandida saman": 0,
+        "Sthiti": 0,
+        "Bhugtan tarika": 0
+      }
+    },
+    "column_meanings": {
+      "Grahak ID": "customer id",
+      "Grahak ka naam": "customer name",
+      "Mobile no.": "phone",
+      "Shehar": "city",
+      "Pehli kharid ki tarikh": "date of first purchase",
+      "Kul kharid (sankhya)": "number of purchases",
+      "Kul rashi": "total amount spent (lifetime)",
+      "Pasandida saman": "favourite item",
+      "Sthiti": "status",
+      "Bhugtan tarika": "payment method"
+    },
+    "repeat_customers": 344,
+    "mean_lifetime_spend": 3304.0
+  }
+}

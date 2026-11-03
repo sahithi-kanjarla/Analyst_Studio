@@ -1,0 +1,131 @@
+customer_id,customer_name,area,khata
+K001,Yash Bose,Shivaji Nagar,Yes
+K002,Rahul Kulkarni,Kharadi,Yes
+K003,Anaya Reddy,Kharadi,No
+K004,Asha Gupta,Aundh,No
+K005,Zoya Das,Shivaji Nagar,No
+K006,Pooja Das,Shivaji Nagar,No
+K007,Anaya Bose,Viman Nagar,No
+K008,Aarav Mehta,Baner,No
+K009,Dev Patel,Warje,No
+K010,Nitin Menon,Hadapsar,Yes
+K011,Gauri Mehta,Warje,No
+K012,Dev Patel,Aundh,No
+K013,Asha Nair,Shivaji Nagar,No
+K014,Zoya Iyer,Baner,Yes
+K015,Vihaan Shetty,Hadapsar,Yes
+K016,Faizan Patel,Aundh,No
+K017,Anaya Patel,Hadapsar,Yes
+K018,Gauri Sharma,Kothrud,No
+K019,Faizan Mehta,Viman Nagar,No
+K020,Bilal Mehta,Shivaji Nagar,Yes
+K021,Lakshmi Das,Aundh,No
+K022,Arjun Patel,Kothrud,No
+K023,Kiara Joshi,Kothrud,No
+K024,Karan Nair,Baner,No
+K025,Vikram Shetty,Baner,No
+K026,Rahul Nair,Baner,Yes
+K027,Isha Nair,Warje,No
+K028,Ritu Nair,Warje,No
+K029,Arjun Das,Aundh,Yes
+K030,Ritu Iyer,Warje,Yes
+K031,Asha Das,Hadapsar,No
+K032,Diya Chavan,Aundh,No
+K033,Rohan Joshi,Shivaji Nagar,No
+K034,Omkar Kulkarni,Kharadi,Yes
+K035,Omkar Mehta,Viman Nagar,Yes
+K036,Omkar Iyer,Viman Nagar,No
+K037,Omkar Mehta,Baner,Yes
+K038,Pooja Reddy,Kharadi,No
+K039,Aarav Menon,Kharadi,Yes
+K040,Yash Kulkarni,Warje,No
+K041,Nisha Ansari,Hadapsar,Yes
+K042,Karan Shetty,Shivaji Nagar,No
+K043,Kiara Verma,Kharadi,No
+K044,Vihaan Joshi,Warje,Yes
+K045,Rohan Menon,Kharadi,No
+K046,Kabir Khan,Baner,No
+K047,Karan Iyer,Kothrud,No
+K048,Faizan Menon,Kothrud,No
+K049,Bilal Joshi,Shivaji Nagar,Yes
+K050,Yash Nair,Hadapsar,No
+K051,Nisha Das,Viman Nagar,No
+K052,Asha Mehta,Shivaji Nagar,No
+K053,Aarav Verma,Shivaji Nagar,No
+K054,Nisha Chavan,Kharadi,No
+K055,Vihaan Menon,Baner,Yes
+K056,Vihaan Gupta,Shivaji Nagar,No
+K057,Dev Chavan,Kharadi,No
+K058,Faizan Chavan,Baner,No
+K059,Pooja Reddy,Kharadi,Yes
+K060,Tara Bose,Kharadi,No
+K061,Zoya Patel,Aundh,No
+K062,Kabir Singh,Baner,No
+K063,Faizan Rao,Kothrud,No
+K064,Isha Khan,Baner,Yes
+K065,Faizan Shetty,Warje,Yes
+K066,Nisha Pillai,Baner,Yes
+K067,Imran Mehta,Shivaji Nagar,Yes
+K068,Ritu Reddy,Kharadi,Yes
+K069,Pooja Patel,Baner,No
+K070,Arjun Bose,Kharadi,Yes
+K071,Kabir Joshi,Kharadi,No
+K072,Rohan Menon,Aundh,No
+K073,Karan Gupta,Hadapsar,No
+K074,Isha Menon,Warje,Yes
+K075,Meera Chavan,Kharadi,No
+K076,Rahul Verma,Viman Nagar,No
+K077,Lakshmi Nair,Hadapsar,No
+K078,Rahul Sharma,Hadapsar,No
+K079,Nisha Kulkarni,Hadapsar,No
+K080,Imran Chavan,Aundh,No
+K081,Faizan Verma,Baner,No
+K082,Lakshmi Shetty,Kothrud,Yes
+K083,Sana Reddy,Warje,No
+K084,Isha Shetty,Hadapsar,No
+K085,Asha Reddy,Baner,Yes
+K086,Bilal Menon,Aundh,No
+K087,Rohan Verma,Viman Nagar,No
+K088,Sneha Reddy,Warje,No
+K089,Sana Shetty,Baner,No
+K090,Kiara Mehta,Baner,No
+K091,Dev Khan,Baner,Yes
+K092,Ritu Mehta,Baner,No
+K093,Nisha Nair,Shivaji Nagar,No
+K094,Ritu Sharma,Kharadi,Yes
+K095,Aarav Patel,Warje,Yes
+K096,Karan Patel,Aundh,No
+K097,Rahul Ansari,Aundh,No
+K098,Bilal Kulkarni,Hadapsar,No
+K099,Lakshmi Menon,Warje,No
+K100,Isha Sharma,Kharadi,Yes
+K101,Sneha Iyer,Warje,No
+K102,Lakshmi Sharma,Hadapsar,Yes
+K103,Lakshmi Mehta,Shivaji Nagar,Yes
+K104,Ritu Gupta,Baner,Yes
+K105,Tara Pillai,Kharadi,No
+K106,Bilal Menon,Kharadi,Yes
+K107,Imran Bose,Kharadi,No
+K108,Tara Reddy,Kharadi,No
+K109,Bilal Sharma,Aundh,Yes
+K110,Rahul Menon,Viman Nagar,No
+K111,Ritu Shetty,Kothrud,No
+K112,Zoya Joshi,Warje,Yes
+K113,Gauri Reddy,Kharadi,No
+K114,Arjun Iyer,Shivaji Nagar,No
+K115,Vikram Patel,Baner,Yes
+K116,Anaya Singh,Kothrud,No
+K117,Rahul Bose,Kothrud,No
+K118,Karan Iyer,Kothrud,Yes
+K119,Anaya Patel,Shivaji Nagar,No
+K120,Sneha Ansari,Shivaji Nagar,No
+K121,Rohan Das,Hadapsar,No
+K122,Gauri Ansari,Kothrud,No
+K123,Zoya Patel,Kharadi,Yes
+K124,Isha Gupta,Warje,No
+K125,Kabir Patel,Kharadi,Yes
+K126,Zoya Menon,Hadapsar,No
+K127,Vikram Nair,Kharadi,Yes
+K128,Diya Menon,Hadapsar,No
+K129,Tara Rao,Kharadi,No
+K130,Karan Khan,Shivaji Nagar,No

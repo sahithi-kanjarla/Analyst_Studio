@@ -1,0 +1,126 @@
+{
+  "id": "R13",
+  "business_type": "clothing boutique",
+  "kind": "staff",
+  "what_it_tests": "personal-looking columns (name, phone, e-mail, date of birth, emergency contact) next to real measures (pay, attendance, hours)",
+  "app_should": "treat phone, e-mail, date of birth and the emergency number as identifiers, never as numbers to average or chart, and keep names out of the AI's view",
+  "generated_by": "scripts/make_review_datasets.py",
+  "seed": 20261103,
+  "files": {
+    "boutique_staff.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "60 made-up staff records; phone and emergency_contact are ten-digit numbers that must not be treated as measures",
+      "rows": 60,
+      "columns": 13,
+      "column_names": [
+        "employee_id",
+        "employee_name",
+        "role",
+        "branch",
+        "phone",
+        "email",
+        "date_of_birth",
+        "joining_date",
+        "monthly_pay",
+        "days_present",
+        "hours_worked",
+        "emergency_contact",
+        "city"
+      ],
+      "missing_per_column": {
+        "employee_id": 0,
+        "employee_name": 0,
+        "role": 0,
+        "branch": 0,
+        "phone": 0,
+        "email": 0,
+        "date_of_birth": 0,
+        "joining_date": 0,
+        "monthly_pay": 0,
+        "days_present": 0,
+        "hours_worked": 0,
+        "emergency_contact": 0,
+        "city": 0
+      },
+      "exact_duplicate_rows": 0
+    }
+  },
+  "cleaning_applied": [],
+  "answers": {
+    "row_count": {
+      "boutique_staff.csv": 60
+    },
+    "main_total": {
+      "file": "boutique_staff.csv",
+      "column": "monthly_pay",
+      "means": "monthly payroll",
+      "value": 1455461.11,
+      "rows_counted": 60,
+      "mean": 24257.69
+    },
+    "top_3_main_category": {
+      "file": "boutique_staff.csv",
+      "group_by": "role",
+      "ranked_by": "monthly_pay",
+      "items": [
+        {
+          "name": "Store manager",
+          "total": 521378.8
+        },
+        {
+          "name": "Visual merchandiser",
+          "total": 320679.87
+        },
+        {
+          "name": "Tailor",
+          "total": 185513.97
+        }
+      ]
+    },
+    "distinct_key_counts": {
+      "boutique_staff.csv.employee_id": 60,
+      "boutique_staff.csv.role": 6,
+      "boutique_staff.csv.branch": 3
+    },
+    "total_hours_worked": {
+      "file": "boutique_staff.csv",
+      "column": "hours_worked",
+      "means": "hours worked in the month",
+      "value": 10364.0
+    },
+    "duplicates": {
+      "boutique_staff.csv": {
+        "exact_duplicate_rows": 0
+      }
+    },
+    "missing_values_per_column": {
+      "boutique_staff.csv": {
+        "employee_id": 0,
+        "employee_name": 0,
+        "role": 0,
+        "branch": 0,
+        "phone": 0,
+        "email": 0,
+        "date_of_birth": 0,
+        "joining_date": 0,
+        "monthly_pay": 0,
+        "days_present": 0,
+        "hours_worked": 0,
+        "emergency_contact": 0,
+        "city": 0
+      }
+    },
+    "columns_that_must_not_be_measured": [
+      "phone",
+      "emergency_contact",
+      "date_of_birth",
+      "employee_id"
+    ],
+    "personal_name_columns": [
+      "employee_name"
+    ],
+    "mean_days_present": 21.92,
+    "headcount": 60
+  }
+}

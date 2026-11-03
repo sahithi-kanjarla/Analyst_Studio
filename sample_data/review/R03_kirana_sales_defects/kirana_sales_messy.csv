@@ -1,0 +1,981 @@
+bill_no,bill_date,item,item_code,category,qty,rate,amount,payment_mode,offer_code,store_code,entered_by
+20001,13/08/2026,Refined Oil 1L,KIR-OIL1,Staples,-1,142,₹142,Credit,DIWALI5,KIR-01,Sunita
+20002,2026-05-22,Biscuits Pack,KIR-BIS1,Snacks,5,35,175,Cash,,KIR-01,Ramesh
+20003,13-Sep-2026,Poha 1kg,KIR-POH1,Staples,1,58,58,Card,,KIR-01,Ramesh
+20004,20-06-2026,Milk Powder 500g,KIR-MLK5,Dairy,3,290,870,,,KIR-01,Sunita
+20005,27/04/2026,Poha 1kg,KIR-POH1,Staples,1,58,58,Credit,,KIR-01,Sunita
+20006,2026-04-13,Detergent 1kg,KIR-DET1,Household,5,110,550,Credit,,KIR-01,Ramesh
+20007,27-Jul-2026,Toor Dal 1kg,KIR-TOO1,Staples,1,165,165,Cash,,KIR-01,Ramesh
+20008,13-07-2026,Refined Oil 1L (return),KIR-OIL1,Staples,2,142,(284.00),UPI,,KIR-01,Ramesh
+20009,13/05/2026,Poha 1kg,KIR-POH1,Staples,1,58,58,UPI,,KIR-01,Sunita
+20010,2026-07-28,Sugar 1kg,KIR-SUG1,Staples,1,48,48,Cash,,KIR-01,Ramesh
+20011,13-Jul-2026,Detergent 1kg,KIR-DET1,Household,1,110,110,Cash,,KIR-01,Sunita
+20012,13-08-2026,Sugar 1kg,KIR-SUG1,Staples,1,48,48,Card,,KIR-01,Sunita
+20013,13/05/2026,Soap Bar,KIR-SOA1,Household,2,42,84,Credit,,KIR-01,Sunita
+20014,2026-07-20,Sugar 1kg,KIR-SUG1,Staples,2,48,96,Cash,,KIR-01,Sunita
+20015,13-Sep-2026,Salt 1kg,KIR-SAL1,Staples,2,22,44,UPI,,KIR-01,Sunita
+20016,13-03-2026,Refined Oil 1L (return),KIR-OIL1,Staples,1,142,-142.0,Cash,,KIR-01,Sunita
+20017,13/03/2026,Poha 1kg,KIR-POH1,Staples,1,58,58,UPI,,KIR-01,Ramesh
+20018,2026-05-20,Milk Powder 500g,KIR-MLK5,Dairy,1,290,290,Card,,KIR-01,Ramesh
+20019,26-Aug-2026,Rice 10kg,KIR-RIC10,Staples,5,620,3100,Cash,,KIR-01,Sunita
+20020,13-06-2026,Milk Powder 500g,KIR-MLK5,Dairy,2,290,580,Credit,,KIR-01,Ramesh
+20021,28/07/2026,Atta 5kg,KIR-ATT5,Staples,5,250,1250,Card,,KIR-01,Ramesh
+20022,2026-03-19,Biscuits Pack,KIR-BIS1,Snacks,1,35,35,Cash,,KIR-01,Sunita
+20023,28-Jul-2026,Sugar 1kg,KIR-SUG1,Staples,3,48,144,Credit,,KIR-01,Ramesh
+20024,16-06-2026,Sugar 1kg (return),KIR-SUG1,Staples,3,48,(144.00),Credit,,KIR-01,Ramesh
+20025,13/09/2026,Biscuits Pack,KIR-BIS1,Snacks,5,35,175,Card,,KIR-01,Ramesh
+20026,2026-03-13,Rice 10kg,KIR-RIC10,Staples,5,620,3100,Card,,KIR-01,Sunita
+20027,22-Apr-2026,Milk Powder 500g,KIR-MLK5,Dairy,1,290,290,Cash,,KIR-01,Sunita
+20028,28-05-2026,Refined Oil 1L,KIR-OIL1,Staples,5,142,710,,,KIR-01,Ramesh
+20029,13/07/2026,Biscuits Pack,KIR-BIS1,Snacks,1,35,35,UPI,,KIR-01,Sunita
+20030,2026-08-24,Milk Powder 500g,KIR-MLK5,Dairy,1,290,290,Credit,REG10,KIR-01,Sunita
+20031,28-May-2026,Biscuits Pack,KIR-BIS1,Snacks,5,35,175,Credit,,KIR-01,Ramesh
+20032,28-05-2026,Rice 10kg (return),KIR-RIC10,Staples,2,620,-1240.0,Cash,,KIR-01,Sunita
+20033,13/08/2026,Atta 5kg,KIR-ATT5,Staples,3,250,750,UPI,,KIR-01,Sunita
+20034,2026-04-13,Atta 5kg,KIR-ATT5,Staples,1,250,250,Card,,KIR-01,Ramesh
+20035,13-Jun-2026,Detergent 1kg,KIR-DET1,Household,3,110,330,Cash,,KIR-01,Ramesh
+20036,27-08-2026,Biscuits Pack,KIR-BIS1,Snacks,5,35,175,Credit,,KIR-01,Sunita
+20037,27/04/2026,Rice 10kg,KIR-RIC10,Staples,5,620,3100,UPI,,KIR-01,Ramesh
+20038,2026-07-28,Salt 1kg,KIR-SAL1,Staples,5,22,₹110,UPI,,KIR-01,Ramesh
+20039,13-Sep-2026,Rice 10kg,KIR-RIC10,Staples,-1,620,6200,Credit,,KIR-01,Sunita
+20040,14-08-2026,Tea 250g (return),KIR-TEA2,Beverages,1,135,(135.00),Card,,KIR-01,Sunita
+20041,15/03/2026,Refined Oil 1L,KIR-OIL1,Staples,1,142,142,Credit,,KIR-01,Sunita
+20042,2026-05-13,Biscuits Pack,KIR-BIS1,Snacks,5,35,175,UPI,,KIR-01,Sunita
+20043,17-Jun-2026,Rice 10kg,KIR-RIC10,Staples,1,620,620,UPI,,KIR-01,Ramesh
+20044,13-04-2026,Refined Oil 1L,KIR-OIL1,Staples,1,142,142,Card,,KIR-01,Ramesh
+20045,13/05/2026,Poha 1kg,KIR-POH1,Staples,1,58,58,Credit,,KIR-01,Sunita
+20046,2026-07-13,Rice 10kg,KIR-RIC10,Staples,1,620,620,Card,,KIR-01,Ramesh
+20047,14-May-2026,Toor Dal 1kg,KIR-TOO1,Staples,10,165,1650,UPI,,KIR-01,Ramesh
+20048,27-06-2026,Detergent 1kg (return),KIR-DET1,Household,2,110,-220.0,Cash,,KIR-01,Sunita
+20049,13/05/2026,Atta 5kg,KIR-ATT5,Staples,1,250,250,Credit,,KIR-01,Ramesh
+20050,2026-06-28,Salt 1kg,KIR-SAL1,Staples,2,22,44,Credit,,KIR-01,Sunita
+20051,17-Mar-2026,Toor Dal 1kg,KIR-TOO1,Staples,2,165,330,Card,,KIR-01,Sunita
+20052,13-07-2026,Poha 1kg,KIR-POH1,Staples,1,58,58,unknown,,KIR-01,Sunita
+20053,13/03/2026,Poha 1kg,KIR-POH1,Staples,3,58,174,Cash,,KIR-01,Ramesh
+20054,2026-08-25,Milk Powder 500g,KIR-MLK5,Dairy,1,290,Rs. 0.29k,Cash,,KIR-01,Ramesh
+20055,22-May-2026,Biscuits Pack,KIR-BIS1,Snacks,10,35,350,Card,,KIR-01,Sunita
+20056,13-06-2026,Rice 10kg (return),KIR-RIC10,Staples,5,620,(3100.00),Credit,,KIR-01,Ramesh
+20057,23/08/2026,Rice 10kg,KIR-RIC10,Staples,2,620,1240,Cash,,KIR-01,Ramesh
+20058,2026-08-21,Milk Powder 500g,KIR-MLK5,Dairy,5,290,1450,UPI,,KIR-01,Sunita
+20059,13-May-2026,Toor Dal 1kg,KIR-TOO1,Staples,2,165,330,Card,REG10,KIR-01,Sunita
+20060,15-07-2026,Salt 1kg,KIR-SAL1,Staples,2,22,44,Cash,,KIR-01,Sunita
+20061,13/09/2026,Biscuits Pack,KIR-BIS1,Snacks,2,35,70,Cash,,KIR-01,Ramesh
+20062,2026-03-14,Salt 1kg,KIR-SAL1,Staples,1,22,22,Card,,KIR-01,Sunita
+20063,15-Jun-2026,Tea 250g,KIR-TEA2,Beverages,2,135,270,Card,,KIR-01,Ramesh
+20064,13-09-2026,Salt 1kg (return),KIR-SAL1,Staples,2,22,-44.0,Credit,,KIR-01,Sunita
+20065,13/05/2026,Refined Oil 1L,KIR-OIL1,Staples,1,142,142,Credit,,KIR-01,Sunita
+20066,2026-07-13,Sugar 1kg,KIR-SUG1,Staples,5,48,240,Credit,,KIR-01,Ramesh
+20067,14-Mar-2026,Poha 1kg,KIR-POH1,Staples,2,58,116,UPI,,KIR-01,Sunita
+20068,19-03-2026,Atta 5kg,KIR-ATT5,Staples,3,250,750,Cash,,KIR-01,Ramesh
+20069,13/04/2026,Tea 250g,KIR-TEA2,Beverages,2,135,270,Card,,KIR-01,Sunita
+20070,2026-03-13,Milk Powder 500g,KIR-MLK5,Dairy,2,290,580,Cash,,KIR-01,Sunita
+20071,13-Sep-2026,Biscuits Pack,KIR-BIS1,Snacks,1,35,35,Cash,,KIR-01,Ramesh
+20072,13-07-2026,Atta 5kg (return),KIR-ATT5,Staples,5,250,(1250.00),Cash,,KIR-01,Ramesh
+20073,17/05/2026,Soap Bar,KIR-SOA1,Household,1,42,42,UPI,,KIR-01,Sunita
+20074,2026-08-13,Salt 1kg,KIR-SAL1,Staples,1,22,22,UPI,,KIR-01,Sunita
+20075,18-Aug-2026,Atta 5kg,KIR-ATT5,Staples,1,250,₹250,Cash,,KIR-01,Sunita
+20076,14-09-2026,Salt 1kg,KIR-SAL1,Staples,10,22,220,unknown,,KIR-01,Ramesh
+20077,13/06/2026,Rice 10kg,KIR-RIC10,Staples,-1,620,1240,Cash,,KIR-01,Ramesh
+20078,2026-06-25,Sugar 1kg,KIR-SUG1,Staples,10,48,480,Credit,,KIR-01,Ramesh
+20079,13-Jun-2026,Tea 250g,KIR-TEA2,Beverages,1,135,135,Credit,,KIR-01,Ramesh
+20080,13-09-2026,Soap Bar (return),KIR-SOA1,Household,2,42,-84.0,Credit,,KIR-01,Ramesh
+20081,13/06/2026,Milk Powder 500g,KIR-MLK5,Dairy,2,290,580,Cash,,KIR-01,Ramesh
+20082,2026-04-13,Refined Oil 1L,KIR-OIL1,Staples,1,142,142,UPI,,KIR-01,Ramesh
+20083,24-Jul-2026,Refined Oil 1L,KIR-OIL1,Staples,2,142,284,Card,,KIR-01,Ramesh
+20084,13-05-2026,Rice 10kg,KIR-RIC10,Staples,5,620,3100,Card,,KIR-01,Sunita
+20085,15/05/2026,Detergent 1kg,KIR-DET1,Household,2,110,220,Cash,,KIR-01,Sunita
+20086,2026-07-13,Tea 250g,KIR-TEA2,Beverages,5,135,675,UPI,,KIR-01,Sunita
+20087,13-Sep-2026,Toor Dal 1kg,KIR-TOO1,Staples,3,165,495,Card,,KIR-01,Ramesh
+20088,13-04-2026,Tea 250g (return),KIR-TEA2,Beverages,5,135,(675.00),Credit,REG10,KIR-01,Sunita
+20089,13/06/2026,Salt 1kg,KIR-SAL1,Staples,3,22,66,Cash,,KIR-01,Ramesh
+20090,2026-07-22,Toor Dal 1kg,KIR-TOO1,Staples,2,165,330,Card,,KIR-01,Ramesh
+20091,28-Apr-2026,Biscuits Pack,KIR-BIS1,Snacks,3,35,105,Card,,KIR-01,Sunita
+20092,13-03-2026,Milk Powder 500g,KIR-MLK5,Dairy,1,290,290,Credit,,KIR-01,Ramesh
+20093,13/08/2026,Salt 1kg,KIR-SAL1,Staples,1,22,22,Cash,,KIR-01,Sunita
+20094,2026-08-28,Refined Oil 1L,KIR-OIL1,Staples,2,142,284,Credit,,KIR-01,Ramesh
+20095,14-Sep-2026,Poha 1kg,KIR-POH1,Staples,3,58,174,Cash,,KIR-01,Sunita
+20096,13-08-2026,Poha 1kg (return),KIR-POH1,Staples,2,58,-116.0,Cash,,KIR-01,Ramesh
+20097,16/05/2026,Rice 10kg,KIR-RIC10,Staples,1,620,620,Credit,,KIR-01,Ramesh
+20098,2026-04-22,Refined Oil 1L,KIR-OIL1,Staples,3,142,426,Cash,,KIR-01,Sunita
+20099,17-May-2026,Salt 1kg,KIR-SAL1,Staples,10,22,220,Cash,,KIR-01,Ramesh
+20100,26-07-2026,Milk Powder 500g,KIR-MLK5,Dairy,5,290,1450,-,,KIR-01,Sunita
+20101,13/08/2026,Biscuits Pack,KIR-BIS1,Snacks,3,35,105,Cash,,KIR-01,Sunita
+20102,2026-05-13,Sugar 1kg,KIR-SUG1,Staples,2,48,96,Cash,,KIR-01,Sunita
+20103,23-Mar-2026,Toor Dal 1kg,KIR-TOO1,Staples,2,165,330,UPI,,KIR-01,Sunita
+20104,13-07-2026,Tea 250g (return),KIR-TEA2,Beverages,2,135,(270.00),Credit,,KIR-01,Ramesh
+20105,13/06/2026,Biscuits Pack,KIR-BIS1,Snacks,1,35,35,Card,,KIR-01,Sunita
+20106,2026-05-13,Milk Powder 500g,KIR-MLK5,Dairy,2,290,580,Card,,KIR-01,Ramesh
+20107,13-May-2026,Tea 250g,KIR-TEA2,Beverages,5,135,Rs. 0.675k,Card,,KIR-01,Sunita
+20108,13-03-2026,Atta 5kg,KIR-ATT5,Staples,1,250,250,Cash,,KIR-01,Sunita
+20109,13/09/2026,Poha 1kg,KIR-POH1,Staples,10,58,580,Card,,KIR-01,Sunita
+20110,2026-07-13,Toor Dal 1kg,KIR-TOO1,Staples,10,165,1650,Cash,,KIR-01,Ramesh
+20111,14-Aug-2026,Milk Powder 500g,KIR-MLK5,Dairy,2,290,580,Cash,,KIR-01,Ramesh
+20112,13-08-2026,Rice 10kg (return),KIR-RIC10,Staples,2,620,-1240.0,Cash,,KIR-01,Sunita
+20113,22/03/2026,Milk Powder 500g,KIR-MLK5,Dairy,2,290,580,Card,,KIR-01,Sunita
+20114,2026-05-13,Sugar 1kg,KIR-SUG1,Staples,2,48,96,UPI,,KIR-01,Sunita
+20115,13-Apr-2026,Toor Dal 1kg,KIR-TOO1,Staples,-1,165,165,UPI,,KIR-01,Ramesh
+20116,21-07-2026,Sugar 1kg,KIR-SUG1,Staples,1,48,48,Cash,,KIR-01,Sunita
+20117,13/05/2026,Refined Oil 1L,KIR-OIL1,Staples,2,142,284,Cash,REG10,KIR-01,Sunita
+20118,2026-03-13,Biscuits Pack,KIR-BIS1,Snacks,10,35,350,Card,,KIR-01,Sunita
+20119,17-Jun-2026,Refined Oil 1L,KIR-OIL1,Staples,3,142,426,Cash,,KIR-01,Ramesh
+20120,28-07-2026,Milk Powder 500g (return),KIR-MLK5,Dairy,3,290,(870.00),Cash,,KIR-01,Ramesh
+20121,13/08/2026,Soap Bar,KIR-SOA1,Household,3,42,9450.0,Credit,,KIR-01,Ramesh
+20122,2026-05-17,Sugar 1kg,KIR-SUG1,Staples,1,48,48,Card,,KIR-01,Sunita
+20123,13-Mar-2026,Biscuits Pack,KIR-BIS1,Snacks,2,35,70,Credit,,KIR-01,Ramesh
+20124,25-04-2026,Refined Oil 1L,KIR-OIL1,Staples,10,142,1420,-,,KIR-01,Ramesh
+20125,13/09/2026,Tea 250g,KIR-TEA2,Beverages,10,135,1350,Card,,KIR-01,Ramesh
+20126,2026-04-13,Detergent 1kg,KIR-DET1,Household,3,110,330,Cash,,KIR-01,Ramesh
+20127,17-Aug-2026,Poha 1kg,KIR-POH1,Staples,10,58,580,Credit,,KIR-01,Sunita
+20128,13-04-2026,Soap Bar (return),KIR-SOA1,Household,5,42,-210.0,Cash,,KIR-01,Ramesh
+20129,14/07/2026,Salt 1kg,KIR-SAL1,Staples,1,22,22,Cash,,KIR-01,Sunita
+20130,2026-06-13,Sugar 1kg,KIR-SUG1,Staples,1,48,48,UPI,,KIR-01,Ramesh
+20131,22-Jul-2026,Biscuits Pack,KIR-BIS1,Snacks,3,35,105,Credit,,KIR-01,Ramesh
+20132,13-08-2026,Atta 5kg,KIR-ATT5,Staples,1,250,250,UPI,,KIR-01,Sunita
+20133,13/06/2026,Refined Oil 1L,KIR-OIL1,Staples,2,142,284,Card,,KIR-01,Ramesh
+20134,2026-08-24,Toor Dal 1kg,KIR-TOO1,Staples,10,165,1650,Card,,KIR-01,Ramesh
+20135,14-Jun-2026,Tea 250g,KIR-TEA2,Beverages,1,135,135,Cash,,KIR-01,Ramesh
+20136,14-09-2026,Poha 1kg (return),KIR-POH1,Staples,10,58,(580.00),UPI,,KIR-01,Ramesh
+20137,15/05/2026,Detergent 1kg,KIR-DET1,Household,1,110,110,Card,,KIR-01,Ramesh
+20138,2026-08-13,Biscuits Pack,KIR-BIS1,Snacks,1,35,35,Credit,,KIR-01,Sunita
+20139,27-Apr-2026,Poha 1kg,KIR-POH1,Staples,2,58,116,Credit,,KIR-01,Sunita
+20140,28-03-2026,Refined Oil 1L,KIR-OIL1,Staples,5,142,710,Cash,,KIR-01,Ramesh
+20141,26/05/2026,Rice 10kg,KIR-RIC10,Staples,1,620,620,Cash,,KIR-01,Ramesh
+20142,2026-07-25,Sugar 1kg,KIR-SUG1,Staples,5,48,240,Card,,KIR-01,Sunita
+20143,23-Mar-2026,Sugar 1kg,KIR-SUG1,Staples,1,48,48,Cash,,KIR-01,Ramesh
+20144,13-05-2026,Detergent 1kg (return),KIR-DET1,Household,2,110,-220.0,UPI,,KIR-01,Sunita
+20145,20/08/2026,Detergent 1kg,KIR-DET1,Household,2,110,220,UPI,,KIR-01,Sunita
+20146,2026-08-15,Sugar 1kg,KIR-SUG1,Staples,1,48,48,UPI,REG10,KIR-01,Ramesh
+20147,13-Jun-2026,Milk Powder 500g,KIR-MLK5,Dairy,10,290,2900,Credit,,KIR-01,Ramesh
+20148,15-06-2026,Milk Powder 500g,KIR-MLK5,Dairy,3,290,870,N/A,,KIR-01,Sunita
+20149,17/08/2026,Biscuits Pack,KIR-BIS1,Snacks,2,35,₹70,Card,,KIR-01,Sunita
+20150,2026-08-28,Milk Powder 500g,KIR-MLK5,Dairy,1,290,290,Cash,,KIR-01,Sunita
+20151,21-Mar-2026,Detergent 1kg,KIR-DET1,Household,2,110,220,Cash,,KIR-01,Ramesh
+20152,13-04-2026,Toor Dal 1kg (return),KIR-TOO1,Staples,3,165,(495.00),UPI,,KIR-01,Sunita
+20153,28/07/2026,Salt 1kg,KIR-SAL1,Staples,-1,22,22,UPI,,KIR-01,Ramesh
+20154,2026-06-25,Toor Dal 1kg,KIR-TOO1,Staples,10,165,1650,Card,,KIR-01,Sunita
+20155,17-May-2026,Detergent 1kg,KIR-DET1,Household,2,110,220,Card,,KIR-01,Ramesh
+20156,13-05-2026,Detergent 1kg,KIR-DET1,Household,1,110,110,Credit,,KIR-01,Sunita
+20157,13/04/2026,Biscuits Pack,KIR-BIS1,Snacks,3,35,105,Cash,,KIR-01,Ramesh
+20158,2026-07-26,Toor Dal 1kg,KIR-TOO1,Staples,1,165,165,Cash,,KIR-01,Ramesh
+20159,17-Jun-2026,Soap Bar,KIR-SOA1,Household,1,42,42,UPI,,KIR-01,Ramesh
+20160,13-07-2026,Detergent 1kg (return),KIR-DET1,Household,1,110,-110.0,UPI,,KIR-01,Ramesh
+20161,25/06/2026,Toor Dal 1kg,KIR-TOO1,Staples,2,165,330,Card,,KIR-01,Sunita
+20162,2026-09-13,Atta 5kg,KIR-ATT5,Staples,1,250,250,UPI,,KIR-01,Sunita
+20163,21-Jul-2026,Refined Oil 1L,KIR-OIL1,Staples,2,142,284,Credit,,KIR-01,Sunita
+20164,15-09-2026,Biscuits Pack,KIR-BIS1,Snacks,10,35,350,Credit,,KIR-01,Ramesh
+20165,13/06/2026,Salt 1kg,KIR-SAL1,Staples,2,22,44,Credit,,KIR-01,Sunita
+20166,2026-04-28,Poha 1kg,KIR-POH1,Staples,5,58,290,Credit,,KIR-01,Ramesh
+20167,25-Jun-2026,Toor Dal 1kg,KIR-TOO1,Staples,10,165,1650,Cash,,KIR-01,Sunita
+20168,13-07-2026,Sugar 1kg (return),KIR-SUG1,Staples,1,48,(48.00),UPI,,KIR-01,Ramesh
+20169,15/06/2026,Toor Dal 1kg,KIR-TOO1,Staples,3,165,495,Credit,,KIR-01,Sunita
+20170,2026-07-14,Atta 5kg,KIR-ATT5,Staples,5,250,1250,Credit,,KIR-01,Ramesh
+20171,15-Apr-2026,Tea 250g,KIR-TEA2,Beverages,2,135,270,UPI,,KIR-01,Ramesh
+20172,16-03-2026,Salt 1kg,KIR-SAL1,Staples,3,22,66,,,KIR-01,Ramesh
+20173,13/03/2026,Atta 5kg,KIR-ATT5,Staples,10,250,2500,Card,,KIR-01,Ramesh
+20174,2026-09-17,Atta 5kg,KIR-ATT5,Staples,2,250,500,UPI,,KIR-01,Sunita
+20175,13-Jun-2026,Refined Oil 1L,KIR-OIL1,Staples,1,142,142,Card,REG10,KIR-01,Sunita
+20176,25-06-2026,Rice 10kg (return),KIR-RIC10,Staples,1,620,-620.0,Credit,,KIR-01,Sunita
+20177,15/08/2026,Milk Powder 500g,KIR-MLK5,Dairy,3,290,870,Card,,KIR-01,Ramesh
+20178,2026-08-25,Toor Dal 1kg,KIR-TOO1,Staples,1,165,165,Credit,,KIR-01,Ramesh
+20179,13-Mar-2026,Tea 250g,KIR-TEA2,Beverages,2,135,270,Credit,,KIR-01,Ramesh
+20180,21-06-2026,Milk Powder 500g,KIR-MLK5,Dairy,1,290,290,Card,,KIR-01,Ramesh
+20181,16/05/2026,Poha 1kg,KIR-POH1,Staples,10,58,580,Credit,,KIR-01,Sunita
+20182,2026-05-28,Refined Oil 1L,KIR-OIL1,Staples,2,142,284,Credit,,KIR-01,Sunita
+20183,21-Apr-2026,Rice 10kg,KIR-RIC10,Staples,10,620,6200,Cash,,KIR-01,Ramesh
+20184,13-06-2026,Tea 250g (return),KIR-TEA2,Beverages,1,135,(135.00),Card,,KIR-01,Ramesh
+20185,17/03/2026,Biscuits Pack,KIR-BIS1,Snacks,2,35,70,Card,,KIR-01,Sunita
+20186,2026-06-23,Tea 250g,KIR-TEA2,Beverages,3,135,₹405,UPI,,KIR-01,Ramesh
+20187,21-Mar-2026,Salt 1kg,KIR-SAL1,Staples,2,22,44,Card,,KIR-01,Ramesh
+20188,13-09-2026,Soap Bar,KIR-SOA1,Household,1,42,42,Credit,,KIR-01,Ramesh
+20189,26/03/2026,Poha 1kg,KIR-POH1,Staples,2,58,116,Cash,,KIR-01,Sunita
+20190,2026-06-28,Detergent 1kg,KIR-DET1,Household,2,110,220,Credit,,KIR-01,Sunita
+20191,16-Mar-2026,Tea 250g,KIR-TEA2,Beverages,-1,135,270,UPI,,KIR-01,Sunita
+20192,13-05-2026,Milk Powder 500g (return),KIR-MLK5,Dairy,10,290,-2900.0,Credit,,KIR-01,Ramesh
+20193,13/03/2026,Refined Oil 1L,KIR-OIL1,Staples,5,142,710,UPI,,KIR-01,Sunita
+20194,2026-08-13,Tea 250g,KIR-TEA2,Beverages,1,135,135,Cash,,KIR-01,Ramesh
+20195,15-Apr-2026,Rice 10kg,KIR-RIC10,Staples,1,620,620,Credit,,KIR-01,Ramesh
+20196,13-04-2026,Poha 1kg,KIR-POH1,Staples,5,58,290,-,,KIR-01,Sunita
+20197,13/03/2026,Poha 1kg,KIR-POH1,Staples,1,58,58,Credit,,KIR-01,Ramesh
+20198,2026-08-28,Salt 1kg,KIR-SAL1,Staples,3,22,66,Credit,,KIR-01,Sunita
+20199,28-Mar-2026,Soap Bar,KIR-SOA1,Household,1,42,42,Credit,,KIR-01,Ramesh
+20200,24-07-2026,Refined Oil 1L (return),KIR-OIL1,Staples,3,142,(426.00),Card,,KIR-01,Sunita
+20201,28/08/2026,Poha 1kg,KIR-POH1,Staples,1,58,58,Card,,KIR-01,Ramesh
+20202,2026-05-22,Atta 5kg,KIR-ATT5,Staples,10,250,2500,Credit,,KIR-01,Sunita
+20203,21-Jun-2026,Detergent 1kg,KIR-DET1,Household,10,110,1100,UPI,,KIR-01,Ramesh
+20204,13-06-2026,Atta 5kg,KIR-ATT5,Staples,1,250,250,UPI,REG10,KIR-01,Ramesh
+20205,14/03/2026,Detergent 1kg,KIR-DET1,Household,2,110,220,Credit,,KIR-01,Sunita
+20206,2026-03-28,Toor Dal 1kg,KIR-TOO1,Staples,5,165,825,Cash,,KIR-01,Sunita
+20207,19-Aug-2026,Poha 1kg,KIR-POH1,Staples,2,58,116,Credit,,KIR-01,Sunita
+20208,25-08-2026,Sugar 1kg (return),KIR-SUG1,Staples,1,48,-48.0,Credit,,KIR-01,Sunita
+20209,17/06/2026,Sugar 1kg,KIR-SUG1,Staples,3,48,144,Cash,,KIR-01,Sunita
+20210,2026-06-13,Soap Bar,KIR-SOA1,Household,10,42,420,Credit,,KIR-01,Sunita
+20211,13-Jul-2026,Poha 1kg,KIR-POH1,Staples,1,58,58,Credit,,KIR-01,Ramesh
+20212,28-08-2026,Soap Bar,KIR-SOA1,Household,10,42,420,Cash,,KIR-01,Sunita
+20213,25/05/2026,Soap Bar,KIR-SOA1,Household,2,42,Rs. 0.084k,Card,,KIR-01,Sunita
+20214,2026-08-13,Soap Bar,KIR-SOA1,Household,1,42,42,Cash,,KIR-01,Ramesh
+20215,13-Jun-2026,Detergent 1kg,KIR-DET1,Household,1,110,110,Credit,,KIR-01,Ramesh
+20216,27-03-2026,Salt 1kg (return),KIR-SAL1,Staples,1,22,(22.00),UPI,,KIR-01,Sunita
+20217,22/06/2026,Soap Bar,KIR-SOA1,Household,2,42,84,Cash,,KIR-01,Ramesh
+20218,2026-09-14,Poha 1kg,KIR-POH1,Staples,10,58,580,Card,,KIR-01,Sunita
+20219,16-Jun-2026,Milk Powder 500g,KIR-MLK5,Dairy,2,290,580,Cash,,KIR-01,Ramesh
+20220,20-08-2026,Salt 1kg,KIR-SAL1,Staples,10,22,220,-,,KIR-01,Sunita
+20221,16/08/2026,Detergent 1kg,KIR-DET1,Household,2,110,220,Credit,,KIR-01,Sunita
+20222,2026-04-13,Toor Dal 1kg,KIR-TOO1,Staples,2,165,330,Cash,,KIR-01,Sunita
+20223,16-Sep-2026,Atta 5kg,KIR-ATT5,Staples,5,250,"₹1,250",Cash,,KIR-01,Sunita
+20224,15-03-2026,Milk Powder 500g (return),KIR-MLK5,Dairy,1,290,-290.0,UPI,,KIR-01,Ramesh
+20225,24/07/2026,Salt 1kg,KIR-SAL1,Staples,2,22,44,Card,,KIR-01,Ramesh
+20226,2026-09-13,Detergent 1kg,KIR-DET1,Household,1,110,110,Credit,,KIR-01,Ramesh
+20227,28-May-2026,Detergent 1kg,KIR-DET1,Household,1,110,110,Credit,,KIR-01,Ramesh
+20228,14-06-2026,Soap Bar,KIR-SOA1,Household,5,42,210,UPI,,KIR-01,Sunita
+20229,24/05/2026,Salt 1kg,KIR-SAL1,Staples,-1,22,66,Cash,,KIR-01,Ramesh
+20230,2026-08-28,Poha 1kg,KIR-POH1,Staples,3,58,174,Cash,,KIR-01,Ramesh
+20231,21-Jun-2026,Biscuits Pack,KIR-BIS1,Snacks,1,35,35,UPI,,KIR-01,Sunita
+20232,23-06-2026,Poha 1kg (return),KIR-POH1,Staples,2,58,(116.00),Cash,,KIR-01,Sunita
+20233,13/03/2026,Biscuits Pack,KIR-BIS1,Snacks,1,35,35,Credit,REG10,KIR-01,Sunita
+20234,2026-05-13,Rice 10kg,KIR-RIC10,Staples,1,620,620,UPI,,KIR-01,Ramesh
+20235,13-Apr-2026,Toor Dal 1kg,KIR-TOO1,Staples,1,165,165,UPI,,KIR-01,Sunita
+20236,13-06-2026,Soap Bar,KIR-SOA1,Household,2,42,84,UPI,,KIR-01,Sunita
+20237,28/04/2026,Rice 10kg,KIR-RIC10,Staples,1,620,620,Card,,KIR-01,Ramesh
+20238,2026-05-13,Atta 5kg,KIR-ATT5,Staples,5,250,1250,Cash,,KIR-01,Ramesh
+20239,19-Aug-2026,Poha 1kg,KIR-POH1,Staples,1,58,58,Credit,,KIR-01,Ramesh
+20240,13-09-2026,Soap Bar (return),KIR-SOA1,Household,2,42,-84.0,Cash,,KIR-01,Ramesh
+20241,28/04/2026,Refined Oil 1L,KIR-OIL1,Staples,5,142,42600.0,Cash,,KIR-01,Sunita
+20242,2026-06-26,Atta 5kg,KIR-ATT5,Staples,10,250,2500,Credit,,KIR-01,Sunita
+20243,13-Jun-2026,Biscuits Pack,KIR-BIS1,Snacks,2,35,70,Credit,,KIR-01,Sunita
+20244,17-08-2026,Milk Powder 500g,KIR-MLK5,Dairy,5,290,1450,N/A,,KIR-01,Sunita
+20245,13/05/2026,Sugar 1kg,KIR-SUG1,Staples,1,48,48,Card,,KIR-01,Sunita
+20246,2026-04-13,Toor Dal 1kg,KIR-TOO1,Staples,1,165,165,UPI,,KIR-01,Ramesh
+20247,26-Jul-2026,Rice 10kg,KIR-RIC10,Staples,10,620,6200,Cash,,KIR-01,Sunita
+20248,21-08-2026,Toor Dal 1kg,KIR-TOO1,Staples,5,165,825,Card,,KIR-01,Sunita
+20249,15/06/2026,Sugar 1kg,KIR-SUG1,Staples,2,48,96,Card,,KIR-01,Sunita
+20250,2026-08-13,Biscuits Pack,KIR-BIS1,Snacks,3,35,105,Cash,,KIR-01,Ramesh
+20251,13-Apr-2026,Detergent 1kg,KIR-DET1,Household,10,110,1100,Cash,,KIR-01,Sunita
+20252,13-07-2026,Biscuits Pack,KIR-BIS1,Snacks,2,35,70,Cash,,KIR-01,Sunita
+20253,27/05/2026,Soap Bar,KIR-SOA1,Household,2,42,84,Cash,,KIR-01,Ramesh
+20254,2026-08-28,Rice 10kg,KIR-RIC10,Staples,10,620,6200,Credit,,KIR-01,Sunita
+20255,13-Jun-2026,Rice 10kg,KIR-RIC10,Staples,2,620,1240,Credit,,KIR-01,Sunita
+20256,13-08-2026,Refined Oil 1L,KIR-OIL1,Staples,3,142,426,Credit,,KIR-01,Ramesh
+20257,23/04/2026,Detergent 1kg,KIR-DET1,Household,10,110,1100,Cash,,KIR-01,Ramesh
+20258,2026-07-13,Sugar 1kg,KIR-SUG1,Staples,3,48,144,Cash,,KIR-01,Sunita
+20259,13-Jul-2026,Salt 1kg,KIR-SAL1,Staples,1,22,22,Card,,KIR-01,Ramesh
+20260,28-06-2026,Soap Bar,KIR-SOA1,Household,5,42,₹210,UPI,,KIR-01,Sunita
+20261,23/03/2026,Detergent 1kg,KIR-DET1,Household,2,110,220,Cash,,KIR-01,Ramesh
+20262,2026-07-22,Milk Powder 500g,KIR-MLK5,Dairy,2,290,580,Credit,DIWALI5,KIR-01,Ramesh
+20263,13-Aug-2026,Soap Bar,KIR-SOA1,Household,2,42,84,Card,,KIR-01,Sunita
+20264,13-04-2026,Poha 1kg,KIR-POH1,Staples,1,58,58,Credit,,KIR-01,Sunita
+20265,28/03/2026,Rice 10kg,KIR-RIC10,Staples,3,620,1860,Cash,,KIR-01,Ramesh
+20266,2026-06-13,Poha 1kg,KIR-POH1,Staples,5,58,Rs. 0.29k,Cash,,KIR-01,Ramesh
+20267,22-Jun-2026,Atta 5kg,KIR-ATT5,Staples,-1,250,250,Credit,,KIR-01,Sunita
+20268,21-07-2026,Poha 1kg,KIR-POH1,Staples,5,58,290,-,,KIR-01,Sunita
+20269,13/04/2026,Toor Dal 1kg,KIR-TOO1,Staples,2,165,330,Card,,KIR-01,Sunita
+20270,2026-03-15,Tea 250g,KIR-TEA2,Beverages,3,135,405,UPI,,KIR-01,Sunita
+20271,18-Jul-2026,Milk Powder 500g,KIR-MLK5,Dairy,1,290,290,Cash,,KIR-01,Sunita
+20272,13-07-2026,Refined Oil 1L,KIR-OIL1,Staples,10,142,1420,UPI,,KIR-01,Ramesh
+20273,28/05/2026,Biscuits Pack,KIR-BIS1,Snacks,2,35,70,Credit,,KIR-01,Ramesh
+20274,2026-09-13,Soap Bar,KIR-SOA1,Household,1,42,42,Credit,,KIR-01,Ramesh
+20275,13-Aug-2026,Sugar 1kg,KIR-SUG1,Staples,3,48,144,Credit,,KIR-01,Sunita
+20276,16-05-2026,Refined Oil 1L,KIR-OIL1,Staples,10,142,1420,Cash,,KIR-01,Ramesh
+20277,13/03/2026,Biscuits Pack,KIR-BIS1,Snacks,3,35,105,Cash,,KIR-01,Ramesh
+20278,2026-04-13,Rice 10kg,KIR-RIC10,Staples,10,620,6200,Card,,KIR-01,Ramesh
+20279,13-Mar-2026,Soap Bar,KIR-SOA1,Household,2,42,84,Card,,KIR-01,Ramesh
+20280,21-08-2026,Rice 10kg,KIR-RIC10,Staples,1,620,620,Cash,,KIR-01,Sunita
+20281,13/03/2026,Sugar 1kg,KIR-SUG1,Staples,2,48,96,Cash,,KIR-01,Sunita
+20282,2026-07-28,Refined Oil 1L,KIR-OIL1,Staples,5,142,710,Cash,,KIR-01,Sunita
+20283,13-May-2026,Tea 250g,KIR-TEA2,Beverages,1,135,135,Credit,,KIR-01,Ramesh
+20284,13-05-2026,Salt 1kg,KIR-SAL1,Staples,5,22,110,Cash,,KIR-01,Sunita
+20285,13/05/2026,Rice 10kg,KIR-RIC10,Staples,2,620,1240,Credit,,KIR-01,Ramesh
+20286,2026-06-28,Milk Powder 500g,KIR-MLK5,Dairy,3,290,870,Cash,,KIR-01,Sunita
+20287,24-Apr-2026,Toor Dal 1kg,KIR-TOO1,Staples,3,165,495,Card,,KIR-01,Ramesh
+20288,13-09-2026,Tea 250g,KIR-TEA2,Beverages,2,135,270,UPI,,KIR-01,Sunita
+20289,20/07/2026,Salt 1kg,KIR-SAL1,Staples,1,22,22,Credit,,KIR-01,Sunita
+20290,2026-06-25,Tea 250g,KIR-TEA2,Beverages,2,135,270,Cash,,KIR-01,Sunita
+20291,13-Jul-2026,Soap Bar,KIR-SOA1,Household,3,42,126,Credit,REG10,KIR-01,Ramesh
+20292,14-05-2026,Atta 5kg,KIR-ATT5,Staples,2,250,500,N/A,,KIR-01,Sunita
+20293,15/08/2026,Sugar 1kg,KIR-SUG1,Staples,1,48,48,UPI,,KIR-01,Ramesh
+20294,2026-06-13,Poha 1kg,KIR-POH1,Staples,1,58,58,Cash,,KIR-01,Sunita
+20295,15-Apr-2026,Detergent 1kg,KIR-DET1,Household,1,110,110,Credit,,KIR-01,Ramesh
+20296,13-03-2026,Toor Dal 1kg,KIR-TOO1,Staples,3,165,495,Credit,,KIR-01,Ramesh
+20297,22/06/2026,Soap Bar,KIR-SOA1,Household,10,42,₹420,UPI,,KIR-01,Sunita
+20298,2026-03-13,Poha 1kg,KIR-POH1,Staples,5,58,290,Credit,,KIR-01,Ramesh
+20299,20-Apr-2026,Tea 250g,KIR-TEA2,Beverages,1,135,135,Card,,KIR-01,Ramesh
+20300,13-04-2026,Detergent 1kg,KIR-DET1,Household,3,110,330,Cash,,KIR-01,Ramesh
+20301,16/07/2026,Salt 1kg,KIR-SAL1,Staples,5,22,110,UPI,,KIR-01,Ramesh
+20302,2026-07-22,Atta 5kg,KIR-ATT5,Staples,1,250,250,Cash,,KIR-01,Ramesh
+20303,27-Aug-2026,Milk Powder 500g,KIR-MLK5,Dairy,10,290,2900,Credit,,KIR-01,Ramesh
+20304,13-09-2026,Refined Oil 1L,KIR-OIL1,Staples,5,142,710,Cash,,KIR-01,Ramesh
+20305,21/03/2026,Biscuits Pack,KIR-BIS1,Snacks,-1,35,105,Card,,KIR-01,Sunita
+20306,2026-07-13,Tea 250g,KIR-TEA2,Beverages,3,135,405,Credit,,KIR-01,Sunita
+20307,23-Aug-2026,Rice 10kg,KIR-RIC10,Staples,1,620,620,Cash,,KIR-01,Sunita
+20308,21-05-2026,Refined Oil 1L,KIR-OIL1,Staples,1,142,142,Credit,,KIR-01,Ramesh
+20309,24/06/2026,Toor Dal 1kg,KIR-TOO1,Staples,2,165,330,UPI,,KIR-01,Ramesh
+20310,2026-07-13,Milk Powder 500g,KIR-MLK5,Dairy,3,290,870,UPI,,KIR-01,Ramesh
+20311,13-Jul-2026,Biscuits Pack,KIR-BIS1,Snacks,3,35,105,Card,,KIR-01,Ramesh
+20312,14-07-2026,Refined Oil 1L,KIR-OIL1,Staples,2,142,284,Cash,,KIR-01,Sunita
+20313,13/03/2026,Rice 10kg,KIR-RIC10,Staples,1,620,620,Cash,,KIR-01,Sunita
+20314,2026-03-28,Biscuits Pack,KIR-BIS1,Snacks,1,35,35,UPI,,KIR-01,Sunita
+20315,13-Mar-2026,Atta 5kg,KIR-ATT5,Staples,3,250,750,UPI,,KIR-01,Ramesh
+20316,13-03-2026,Toor Dal 1kg,KIR-TOO1,Staples,1,165,165,-,,KIR-01,Sunita
+20317,13/03/2026,Milk Powder 500g,KIR-MLK5,Dairy,1,290,290,UPI,,KIR-01,Sunita
+20318,2026-03-13,Rice 10kg,KIR-RIC10,Staples,2,620,1240,Cash,,KIR-01,Sunita
+20319,13-Sep-2026,Atta 5kg,KIR-ATT5,Staples,10,250,Rs. 2.5k,Credit,,KIR-01,Ramesh
+20320,18-06-2026,Atta 5kg,KIR-ATT5,Staples,1,250,250,Card,DIWALI5,KIR-01,Sunita
+20321,27/07/2026,Toor Dal 1kg,KIR-TOO1,Staples,5,165,825,Credit,,KIR-01,Ramesh
+20322,2026-08-13,Salt 1kg,KIR-SAL1,Staples,5,22,110,Card,,KIR-01,Sunita
+20323,14-Aug-2026,Salt 1kg,KIR-SAL1,Staples,5,22,110,Credit,,KIR-01,Sunita
+20324,17-05-2026,Biscuits Pack,KIR-BIS1,Snacks,1,35,35,UPI,,KIR-01,Sunita
+20325,13/08/2026,Rice 10kg,KIR-RIC10,Staples,10,620,6200,UPI,,KIR-01,Sunita
+20326,2026-06-16,Poha 1kg,KIR-POH1,Staples,10,58,580,Card,,KIR-01,Sunita
+20327,22-Apr-2026,Salt 1kg,KIR-SAL1,Staples,3,22,66,Cash,,KIR-01,Ramesh
+20328,13-08-2026,Poha 1kg,KIR-POH1,Staples,3,58,174,Card,,KIR-01,Sunita
+20329,13/07/2026,Soap Bar,KIR-SOA1,Household,10,42,420,UPI,,KIR-01,Ramesh
+20330,2026-05-15,Sugar 1kg,KIR-SUG1,Staples,1,48,48,UPI,,KIR-01,Ramesh
+20331,14-Mar-2026,Atta 5kg,KIR-ATT5,Staples,2,250,500,Cash,,KIR-01,Sunita
+20332,22-05-2026,Rice 10kg,KIR-RIC10,Staples,3,620,1860,Credit,,KIR-01,Sunita
+20333,28/03/2026,Detergent 1kg,KIR-DET1,Household,2,110,220,Card,,KIR-01,Sunita
+20334,2026-06-18,Toor Dal 1kg,KIR-TOO1,Staples,1,165,₹165,Card,,KIR-01,Ramesh
+20335,13-Mar-2026,Sugar 1kg,KIR-SUG1,Staples,3,48,144,Cash,,KIR-01,Ramesh
+20336,26-05-2026,Toor Dal 1kg,KIR-TOO1,Staples,10,165,1650,Card,,KIR-01,Ramesh
+20337,13/09/2026,Biscuits Pack,KIR-BIS1,Snacks,2,35,70,Card,,KIR-01,Ramesh
+20338,2026-03-23,Refined Oil 1L,KIR-OIL1,Staples,2,142,284,Card,,KIR-01,Ramesh
+20339,15-Jun-2026,Sugar 1kg,KIR-SUG1,Staples,1,48,48,UPI,,KIR-01,Sunita
+20340,20-05-2026,Atta 5kg,KIR-ATT5,Staples,3,250,750,unknown,,KIR-01,Ramesh
+20341,19/05/2026,Soap Bar,KIR-SOA1,Household,1,42,42,Card,,KIR-01,Sunita
+20342,2026-03-13,Soap Bar,KIR-SOA1,Household,1,42,42,UPI,,KIR-01,Sunita
+20343,14-Jul-2026,Tea 250g,KIR-TEA2,Beverages,-1,135,1350,UPI,,KIR-01,Sunita
+20344,18-08-2026,Rice 10kg,KIR-RIC10,Staples,2,620,1240,Cash,,KIR-01,Sunita
+20345,28/03/2026,Detergent 1kg,KIR-DET1,Household,5,110,550,Card,,KIR-01,Ramesh
+20346,2026-05-13,Toor Dal 1kg,KIR-TOO1,Staples,1,165,165,Cash,,KIR-01,Ramesh
+20347,26-May-2026,Atta 5kg,KIR-ATT5,Staples,1,250,250,Credit,,KIR-01,Sunita
+20348,13-09-2026,Sugar 1kg,KIR-SUG1,Staples,2,48,96,Credit,,KIR-01,Sunita
+20349,13/05/2026,Tea 250g,KIR-TEA2,Beverages,2,135,270,Cash,DIWALI5,KIR-01,Ramesh
+20350,2026-04-25,Tea 250g,KIR-TEA2,Beverages,3,135,405,UPI,,KIR-01,Sunita
+20351,13-Sep-2026,Milk Powder 500g,KIR-MLK5,Dairy,3,290,870,UPI,,KIR-01,Ramesh
+20352,13-03-2026,Tea 250g,KIR-TEA2,Beverages,10,135,1350,Card,,KIR-01,Sunita
+20353,24/03/2026,Refined Oil 1L,KIR-OIL1,Staples,1,142,142,Card,,KIR-01,Sunita
+20354,2026-03-13,Poha 1kg,KIR-POH1,Staples,1,58,58,Credit,,KIR-01,Sunita
+20355,16-Jul-2026,Rice 10kg,KIR-RIC10,Staples,10,620,6200,UPI,,KIR-01,Ramesh
+20356,23-05-2026,Milk Powder 500g,KIR-MLK5,Dairy,5,290,1450,UPI,,KIR-01,Sunita
+20357,13/08/2026,Soap Bar,KIR-SOA1,Household,5,42,210,Credit,,KIR-01,Ramesh
+20358,2026-05-13,Biscuits Pack,KIR-BIS1,Snacks,3,35,105,Card,,KIR-01,Ramesh
+20359,23-Apr-2026,Sugar 1kg,KIR-SUG1,Staples,1,48,48,Credit,,KIR-01,Sunita
+20360,13-04-2026,Biscuits Pack,KIR-BIS1,Snacks,3,35,105,Cash,,KIR-01,Sunita
+20361,13/03/2026,Atta 5kg,KIR-ATT5,Staples,2,250,30000.0,Credit,,KIR-01,Ramesh
+20362,2026-04-13,Rice 10kg,KIR-RIC10,Staples,1,620,620,Cash,,KIR-01,Sunita
+20363,13-Jun-2026,Salt 1kg,KIR-SAL1,Staples,1,22,22,UPI,,KIR-01,Sunita
+20364,13-07-2026,Rice 10kg,KIR-RIC10,Staples,1,620,620,-,,KIR-01,Sunita
+20365,13/09/2026,Tea 250g,KIR-TEA2,Beverages,3,135,405,Cash,,KIR-01,Ramesh
+20366,2026-03-14,Refined Oil 1L,KIR-OIL1,Staples,5,142,710,Credit,,KIR-01,Sunita
+20367,13-Jul-2026,Sugar 1kg,KIR-SUG1,Staples,10,48,480,Cash,,KIR-01,Ramesh
+20368,14-07-2026,Salt 1kg,KIR-SAL1,Staples,2,22,44,UPI,,KIR-01,Ramesh
+20369,15/08/2026,Rice 10kg,KIR-RIC10,Staples,2,620,1240,Cash,,KIR-01,Ramesh
+20370,2026-06-13,Salt 1kg,KIR-SAL1,Staples,10,22,220,UPI,,KIR-01,Ramesh
+20371,20-Mar-2026,Rice 10kg,KIR-RIC10,Staples,2,620,"₹1,240",Card,,KIR-01,Sunita
+20372,13-05-2026,Detergent 1kg,KIR-DET1,Household,1,110,Rs. 0.11k,Credit,,KIR-01,Sunita
+20373,21/08/2026,Biscuits Pack,KIR-BIS1,Snacks,1,35,35,UPI,,KIR-01,Ramesh
+20374,2026-03-13,Biscuits Pack,KIR-BIS1,Snacks,3,35,105,Cash,,KIR-01,Ramesh
+20375,27-Mar-2026,Refined Oil 1L,KIR-OIL1,Staples,1,142,142,Card,,KIR-01,Sunita
+20376,18-03-2026,Soap Bar,KIR-SOA1,Household,10,42,420,Card,,KIR-01,Sunita
+20377,16/09/2026,Toor Dal 1kg,KIR-TOO1,Staples,1,165,165,Credit,,KIR-01,Ramesh
+20378,2026-09-13,Sugar 1kg,KIR-SUG1,Staples,5,48,240,Card,REG10,KIR-01,Ramesh
+20379,25-Jul-2026,Soap Bar,KIR-SOA1,Household,2,42,84,Cash,,KIR-01,Sunita
+20380,13-07-2026,Tea 250g,KIR-TEA2,Beverages,10,135,1350,Card,,KIR-01,Sunita
+20381,23/03/2026,Milk Powder 500g,KIR-MLK5,Dairy,-1,290,1450,UPI,,KIR-01,Sunita
+20382,2026-07-28,Poha 1kg,KIR-POH1,Staples,5,58,290,Card,,KIR-01,Sunita
+20383,13-Apr-2026,Refined Oil 1L,KIR-OIL1,Staples,10,142,1420,Card,,KIR-01,Sunita
+20384,27-03-2026,Milk Powder 500g,KIR-MLK5,Dairy,2,290,580,Card,,KIR-01,Sunita
+20385,18/06/2026,Poha 1kg,KIR-POH1,Staples,2,58,116,Cash,,KIR-01,Sunita
+20386,2026-05-18,Rice 10kg,KIR-RIC10,Staples,1,620,620,Credit,,KIR-01,Sunita
+20387,14-Mar-2026,Sugar 1kg,KIR-SUG1,Staples,3,48,144,Credit,,KIR-01,Sunita
+20388,21-08-2026,Tea 250g,KIR-TEA2,Beverages,1,135,135,N/A,,KIR-01,Sunita
+20389,13/05/2026,Rice 10kg,KIR-RIC10,Staples,1,620,620,UPI,,KIR-01,Ramesh
+20390,2026-08-28,Soap Bar,KIR-SOA1,Household,5,42,210,Credit,,KIR-01,Ramesh
+20391,21-Aug-2026,Salt 1kg,KIR-SAL1,Staples,2,22,44,UPI,,KIR-01,Ramesh
+20392,13-06-2026,Soap Bar,KIR-SOA1,Household,10,42,420,Card,,KIR-01,Sunita
+20393,19/05/2026,Soap Bar,KIR-SOA1,Household,2,42,84,Card,,KIR-01,Ramesh
+20394,2026-08-26,Poha 1kg,KIR-POH1,Staples,3,58,174,UPI,,KIR-01,Ramesh
+20395,18-May-2026,Detergent 1kg,KIR-DET1,Household,1,110,110,Credit,,KIR-01,Sunita
+20396,13-04-2026,Refined Oil 1L,KIR-OIL1,Staples,2,142,284,Credit,,KIR-01,Ramesh
+20397,13/04/2026,Soap Bar,KIR-SOA1,Household,3,42,126,UPI,,KIR-01,Sunita
+20398,2026-05-26,Poha 1kg,KIR-POH1,Staples,2,58,116,Credit,,KIR-01,Ramesh
+20399,18-Aug-2026,Milk Powder 500g,KIR-MLK5,Dairy,1,290,290,UPI,,KIR-01,Ramesh
+20400,19-08-2026,Soap Bar,KIR-SOA1,Household,1,42,42,Credit,,KIR-01,Ramesh
+20401,13/03/2026,Salt 1kg,KIR-SAL1,Staples,2,22,44,Credit,,KIR-01,Ramesh
+20402,2026-07-21,Rice 10kg,KIR-RIC10,Staples,5,620,3100,Card,,KIR-01,Sunita
+20403,13-Mar-2026,Biscuits Pack,KIR-BIS1,Snacks,2,35,70,Credit,,KIR-01,Sunita
+20404,25-08-2026,Toor Dal 1kg,KIR-TOO1,Staples,5,165,825,UPI,,KIR-01,Ramesh
+20405,16/04/2026,Atta 5kg,KIR-ATT5,Staples,1,250,250,UPI,,KIR-01,Sunita
+20406,2026-08-28,Biscuits Pack,KIR-BIS1,Snacks,2,35,70,Cash,,KIR-01,Ramesh
+20407,14-Apr-2026,Atta 5kg,KIR-ATT5,Staples,10,250,2500,Cash,DIWALI5,KIR-01,Sunita
+20408,13-03-2026,Soap Bar,KIR-SOA1,Household,10,42,₹420,Credit,,KIR-01,Sunita
+20409,27/05/2026,Sugar 1kg,KIR-SUG1,Staples,1,48,48,Cash,,KIR-01,Ramesh
+20410,2026-03-18,Sugar 1kg,KIR-SUG1,Staples,10,48,480,Cash,,KIR-01,Sunita
+20411,13-May-2026,Milk Powder 500g,KIR-MLK5,Dairy,1,290,290,Cash,,KIR-01,Sunita
+20412,13-08-2026,Salt 1kg,KIR-SAL1,Staples,2,22,44,-,,KIR-01,Sunita
+20413,17/08/2026,Atta 5kg,KIR-ATT5,Staples,5,250,1250,UPI,,KIR-01,Ramesh
+20414,2026-03-28,Poha 1kg,KIR-POH1,Staples,3,58,174,Cash,,KIR-01,Sunita
+20415,28-Mar-2026,Tea 250g,KIR-TEA2,Beverages,1,135,135,Credit,,KIR-01,Sunita
+20416,13-06-2026,Biscuits Pack,KIR-BIS1,Snacks,2,35,70,UPI,,KIR-01,Ramesh
+20417,13/08/2026,Salt 1kg,KIR-SAL1,Staples,10,22,220,Cash,,KIR-01,Ramesh
+20418,2026-09-13,Salt 1kg,KIR-SAL1,Staples,10,22,220,UPI,,KIR-01,Sunita
+20419,13-Jun-2026,Soap Bar,KIR-SOA1,Household,-1,42,210,Credit,,KIR-01,Ramesh
+20420,13-09-2026,Poha 1kg,KIR-POH1,Staples,1,58,58,Credit,,KIR-01,Sunita
+20421,13/05/2026,Salt 1kg,KIR-SAL1,Staples,1,22,22,Cash,,KIR-01,Ramesh
+20422,2026-04-21,Toor Dal 1kg,KIR-TOO1,Staples,2,165,330,UPI,,KIR-01,Ramesh
+20423,13-Jun-2026,Poha 1kg,KIR-POH1,Staples,5,58,290,Credit,,KIR-01,Ramesh
+20424,21-08-2026,Milk Powder 500g,KIR-MLK5,Dairy,3,290,870,UPI,,KIR-01,Sunita
+20425,24/07/2026,Rice 10kg,KIR-RIC10,Staples,1,620,Rs. 0.62k,Cash,,KIR-01,Sunita
+20426,2026-05-19,Biscuits Pack,KIR-BIS1,Snacks,2,35,70,Cash,,KIR-01,Sunita
+20427,17-Apr-2026,Soap Bar,KIR-SOA1,Household,1,42,42,UPI,,KIR-01,Ramesh
+20428,14-06-2026,Poha 1kg,KIR-POH1,Staples,5,58,290,Credit,,KIR-01,Sunita
+20429,28/07/2026,Soap Bar,KIR-SOA1,Household,5,42,210,Credit,,KIR-01,Sunita
+20430,2026-04-26,Detergent 1kg,KIR-DET1,Household,5,110,550,Cash,,KIR-01,Sunita
+20431,15-Aug-2026,Detergent 1kg,KIR-DET1,Household,2,110,220,Cash,,KIR-01,Sunita
+20432,13-09-2026,Milk Powder 500g,KIR-MLK5,Dairy,5,290,1450,Card,,KIR-01,Ramesh
+20433,27/03/2026,Toor Dal 1kg,KIR-TOO1,Staples,1,165,165,Cash,,KIR-01,Sunita
+20434,2026-03-26,Milk Powder 500g,KIR-MLK5,Dairy,5,290,1450,Credit,,KIR-01,Ramesh
+20435,13-May-2026,Salt 1kg,KIR-SAL1,Staples,5,22,110,Card,,KIR-01,Sunita
+20436,13-05-2026,Atta 5kg,KIR-ATT5,Staples,1,250,250,,DIWALI5,KIR-01,Ramesh
+20437,13/03/2026,Atta 5kg,KIR-ATT5,Staples,2,250,500,Card,,KIR-01,Sunita
+20438,2026-08-28,Toor Dal 1kg,KIR-TOO1,Staples,1,165,165,Card,,KIR-01,Sunita
+20439,23-Apr-2026,Soap Bar,KIR-SOA1,Household,1,42,42,Credit,,KIR-01,Ramesh
+20440,13-06-2026,Detergent 1kg,KIR-DET1,Household,5,110,550,Card,,KIR-01,Ramesh
+20441,13/08/2026,Soap Bar,KIR-SOA1,Household,3,42,126,Credit,,KIR-01,Sunita
+20442,2026-07-21,Tea 250g,KIR-TEA2,Beverages,1,135,135,Card,,KIR-01,Sunita
+20443,28-Jun-2026,Tea 250g,KIR-TEA2,Beverages,5,135,675,UPI,,KIR-01,Sunita
+20444,13-09-2026,Toor Dal 1kg,KIR-TOO1,Staples,10,165,1650,UPI,,KIR-01,Ramesh
+20445,15/05/2026,Tea 250g,KIR-TEA2,Beverages,2,135,₹270,UPI,,KIR-01,Sunita
+20446,2026-06-15,Salt 1kg,KIR-SAL1,Staples,3,22,66,Card,,KIR-01,Sunita
+20447,13-Apr-2026,Sugar 1kg,KIR-SUG1,Staples,5,48,240,Credit,,KIR-01,Sunita
+20448,13-03-2026,Rice 10kg,KIR-RIC10,Staples,10,620,6200,UPI,,KIR-01,Ramesh
+20449,13/03/2026,Soap Bar,KIR-SOA1,Household,2,42,84,Credit,,KIR-01,Sunita
+20450,2026-09-13,Tea 250g,KIR-TEA2,Beverages,2,135,270,Card,,KIR-01,Sunita
+20451,13-Jul-2026,Atta 5kg,KIR-ATT5,Staples,5,250,1250,Cash,,KIR-01,Ramesh
+20452,13-09-2026,Detergent 1kg,KIR-DET1,Household,1,110,110,Card,,KIR-01,Sunita
+20453,13/07/2026,Rice 10kg,KIR-RIC10,Staples,2,620,1240,Cash,,KIR-01,Ramesh
+20454,2026-05-18,Toor Dal 1kg,KIR-TOO1,Staples,1,165,165,Card,,KIR-01,Sunita
+20455,13-Aug-2026,Refined Oil 1L,KIR-OIL1,Staples,1,142,142,Credit,,KIR-01,Sunita
+20456,13-09-2026,Salt 1kg,KIR-SAL1,Staples,10,22,220,Cash,,KIR-01,Ramesh
+20457,13/04/2026,Sugar 1kg,KIR-SUG1,Staples,-1,48,96,Credit,,KIR-01,Ramesh
+20458,2026-03-13,Biscuits Pack,KIR-BIS1,Snacks,3,35,105,Card,,KIR-01,Ramesh
+20459,28-Jul-2026,Milk Powder 500g,KIR-MLK5,Dairy,2,290,580,Cash,,KIR-01,Sunita
+20460,13-08-2026,Sugar 1kg,KIR-SUG1,Staples,3,48,144,unknown,,KIR-01,Sunita
+20461,28/08/2026,Sugar 1kg,KIR-SUG1,Staples,2,48,96,Credit,,KIR-01,Sunita
+20462,2026-05-28,Biscuits Pack,KIR-BIS1,Snacks,5,35,175,UPI,,KIR-01,Sunita
+20463,13-Jul-2026,Sugar 1kg,KIR-SUG1,Staples,3,48,144,UPI,,KIR-01,Sunita
+20464,13-06-2026,Poha 1kg,KIR-POH1,Staples,1,58,58,Cash,,KIR-01,Ramesh
+20465,28/05/2026,Milk Powder 500g,KIR-MLK5,Dairy,1,290,290,Credit,REG10,KIR-01,Sunita
+20466,2026-07-13,Rice 10kg,KIR-RIC10,Staples,2,620,1240,Cash,,KIR-01,Ramesh
+20467,23-Apr-2026,Biscuits Pack,KIR-BIS1,Snacks,5,35,175,Credit,,KIR-01,Ramesh
+20468,13-04-2026,Biscuits Pack,KIR-BIS1,Snacks,3,35,105,Card,,KIR-01,Ramesh
+20469,27/07/2026,Atta 5kg,KIR-ATT5,Staples,3,250,750,Credit,,KIR-01,Ramesh
+20470,2026-03-13,Sugar 1kg,KIR-SUG1,Staples,1,48,48,UPI,,KIR-01,Ramesh
+20471,21-Mar-2026,Refined Oil 1L,KIR-OIL1,Staples,1,142,142,Card,,KIR-01,Sunita
+20472,22-05-2026,Soap Bar,KIR-SOA1,Household,5,42,210,Credit,,KIR-01,Ramesh
+20473,16/03/2026,Poha 1kg,KIR-POH1,Staples,1,58,58,Credit,,KIR-01,Ramesh
+20474,2026-05-25,Toor Dal 1kg,KIR-TOO1,Staples,1,165,165,UPI,,KIR-01,Ramesh
+20475,13-Aug-2026,Soap Bar,KIR-SOA1,Household,2,42,84,Credit,,KIR-01,Ramesh
+20476,20-04-2026,Toor Dal 1kg,KIR-TOO1,Staples,2,165,330,Card,,KIR-01,Sunita
+20477,14/05/2026,Biscuits Pack,KIR-BIS1,Snacks,10,35,350,Card,,KIR-01,Ramesh
+20478,2026-04-18,Refined Oil 1L,KIR-OIL1,Staples,2,142,Rs. 0.284k,Card,,KIR-01,Sunita
+20479,13-May-2026,Refined Oil 1L,KIR-OIL1,Staples,2,142,284,UPI,,KIR-01,Ramesh
+20480,23-04-2026,Tea 250g,KIR-TEA2,Beverages,1,135,135,Credit,,KIR-01,Ramesh
+20481,26/07/2026,Rice 10kg,KIR-RIC10,Staples,1,620,46500.0,Cash,,KIR-01,Ramesh
+20482,2026-04-13,Biscuits Pack,KIR-BIS1,Snacks,1,35,₹35,Cash,,KIR-01,Ramesh
+20483,28-Aug-2026,Sugar 1kg,KIR-SUG1,Staples,2,48,96,Credit,,KIR-01,Sunita
+20484,13-04-2026,Toor Dal 1kg,KIR-TOO1,Staples,1,165,165,unknown,,KIR-01,Sunita
+20485,13/09/2026,Refined Oil 1L,KIR-OIL1,Staples,3,142,426,UPI,,KIR-01,Sunita
+20486,2026-07-13,Soap Bar,KIR-SOA1,Household,5,42,210,Cash,,KIR-01,Sunita
+20487,15-Sep-2026,Tea 250g,KIR-TEA2,Beverages,3,135,405,UPI,,KIR-01,Sunita
+20488,13-07-2026,Sugar 1kg,KIR-SUG1,Staples,2,48,96,Cash,,KIR-01,Ramesh
+20489,13/04/2026,Milk Powder 500g,KIR-MLK5,Dairy,1,290,290,Card,,KIR-01,Ramesh
+20490,2026-07-15,Soap Bar,KIR-SOA1,Household,2,42,84,Cash,,KIR-01,Ramesh
+20491,27-Jun-2026,Atta 5kg,KIR-ATT5,Staples,3,250,750,Cash,,KIR-01,Sunita
+20492,21-03-2026,Atta 5kg,KIR-ATT5,Staples,1,250,250,Card,,KIR-01,Sunita
+20493,27/03/2026,Refined Oil 1L,KIR-OIL1,Staples,3,142,426,UPI,,KIR-01,Sunita
+20494,2026-05-17,Atta 5kg,KIR-ATT5,Staples,3,250,750,UPI,DIWALI5,KIR-01,Sunita
+20495,27-Jul-2026,Detergent 1kg,KIR-DET1,Household,-1,110,550,Credit,,KIR-01,Sunita
+20496,15-09-2026,Soap Bar,KIR-SOA1,Household,5,42,210,UPI,,KIR-01,Ramesh
+20497,21/05/2026,Poha 1kg,KIR-POH1,Staples,2,58,116,Card,,KIR-01,Ramesh
+20498,2026-04-28,Sugar 1kg,KIR-SUG1,Staples,3,48,144,UPI,,KIR-01,Ramesh
+20499,14-Sep-2026,Refined Oil 1L,KIR-OIL1,Staples,2,142,284,UPI,,KIR-01,Ramesh
+20500,13-03-2026,Milk Powder 500g,KIR-MLK5,Dairy,1,290,290,UPI,,KIR-01,Ramesh
+20501,24/07/2026,Milk Powder 500g,KIR-MLK5,Dairy,1,290,290,Card,,KIR-01,Ramesh
+20502,2026-03-13,Biscuits Pack,KIR-BIS1,Snacks,1,35,35,Card,,KIR-01,Sunita
+20503,13-Jun-2026,Detergent 1kg,KIR-DET1,Household,10,110,1100,Card,,KIR-01,Ramesh
+20504,13-03-2026,Soap Bar,KIR-SOA1,Household,3,42,126,Cash,,KIR-01,Ramesh
+20505,13/05/2026,Toor Dal 1kg,KIR-TOO1,Staples,1,165,165,Cash,,KIR-01,Ramesh
+20506,2026-08-13,Salt 1kg,KIR-SAL1,Staples,1,22,22,UPI,,KIR-01,Ramesh
+20507,13-May-2026,Atta 5kg,KIR-ATT5,Staples,3,250,750,Cash,,KIR-01,Sunita
+20508,13-06-2026,Biscuits Pack,KIR-BIS1,Snacks,1,35,35,,,KIR-01,Ramesh
+20509,14/07/2026,Soap Bar,KIR-SOA1,Household,1,42,42,Cash,,KIR-01,Sunita
+20510,2026-08-28,Soap Bar,KIR-SOA1,Household,2,42,84,Card,,KIR-01,Ramesh
+20511,23-Aug-2026,Soap Bar,KIR-SOA1,Household,3,42,126,Card,,KIR-01,Ramesh
+20512,13-08-2026,Poha 1kg,KIR-POH1,Staples,2,58,116,Credit,,KIR-01,Ramesh
+20513,22/06/2026,Detergent 1kg,KIR-DET1,Household,1,110,110,Cash,,KIR-01,Sunita
+20514,2026-08-14,Rice 10kg,KIR-RIC10,Staples,1,620,620,UPI,,KIR-01,Sunita
+20515,13-Sep-2026,Salt 1kg,KIR-SAL1,Staples,10,22,220,Credit,,KIR-01,Ramesh
+20516,13-08-2026,Poha 1kg,KIR-POH1,Staples,2,58,116,Cash,,KIR-01,Ramesh
+20517,28/03/2026,Biscuits Pack,KIR-BIS1,Snacks,2,35,70,UPI,,KIR-01,Ramesh
+20518,2026-03-13,Milk Powder 500g,KIR-MLK5,Dairy,10,290,2900,UPI,,KIR-01,Ramesh
+20519,24-Mar-2026,Soap Bar,KIR-SOA1,Household,1,42,₹42,Card,,KIR-01,Sunita
+20520,13-08-2026,Toor Dal 1kg,KIR-TOO1,Staples,2,165,330,Card,,KIR-01,Ramesh
+20521,25/06/2026,Rice 10kg,KIR-RIC10,Staples,2,620,1240,Credit,,KIR-01,Ramesh
+20522,2026-08-16,Milk Powder 500g,KIR-MLK5,Dairy,2,290,580,Card,,KIR-01,Sunita
+20523,13-Aug-2026,Poha 1kg,KIR-POH1,Staples,1,58,58,Card,DIWALI5,KIR-01,Ramesh
+20524,27-03-2026,Detergent 1kg,KIR-DET1,Household,1,110,110,Credit,,KIR-01,Sunita
+20525,13/07/2026,Atta 5kg,KIR-ATT5,Staples,5,250,1250,Cash,,KIR-01,Sunita
+20526,2026-07-24,Soap Bar,KIR-SOA1,Household,3,42,126,UPI,,KIR-01,Sunita
+20527,13-Aug-2026,Rice 10kg,KIR-RIC10,Staples,2,620,1240,Cash,,KIR-01,Sunita
+20528,13-04-2026,Tea 250g,KIR-TEA2,Beverages,10,135,1350,Cash,,KIR-01,Ramesh
+20529,28/03/2026,Soap Bar,KIR-SOA1,Household,1,42,42,Credit,,KIR-01,Ramesh
+20530,2026-03-13,Biscuits Pack,KIR-BIS1,Snacks,2,35,70,Cash,,KIR-01,Ramesh
+20531,13-Aug-2026,Biscuits Pack,KIR-BIS1,Snacks,3,35,Rs. 0.105k,Card,,KIR-01,Ramesh
+20532,27-04-2026,Rice 10kg,KIR-RIC10,Staples,3,620,1860,-,,KIR-01,Ramesh
+20533,13/09/2026,Detergent 1kg,KIR-DET1,Household,-1,110,110,Credit,,KIR-01,Sunita
+20534,2026-05-13,Detergent 1kg,KIR-DET1,Household,10,110,1100,Credit,,KIR-01,Ramesh
+20535,28-Jun-2026,Biscuits Pack,KIR-BIS1,Snacks,1,35,35,Card,,KIR-01,Ramesh
+20536,13-08-2026,Detergent 1kg,KIR-DET1,Household,3,110,330,UPI,,KIR-01,Ramesh
+20537,13/06/2026,Milk Powder 500g,KIR-MLK5,Dairy,1,290,290,Credit,,KIR-01,Ramesh
+20538,2026-08-13,Toor Dal 1kg,KIR-TOO1,Staples,3,165,495,Card,,KIR-01,Ramesh
+20539,13-Jul-2026,Soap Bar,KIR-SOA1,Household,5,42,210,Credit,,KIR-01,Sunita
+20540,16-09-2026,Atta 5kg,KIR-ATT5,Staples,1,250,250,Credit,,KIR-01,Ramesh
+20541,13/06/2026,Soap Bar,KIR-SOA1,Household,1,42,42,Credit,,KIR-01,Ramesh
+20542,2026-06-13,Soap Bar,KIR-SOA1,Household,10,42,420,Credit,,KIR-01,Sunita
+20543,13-May-2026,Poha 1kg,KIR-POH1,Staples,1,58,58,UPI,,KIR-01,Sunita
+20544,13-06-2026,Rice 10kg,KIR-RIC10,Staples,10,620,6200,Cash,,KIR-01,Ramesh
+20545,24/04/2026,Toor Dal 1kg,KIR-TOO1,Staples,1,165,165,Cash,,KIR-01,Sunita
+20546,2026-05-13,Tea 250g,KIR-TEA2,Beverages,3,135,405,UPI,,KIR-01,Ramesh
+20547,18-Aug-2026,Detergent 1kg,KIR-DET1,Household,10,110,1100,Credit,,KIR-01,Sunita
+20548,24-07-2026,Poha 1kg,KIR-POH1,Staples,2,58,116,Cash,,KIR-01,Ramesh
+20549,13/09/2026,Soap Bar,KIR-SOA1,Household,2,42,84,UPI,,KIR-01,Sunita
+20550,2026-09-13,Soap Bar,KIR-SOA1,Household,2,42,84,Cash,,KIR-01,Ramesh
+20551,28-May-2026,Biscuits Pack,KIR-BIS1,Snacks,1,35,35,Cash,,KIR-01,Ramesh
+20552,28-03-2026,Sugar 1kg,KIR-SUG1,Staples,2,48,96,UPI,REG10,KIR-01,Sunita
+20553,16/05/2026,Sugar 1kg,KIR-SUG1,Staples,2,48,96,Cash,,KIR-01,Ramesh
+20554,2026-04-13,Tea 250g,KIR-TEA2,Beverages,2,135,270,Credit,,KIR-01,Sunita
+20555,13-Apr-2026,Soap Bar,KIR-SOA1,Household,1,42,42,UPI,,KIR-01,Ramesh
+20556,13-04-2026,Sugar 1kg,KIR-SUG1,Staples,5,48,₹240,,,KIR-01,Sunita
+20557,13/06/2026,Soap Bar,KIR-SOA1,Household,5,42,210,UPI,,KIR-01,Ramesh
+20558,2026-06-13,Rice 10kg,KIR-RIC10,Staples,3,620,1860,Card,,KIR-01,Sunita
+20559,13-Aug-2026,Salt 1kg,KIR-SAL1,Staples,5,22,110,Card,,KIR-01,Sunita
+20560,13-07-2026,Atta 5kg,KIR-ATT5,Staples,2,250,500,UPI,,KIR-01,Ramesh
+20561,28/04/2026,Biscuits Pack,KIR-BIS1,Snacks,5,35,175,Credit,,KIR-01,Ramesh
+20562,2026-05-25,Sugar 1kg,KIR-SUG1,Staples,1,48,48,Card,,KIR-01,Sunita
+20563,27-Mar-2026,Salt 1kg,KIR-SAL1,Staples,10,22,220,Cash,,KIR-01,Sunita
+20564,13-08-2026,Sugar 1kg,KIR-SUG1,Staples,10,48,480,UPI,,KIR-01,Ramesh
+20565,13/07/2026,Milk Powder 500g,KIR-MLK5,Dairy,2,290,580,UPI,,KIR-01,Ramesh
+20566,2026-03-22,Refined Oil 1L,KIR-OIL1,Staples,2,142,284,Cash,,KIR-01,Sunita
+20567,13-Sep-2026,Refined Oil 1L,KIR-OIL1,Staples,2,142,284,Card,,KIR-01,Sunita
+20568,28-06-2026,Atta 5kg,KIR-ATT5,Staples,5,250,1250,Credit,,KIR-01,Sunita
+20569,15/07/2026,Soap Bar,KIR-SOA1,Household,1,42,42,Card,,KIR-01,Ramesh
+20570,2026-04-15,Sugar 1kg,KIR-SUG1,Staples,1,48,48,Card,,KIR-01,Ramesh
+20571,13-Jun-2026,Poha 1kg,KIR-POH1,Staples,-1,58,58,UPI,,KIR-01,Sunita
+20572,13-05-2026,Sugar 1kg,KIR-SUG1,Staples,1,48,48,Credit,,KIR-01,Ramesh
+20573,19/04/2026,Poha 1kg,KIR-POH1,Staples,1,58,58,Card,,KIR-01,Sunita
+20574,2026-04-13,Atta 5kg,KIR-ATT5,Staples,3,250,750,Cash,,KIR-01,Sunita
+20575,17-Mar-2026,Rice 10kg,KIR-RIC10,Staples,5,620,3100,Credit,,KIR-01,Ramesh
+20576,18-08-2026,Sugar 1kg,KIR-SUG1,Staples,2,48,96,Card,,KIR-01,Ramesh
+20577,18/03/2026,Milk Powder 500g,KIR-MLK5,Dairy,1,290,290,Cash,,KIR-01,Ramesh
+20578,2026-08-22,Refined Oil 1L,KIR-OIL1,Staples,5,142,710,Cash,,KIR-01,Ramesh
+20579,25-Apr-2026,Refined Oil 1L,KIR-OIL1,Staples,5,142,710,UPI,,KIR-01,Ramesh
+20580,13-07-2026,Milk Powder 500g,KIR-MLK5,Dairy,3,290,870,-,,KIR-01,Sunita
+20581,16/06/2026,Sugar 1kg,KIR-SUG1,Staples,3,48,144,Card,REG10,KIR-01,Ramesh
+20582,2026-07-19,Atta 5kg,KIR-ATT5,Staples,1,250,250,UPI,,KIR-01,Sunita
+20583,23-May-2026,Detergent 1kg,KIR-DET1,Household,2,110,220,Cash,,KIR-01,Sunita
+20584,14-03-2026,Sugar 1kg,KIR-SUG1,Staples,1,48,Rs. 0.048k,UPI,,KIR-01,Sunita
+20585,13/06/2026,Salt 1kg,KIR-SAL1,Staples,1,22,22,UPI,,KIR-01,Sunita
+20586,2026-07-18,Toor Dal 1kg,KIR-TOO1,Staples,1,165,165,UPI,,KIR-01,Sunita
+20587,26-Apr-2026,Refined Oil 1L,KIR-OIL1,Staples,2,142,284,UPI,,KIR-01,Ramesh
+20588,13-03-2026,Toor Dal 1kg,KIR-TOO1,Staples,2,165,330,Cash,,KIR-01,Ramesh
+20589,13/03/2026,Milk Powder 500g,KIR-MLK5,Dairy,1,290,290,UPI,,KIR-01,Ramesh
+20590,2026-07-28,Detergent 1kg,KIR-DET1,Household,10,110,1100,Cash,,KIR-01,Sunita
+20591,13-Jun-2026,Salt 1kg,KIR-SAL1,Staples,3,22,66,Card,,KIR-01,Ramesh
+20592,28-03-2026,Rice 10kg,KIR-RIC10,Staples,2,620,1240,Credit,,KIR-01,Ramesh
+20593,13/03/2026,Atta 5kg,KIR-ATT5,Staples,3,250,₹750,UPI,,KIR-01,Sunita
+20594,2026-06-13,Poha 1kg,KIR-POH1,Staples,1,58,58,Credit,,KIR-01,Sunita
+20595,13-May-2026,Atta 5kg,KIR-ATT5,Staples,3,250,750,Card,,KIR-01,Ramesh
+20596,13-07-2026,Detergent 1kg,KIR-DET1,Household,2,110,220,Card,,KIR-01,Ramesh
+20597,13/06/2026,Soap Bar,KIR-SOA1,Household,5,42,210,Cash,,KIR-01,Sunita
+20598,2026-05-14,Biscuits Pack,KIR-BIS1,Snacks,2,35,70,Card,,KIR-01,Sunita
+20599,13-Aug-2026,Milk Powder 500g,KIR-MLK5,Dairy,3,290,870,UPI,,KIR-01,Sunita
+20600,15-05-2026,Poha 1kg,KIR-POH1,Staples,5,58,290,UPI,,KIR-01,Sunita
+20601,28/08/2026,Sugar 1kg,KIR-SUG1,Staples,10,48,480,UPI,,KIR-01,Sunita
+20602,2026-04-17,Biscuits Pack,KIR-BIS1,Snacks,5,35,175,Card,,KIR-01,Ramesh
+20603,13-Sep-2026,Soap Bar,KIR-SOA1,Household,5,42,210,Credit,,KIR-01,Sunita
+20604,13-03-2026,Detergent 1kg,KIR-DET1,Household,2,110,220,unknown,,KIR-01,Sunita
+20605,14/04/2026,Atta 5kg,KIR-ATT5,Staples,2,250,500,Cash,,KIR-01,Sunita
+20606,2026-07-16,Refined Oil 1L,KIR-OIL1,Staples,5,142,710,UPI,,KIR-01,Sunita
+20607,19-Mar-2026,Refined Oil 1L,KIR-OIL1,Staples,3,142,426,Credit,,KIR-01,Sunita
+20608,13-09-2026,Biscuits Pack,KIR-BIS1,Snacks,2,35,70,Credit,,KIR-01,Ramesh
+20609,26/08/2026,Biscuits Pack,KIR-BIS1,Snacks,-1,35,70,Card,,KIR-01,Ramesh
+20610,2026-06-13,Atta 5kg,KIR-ATT5,Staples,2,250,500,Credit,REG10,KIR-01,Sunita
+20611,15-May-2026,Poha 1kg,KIR-POH1,Staples,2,58,116,Credit,,KIR-01,Ramesh
+20612,28-06-2026,Toor Dal 1kg,KIR-TOO1,Staples,1,165,165,Credit,,KIR-01,Sunita
+20613,26/06/2026,Sugar 1kg,KIR-SUG1,Staples,1,48,48,Credit,,KIR-01,Ramesh
+20614,2026-09-13,Tea 250g,KIR-TEA2,Beverages,5,135,675,Card,,KIR-01,Sunita
+20615,19-May-2026,Toor Dal 1kg,KIR-TOO1,Staples,10,165,1650,Card,,KIR-01,Ramesh
+20616,16-08-2026,Rice 10kg,KIR-RIC10,Staples,1,620,620,Card,,KIR-01,Ramesh
+20617,28/04/2026,Soap Bar,KIR-SOA1,Household,10,42,420,Cash,,KIR-01,Ramesh
+20618,2026-06-13,Refined Oil 1L,KIR-OIL1,Staples,1,142,142,UPI,,KIR-01,Sunita
+20619,16-May-2026,Atta 5kg,KIR-ATT5,Staples,2,250,500,Credit,,KIR-01,Sunita
+20620,28-08-2026,Tea 250g,KIR-TEA2,Beverages,5,135,675,Card,,KIR-01,Sunita
+20621,13/08/2026,Toor Dal 1kg,KIR-TOO1,Staples,5,165,825,Card,,KIR-01,Sunita
+20622,2026-07-19,Tea 250g,KIR-TEA2,Beverages,1,135,135,Cash,,KIR-01,Sunita
+20623,13-Sep-2026,Milk Powder 500g,KIR-MLK5,Dairy,3,290,870,Cash,,KIR-01,Sunita
+20624,21-04-2026,Poha 1kg,KIR-POH1,Staples,2,58,116,Card,,KIR-01,Ramesh
+20625,13/06/2026,Milk Powder 500g,KIR-MLK5,Dairy,2,290,580,Credit,,KIR-01,Sunita
+20626,2026-06-14,Rice 10kg,KIR-RIC10,Staples,1,620,620,Credit,,KIR-01,Sunita
+20627,13-May-2026,Atta 5kg,KIR-ATT5,Staples,3,250,750,UPI,,KIR-01,Ramesh
+20628,27-03-2026,Milk Powder 500g,KIR-MLK5,Dairy,1,290,290,,,KIR-01,Ramesh
+20629,25/03/2026,Rice 10kg,KIR-RIC10,Staples,1,620,620,Cash,,KIR-01,Sunita
+20630,2026-08-18,Biscuits Pack,KIR-BIS1,Snacks,1,35,₹35,UPI,,KIR-01,Sunita
+20631,28-Apr-2026,Detergent 1kg,KIR-DET1,Household,5,110,550,Card,,KIR-01,Ramesh
+20632,13-03-2026,Sugar 1kg,KIR-SUG1,Staples,3,48,144,Cash,,KIR-01,Sunita
+20633,13/07/2026,Biscuits Pack,KIR-BIS1,Snacks,2,35,70,Card,,KIR-01,Sunita
+20634,2026-03-14,Poha 1kg,KIR-POH1,Staples,2,58,116,UPI,,KIR-01,Ramesh
+20635,13-Jul-2026,Biscuits Pack,KIR-BIS1,Snacks,2,35,70,Cash,,KIR-01,Ramesh
+20636,24-04-2026,Refined Oil 1L,KIR-OIL1,Staples,5,142,710,Card,,KIR-01,Sunita
+20637,13/06/2026,Detergent 1kg,KIR-DET1,Household,2,110,Rs. 0.22k,Card,,KIR-01,Ramesh
+20638,2026-08-25,Soap Bar,KIR-SOA1,Household,5,42,210,Card,,KIR-01,Ramesh
+20639,26-Jul-2026,Refined Oil 1L,KIR-OIL1,Staples,1,142,142,Credit,DIWALI5,KIR-01,Ramesh
+20640,14-09-2026,Soap Bar,KIR-SOA1,Household,10,42,420,UPI,,KIR-01,Ramesh
+20641,13/05/2026,Salt 1kg,KIR-SAL1,Staples,2,22,44,Credit,,KIR-01,Ramesh
+20642,2026-03-14,Tea 250g,KIR-TEA2,Beverages,1,135,135,Cash,,KIR-01,Sunita
+20643,21-Jul-2026,Salt 1kg,KIR-SAL1,Staples,2,22,44,UPI,,KIR-01,Sunita
+20644,28-05-2026,Tea 250g,KIR-TEA2,Beverages,2,135,270,Card,,KIR-01,Ramesh
+20645,13/07/2026,Salt 1kg,KIR-SAL1,Staples,2,22,44,Card,,KIR-01,Ramesh
+20646,2026-04-13,Tea 250g,KIR-TEA2,Beverages,2,135,270,Credit,,KIR-01,Ramesh
+20647,24-Jun-2026,Rice 10kg,KIR-RIC10,Staples,-1,620,620,Card,,KIR-01,Ramesh
+20648,13-09-2026,Poha 1kg,KIR-POH1,Staples,2,58,116,Cash,,KIR-01,Ramesh
+20649,13/08/2026,Toor Dal 1kg,KIR-TOO1,Staples,2,165,330,Cash,,KIR-01,Sunita
+20650,2026-03-18,Salt 1kg,KIR-SAL1,Staples,2,22,44,Cash,,KIR-01,Ramesh
+20651,13-Mar-2026,Biscuits Pack,KIR-BIS1,Snacks,2,35,70,Card,,KIR-01,Ramesh
+20652,17-09-2026,Sugar 1kg,KIR-SUG1,Staples,2,48,96,unknown,,KIR-01,Ramesh
+20653,26/04/2026,Biscuits Pack,KIR-BIS1,Snacks,1,35,35,Credit,,KIR-01,Sunita
+20654,2026-07-18,Tea 250g,KIR-TEA2,Beverages,1,135,135,UPI,,KIR-01,Ramesh
+20655,13-May-2026,Atta 5kg,KIR-ATT5,Staples,3,250,750,Cash,,KIR-01,Ramesh
+20656,20-05-2026,Poha 1kg,KIR-POH1,Staples,5,58,290,Card,,KIR-01,Ramesh
+20657,27/08/2026,Rice 10kg,KIR-RIC10,Staples,2,620,1240,Cash,,KIR-01,Ramesh
+20658,2026-05-13,Rice 10kg,KIR-RIC10,Staples,1,620,620,Cash,,KIR-01,Ramesh
+20659,13-Jul-2026,Salt 1kg,KIR-SAL1,Staples,10,22,220,Card,,KIR-01,Sunita
+20660,27-08-2026,Poha 1kg,KIR-POH1,Staples,1,58,58,Cash,,KIR-01,Ramesh
+20661,13/07/2026,Milk Powder 500g,KIR-MLK5,Dairy,3,290,870,UPI,,KIR-01,Sunita
+20662,2026-03-20,Atta 5kg,KIR-ATT5,Staples,1,250,250,Card,,KIR-01,Ramesh
+20663,15-Sep-2026,Soap Bar,KIR-SOA1,Household,1,42,42,Credit,,KIR-01,Ramesh
+20664,15-05-2026,Rice 10kg,KIR-RIC10,Staples,3,620,1860,Card,,KIR-01,Ramesh
+20665,13/03/2026,Rice 10kg,KIR-RIC10,Staples,1,620,620,Cash,,KIR-01,Ramesh
+20666,2026-08-24,Salt 1kg,KIR-SAL1,Staples,2,22,44,Card,,KIR-01,Ramesh
+20667,16-Jun-2026,Detergent 1kg,KIR-DET1,Household,1,110,₹110,Credit,,KIR-01,Sunita
+20668,13-07-2026,Tea 250g,KIR-TEA2,Beverages,5,135,675,Cash,DIWALI5,KIR-01,Sunita
+20669,28/07/2026,Salt 1kg,KIR-SAL1,Staples,10,22,220,UPI,,KIR-01,Ramesh
+20670,2026-05-22,Tea 250g,KIR-TEA2,Beverages,10,135,1350,UPI,,KIR-01,Ramesh
+20671,21-Jun-2026,Detergent 1kg,KIR-DET1,Household,5,110,550,UPI,,KIR-01,Sunita
+20672,14-09-2026,Toor Dal 1kg,KIR-TOO1,Staples,2,165,330,Card,,KIR-01,Ramesh
+20673,28/04/2026,Atta 5kg,KIR-ATT5,Staples,2,250,500,Card,,KIR-01,Ramesh
+20674,2026-06-13,Atta 5kg,KIR-ATT5,Staples,1,250,250,Card,,KIR-01,Ramesh
+20675,13-Sep-2026,Poha 1kg,KIR-POH1,Staples,2,58,116,Cash,,KIR-01,Sunita
+20676,13-03-2026,Refined Oil 1L,KIR-OIL1,Staples,1,142,142,-,,KIR-01,Sunita
+20677,13/07/2026,Poha 1kg,KIR-POH1,Staples,1,58,58,UPI,,KIR-01,Sunita
+20678,2026-06-13,Rice 10kg,KIR-RIC10,Staples,1,620,620,Cash,,KIR-01,Sunita
+20679,28-Jun-2026,Refined Oil 1L,KIR-OIL1,Staples,1,142,142,Credit,,KIR-01,Ramesh
+20680,13-07-2026,Sugar 1kg,KIR-SUG1,Staples,1,48,48,Card,,KIR-01,Ramesh
+20681,20/04/2026,Milk Powder 500g,KIR-MLK5,Dairy,10,290,2900,UPI,,KIR-01,Sunita
+20682,2026-08-13,Tea 250g,KIR-TEA2,Beverages,2,135,270,Credit,,KIR-01,Ramesh
+20683,21-Aug-2026,Atta 5kg,KIR-ATT5,Staples,10,250,2500,Credit,,KIR-01,Ramesh
+20684,27-06-2026,Toor Dal 1kg,KIR-TOO1,Staples,1,165,165,Cash,,KIR-01,Sunita
+20685,13/05/2026,Toor Dal 1kg,KIR-TOO1,Staples,-1,165,165,Card,,KIR-01,Sunita
+20686,2026-04-13,Atta 5kg,KIR-ATT5,Staples,2,250,500,UPI,,KIR-01,Sunita
+20687,22-Jun-2026,Biscuits Pack,KIR-BIS1,Snacks,10,35,350,Cash,,KIR-01,Ramesh
+20688,18-07-2026,Salt 1kg,KIR-SAL1,Staples,10,22,220,UPI,,KIR-01,Ramesh
+20689,13/08/2026,Soap Bar,KIR-SOA1,Household,1,42,42,UPI,,KIR-01,Sunita
+20690,2026-04-27,Biscuits Pack,KIR-BIS1,Snacks,5,35,Rs. 0.175k,Credit,,KIR-01,Ramesh
+20691,13-Apr-2026,Sugar 1kg,KIR-SUG1,Staples,1,48,48,Cash,,KIR-01,Ramesh
+20692,13-04-2026,Salt 1kg,KIR-SAL1,Staples,2,22,44,Credit,,KIR-01,Sunita
+20693,13/03/2026,Rice 10kg,KIR-RIC10,Staples,5,620,3100,UPI,,KIR-01,Sunita
+20694,2026-04-13,Soap Bar,KIR-SOA1,Household,10,42,420,Credit,,KIR-01,Sunita
+20695,22-Jun-2026,Poha 1kg,KIR-POH1,Staples,1,58,58,Credit,,KIR-01,Ramesh
+20696,13-09-2026,Toor Dal 1kg,KIR-TOO1,Staples,2,165,330,Credit,,KIR-01,Ramesh
+20697,25/05/2026,Soap Bar,KIR-SOA1,Household,10,42,420,Card,DIWALI5,KIR-01,Sunita
+20698,2026-04-13,Sugar 1kg,KIR-SUG1,Staples,10,48,480,UPI,,KIR-01,Sunita
+20699,17-Sep-2026,Rice 10kg,KIR-RIC10,Staples,2,620,1240,Credit,,KIR-01,Ramesh
+20700,13-08-2026,Biscuits Pack,KIR-BIS1,Snacks,5,35,175,N/A,,KIR-01,Ramesh
+20701,21/06/2026,Atta 5kg,KIR-ATT5,Staples,10,250,2500,Credit,,KIR-01,Sunita
+20702,2026-05-19,Sugar 1kg,KIR-SUG1,Staples,1,48,48,Cash,,KIR-01,Ramesh
+20703,17-Aug-2026,Salt 1kg,KIR-SAL1,Staples,10,22,220,UPI,,KIR-01,Ramesh
+20704,13-06-2026,Sugar 1kg,KIR-SUG1,Staples,1,48,₹48,Cash,,KIR-01,Sunita
+20705,28/03/2026,Soap Bar,KIR-SOA1,Household,1,42,42,Credit,,KIR-01,Ramesh
+20706,2026-05-19,Tea 250g,KIR-TEA2,Beverages,2,135,270,Card,,KIR-01,Ramesh
+20707,14-Aug-2026,Tea 250g,KIR-TEA2,Beverages,5,135,675,Credit,,KIR-01,Sunita
+20708,16-04-2026,Rice 10kg,KIR-RIC10,Staples,1,620,620,Cash,,KIR-01,Ramesh
+20709,13/03/2026,Rice 10kg,KIR-RIC10,Staples,5,620,3100,Cash,,KIR-01,Ramesh
+20710,2026-05-13,Salt 1kg,KIR-SAL1,Staples,1,22,22,UPI,,KIR-01,Ramesh
+20711,13-Jul-2026,Sugar 1kg,KIR-SUG1,Staples,1,48,48,Credit,,KIR-01,Ramesh
+20712,13-03-2026,Milk Powder 500g,KIR-MLK5,Dairy,3,290,870,UPI,,KIR-01,Ramesh
+20713,15/03/2026,Milk Powder 500g,KIR-MLK5,Dairy,2,290,580,UPI,,KIR-01,Sunita
+20714,2026-07-13,Salt 1kg,KIR-SAL1,Staples,10,22,220,Credit,,KIR-01,Ramesh
+20715,23-Jun-2026,Detergent 1kg,KIR-DET1,Household,5,110,550,Card,,KIR-01,Sunita
+20716,13-07-2026,Atta 5kg,KIR-ATT5,Staples,5,250,1250,UPI,,KIR-01,Ramesh
+20717,13/07/2026,Atta 5kg,KIR-ATT5,Staples,5,250,1250,Card,,KIR-01,Sunita
+20718,2026-05-28,Biscuits Pack,KIR-BIS1,Snacks,2,35,70,Card,,KIR-01,Sunita
+20719,13-May-2026,Toor Dal 1kg,KIR-TOO1,Staples,2,165,330,UPI,,KIR-01,Sunita
+20720,13-08-2026,Refined Oil 1L,KIR-OIL1,Staples,1,142,142,UPI,,KIR-01,Ramesh
+20721,13/08/2026,Milk Powder 500g,KIR-MLK5,Dairy,10,290,2900,Card,,KIR-01,Ramesh
+20722,2026-07-26,Soap Bar,KIR-SOA1,Household,10,42,420,Cash,,KIR-01,Sunita
+20723,26-Jul-2026,Toor Dal 1kg,KIR-TOO1,Staples,-1,165,330,Card,,KIR-01,Ramesh
+20724,23-07-2026,Tea 250g,KIR-TEA2,Beverages,10,135,1350,N/A,,KIR-01,Sunita
+20725,21/04/2026,Detergent 1kg,KIR-DET1,Household,1,110,110,UPI,,KIR-01,Sunita
+20726,2026-05-17,Salt 1kg,KIR-SAL1,Staples,2,22,44,Cash,DIWALI5,KIR-01,Ramesh
+20727,21-Mar-2026,Refined Oil 1L,KIR-OIL1,Staples,2,142,284,Credit,,KIR-01,Sunita
+20728,24-05-2026,Refined Oil 1L,KIR-OIL1,Staples,1,142,142,Cash,,KIR-01,Sunita
+20729,16/04/2026,Salt 1kg,KIR-SAL1,Staples,10,22,220,Credit,,KIR-01,Ramesh
+20730,2026-04-13,Soap Bar,KIR-SOA1,Household,5,42,210,UPI,,KIR-01,Ramesh
+20731,27-Jul-2026,Poha 1kg,KIR-POH1,Staples,10,58,580,Cash,,KIR-01,Sunita
+20732,17-09-2026,Toor Dal 1kg,KIR-TOO1,Staples,2,165,330,UPI,,KIR-01,Sunita
+20733,19/05/2026,Detergent 1kg,KIR-DET1,Household,1,110,110,Cash,,KIR-01,Sunita
+20734,2026-03-18,Biscuits Pack,KIR-BIS1,Snacks,1,35,35,Card,,KIR-01,Ramesh
+20735,13-May-2026,Milk Powder 500g,KIR-MLK5,Dairy,2,290,580,Cash,,KIR-01,Sunita
+20736,25-05-2026,Tea 250g,KIR-TEA2,Beverages,3,135,405,Card,,KIR-01,Ramesh
+20737,18/05/2026,Biscuits Pack,KIR-BIS1,Snacks,3,35,105,Card,,KIR-01,Ramesh
+20738,2026-05-19,Salt 1kg,KIR-SAL1,Staples,5,22,110,Credit,,KIR-01,Sunita
+20739,16-Mar-2026,Toor Dal 1kg,KIR-TOO1,Staples,10,165,1650,Credit,,KIR-01,Sunita
+20740,16-07-2026,Rice 10kg,KIR-RIC10,Staples,2,620,1240,Credit,,KIR-01,Sunita
+20741,13/06/2026,Sugar 1kg,KIR-SUG1,Staples,2,48,₹96,Cash,,KIR-01,Sunita
+20742,2026-08-13,Detergent 1kg,KIR-DET1,Household,5,110,550,Cash,,KIR-01,Sunita
+20743,13-Jul-2026,Poha 1kg,KIR-POH1,Staples,1,58,Rs. 0.058k,Card,,KIR-01,Sunita
+20744,18-05-2026,Rice 10kg,KIR-RIC10,Staples,2,620,1240,Credit,,KIR-01,Sunita
+20745,16/09/2026,Sugar 1kg,KIR-SUG1,Staples,10,48,480,Credit,,KIR-01,Ramesh
+20746,2026-04-13,Biscuits Pack,KIR-BIS1,Snacks,1,35,35,Credit,,KIR-01,Sunita
+20747,22-Apr-2026,Soap Bar,KIR-SOA1,Household,1,42,42,Credit,,KIR-01,Ramesh
+20748,13-09-2026,Poha 1kg,KIR-POH1,Staples,5,58,290,,,KIR-01,Sunita
+20749,13/03/2026,Detergent 1kg,KIR-DET1,Household,10,110,1100,UPI,,KIR-01,Sunita
+20750,2026-04-14,Milk Powder 500g,KIR-MLK5,Dairy,1,290,290,Credit,,KIR-01,Sunita
+20751,13-Sep-2026,Milk Powder 500g,KIR-MLK5,Dairy,1,290,290,Card,,KIR-01,Ramesh
+20752,13-03-2026,Biscuits Pack,KIR-BIS1,Snacks,3,35,105,Card,,KIR-01,Ramesh
+20753,13/05/2026,Soap Bar,KIR-SOA1,Household,3,42,126,UPI,,KIR-01,Sunita
+20754,2026-09-17,Toor Dal 1kg,KIR-TOO1,Staples,2,165,330,Cash,,KIR-01,Ramesh
+20755,23-Mar-2026,Soap Bar,KIR-SOA1,Household,1,42,42,Card,DIWALI5,KIR-01,Ramesh
+20756,13-03-2026,Soap Bar,KIR-SOA1,Household,5,42,210,UPI,,KIR-01,Ramesh
+20757,26/04/2026,Refined Oil 1L,KIR-OIL1,Staples,2,142,284,UPI,,KIR-01,Ramesh
+20758,2026-07-13,Tea 250g,KIR-TEA2,Beverages,5,135,675,Card,,KIR-01,Ramesh
+20759,13-Sep-2026,Detergent 1kg,KIR-DET1,Household,1,110,110,UPI,,KIR-01,Ramesh
+20760,14-03-2026,Rice 10kg,KIR-RIC10,Staples,1,620,620,Cash,,KIR-01,Sunita
+20761,17/06/2026,Rice 10kg,KIR-RIC10,Staples,-1,620,620,UPI,,KIR-01,Ramesh
+20762,2026-07-13,Detergent 1kg,KIR-DET1,Household,1,110,110,Cash,,KIR-01,Sunita
+20763,21-Jun-2026,Toor Dal 1kg,KIR-TOO1,Staples,1,165,165,Cash,,KIR-01,Ramesh
+20764,13-04-2026,Refined Oil 1L,KIR-OIL1,Staples,1,142,142,UPI,,KIR-01,Ramesh
+20765,13/07/2026,Detergent 1kg,KIR-DET1,Household,10,110,1100,Cash,,KIR-01,Sunita
+20766,2026-04-13,Milk Powder 500g,KIR-MLK5,Dairy,2,290,580,Card,,KIR-01,Sunita
+20767,13-Aug-2026,Biscuits Pack,KIR-BIS1,Snacks,2,35,70,Cash,,KIR-01,Ramesh
+20768,13-07-2026,Rice 10kg,KIR-RIC10,Staples,2,620,1240,Credit,,KIR-01,Sunita
+20769,13/04/2026,Milk Powder 500g,KIR-MLK5,Dairy,3,290,870,Card,,KIR-01,Sunita
+20770,2026-03-24,Toor Dal 1kg,KIR-TOO1,Staples,3,165,495,Card,,KIR-01,Ramesh
+20771,19-May-2026,Sugar 1kg,KIR-SUG1,Staples,1,48,48,UPI,,KIR-01,Sunita
+20772,25-04-2026,Tea 250g,KIR-TEA2,Beverages,2,135,270,N/A,,KIR-01,Sunita
+20773,17/07/2026,Milk Powder 500g,KIR-MLK5,Dairy,1,290,290,Credit,,KIR-01,Sunita
+20774,2026-08-23,Detergent 1kg,KIR-DET1,Household,5,110,550,UPI,,KIR-01,Sunita
+20775,13-Apr-2026,Detergent 1kg,KIR-DET1,Household,10,110,1100,UPI,,KIR-01,Ramesh
+20776,13-04-2026,Atta 5kg,KIR-ATT5,Staples,2,250,500,Card,,KIR-01,Ramesh
+20777,19/07/2026,Tea 250g,KIR-TEA2,Beverages,10,135,1350,Credit,,KIR-01,Ramesh
+20778,2026-05-25,Sugar 1kg,KIR-SUG1,Staples,2,48,₹96,Credit,,KIR-01,Sunita
+20779,16-Aug-2026,Refined Oil 1L,KIR-OIL1,Staples,10,142,1420,UPI,,KIR-01,Ramesh
+20780,16-08-2026,Refined Oil 1L,KIR-OIL1,Staples,10,142,1420,Card,,KIR-01,Sunita
+20781,13/07/2026,Milk Powder 500g,KIR-MLK5,Dairy,1,290,290,Credit,,KIR-01,Ramesh
+20782,2026-04-13,Poha 1kg,KIR-POH1,Staples,10,58,580,UPI,,KIR-01,Sunita
+20783,13-Aug-2026,Salt 1kg,KIR-SAL1,Staples,2,22,44,Cash,,KIR-01,Sunita
+20784,28-04-2026,Biscuits Pack,KIR-BIS1,Snacks,5,35,175,Card,DIWALI5,KIR-01,Ramesh
+20785,13/05/2026,Poha 1kg,KIR-POH1,Staples,3,58,174,UPI,,KIR-01,Sunita
+20786,2026-05-13,Toor Dal 1kg,KIR-TOO1,Staples,2,165,330,Card,,KIR-01,Sunita
+20787,28-May-2026,Refined Oil 1L,KIR-OIL1,Staples,3,142,426,Cash,,KIR-01,Ramesh
+20788,27-07-2026,Refined Oil 1L,KIR-OIL1,Staples,5,142,710,UPI,,KIR-01,Sunita
+20789,13/04/2026,Biscuits Pack,KIR-BIS1,Snacks,10,35,350,Credit,,KIR-01,Ramesh
+20790,2026-09-13,Rice 10kg,KIR-RIC10,Staples,2,620,1240,Card,,KIR-01,Ramesh
+20791,17-Jul-2026,Detergent 1kg,KIR-DET1,Household,1,110,110,UPI,,KIR-01,Sunita
+20792,13-08-2026,Refined Oil 1L,KIR-OIL1,Staples,2,142,284,Card,,KIR-01,Sunita
+20793,24/05/2026,Toor Dal 1kg,KIR-TOO1,Staples,2,165,330,UPI,,KIR-01,Ramesh
+20794,2026-06-22,Toor Dal 1kg,KIR-TOO1,Staples,5,165,825,Cash,,KIR-01,Sunita
+20795,13-Aug-2026,Sugar 1kg,KIR-SUG1,Staples,3,48,144,Card,,KIR-01,Sunita
+20796,13-09-2026,Atta 5kg,KIR-ATT5,Staples,1,250,Rs. 0.25k,-,,KIR-01,Sunita
+20797,20/03/2026,Detergent 1kg,KIR-DET1,Household,1,110,110,Credit,,KIR-01,Sunita
+20798,2026-09-13,Biscuits Pack,KIR-BIS1,Snacks,10,35,350,Card,,KIR-01,Ramesh
+20799,28-May-2026,Detergent 1kg,KIR-DET1,Household,-1,110,220,UPI,,KIR-01,Ramesh
+20800,13-04-2026,Salt 1kg,KIR-SAL1,Staples,3,22,66,Credit,,KIR-01,Sunita
+20801,13/06/2026,Milk Powder 500g,KIR-MLK5,Dairy,3,290,870,Credit,,KIR-01,Sunita
+20802,2026-04-13,Soap Bar,KIR-SOA1,Household,1,42,42,Card,,KIR-01,Ramesh
+20803,13-May-2026,Tea 250g,KIR-TEA2,Beverages,2,135,270,UPI,,KIR-01,Ramesh
+20804,17-08-2026,Soap Bar,KIR-SOA1,Household,2,42,84,Card,,KIR-01,Ramesh
+20805,28/04/2026,Milk Powder 500g,KIR-MLK5,Dairy,2,290,580,UPI,,KIR-01,Sunita
+20806,2026-06-13,Poha 1kg,KIR-POH1,Staples,2,58,116,Credit,,KIR-01,Ramesh
+20807,13-Aug-2026,Refined Oil 1L,KIR-OIL1,Staples,1,142,142,Credit,,KIR-01,Sunita
+20808,24-05-2026,Atta 5kg,KIR-ATT5,Staples,10,250,2500,Cash,,KIR-01,Sunita
+20809,24/08/2026,Tea 250g,KIR-TEA2,Beverages,3,135,405,Cash,,KIR-01,Ramesh
+20810,2026-06-13,Soap Bar,KIR-SOA1,Household,10,42,420,Cash,,KIR-01,Sunita
+20811,13-Sep-2026,Atta 5kg,KIR-ATT5,Staples,2,250,500,Card,,KIR-01,Ramesh
+20812,13-05-2026,Poha 1kg,KIR-POH1,Staples,5,58,290,UPI,,KIR-01,Ramesh
+20813,24/05/2026,Refined Oil 1L,KIR-OIL1,Staples,1,142,142,Credit,REG10,KIR-01,Sunita
+20814,2026-05-28,Tea 250g,KIR-TEA2,Beverages,10,135,1350,UPI,,KIR-01,Ramesh
+20815,22-Apr-2026,Detergent 1kg,KIR-DET1,Household,10,110,"₹1,100",UPI,,KIR-01,Ramesh
+20816,13-09-2026,Refined Oil 1L,KIR-OIL1,Staples,10,142,1420,Card,,KIR-01,Sunita
+20817,13/04/2026,Sugar 1kg,KIR-SUG1,Staples,1,48,48,Cash,,KIR-01,Sunita
+20818,2026-09-16,Atta 5kg,KIR-ATT5,Staples,2,250,500,Cash,,KIR-01,Ramesh
+20819,13-Jun-2026,Soap Bar,KIR-SOA1,Household,1,42,42,Credit,,KIR-01,Sunita
+20820,23-03-2026,Biscuits Pack,KIR-BIS1,Snacks,10,35,350,,,KIR-01,Ramesh
+20821,14/06/2026,Soap Bar,KIR-SOA1,Household,1,42,42,Card,,KIR-01,Ramesh
+20822,2026-08-14,Refined Oil 1L,KIR-OIL1,Staples,1,142,142,Credit,,KIR-01,Ramesh
+20823,13-Aug-2026,Sugar 1kg,KIR-SUG1,Staples,1,48,48,UPI,,KIR-01,Sunita
+20824,13-09-2026,Soap Bar,KIR-SOA1,Household,2,42,84,Cash,,KIR-01,Sunita
+20825,25/06/2026,Refined Oil 1L,KIR-OIL1,Staples,1,142,142,Card,,KIR-01,Ramesh
+20826,2026-08-13,Refined Oil 1L,KIR-OIL1,Staples,5,142,710,Card,,KIR-01,Ramesh
+20827,13-Aug-2026,Tea 250g,KIR-TEA2,Beverages,1,135,135,Cash,,KIR-01,Ramesh
+20828,14-09-2026,Atta 5kg,KIR-ATT5,Staples,2,250,500,UPI,,KIR-01,Sunita
+20829,13/04/2026,Biscuits Pack,KIR-BIS1,Snacks,3,35,105,Cash,,KIR-01,Ramesh
+20830,2026-08-17,Soap Bar,KIR-SOA1,Household,2,42,84,Credit,,KIR-01,Ramesh
+20831,13-Apr-2026,Rice 10kg,KIR-RIC10,Staples,10,620,6200,Cash,,KIR-01,Ramesh
+20832,27-05-2026,Toor Dal 1kg,KIR-TOO1,Staples,2,165,330,Card,,KIR-01,Ramesh
+20833,15/09/2026,Salt 1kg,KIR-SAL1,Staples,10,22,220,Cash,,KIR-01,Sunita
+20834,2026-07-13,Soap Bar,KIR-SOA1,Household,2,42,84,Card,,KIR-01,Ramesh
+20835,17-May-2026,Toor Dal 1kg,KIR-TOO1,Staples,1,165,165,UPI,,KIR-01,Sunita
+20836,28-04-2026,Rice 10kg,KIR-RIC10,Staples,1,620,620,Credit,,KIR-01,Sunita
+20837,23/08/2026,Detergent 1kg,KIR-DET1,Household,-1,110,330,UPI,,KIR-01,Ramesh
+20838,2026-06-13,Rice 10kg,KIR-RIC10,Staples,1,620,620,Cash,,KIR-01,Sunita
+20839,18-May-2026,Detergent 1kg,KIR-DET1,Household,2,110,220,Cash,,KIR-01,Sunita
+20840,21-07-2026,Detergent 1kg,KIR-DET1,Household,1,110,110,Cash,,KIR-01,Ramesh
+20841,13/08/2026,Milk Powder 500g,KIR-MLK5,Dairy,1,290,290,UPI,,KIR-01,Ramesh
+20842,2026-09-13,Biscuits Pack,KIR-BIS1,Snacks,2,35,70,Cash,REG10,KIR-01,Ramesh
+20843,20-Jul-2026,Atta 5kg,KIR-ATT5,Staples,1,250,250,Cash,,KIR-01,Ramesh
+20844,16-08-2026,Detergent 1kg,KIR-DET1,Household,10,110,1100,unknown,,KIR-01,Sunita
+20845,23/07/2026,Salt 1kg,KIR-SAL1,Staples,3,22,66,Cash,,KIR-01,Sunita
+20846,2026-07-13,Milk Powder 500g,KIR-MLK5,Dairy,2,290,580,UPI,,KIR-01,Ramesh
+20847,13-Aug-2026,Sugar 1kg,KIR-SUG1,Staples,1,48,48,Card,,KIR-01,Sunita
+20848,17-03-2026,Toor Dal 1kg,KIR-TOO1,Staples,1,165,165,UPI,,KIR-01,Ramesh
+20849,18/03/2026,Biscuits Pack,KIR-BIS1,Snacks,3,35,Rs. 0.105k,Cash,,KIR-01,Ramesh
+20850,2026-05-28,Poha 1kg,KIR-POH1,Staples,5,58,290,Card,,KIR-01,Ramesh
+20851,13-Mar-2026,Biscuits Pack,KIR-BIS1,Snacks,1,35,35,UPI,,KIR-01,Sunita
+20852,28-06-2026,Milk Powder 500g,KIR-MLK5,Dairy,10,290,"₹2,900",Cash,,KIR-01,Sunita
+20853,13/07/2026,Toor Dal 1kg,KIR-TOO1,Staples,1,165,165,Credit,,KIR-01,Ramesh
+20854,2026-06-13,Sugar 1kg,KIR-SUG1,Staples,1,48,48,Cash,,KIR-01,Sunita
+20855,13-Sep-2026,Detergent 1kg,KIR-DET1,Household,5,110,550,Card,,KIR-01,Sunita
+20856,13-08-2026,Tea 250g,KIR-TEA2,Beverages,2,135,270,Credit,,KIR-01,Sunita
+20857,13/08/2026,Refined Oil 1L,KIR-OIL1,Staples,1,142,142,Card,,KIR-01,Ramesh
+20858,2026-03-20,Tea 250g,KIR-TEA2,Beverages,2,135,270,UPI,,KIR-01,Sunita
+20859,14-Aug-2026,Sugar 1kg,KIR-SUG1,Staples,2,48,96,Card,,KIR-01,Sunita
+20860,16-09-2026,Detergent 1kg,KIR-DET1,Household,2,110,220,Credit,,KIR-01,Ramesh
+20861,25/08/2026,Milk Powder 500g,KIR-MLK5,Dairy,5,290,1450,UPI,,KIR-01,Sunita
+20862,2026-07-26,Salt 1kg,KIR-SAL1,Staples,1,22,22,UPI,,KIR-01,Ramesh
+20863,25-May-2026,Atta 5kg,KIR-ATT5,Staples,3,250,750,UPI,,KIR-01,Sunita
+20864,13-04-2026,Toor Dal 1kg,KIR-TOO1,Staples,1,165,165,Card,,KIR-01,Sunita
+20865,13/07/2026,Biscuits Pack,KIR-BIS1,Snacks,2,35,70,Card,,KIR-01,Sunita
+20866,2026-04-25,Poha 1kg,KIR-POH1,Staples,10,58,580,Credit,,KIR-01,Ramesh
+20867,13-Jul-2026,Detergent 1kg,KIR-DET1,Household,5,110,550,Card,,KIR-01,Ramesh
+20868,13-05-2026,Detergent 1kg,KIR-DET1,Household,3,110,330,,,KIR-01,Sunita
+20869,13/09/2026,Tea 250g,KIR-TEA2,Beverages,10,135,1350,UPI,,KIR-01,Ramesh
+20870,2026-08-13,Biscuits Pack,KIR-BIS1,Snacks,2,35,70,Cash,,KIR-01,Ramesh
+20871,24-May-2026,Toor Dal 1kg,KIR-TOO1,Staples,3,165,495,UPI,REG10,KIR-01,Sunita
+20872,22-05-2026,Salt 1kg,KIR-SAL1,Staples,10,22,220,Cash,,KIR-01,Sunita
+20873,13/06/2026,Atta 5kg,KIR-ATT5,Staples,1,250,250,Cash,,KIR-01,Ramesh
+20874,2026-03-28,Salt 1kg,KIR-SAL1,Staples,1,22,22,Card,,KIR-01,Sunita
+20875,20-Jun-2026,Milk Powder 500g,KIR-MLK5,Dairy,-1,290,580,Credit,,KIR-01,Ramesh
+20876,18-04-2026,Biscuits Pack,KIR-BIS1,Snacks,2,35,70,Card,,KIR-01,Sunita
+20877,13/03/2026,Biscuits Pack,KIR-BIS1,Snacks,1,35,35,Credit,,KIR-01,Sunita
+20878,2026-09-13,Salt 1kg,KIR-SAL1,Staples,2,22,44,UPI,,KIR-01,Ramesh
+20879,13-Mar-2026,Sugar 1kg,KIR-SUG1,Staples,3,48,144,Credit,,KIR-01,Sunita
+20880,20-05-2026,Biscuits Pack,KIR-BIS1,Snacks,1,35,35,Credit,,KIR-01,Sunita
+20881,13/06/2026,Soap Bar,KIR-SOA1,Household,2,42,84,Card,,KIR-01,Sunita
+20882,2026-07-16,Rice 10kg,KIR-RIC10,Staples,1,620,620,Credit,,KIR-01,Sunita
+20883,13-Jul-2026,Rice 10kg,KIR-RIC10,Staples,10,620,6200,Card,,KIR-01,Sunita
+20884,23-04-2026,Toor Dal 1kg,KIR-TOO1,Staples,5,165,825,Cash,,KIR-01,Sunita
+20885,27/04/2026,Milk Powder 500g,KIR-MLK5,Dairy,10,290,2900,Credit,,KIR-01,Ramesh
+20886,2026-06-26,Poha 1kg,KIR-POH1,Staples,5,58,290,UPI,,KIR-01,Ramesh
+20887,27-Mar-2026,Biscuits Pack,KIR-BIS1,Snacks,2,35,70,Cash,,KIR-01,Sunita
+20888,15-09-2026,Milk Powder 500g,KIR-MLK5,Dairy,5,290,1450,UPI,,KIR-01,Sunita
+20889,21/05/2026,Detergent 1kg,KIR-DET1,Household,3,110,₹330,UPI,,KIR-01,Ramesh
+20890,2026-04-19,Refined Oil 1L,KIR-OIL1,Staples,2,142,284,Cash,,KIR-01,Sunita
+20891,13-Jun-2026,Biscuits Pack,KIR-BIS1,Snacks,1,35,35,UPI,,KIR-01,Ramesh
+20892,18-05-2026,Tea 250g,KIR-TEA2,Beverages,2,135,270,-,,KIR-01,Ramesh
+20893,22/05/2026,Sugar 1kg,KIR-SUG1,Staples,2,48,96,UPI,,KIR-01,Ramesh
+20894,2026-05-28,Atta 5kg,KIR-ATT5,Staples,3,250,750,Cash,,KIR-01,Sunita
+20895,13-Jul-2026,Milk Powder 500g,KIR-MLK5,Dairy,2,290,580,Cash,,KIR-01,Ramesh
+20896,20-05-2026,Salt 1kg,KIR-SAL1,Staples,3,22,66,Card,,KIR-01,Sunita
+20897,13/05/2026,Sugar 1kg,KIR-SUG1,Staples,2,48,96,UPI,,KIR-01,Ramesh
+20898,2026-05-13,Soap Bar,KIR-SOA1,Household,5,42,210,Credit,,KIR-01,Ramesh
+20899,25-Apr-2026,Milk Powder 500g,KIR-MLK5,Dairy,10,290,2900,Cash,,KIR-01,Sunita
+20900,14-09-2026,Biscuits Pack,KIR-BIS1,Snacks,2,35,70,UPI,REG10,KIR-01,Sunita
+20901,15/04/2026,Poha 1kg,KIR-POH1,Staples,10,58,580,Cash,,KIR-01,Ramesh
+20902,2026-03-13,Tea 250g,KIR-TEA2,Beverages,2,135,Rs. 0.27k,UPI,,KIR-01,Ramesh
+20903,13-Jun-2026,Biscuits Pack,KIR-BIS1,Snacks,10,35,350,Card,,KIR-01,Sunita
+20904,28-06-2026,Biscuits Pack,KIR-BIS1,Snacks,1,35,35,Credit,,KIR-01,Sunita
+20905,24/03/2026,Tea 250g,KIR-TEA2,Beverages,5,135,675,Card,,KIR-01,Ramesh
+20906,2026-07-19,Atta 5kg,KIR-ATT5,Staples,2,250,500,Credit,,KIR-01,Sunita
+20907,20-Jun-2026,Rice 10kg,KIR-RIC10,Staples,1,620,620,Card,,KIR-01,Sunita
+20908,16-03-2026,Rice 10kg,KIR-RIC10,Staples,3,620,1860,UPI,,KIR-01,Ramesh
+20909,28/07/2026,Atta 5kg,KIR-ATT5,Staples,10,250,2500,Card,,KIR-01,Sunita
+20910,2026-08-20,Biscuits Pack,KIR-BIS1,Snacks,3,35,105,Cash,,KIR-01,Sunita
+20911,13-Sep-2026,Biscuits Pack,KIR-BIS1,Snacks,10,35,350,Card,,KIR-01,Ramesh
+20912,13-04-2026,Milk Powder 500g,KIR-MLK5,Dairy,3,290,870,Cash,,KIR-01,Sunita
+20913,13/04/2026,Refined Oil 1L,KIR-OIL1,Staples,-1,142,426,Card,,KIR-01,Sunita
+20914,2026-03-25,Biscuits Pack,KIR-BIS1,Snacks,10,35,350,Cash,,KIR-01,Ramesh
+20915,28-Aug-2026,Detergent 1kg,KIR-DET1,Household,2,110,220,Cash,,KIR-01,Sunita
+20916,13-07-2026,Poha 1kg,KIR-POH1,Staples,5,58,290,,,KIR-01,Ramesh
+20917,13/05/2026,Sugar 1kg,KIR-SUG1,Staples,2,48,96,Cash,,KIR-01,Sunita
+20918,2026-03-14,Poha 1kg,KIR-POH1,Staples,1,58,58,Credit,,KIR-01,Ramesh
+20919,13-Jun-2026,Biscuits Pack,KIR-BIS1,Snacks,2,35,70,Credit,,KIR-01,Sunita
+20920,13-06-2026,Sugar 1kg,KIR-SUG1,Staples,3,48,144,Cash,,KIR-01,Sunita
+20921,21/05/2026,Atta 5kg,KIR-ATT5,Staples,1,250,250,Card,,KIR-01,Ramesh
+20922,2026-09-13,Sugar 1kg,KIR-SUG1,Staples,1,48,48,Card,,KIR-01,Sunita
+20923,16-Apr-2026,Sugar 1kg,KIR-SUG1,Staples,10,48,480,Card,,KIR-01,Ramesh
+20924,14-05-2026,Tea 250g,KIR-TEA2,Beverages,3,135,405,Card,,KIR-01,Ramesh
+20925,28/07/2026,Atta 5kg,KIR-ATT5,Staples,5,250,1250,Credit,,KIR-01,Sunita
+20926,2026-03-13,Poha 1kg,KIR-POH1,Staples,2,58,₹116,UPI,,KIR-01,Sunita
+20927,28-Mar-2026,Detergent 1kg,KIR-DET1,Household,5,110,550,Card,,KIR-01,Ramesh
+20928,19-08-2026,Atta 5kg,KIR-ATT5,Staples,2,250,500,Cash,,KIR-01,Sunita
+20929,14/04/2026,Detergent 1kg,KIR-DET1,Household,10,110,1100,Card,REG10,KIR-01,Sunita
+20930,2026-08-26,Detergent 1kg,KIR-DET1,Household,5,110,550,Credit,,KIR-01,Sunita
+20931,16-Apr-2026,Poha 1kg,KIR-POH1,Staples,5,58,290,Credit,,KIR-01,Sunita
+20932,26-06-2026,Poha 1kg,KIR-POH1,Staples,3,58,174,UPI,,KIR-01,Ramesh
+20933,13/07/2026,Biscuits Pack,KIR-BIS1,Snacks,5,35,175,UPI,,KIR-01,Sunita
+20934,2026-04-24,Salt 1kg,KIR-SAL1,Staples,1,22,22,Credit,,KIR-01,Sunita
+20935,22-Jul-2026,Tea 250g,KIR-TEA2,Beverages,1,135,135,Credit,,KIR-01,Ramesh
+20936,21-06-2026,Poha 1kg,KIR-POH1,Staples,5,58,290,UPI,,KIR-01,Sunita
+20937,15/08/2026,Tea 250g,KIR-TEA2,Beverages,2,135,270,Cash,,KIR-01,Sunita
+20938,2026-09-16,Detergent 1kg,KIR-DET1,Household,1,110,110,Cash,,KIR-01,Ramesh
+20939,13-Mar-2026,Toor Dal 1kg,KIR-TOO1,Staples,5,165,825,Credit,,KIR-01,Ramesh
+20940,23-05-2026,Soap Bar,KIR-SOA1,Household,10,42,420,unknown,,KIR-01,Sunita
+20006,2026-04-13,Detergent 1kg,KIR-DET1,Household,5,110,550,Credit,,KIR-01,Ramesh
+20016,13-03-2026,Refined Oil 1L (return),KIR-OIL1,Staples,1,142,-142.0,Cash,,KIR-01,Sunita
+20026,2026-03-13,Rice 10kg,KIR-RIC10,Staples,5,620,3100,Card,,KIR-01,Sunita
+20036,27-08-2026,Biscuits Pack,KIR-BIS1,Snacks,5,35,175,Credit,,KIR-01,Sunita
+20046,2026-07-13,Rice 10kg,KIR-RIC10,Staples,1,620,620,Card,,KIR-01,Ramesh
+20056,13-06-2026,Rice 10kg (return),KIR-RIC10,Staples,5,620,(3100.00),Credit,,KIR-01,Ramesh
+20066,2026-07-13,Sugar 1kg,KIR-SUG1,Staples,5,48,240,Credit,,KIR-01,Ramesh
+20076,14-09-2026,Salt 1kg,KIR-SAL1,Staples,10,22,220,unknown,,KIR-01,Ramesh
+20086,2026-07-13,Tea 250g,KIR-TEA2,Beverages,5,135,675,UPI,,KIR-01,Sunita
+20096,13-08-2026,Poha 1kg (return),KIR-POH1,Staples,2,58,-116.0,Cash,,KIR-01,Ramesh
+20106,2026-05-13,Milk Powder 500g,KIR-MLK5,Dairy,2,290,580,Card,,KIR-01,Ramesh
+20116,21-07-2026,Sugar 1kg,KIR-SUG1,Staples,1,48,48,Cash,,KIR-01,Sunita
+20126,2026-04-13,Detergent 1kg,KIR-DET1,Household,3,110,330,Cash,,KIR-01,Ramesh
+20136,14-09-2026,Poha 1kg (return),KIR-POH1,Staples,10,58,(580.00),UPI,,KIR-01,Ramesh
+20146,2026-08-15,Sugar 1kg,KIR-SUG1,Staples,1,48,48,UPI,REG10,KIR-01,Ramesh
+20156,13-05-2026,Detergent 1kg,KIR-DET1,Household,1,110,110,Credit,,KIR-01,Sunita
+20166,2026-04-28,Poha 1kg,KIR-POH1,Staples,5,58,290,Credit,,KIR-01,Ramesh
+20176,25-06-2026,Rice 10kg (return),KIR-RIC10,Staples,1,620,-620.0,Credit,,KIR-01,Sunita
+20186,2026-06-23,Tea 250g,KIR-TEA2,Beverages,3,135,₹405,UPI,,KIR-01,Ramesh
+20196,13-04-2026,Poha 1kg,KIR-POH1,Staples,5,58,290,-,,KIR-01,Sunita
+20206,2026-03-28,Toor Dal 1kg,KIR-TOO1,Staples,5,165,825,Cash,,KIR-01,Sunita
+20216,27-03-2026,Salt 1kg (return),KIR-SAL1,Staples,1,22,(22.00),UPI,,KIR-01,Sunita
+20226,2026-09-13,Detergent 1kg,KIR-DET1,Household,1,110,110,Credit,,KIR-01,Ramesh
+20236,13-06-2026,Soap Bar,KIR-SOA1,Household,2,42,84,UPI,,KIR-01,Sunita
+20246,2026-04-13,Toor Dal 1kg,KIR-TOO1,Staples,1,165,165,UPI,,KIR-01,Ramesh
+20256,13-08-2026,Refined Oil 1L,KIR-OIL1,Staples,3,142,426,Credit,,KIR-01,Ramesh
+20266,2026-06-13,Poha 1kg,KIR-POH1,Staples,5,58,Rs. 0.29k,Cash,,KIR-01,Ramesh
+20276,16-05-2026,Refined Oil 1L,KIR-OIL1,Staples,10,142,1420,Cash,,KIR-01,Ramesh
+20286,2026-06-28,Milk Powder 500g,KIR-MLK5,Dairy,3,290,870,Cash,,KIR-01,Sunita
+20296,13-03-2026,Toor Dal 1kg,KIR-TOO1,Staples,3,165,495,Credit,,KIR-01,Ramesh
+20306,2026-07-13,Tea 250g,KIR-TEA2,Beverages,3,135,405,Credit,,KIR-01,Sunita
+20316,13-03-2026,Toor Dal 1kg,KIR-TOO1,Staples,1,165,165,-,,KIR-01,Sunita
+20326,2026-06-16,Poha 1kg,KIR-POH1,Staples,10,58,580,Card,,KIR-01,Sunita
+20336,26-05-2026,Toor Dal 1kg,KIR-TOO1,Staples,10,165,1650,Card,,KIR-01,Ramesh
+20346,2026-05-13,Toor Dal 1kg,KIR-TOO1,Staples,1,165,165,Cash,,KIR-01,Ramesh
+20356,23-05-2026,Milk Powder 500g,KIR-MLK5,Dairy,5,290,1450,UPI,,KIR-01,Sunita
+20366,2026-03-14,Refined Oil 1L,KIR-OIL1,Staples,5,142,710,Credit,,KIR-01,Sunita
+20376,18-03-2026,Soap Bar,KIR-SOA1,Household,10,42,420,Card,,KIR-01,Sunita
+20386,2026-05-18,Rice 10kg,KIR-RIC10,Staples,1,620,620,Credit,,KIR-01,Sunita
+20396,13-04-2026,Refined Oil 1L,KIR-OIL1,Staples,2,142,284,Credit,,KIR-01,Ramesh

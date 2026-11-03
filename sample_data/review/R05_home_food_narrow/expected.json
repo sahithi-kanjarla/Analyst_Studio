@@ -1,0 +1,109 @@
+{
+  "id": "R05",
+  "business_type": "home-based food seller",
+  "kind": "sales",
+  "what_it_tests": "a narrow file: five columns and nothing else, no ids, no cost, no customer",
+  "app_should": "still produce a useful report from five columns, and not claim findings the columns cannot support (no customer, no margin, no order id)",
+  "generated_by": "scripts/make_review_datasets.py",
+  "seed": 20261103,
+  "files": {
+    "home_food_sales.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "five columns only; item is the only category-like column",
+      "rows": 620,
+      "columns": 5,
+      "column_names": [
+        "date",
+        "item",
+        "quantity",
+        "amount",
+        "area"
+      ],
+      "missing_per_column": {
+        "date": 0,
+        "item": 0,
+        "quantity": 0,
+        "amount": 0,
+        "area": 0
+      },
+      "exact_duplicate_rows": 9
+    }
+  },
+  "cleaning_applied": [],
+  "answers": {
+    "row_count": {
+      "home_food_sales.csv": 620
+    },
+    "main_total": {
+      "file": "home_food_sales.csv",
+      "column": "amount",
+      "means": "revenue",
+      "value": 276425.0,
+      "rows_counted": 620,
+      "mean": 445.85
+    },
+    "top_3_main_category": {
+      "file": "home_food_sales.csv",
+      "group_by": "item",
+      "ranked_by": "amount",
+      "items": [
+        {
+          "name": "Pure Ghee 500ml",
+          "total": 48880.0
+        },
+        {
+          "name": "Besan Laddu 500g",
+          "total": 45220.0
+        },
+        {
+          "name": "Mango Pickle 500g",
+          "total": 29120.0
+        }
+      ]
+    },
+    "top_3_areas_by_amount": {
+      "file": "home_food_sales.csv",
+      "group_by": "area",
+      "ranked_by": "amount",
+      "items": [
+        {
+          "name": "Hadapsar",
+          "total": 40350.0
+        },
+        {
+          "name": "Shivaji Nagar",
+          "total": 38535.0
+        },
+        {
+          "name": "Warje",
+          "total": 37945.0
+        }
+      ]
+    },
+    "distinct_key_counts": {
+      "home_food_sales.csv.item": 12,
+      "home_food_sales.csv.area": 8,
+      "home_food_sales.csv.date": 175
+    },
+    "duplicates": {
+      "home_food_sales.csv": {
+        "exact_duplicate_rows": 9
+      }
+    },
+    "missing_values_per_column": {
+      "home_food_sales.csv": {
+        "date": 0,
+        "item": 0,
+        "quantity": 0,
+        "amount": 0,
+        "area": 0
+      }
+    },
+    "column_count": 5,
+    "has_order_id": false,
+    "has_cost": false,
+    "has_customer": false,
+    "total_quantity": 1363
+  }
+}

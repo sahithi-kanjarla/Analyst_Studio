@@ -1,0 +1,177 @@
+{
+  "id": "M01",
+  "business_type": "bakery",
+  "kind": "connected (2 files)",
+  "what_it_tests": "two files that join on customer_id, with a handful of orders pointing at customers who are not in the customer file",
+  "app_should": "find the customer_id link by itself, say how many orders have no matching customer, and not silently drop them from the revenue total",
+  "generated_by": "scripts/make_review_datasets.py",
+  "seed": 20261103,
+  "files": {
+    "orders.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "18 orders use one of six customer ids that do not exist in customers.csv",
+      "rows": 900,
+      "columns": 9,
+      "column_names": [
+        "order_id",
+        "order_date",
+        "customer_id",
+        "item",
+        "item_code",
+        "category",
+        "quantity",
+        "amount",
+        "payment_mode"
+      ],
+      "missing_per_column": {
+        "order_id": 0,
+        "order_date": 0,
+        "customer_id": 0,
+        "item": 0,
+        "item_code": 0,
+        "category": 0,
+        "quantity": 0,
+        "amount": 0,
+        "payment_mode": 0
+      },
+      "exact_duplicate_rows": 0
+    },
+    "customers.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "220 customers; some have never ordered",
+      "rows": 220,
+      "columns": 7,
+      "column_names": [
+        "customer_id",
+        "customer_name",
+        "email",
+        "phone",
+        "city",
+        "joined_on",
+        "loyalty_tier"
+      ],
+      "missing_per_column": {
+        "customer_id": 0,
+        "customer_name": 0,
+        "email": 0,
+        "phone": 0,
+        "city": 0,
+        "joined_on": 0,
+        "loyalty_tier": 0
+      },
+      "exact_duplicate_rows": 0
+    }
+  },
+  "cleaning_applied": [],
+  "answers": {
+    "row_count": {
+      "orders.csv": 900,
+      "customers.csv": 220
+    },
+    "main_total": {
+      "file": "orders.csv",
+      "column": "amount",
+      "means": "revenue",
+      "value": 379040.0,
+      "rows_counted": 900,
+      "mean": 421.16
+    },
+    "top_3_main_category": {
+      "file": "orders.csv",
+      "group_by": "category",
+      "ranked_by": "amount",
+      "items": [
+        {
+          "name": "Cakes",
+          "total": 299710.0
+        },
+        {
+          "name": "Cookies",
+          "total": 38520.0
+        },
+        {
+          "name": "Breads",
+          "total": 36910.0
+        }
+      ]
+    },
+    "distinct_key_counts": {
+      "orders.csv.order_id": 900,
+      "orders.csv.customer_id": 221,
+      "customers.csv.customer_id": 220,
+      "customers.csv.city": 12
+    },
+    "duplicates": {
+      "orders.csv": {
+        "exact_duplicate_rows": 0
+      },
+      "customers.csv": {
+        "exact_duplicate_rows": 0
+      }
+    },
+    "missing_values_per_column": {
+      "orders.csv": {
+        "order_id": 0,
+        "order_date": 0,
+        "customer_id": 0,
+        "item": 0,
+        "item_code": 0,
+        "category": 0,
+        "quantity": 0,
+        "amount": 0,
+        "payment_mode": 0
+      },
+      "customers.csv": {
+        "customer_id": 0,
+        "customer_name": 0,
+        "email": 0,
+        "phone": 0,
+        "city": 0,
+        "joined_on": 0,
+        "loyalty_tier": 0
+      }
+    },
+    "joins": [
+      {
+        "left": "orders.csv",
+        "right": "customers.csv",
+        "on": "customer_id = customer_id",
+        "left_rows": 900,
+        "right_rows": 220,
+        "inner_join_rows": 882,
+        "left_join_rows": 900,
+        "left_rows_with_no_match": 18,
+        "unmatched_ids_in_left": [
+          "C9001",
+          "C9002",
+          "C9003",
+          "C9004",
+          "C9005",
+          "C9006"
+        ],
+        "unmatched_ids_in_right": [
+          "C0035",
+          "C0041",
+          "C0080",
+          "C0097",
+          "C0154"
+        ],
+        "repeated_key_values_in_right": [],
+        "note": "orders -> customers; the orphan ids are C9001-C9006"
+      }
+    ],
+    "orders_with_no_matching_customer": 18,
+    "orphan_customer_ids_used_by_an_order": [
+      "C9001",
+      "C9002",
+      "C9003",
+      "C9004",
+      "C9005",
+      "C9006"
+    ],
+    "revenue_of_orphan_orders": 5480.0,
+    "customers_who_never_ordered": 5
+  }
+}

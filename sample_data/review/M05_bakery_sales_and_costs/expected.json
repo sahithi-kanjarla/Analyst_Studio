@@ -1,0 +1,192 @@
+{
+  "id": "M05",
+  "business_type": "bakery",
+  "kind": "connected (2 files, margin)",
+  "what_it_tests": "margin that is only possible by joining: the sales file has no cost, the cost file has no sales, and one sold item has no cost row",
+  "app_should": "join on item_code to compute margin, and say that one item's margin is unknown instead of treating its cost as zero",
+  "generated_by": "scripts/make_review_datasets.py",
+  "seed": 20261103,
+  "files": {
+    "sales.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "no cost column; item_code is the link",
+      "rows": 880,
+      "columns": 9,
+      "column_names": [
+        "order_id",
+        "order_date",
+        "item_code",
+        "item",
+        "category",
+        "quantity",
+        "unit_price",
+        "amount",
+        "outlet"
+      ],
+      "missing_per_column": {
+        "order_id": 0,
+        "order_date": 0,
+        "item_code": 0,
+        "item": 0,
+        "category": 0,
+        "quantity": 0,
+        "unit_price": 0,
+        "amount": 0,
+        "outlet": 0
+      },
+      "exact_duplicate_rows": 0
+    },
+    "product_costs.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "11 of the 12 sold items; BAK-PIN1 (Pineapple Pastry) is missing on purpose",
+      "rows": 11,
+      "columns": 5,
+      "column_names": [
+        "item_code",
+        "item",
+        "cost_per_unit",
+        "supplier",
+        "updated_on"
+      ],
+      "missing_per_column": {
+        "item_code": 0,
+        "item": 0,
+        "cost_per_unit": 0,
+        "supplier": 0,
+        "updated_on": 0
+      },
+      "exact_duplicate_rows": 0
+    }
+  },
+  "cleaning_applied": [
+    "joined product_costs onto sales by item_code and computed cost_amount = cost_per_unit x quantity (NaN where there is no cost row)"
+  ],
+  "answers": {
+    "row_count": {
+      "sales.csv": 880,
+      "product_costs.csv": 11
+    },
+    "main_total": {
+      "file": "sales.csv",
+      "column": "amount",
+      "means": "revenue",
+      "value": 565305.0,
+      "rows_counted": 880,
+      "mean": 642.39
+    },
+    "top_3_main_category": {
+      "file": "sales.csv",
+      "group_by": "category",
+      "ranked_by": "amount",
+      "items": [
+        {
+          "name": "Cakes",
+          "total": 461010.0
+        },
+        {
+          "name": "Breads",
+          "total": 52690.0
+        },
+        {
+          "name": "Cookies",
+          "total": 46265.0
+        }
+      ]
+    },
+    "distinct_key_counts": {
+      "sales.csv.order_id": 880,
+      "sales.csv.item_code": 12,
+      "product_costs.csv.item_code": 11,
+      "product_costs.csv.supplier": 3
+    },
+    "duplicates": {
+      "sales.csv": {
+        "exact_duplicate_rows": 0
+      },
+      "product_costs.csv": {
+        "exact_duplicate_rows": 0
+      }
+    },
+    "missing_values_per_column": {
+      "sales.csv": {
+        "order_id": 0,
+        "order_date": 0,
+        "item_code": 0,
+        "item": 0,
+        "category": 0,
+        "quantity": 0,
+        "unit_price": 0,
+        "amount": 0,
+        "outlet": 0,
+        "cost_per_unit": 81,
+        "cost_amount": 81
+      },
+      "product_costs.csv": {
+        "item_code": 0,
+        "item": 0,
+        "cost_per_unit": 0,
+        "supplier": 0,
+        "updated_on": 0
+      }
+    },
+    "joins": [
+      {
+        "left": "sales.csv",
+        "right": "product_costs.csv",
+        "on": "item_code = item_code",
+        "left_rows": 880,
+        "right_rows": 11,
+        "inner_join_rows": 799,
+        "left_join_rows": 880,
+        "left_rows_with_no_match": 81,
+        "unmatched_ids_in_left": [
+          "BAK-PIN1"
+        ],
+        "unmatched_ids_in_right": [],
+        "repeated_key_values_in_right": [],
+        "note": "sales -> product costs; BAK-PIN1 has no cost row"
+      }
+    ],
+    "item_with_no_cost_row": "BAK-PIN1",
+    "sales_rows_with_no_cost": 81,
+    "revenue_with_no_cost": 14700.0,
+    "cost_of_goods_sold_where_known": 343425.0,
+    "gross_profit_where_cost_is_known": 207180.0,
+    "margin_pct_where_cost_is_known": 37.63
+  },
+  "files_after_cleaning": {
+    "sales.csv": {
+      "rows": 880,
+      "columns": 11,
+      "column_names": [
+        "order_id",
+        "order_date",
+        "item_code",
+        "item",
+        "category",
+        "quantity",
+        "unit_price",
+        "amount",
+        "outlet",
+        "cost_per_unit",
+        "cost_amount"
+      ],
+      "missing_per_column": {
+        "order_id": 0,
+        "order_date": 0,
+        "item_code": 0,
+        "item": 0,
+        "category": 0,
+        "quantity": 0,
+        "unit_price": 0,
+        "amount": 0,
+        "outlet": 0,
+        "cost_per_unit": 81,
+        "cost_amount": 81
+      },
+      "exact_duplicate_rows": 0
+    }
+  }
+}

@@ -1,0 +1,126 @@
+{
+  "id": "R14",
+  "business_type": "home-based food seller",
+  "kind": "production",
+  "what_it_tests": "production batches: several material rows per batch, with the batch-level output and wastage repeated on each of those rows",
+  "app_should": "count batches by distinct batch_id and not add output_units up once per material row",
+  "generated_by": "scripts/make_review_datasets.py",
+  "seed": 20261103,
+  "files": {
+    "food_production_batches.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "output_units, wastage_units and batch_status repeat on every material row of the same batch",
+      "rows": 649,
+      "columns": 10,
+      "column_names": [
+        "batch_id",
+        "production_date",
+        "product",
+        "material",
+        "quantity_used",
+        "unit",
+        "output_units",
+        "wastage_units",
+        "operator",
+        "batch_status"
+      ],
+      "missing_per_column": {
+        "batch_id": 0,
+        "production_date": 0,
+        "product": 0,
+        "material": 0,
+        "quantity_used": 0,
+        "unit": 0,
+        "output_units": 0,
+        "wastage_units": 0,
+        "operator": 0,
+        "batch_status": 0
+      },
+      "exact_duplicate_rows": 0
+    }
+  },
+  "cleaning_applied": [],
+  "answers": {
+    "row_count": {
+      "food_production_batches.csv": 649
+    },
+    "main_total": {
+      "file": "food_production_batches.csv",
+      "column": "quantity_used",
+      "means": "material consumed (a quantity, not money)",
+      "value": 5861.27,
+      "rows_counted": 649,
+      "mean": 9.03
+    },
+    "top_3_main_category": {
+      "file": "food_production_batches.csv",
+      "group_by": "product",
+      "ranked_by": "quantity_used",
+      "items": [
+        {
+          "name": "Dry Fruit Chikki",
+          "total": 1185.51
+        },
+        {
+          "name": "Mango Pickle 500g",
+          "total": 1147.31
+        },
+        {
+          "name": "Chakli 250g",
+          "total": 1081.94
+        }
+      ]
+    },
+    "top_3_materials_by_quantity_used": {
+      "file": "food_production_batches.csv",
+      "group_by": "material",
+      "ranked_by": "quantity_used",
+      "items": [
+        {
+          "name": "Salt",
+          "total": 614.77
+        },
+        {
+          "name": "Besan",
+          "total": 547.17
+        },
+        {
+          "name": "Ghee",
+          "total": 539.4
+        }
+      ]
+    },
+    "distinct_key_counts": {
+      "food_production_batches.csv.batch_id": 184,
+      "food_production_batches.csv.product": 6,
+      "food_production_batches.csv.material": 17,
+      "food_production_batches.csv.operator": 3
+    },
+    "duplicates": {
+      "food_production_batches.csv": {
+        "exact_duplicate_rows": 0
+      }
+    },
+    "missing_values_per_column": {
+      "food_production_batches.csv": {
+        "batch_id": 0,
+        "production_date": 0,
+        "product": 0,
+        "material": 0,
+        "quantity_used": 0,
+        "unit": 0,
+        "output_units": 0,
+        "wastage_units": 0,
+        "operator": 0,
+        "batch_status": 0
+      }
+    },
+    "material_rows": 649,
+    "distinct_batches": 184,
+    "output_units_per_distinct_batch": 12160,
+    "output_units_summed_naively_over_all_rows": 43090,
+    "wastage_units_per_distinct_batch": 308,
+    "money_columns_present": []
+  }
+}

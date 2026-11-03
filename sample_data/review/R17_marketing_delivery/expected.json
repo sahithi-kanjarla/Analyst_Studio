@@ -1,0 +1,124 @@
+{
+  "id": "R17",
+  "business_type": "clothing boutique",
+  "kind": "marketing",
+  "what_it_tests": "two different subjects in one file: daily ad spend by channel, and delivery performance",
+  "app_should": "keep spend, clicks, orders and delivery failures apart as separate measures, and not call ad spend revenue",
+  "generated_by": "scripts/make_review_datasets.py",
+  "seed": 20261103,
+  "files": {
+    "marketing_delivery.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "one row per day per channel, 180 days x 4 channels; no sales amount anywhere",
+      "rows": 720,
+      "columns": 10,
+      "column_names": [
+        "date",
+        "channel",
+        "ad_spend",
+        "impressions",
+        "clicks",
+        "orders_attributed",
+        "deliveries_attempted",
+        "deliveries_failed",
+        "avg_delivery_days",
+        "weekday"
+      ],
+      "missing_per_column": {
+        "date": 0,
+        "channel": 0,
+        "ad_spend": 0,
+        "impressions": 0,
+        "clicks": 0,
+        "orders_attributed": 0,
+        "deliveries_attempted": 0,
+        "deliveries_failed": 0,
+        "avg_delivery_days": 0,
+        "weekday": 0
+      },
+      "exact_duplicate_rows": 0
+    }
+  },
+  "cleaning_applied": [],
+  "answers": {
+    "row_count": {
+      "marketing_delivery.csv": 720
+    },
+    "main_total": {
+      "file": "marketing_delivery.csv",
+      "column": "ad_spend",
+      "means": "money spent on advertising",
+      "value": 539187.98,
+      "rows_counted": 720,
+      "mean": 748.87
+    },
+    "top_3_main_category": {
+      "file": "marketing_delivery.csv",
+      "group_by": "channel",
+      "ranked_by": "ad_spend",
+      "items": [
+        {
+          "name": "Google",
+          "total": 258046.75
+        },
+        {
+          "name": "Instagram",
+          "total": 175584.39
+        },
+        {
+          "name": "Local flyers",
+          "total": 76895.81
+        }
+      ]
+    },
+    "distinct_key_counts": {
+      "marketing_delivery.csv.channel": 4,
+      "marketing_delivery.csv.date": 180,
+      "marketing_delivery.csv.weekday": 7
+    },
+    "total_clicks": {
+      "file": "marketing_delivery.csv",
+      "column": "clicks",
+      "means": "clicks",
+      "value": 395942.0
+    },
+    "total_orders_attributed": {
+      "file": "marketing_delivery.csv",
+      "column": "orders_attributed",
+      "means": "orders credited to a channel",
+      "value": 21614.0
+    },
+    "total_failed_deliveries": {
+      "file": "marketing_delivery.csv",
+      "column": "deliveries_failed",
+      "means": "deliveries that failed",
+      "value": 1077.0
+    },
+    "duplicates": {
+      "marketing_delivery.csv": {
+        "exact_duplicate_rows": 0
+      }
+    },
+    "missing_values_per_column": {
+      "marketing_delivery.csv": {
+        "date": 0,
+        "channel": 0,
+        "ad_spend": 0,
+        "impressions": 0,
+        "clicks": 0,
+        "orders_attributed": 0,
+        "deliveries_attempted": 0,
+        "deliveries_failed": 0,
+        "avg_delivery_days": 0,
+        "weekday": 0
+      }
+    },
+    "this_is_spending_not_revenue": true,
+    "days": 180,
+    "channels": 4,
+    "failed_delivery_rate_pct": 6.8,
+    "mean_avg_delivery_days": 3.84,
+    "cost_per_attributed_order": 24.95
+  }
+}

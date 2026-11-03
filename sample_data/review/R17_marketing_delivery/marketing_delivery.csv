@@ -1,0 +1,721 @@
+date,channel,ad_spend,impressions,clicks,orders_attributed,deliveries_attempted,deliveries_failed,avg_delivery_days,weekday
+2026-03-01,Instagram,1203.14,38521,509,45,26,0,4.7,Sunday
+2026-03-01,Google,1832.75,71335,2699,112,14,0,2.3,Sunday
+2026-03-01,WhatsApp broadcast,223.51,7505,347,13,28,4,4.3,Sunday
+2026-03-01,Local flyers,451.37,18549,55,4,29,1,1.5,Sunday
+2026-03-02,Instagram,1406.24,32065,678,55,20,3,5.5,Monday
+2026-03-02,Google,1605.59,61617,1705,152,12,1,5.9,Monday
+2026-03-02,WhatsApp broadcast,120.12,3713,245,9,12,1,3.1,Monday
+2026-03-02,Local flyers,441.78,13824,52,4,15,0,4.8,Monday
+2026-03-03,Instagram,1279.12,30140,381,27,8,0,4.5,Tuesday
+2026-03-03,Google,928.29,21424,669,51,25,0,3.9,Tuesday
+2026-03-03,WhatsApp broadcast,220.98,5041,202,5,19,0,1.3,Tuesday
+2026-03-03,Local flyers,586.98,23508,105,5,19,2,3.6,Tuesday
+2026-03-04,Instagram,877.92,25398,456,24,27,0,3.8,Wednesday
+2026-03-04,Google,1172.67,33064,1169,54,39,6,4.2,Wednesday
+2026-03-04,WhatsApp broadcast,148.22,3851,248,13,39,0,5.6,Wednesday
+2026-03-04,Local flyers,603.38,13101,61,3,33,1,2.8,Wednesday
+2026-03-05,Instagram,1175.57,29957,464,15,9,1,2.3,Thursday
+2026-03-05,Google,1452.08,32820,776,26,33,5,2.4,Thursday
+2026-03-05,WhatsApp broadcast,178.94,5303,367,21,34,4,5.0,Thursday
+2026-03-05,Local flyers,417.87,17476,87,4,38,0,2.5,Thursday
+2026-03-06,Instagram,1004.35,26128,417,26,35,0,2.2,Friday
+2026-03-06,Google,1191.23,32514,1211,48,10,1,2.3,Friday
+2026-03-06,WhatsApp broadcast,217.54,4919,238,18,27,0,5.7,Friday
+2026-03-06,Local flyers,367.72,12311,52,2,25,2,6.5,Friday
+2026-03-07,Instagram,1227.97,37566,669,52,9,0,1.2,Saturday
+2026-03-07,Google,1771.36,43200,1390,89,14,0,2.0,Saturday
+2026-03-07,WhatsApp broadcast,207.07,7704,468,18,18,0,3.7,Saturday
+2026-03-07,Local flyers,512.7,21030,67,1,12,0,4.6,Saturday
+2026-03-08,Instagram,908.91,31984,464,35,9,0,5.9,Sunday
+2026-03-08,Google,1769.76,34229,951,33,13,1,1.6,Sunday
+2026-03-08,WhatsApp broadcast,184.83,5097,285,12,34,5,1.4,Sunday
+2026-03-08,Local flyers,585.38,12069,35,0,18,2,2.2,Sunday
+2026-03-09,Instagram,758.79,13704,176,5,37,0,4.1,Monday
+2026-03-09,Google,1715.7,35079,832,51,36,0,4.2,Monday
+2026-03-09,WhatsApp broadcast,221.57,6521,287,21,27,3,3.6,Monday
+2026-03-09,Local flyers,340.03,11417,33,2,20,0,2.4,Monday
+2026-03-10,Instagram,825.06,15709,337,24,28,3,5.4,Tuesday
+2026-03-10,Google,1831.93,57544,2032,87,18,1,5.0,Tuesday
+2026-03-10,WhatsApp broadcast,146.5,3897,239,17,31,1,5.3,Tuesday
+2026-03-10,Local flyers,553.68,15924,69,6,37,5,2.0,Tuesday
+2026-03-11,Instagram,810.3,27347,587,15,20,0,1.3,Wednesday
+2026-03-11,Google,1166.26,36908,1497,30,20,2,6.0,Wednesday
+2026-03-11,WhatsApp broadcast,168.3,5827,243,8,32,3,3.8,Wednesday
+2026-03-11,Local flyers,593.09,16832,70,2,4,0,3.8,Wednesday
+2026-03-12,Instagram,756.95,22869,302,17,36,2,3.7,Thursday
+2026-03-12,Google,1143.3,26937,1012,72,7,0,5.9,Thursday
+2026-03-12,WhatsApp broadcast,79.64,1849,86,7,16,0,5.2,Thursday
+2026-03-12,Local flyers,434.75,17575,64,2,4,0,4.1,Thursday
+2026-03-13,Instagram,1069.31,25683,535,32,10,1,4.2,Friday
+2026-03-13,Google,1880.05,76828,2478,92,20,1,5.1,Friday
+2026-03-13,WhatsApp broadcast,174.49,3490,157,9,17,1,3.7,Friday
+2026-03-13,Local flyers,362.34,8474,40,2,16,0,6.3,Friday
+2026-03-14,Instagram,595.13,17668,238,17,23,1,3.8,Saturday
+2026-03-14,Google,1336.78,45685,1134,37,30,5,4.6,Saturday
+2026-03-14,WhatsApp broadcast,101.06,2460,136,9,39,4,4.5,Saturday
+2026-03-14,Local flyers,493.89,17922,50,4,15,0,5.5,Saturday
+2026-03-15,Instagram,602.54,16681,276,19,21,0,1.9,Sunday
+2026-03-15,Google,1346.31,37087,1338,75,7,0,4.2,Sunday
+2026-03-15,WhatsApp broadcast,164.51,3679,177,4,7,0,2.3,Sunday
+2026-03-15,Local flyers,504.67,10416,31,2,11,1,2.0,Sunday
+2026-03-16,Instagram,860.5,23187,382,30,35,1,1.6,Monday
+2026-03-16,Google,1262.1,47841,1337,68,4,0,3.1,Monday
+2026-03-16,WhatsApp broadcast,101.58,4060,198,13,9,0,5.2,Monday
+2026-03-16,Local flyers,307.51,7234,28,0,12,0,1.5,Monday
+2026-03-17,Instagram,487.09,10177,144,6,27,0,3.4,Tuesday
+2026-03-17,Google,813.88,21344,867,43,16,1,4.7,Tuesday
+2026-03-17,WhatsApp broadcast,202.02,5426,333,27,10,0,5.7,Tuesday
+2026-03-17,Local flyers,411.53,10051,30,2,20,2,2.8,Tuesday
+2026-03-18,Instagram,682.1,22115,291,10,37,0,2.9,Wednesday
+2026-03-18,Google,1523.93,40150,1085,44,33,4,5.5,Wednesday
+2026-03-18,WhatsApp broadcast,75.47,2928,192,9,13,0,3.9,Wednesday
+2026-03-18,Local flyers,211.98,4237,12,0,29,0,6.2,Wednesday
+2026-03-19,Instagram,1357.91,46291,929,28,11,1,2.3,Thursday
+2026-03-19,Google,1500.77,48279,2007,107,27,4,6.0,Thursday
+2026-03-19,WhatsApp broadcast,104.99,4357,199,4,7,1,5.4,Thursday
+2026-03-19,Local flyers,443.73,13288,46,3,8,0,5.1,Thursday
+2026-03-20,Instagram,1161.1,23389,517,38,28,1,3.2,Friday
+2026-03-20,Google,1282.48,52516,1749,47,22,0,2.5,Friday
+2026-03-20,WhatsApp broadcast,125.87,5277,279,20,12,1,4.3,Friday
+2026-03-20,Local flyers,232.43,8979,36,1,21,2,5.6,Friday
+2026-03-21,Instagram,914.22,26032,571,27,7,1,2.6,Saturday
+2026-03-21,Google,1540.8,63550,2595,120,11,0,5.8,Saturday
+2026-03-21,WhatsApp broadcast,181.44,4855,212,10,32,5,2.9,Saturday
+2026-03-21,Local flyers,279.38,11022,31,0,20,0,4.6,Saturday
+2026-03-22,Instagram,1245.0,43110,901,20,38,2,2.7,Sunday
+2026-03-22,Google,971.16,34775,883,25,28,2,1.7,Sunday
+2026-03-22,WhatsApp broadcast,184.45,3672,226,7,29,4,4.1,Sunday
+2026-03-22,Local flyers,490.52,12840,60,4,17,2,6.2,Sunday
+2026-03-23,Instagram,454.15,8891,125,4,19,1,2.4,Monday
+2026-03-23,Google,1613.44,41052,1614,132,11,0,2.9,Monday
+2026-03-23,WhatsApp broadcast,212.12,6838,296,18,11,0,2.0,Monday
+2026-03-23,Local flyers,235.41,8202,35,1,37,1,5.1,Monday
+2026-03-24,Instagram,767.94,20986,441,25,36,4,3.8,Tuesday
+2026-03-24,Google,815.14,24657,1019,81,9,1,4.8,Tuesday
+2026-03-24,WhatsApp broadcast,103.53,3499,238,15,36,5,3.7,Tuesday
+2026-03-24,Local flyers,605.52,20193,59,1,31,4,4.7,Tuesday
+2026-03-25,Instagram,876.27,16859,341,23,25,1,3.5,Wednesday
+2026-03-25,Google,2178.89,55446,1628,41,24,1,3.3,Wednesday
+2026-03-25,WhatsApp broadcast,145.16,4941,210,16,24,4,2.0,Wednesday
+2026-03-25,Local flyers,301.94,6413,19,1,27,0,4.6,Wednesday
+2026-03-26,Instagram,1289.85,53336,1198,45,4,0,1.4,Thursday
+2026-03-26,Google,2149.73,47670,1860,96,19,0,3.8,Thursday
+2026-03-26,WhatsApp broadcast,125.51,2606,161,3,16,0,1.8,Thursday
+2026-03-26,Local flyers,337.6,7031,25,0,38,3,5.4,Thursday
+2026-03-27,Instagram,1418.86,44414,589,43,18,2,3.4,Friday
+2026-03-27,Google,2188.5,66786,2362,80,15,0,2.6,Friday
+2026-03-27,WhatsApp broadcast,109.06,2030,142,7,12,1,4.0,Friday
+2026-03-27,Local flyers,590.48,24320,72,3,31,5,1.3,Friday
+2026-03-28,Instagram,1439.51,36144,664,46,16,2,4.0,Saturday
+2026-03-28,Google,1771.87,48308,1302,77,33,3,5.1,Saturday
+2026-03-28,WhatsApp broadcast,100.36,2683,180,13,33,2,3.9,Saturday
+2026-03-28,Local flyers,316.51,9762,45,1,37,4,3.2,Saturday
+2026-03-29,Instagram,604.2,11624,226,5,32,2,2.6,Sunday
+2026-03-29,Google,1352.1,54457,1495,111,5,0,1.2,Sunday
+2026-03-29,WhatsApp broadcast,170.87,6299,436,9,32,2,2.6,Sunday
+2026-03-29,Local flyers,282.89,10330,40,1,4,0,5.6,Sunday
+2026-03-30,Instagram,576.28,15518,339,20,40,1,5.1,Monday
+2026-03-30,Google,729.49,16027,402,27,19,2,2.1,Monday
+2026-03-30,WhatsApp broadcast,227.23,8056,411,20,31,1,5.2,Monday
+2026-03-30,Local flyers,292.75,12034,45,4,33,3,6.0,Monday
+2026-03-31,Instagram,848.16,24347,364,28,7,0,2.3,Tuesday
+2026-03-31,Google,756.6,15914,630,39,13,0,6.5,Tuesday
+2026-03-31,WhatsApp broadcast,136.9,4517,265,23,32,4,2.6,Tuesday
+2026-03-31,Local flyers,206.29,6119,25,1,17,0,5.2,Tuesday
+2026-04-01,Instagram,1127.42,31648,401,18,30,1,1.6,Wednesday
+2026-04-01,Google,1573.71,30783,1241,40,15,0,5.1,Wednesday
+2026-04-01,WhatsApp broadcast,150.71,4159,285,20,23,1,4.6,Wednesday
+2026-04-01,Local flyers,565.45,23464,93,7,10,1,4.3,Wednesday
+2026-04-02,Instagram,1345.82,36306,822,21,32,0,1.5,Thursday
+2026-04-02,Google,2079.74,45430,1257,73,6,0,3.8,Thursday
+2026-04-02,WhatsApp broadcast,174.41,3302,235,18,13,0,6.5,Thursday
+2026-04-02,Local flyers,623.11,17908,91,3,20,0,1.7,Thursday
+2026-04-03,Instagram,1266.86,23885,494,29,13,1,6.5,Friday
+2026-04-03,Google,1553.88,38559,1438,116,31,2,4.9,Friday
+2026-04-03,WhatsApp broadcast,229.66,7553,318,10,32,0,3.8,Friday
+2026-04-03,Local flyers,367.1,9311,36,2,37,0,2.0,Friday
+2026-04-04,Instagram,661.03,20423,335,9,15,1,1.5,Saturday
+2026-04-04,Google,1020.81,27294,695,30,20,1,2.0,Saturday
+2026-04-04,WhatsApp broadcast,233.13,7118,465,34,10,1,2.6,Saturday
+2026-04-04,Local flyers,483.3,8901,26,1,31,3,5.7,Saturday
+2026-04-05,Instagram,754.66,14859,306,11,27,3,2.5,Sunday
+2026-04-05,Google,1647.04,62006,2258,175,17,1,5.9,Sunday
+2026-04-05,WhatsApp broadcast,234.7,7362,426,8,32,2,3.9,Sunday
+2026-04-05,Local flyers,434.85,17959,68,4,11,0,6.3,Sunday
+2026-04-06,Instagram,1261.48,29413,616,26,5,0,1.9,Monday
+2026-04-06,Google,1624.36,30470,777,61,22,0,1.5,Monday
+2026-04-06,WhatsApp broadcast,85.6,3273,228,14,34,1,4.1,Monday
+2026-04-06,Local flyers,490.56,16800,86,5,30,1,1.8,Monday
+2026-04-07,Instagram,1360.67,24694,460,39,36,1,6.1,Tuesday
+2026-04-07,Google,1669.45,37370,1349,56,21,1,5.2,Tuesday
+2026-04-07,WhatsApp broadcast,177.63,3439,136,6,26,2,6.2,Tuesday
+2026-04-07,Local flyers,475.7,10552,32,1,39,5,4.4,Tuesday
+2026-04-08,Instagram,505.36,17614,378,9,8,0,1.9,Wednesday
+2026-04-08,Google,2059.55,72826,1997,166,33,3,4.4,Wednesday
+2026-04-08,WhatsApp broadcast,181.16,7382,432,32,36,3,6.2,Wednesday
+2026-04-08,Local flyers,516.92,9736,40,1,6,0,2.8,Wednesday
+2026-04-09,Instagram,1107.31,21610,445,21,22,0,2.5,Thursday
+2026-04-09,Google,1684.76,59154,1770,113,6,0,1.9,Thursday
+2026-04-09,WhatsApp broadcast,121.58,2681,185,12,38,4,2.2,Thursday
+2026-04-09,Local flyers,451.28,13411,46,2,12,0,6.2,Thursday
+2026-04-10,Instagram,600.25,21897,341,23,11,1,1.3,Friday
+2026-04-10,Google,1661.87,46695,1309,108,34,2,2.6,Friday
+2026-04-10,WhatsApp broadcast,195.17,6918,304,17,10,1,4.9,Friday
+2026-04-10,Local flyers,409.01,14940,66,2,9,1,6.3,Friday
+2026-04-11,Instagram,818.8,16132,217,16,18,1,3.9,Saturday
+2026-04-11,Google,724.5,22755,630,22,28,3,4.1,Saturday
+2026-04-11,WhatsApp broadcast,229.85,6260,397,32,31,4,3.5,Saturday
+2026-04-11,Local flyers,283.04,5546,27,1,7,0,3.7,Saturday
+2026-04-12,Instagram,1304.13,49462,705,41,29,3,3.5,Sunday
+2026-04-12,Google,1757.39,68210,2661,230,10,1,2.5,Sunday
+2026-04-12,WhatsApp broadcast,208.39,7476,510,26,28,0,5.5,Sunday
+2026-04-12,Local flyers,535.62,15859,82,5,15,0,3.9,Sunday
+2026-04-13,Instagram,1405.71,29177,381,16,25,2,2.8,Monday
+2026-04-13,Google,879.73,31225,899,37,31,3,3.0,Monday
+2026-04-13,WhatsApp broadcast,144.8,3355,192,10,10,0,6.1,Monday
+2026-04-13,Local flyers,275.28,6604,29,0,22,1,4.3,Monday
+2026-04-14,Instagram,1385.01,48568,1129,78,27,4,1.6,Tuesday
+2026-04-14,Google,967.96,38563,1417,31,17,1,1.2,Tuesday
+2026-04-14,WhatsApp broadcast,79.07,2130,98,3,38,6,2.7,Tuesday
+2026-04-14,Local flyers,562.38,20905,102,8,14,0,1.6,Tuesday
+2026-04-15,Instagram,787.67,15538,319,12,5,0,1.7,Wednesday
+2026-04-15,Google,1073.9,38729,987,84,21,1,1.4,Wednesday
+2026-04-15,WhatsApp broadcast,87.63,1664,75,5,34,0,2.8,Wednesday
+2026-04-15,Local flyers,435.99,10438,38,2,40,4,1.8,Wednesday
+2026-04-16,Instagram,809.81,21943,410,17,29,4,3.8,Thursday
+2026-04-16,Google,1188.46,29872,1171,81,28,3,6.3,Thursday
+2026-04-16,WhatsApp broadcast,120.86,3783,175,4,38,1,2.7,Thursday
+2026-04-16,Local flyers,578.89,22262,65,1,30,1,2.7,Thursday
+2026-04-17,Instagram,756.85,15469,341,24,33,2,2.8,Friday
+2026-04-17,Google,935.62,31259,859,32,31,1,2.6,Friday
+2026-04-17,WhatsApp broadcast,138.17,4698,269,15,40,5,3.7,Friday
+2026-04-17,Local flyers,416.94,16231,77,6,17,0,1.2,Friday
+2026-04-18,Instagram,1176.5,38136,486,14,5,0,2.6,Saturday
+2026-04-18,Google,1783.03,49658,1563,128,8,0,6.5,Saturday
+2026-04-18,WhatsApp broadcast,112.15,3075,137,4,29,0,5.7,Saturday
+2026-04-18,Local flyers,393.14,16395,63,1,22,1,6.0,Saturday
+2026-04-19,Instagram,649.5,17795,290,25,5,0,2.9,Sunday
+2026-04-19,Google,748.73,13849,314,10,18,1,6.1,Sunday
+2026-04-19,WhatsApp broadcast,230.86,9289,655,37,13,1,5.4,Sunday
+2026-04-19,Local flyers,435.76,13551,55,3,29,3,5.2,Sunday
+2026-04-20,Instagram,893.2,28306,587,16,16,1,5.5,Monday
+2026-04-20,Google,1488.39,43988,1023,72,24,3,5.8,Monday
+2026-04-20,WhatsApp broadcast,129.27,4126,166,9,13,2,5.0,Monday
+2026-04-20,Local flyers,281.07,9110,27,0,39,2,1.3,Monday
+2026-04-21,Instagram,1413.7,50585,644,32,34,3,4.1,Tuesday
+2026-04-21,Google,1894.15,37433,1379,111,19,0,5.1,Tuesday
+2026-04-21,WhatsApp broadcast,169.44,5568,244,9,4,0,5.5,Tuesday
+2026-04-21,Local flyers,257.08,5134,25,2,15,1,6.0,Tuesday
+2026-04-22,Instagram,1323.21,45212,849,53,20,0,1.7,Wednesday
+2026-04-22,Google,1286.25,30523,1246,25,19,1,5.2,Wednesday
+2026-04-22,WhatsApp broadcast,165.48,5687,329,19,39,3,4.1,Wednesday
+2026-04-22,Local flyers,319.55,11207,54,1,14,1,5.5,Wednesday
+2026-04-23,Instagram,656.32,16054,220,11,20,1,6.4,Thursday
+2026-04-23,Google,2074.87,67725,2366,120,13,0,1.5,Thursday
+2026-04-23,WhatsApp broadcast,203.85,5688,278,23,15,2,2.2,Thursday
+2026-04-23,Local flyers,487.73,10315,51,1,13,1,5.0,Thursday
+2026-04-24,Instagram,1240.93,49158,921,80,32,4,2.3,Friday
+2026-04-24,Google,1651.4,63078,2161,178,21,1,4.0,Friday
+2026-04-24,WhatsApp broadcast,195.02,4148,224,15,5,0,4.1,Friday
+2026-04-24,Local flyers,225.43,6872,23,1,9,0,2.2,Friday
+2026-04-25,Instagram,1193.21,42465,865,25,14,1,3.6,Saturday
+2026-04-25,Google,2009.48,73025,1687,104,6,0,1.4,Saturday
+2026-04-25,WhatsApp broadcast,140.1,4542,291,13,18,0,4.6,Saturday
+2026-04-25,Local flyers,389.03,15908,62,4,34,5,2.0,Saturday
+2026-04-26,Instagram,980.63,30281,487,24,37,1,2.0,Sunday
+2026-04-26,Google,1526.57,28991,908,29,14,0,6.5,Sunday
+2026-04-26,WhatsApp broadcast,216.56,6749,445,37,24,0,2.6,Sunday
+2026-04-26,Local flyers,456.66,14779,55,3,8,0,4.2,Sunday
+2026-04-27,Instagram,771.8,30818,559,43,31,3,3.6,Monday
+2026-04-27,Google,2063.02,57210,1781,159,20,3,3.6,Monday
+2026-04-27,WhatsApp broadcast,237.48,9746,633,54,6,1,1.4,Monday
+2026-04-27,Local flyers,476.26,9594,48,4,29,5,3.2,Monday
+2026-04-28,Instagram,1255.95,27194,412,18,7,0,1.8,Tuesday
+2026-04-28,Google,854.78,34741,829,54,13,1,4.1,Tuesday
+2026-04-28,WhatsApp broadcast,162.49,5165,298,6,6,0,3.5,Tuesday
+2026-04-28,Local flyers,340.6,9449,32,2,37,5,6.4,Tuesday
+2026-04-29,Instagram,741.54,15054,282,19,19,1,2.2,Wednesday
+2026-04-29,Google,1951.48,48514,1244,57,32,1,4.5,Wednesday
+2026-04-29,WhatsApp broadcast,77.21,2214,137,3,14,2,1.9,Wednesday
+2026-04-29,Local flyers,397.53,14608,41,2,40,3,2.7,Wednesday
+2026-04-30,Instagram,1051.52,38016,684,22,21,1,6.3,Thursday
+2026-04-30,Google,1201.92,26067,1041,86,31,4,6.2,Thursday
+2026-04-30,WhatsApp broadcast,152.56,4705,307,18,15,2,6.4,Thursday
+2026-04-30,Local flyers,320.78,10066,33,2,22,3,5.6,Thursday
+2026-05-01,Instagram,709.74,22461,401,12,32,4,4.8,Friday
+2026-05-01,Google,1291.1,27518,1044,68,6,0,4.0,Friday
+2026-05-01,WhatsApp broadcast,224.43,8391,325,22,7,0,5.0,Friday
+2026-05-01,Local flyers,538.56,16361,66,2,7,0,3.4,Friday
+2026-05-02,Instagram,1143.15,26481,493,14,6,1,4.8,Saturday
+2026-05-02,Google,1153.83,25130,834,69,14,0,3.3,Saturday
+2026-05-02,WhatsApp broadcast,230.16,8408,402,21,32,0,2.8,Saturday
+2026-05-02,Local flyers,518.45,15145,55,2,11,1,4.8,Saturday
+2026-05-03,Instagram,932.92,18021,339,30,35,1,4.1,Sunday
+2026-05-03,Google,1408.26,44626,1579,136,16,2,4.0,Sunday
+2026-05-03,WhatsApp broadcast,113.73,3650,207,11,25,0,3.2,Sunday
+2026-05-03,Local flyers,490.5,9169,39,2,40,5,1.5,Sunday
+2026-05-04,Instagram,947.67,20965,411,22,25,1,4.3,Monday
+2026-05-04,Google,1002.56,40524,1668,60,19,2,5.2,Monday
+2026-05-04,WhatsApp broadcast,198.09,6741,389,16,31,5,1.5,Monday
+2026-05-04,Local flyers,592.9,11315,48,2,40,1,3.9,Monday
+2026-05-05,Instagram,1169.15,43544,955,66,29,3,2.8,Tuesday
+2026-05-05,Google,1060.92,21778,889,73,20,1,2.0,Tuesday
+2026-05-05,WhatsApp broadcast,143.38,3194,214,6,39,4,2.1,Tuesday
+2026-05-05,Local flyers,378.52,13533,66,1,38,6,5.3,Tuesday
+2026-05-06,Instagram,1393.74,49975,666,21,18,1,5.7,Wednesday
+2026-05-06,Google,1039.21,35855,896,32,5,0,4.7,Wednesday
+2026-05-06,WhatsApp broadcast,76.38,3157,188,5,24,1,4.6,Wednesday
+2026-05-06,Local flyers,481.04,15626,64,2,39,6,5.7,Wednesday
+2026-05-07,Instagram,797.63,32124,750,29,40,4,2.0,Thursday
+2026-05-07,Google,1352.14,35883,891,31,20,1,5.7,Thursday
+2026-05-07,WhatsApp broadcast,144.15,3908,224,7,35,3,5.5,Thursday
+2026-05-07,Local flyers,607.08,21896,86,5,21,0,2.9,Thursday
+2026-05-08,Instagram,1343.13,40338,782,41,22,1,4.9,Friday
+2026-05-08,Google,1224.38,42850,1252,105,7,1,4.0,Friday
+2026-05-08,WhatsApp broadcast,189.14,3893,225,13,30,4,1.5,Friday
+2026-05-08,Local flyers,611.22,15817,47,3,25,0,2.4,Friday
+2026-05-09,Instagram,744.54,15722,209,6,16,2,4.4,Saturday
+2026-05-09,Google,1022.97,40321,1089,84,33,0,5.0,Saturday
+2026-05-09,WhatsApp broadcast,147.58,5307,370,25,4,0,3.8,Saturday
+2026-05-09,Local flyers,573.77,20017,83,2,5,0,2.7,Saturday
+2026-05-10,Instagram,536.61,17753,380,20,15,0,5.1,Sunday
+2026-05-10,Google,2022.26,60817,1933,56,25,2,2.7,Sunday
+2026-05-10,WhatsApp broadcast,154.48,3068,185,7,36,1,2.9,Sunday
+2026-05-10,Local flyers,246.31,7295,22,0,23,3,1.4,Sunday
+2026-05-11,Instagram,1339.35,25020,536,42,7,0,5.1,Monday
+2026-05-11,Google,980.62,27066,698,38,15,1,2.0,Monday
+2026-05-11,WhatsApp broadcast,176.86,7298,314,11,20,2,1.2,Monday
+2026-05-11,Local flyers,617.25,21745,93,6,29,3,4.2,Monday
+2026-05-12,Instagram,803.15,18913,350,30,14,1,3.3,Tuesday
+2026-05-12,Google,1500.81,47948,1442,119,39,1,2.6,Tuesday
+2026-05-12,WhatsApp broadcast,111.14,3442,225,5,20,3,6.3,Tuesday
+2026-05-12,Local flyers,250.16,7597,34,1,32,1,5.6,Tuesday
+2026-05-13,Instagram,847.36,22468,491,44,27,3,4.6,Wednesday
+2026-05-13,Google,1929.04,37057,1443,116,6,0,2.4,Wednesday
+2026-05-13,WhatsApp broadcast,223.93,8577,523,35,19,0,3.3,Wednesday
+2026-05-13,Local flyers,554.29,21663,71,2,35,3,5.4,Wednesday
+2026-05-14,Instagram,1130.11,28149,639,35,24,2,2.0,Thursday
+2026-05-14,Google,2133.91,56284,1990,173,5,0,2.8,Thursday
+2026-05-14,WhatsApp broadcast,167.87,6725,274,9,12,1,5.8,Thursday
+2026-05-14,Local flyers,396.72,7993,31,1,25,4,6.4,Thursday
+2026-05-15,Instagram,1153.42,25748,553,16,24,2,5.9,Friday
+2026-05-15,Google,1516.73,46986,1068,79,33,2,5.9,Friday
+2026-05-15,WhatsApp broadcast,144.47,3417,181,7,8,0,6.3,Friday
+2026-05-15,Local flyers,535.34,10622,40,1,14,1,3.1,Friday
+2026-05-16,Instagram,1381.25,57339,1256,50,27,2,2.9,Saturday
+2026-05-16,Google,1310.64,31209,971,62,26,4,1.5,Saturday
+2026-05-16,WhatsApp broadcast,157.75,5911,263,13,9,0,6.3,Saturday
+2026-05-16,Local flyers,571.7,18015,67,5,6,0,5.6,Saturday
+2026-05-17,Instagram,917.96,17291,311,22,16,2,6.4,Sunday
+2026-05-17,Google,1773.73,57788,1795,86,22,1,4.2,Sunday
+2026-05-17,WhatsApp broadcast,117.54,3804,248,22,40,5,2.0,Sunday
+2026-05-17,Local flyers,534.23,13954,60,1,10,0,6.2,Sunday
+2026-05-18,Instagram,1083.1,36201,632,28,28,2,6.3,Monday
+2026-05-18,Google,883.26,16087,551,16,5,0,1.5,Monday
+2026-05-18,WhatsApp broadcast,219.37,7850,544,47,36,0,1.9,Monday
+2026-05-18,Local flyers,365.73,13722,40,2,8,0,5.9,Monday
+2026-05-19,Instagram,664.48,16869,308,26,33,5,2.1,Tuesday
+2026-05-19,Google,720.14,15419,545,12,31,3,3.2,Tuesday
+2026-05-19,WhatsApp broadcast,134.35,3131,212,12,25,2,3.9,Tuesday
+2026-05-19,Local flyers,326.77,9038,30,1,40,7,2.2,Tuesday
+2026-05-20,Instagram,1425.98,41765,825,21,32,2,2.9,Wednesday
+2026-05-20,Google,1006.16,26595,991,88,33,4,4.4,Wednesday
+2026-05-20,WhatsApp broadcast,80.95,2742,124,3,19,1,5.2,Wednesday
+2026-05-20,Local flyers,543.88,20612,79,6,7,0,5.9,Wednesday
+2026-05-21,Instagram,795.06,29098,424,16,4,0,5.2,Thursday
+2026-05-21,Google,1605.28,55423,1764,146,11,0,1.9,Thursday
+2026-05-21,WhatsApp broadcast,86.88,2058,118,9,7,1,6.5,Thursday
+2026-05-21,Local flyers,420.08,14412,66,1,7,1,3.9,Thursday
+2026-05-22,Instagram,985.26,25842,545,15,30,4,3.5,Friday
+2026-05-22,Google,843.64,30804,708,49,4,0,5.9,Friday
+2026-05-22,WhatsApp broadcast,115.77,2336,151,11,23,2,6.2,Friday
+2026-05-22,Local flyers,210.49,8065,30,2,13,1,4.8,Friday
+2026-05-23,Instagram,1349.45,32782,547,39,36,0,6.1,Saturday
+2026-05-23,Google,1100.07,22217,658,32,13,2,2.4,Saturday
+2026-05-23,WhatsApp broadcast,120.08,4304,192,5,27,1,5.7,Saturday
+2026-05-23,Local flyers,582.03,21223,94,7,34,5,2.6,Saturday
+2026-05-24,Instagram,888.33,28283,648,15,39,1,4.3,Sunday
+2026-05-24,Google,1634.75,67966,2607,88,9,1,3.6,Sunday
+2026-05-24,WhatsApp broadcast,184.16,5845,330,17,30,3,4.9,Sunday
+2026-05-24,Local flyers,582.96,14423,74,4,10,1,4.1,Sunday
+2026-05-25,Instagram,933.1,27000,538,35,13,1,6.0,Monday
+2026-05-25,Google,1090.08,43465,1553,63,33,5,4.7,Monday
+2026-05-25,WhatsApp broadcast,120.89,4873,192,5,24,1,1.4,Monday
+2026-05-25,Local flyers,367.6,15366,58,1,10,1,6.4,Monday
+2026-05-26,Instagram,1010.91,24225,363,27,6,0,6.5,Tuesday
+2026-05-26,Google,2235.01,68068,2426,144,6,0,5.0,Tuesday
+2026-05-26,WhatsApp broadcast,130.79,4976,237,14,26,3,6.2,Tuesday
+2026-05-26,Local flyers,400.19,8172,42,3,8,0,4.3,Tuesday
+2026-05-27,Instagram,923.28,18772,288,21,37,5,1.7,Wednesday
+2026-05-27,Google,1179.42,43366,1008,34,27,3,1.8,Wednesday
+2026-05-27,WhatsApp broadcast,201.49,4265,196,11,26,2,2.1,Wednesday
+2026-05-27,Local flyers,458.23,12931,41,1,10,0,6.4,Wednesday
+2026-05-28,Instagram,492.86,9255,193,9,40,0,5.8,Thursday
+2026-05-28,Google,1869.35,50456,1213,75,4,0,2.3,Thursday
+2026-05-28,WhatsApp broadcast,188.67,6273,419,20,23,1,1.8,Thursday
+2026-05-28,Local flyers,235.89,5210,21,1,15,2,1.4,Thursday
+2026-05-29,Instagram,1309.83,40261,559,18,25,0,6.3,Friday
+2026-05-29,Google,770.86,28157,1101,75,14,1,6.1,Friday
+2026-05-29,WhatsApp broadcast,116.52,3991,245,13,25,0,3.7,Friday
+2026-05-29,Local flyers,259.21,6063,27,1,4,0,1.7,Friday
+2026-05-30,Instagram,1251.49,51858,1011,86,25,4,3.8,Saturday
+2026-05-30,Google,888.75,36605,910,25,14,0,2.0,Saturday
+2026-05-30,WhatsApp broadcast,175.5,5086,297,8,14,2,4.8,Saturday
+2026-05-30,Local flyers,312.47,10931,54,1,39,0,4.5,Saturday
+2026-05-31,Instagram,468.83,8982,114,3,33,0,2.7,Sunday
+2026-05-31,Google,1452.82,38536,1480,121,25,1,3.8,Sunday
+2026-05-31,WhatsApp broadcast,173.43,5119,299,16,4,0,6.4,Sunday
+2026-05-31,Local flyers,211.21,6823,30,1,33,5,3.5,Sunday
+2026-06-01,Instagram,1435.41,57110,1293,83,18,1,1.5,Monday
+2026-06-01,Google,866.63,21582,501,29,8,0,5.0,Monday
+2026-06-01,WhatsApp broadcast,117.65,4077,171,10,13,0,6.1,Monday
+2026-06-01,Local flyers,538.77,13320,67,2,14,2,1.5,Monday
+2026-06-02,Instagram,1040.81,39416,781,51,28,2,1.3,Tuesday
+2026-06-02,Google,1580.16,53313,2191,110,18,1,1.9,Tuesday
+2026-06-02,WhatsApp broadcast,194.0,7407,504,19,16,1,6.0,Tuesday
+2026-06-02,Local flyers,553.84,18120,82,4,4,0,1.4,Tuesday
+2026-06-03,Instagram,1318.26,26877,616,53,30,1,1.4,Wednesday
+2026-06-03,Google,1099.28,37901,1350,63,35,4,3.0,Wednesday
+2026-06-03,WhatsApp broadcast,92.07,2968,201,4,27,1,1.9,Wednesday
+2026-06-03,Local flyers,221.72,5299,16,0,31,4,2.8,Wednesday
+2026-06-04,Instagram,1306.47,39595,626,52,31,4,1.8,Thursday
+2026-06-04,Google,2019.18,48088,1548,132,31,2,5.4,Thursday
+2026-06-04,WhatsApp broadcast,159.88,4249,174,13,38,4,2.5,Thursday
+2026-06-04,Local flyers,615.94,22557,89,4,25,4,5.4,Thursday
+2026-06-05,Instagram,950.0,31074,706,38,22,0,3.2,Friday
+2026-06-05,Google,2124.36,68775,2340,78,35,4,2.4,Friday
+2026-06-05,WhatsApp broadcast,201.86,7086,341,10,10,0,2.0,Friday
+2026-06-05,Local flyers,466.72,13159,65,4,12,1,4.2,Friday
+2026-06-06,Instagram,1106.49,23330,299,18,16,0,2.7,Saturday
+2026-06-06,Google,700.19,23766,831,31,20,1,5.0,Saturday
+2026-06-06,WhatsApp broadcast,223.66,5021,245,18,40,0,4.5,Saturday
+2026-06-06,Local flyers,527.18,10005,33,2,36,3,2.2,Saturday
+2026-06-07,Instagram,810.18,29137,429,23,10,0,4.1,Sunday
+2026-06-07,Google,2008.03,45597,1256,111,5,0,5.1,Sunday
+2026-06-07,WhatsApp broadcast,87.98,3645,216,15,13,2,3.2,Sunday
+2026-06-07,Local flyers,415.12,15503,78,2,4,0,5.1,Sunday
+2026-06-08,Instagram,1329.12,30089,528,20,15,1,3.6,Monday
+2026-06-08,Google,2105.15,50234,1132,29,40,6,3.2,Monday
+2026-06-08,WhatsApp broadcast,234.7,5877,254,22,16,0,6.3,Monday
+2026-06-08,Local flyers,363.75,7311,27,1,34,5,2.0,Monday
+2026-06-09,Instagram,593.25,12896,172,12,20,0,2.3,Tuesday
+2026-06-09,Google,1074.64,35516,1432,59,27,1,5.2,Tuesday
+2026-06-09,WhatsApp broadcast,101.38,3120,144,4,7,1,1.5,Tuesday
+2026-06-09,Local flyers,248.15,6119,27,1,18,2,3.5,Tuesday
+2026-06-10,Instagram,919.25,29537,577,26,32,5,2.9,Wednesday
+2026-06-10,Google,1063.3,33657,1267,113,17,1,3.4,Wednesday
+2026-06-10,WhatsApp broadcast,107.01,3483,187,8,22,2,6.3,Wednesday
+2026-06-10,Local flyers,459.72,12674,57,3,20,1,2.1,Wednesday
+2026-06-11,Instagram,828.67,23405,331,22,5,0,3.5,Thursday
+2026-06-11,Google,949.74,34922,1183,39,38,2,3.4,Thursday
+2026-06-11,WhatsApp broadcast,176.19,6073,300,26,39,3,3.5,Thursday
+2026-06-11,Local flyers,357.59,11305,52,3,17,1,3.4,Thursday
+2026-06-12,Instagram,993.11,25477,334,16,21,0,5.7,Friday
+2026-06-12,Google,1489.18,54380,1855,157,22,3,4.6,Friday
+2026-06-12,WhatsApp broadcast,199.37,5365,316,9,10,1,6.0,Friday
+2026-06-12,Local flyers,443.1,15865,70,4,16,2,2.0,Friday
+2026-06-13,Instagram,1134.85,26228,572,32,13,0,3.6,Saturday
+2026-06-13,Google,1884.71,77255,3019,145,19,2,4.6,Saturday
+2026-06-13,WhatsApp broadcast,88.26,2307,112,2,17,2,4.6,Saturday
+2026-06-13,Local flyers,270.42,10655,36,2,37,5,6.1,Saturday
+2026-06-14,Instagram,629.39,26149,349,22,11,1,3.8,Sunday
+2026-06-14,Google,1833.31,46601,1287,25,4,0,3.1,Sunday
+2026-06-14,WhatsApp broadcast,213.48,8040,317,23,34,5,3.4,Sunday
+2026-06-14,Local flyers,522.91,17315,63,1,25,4,4.8,Sunday
+2026-06-15,Instagram,1196.54,45183,577,24,12,1,4.4,Monday
+2026-06-15,Google,990.42,31890,1020,80,32,4,2.9,Monday
+2026-06-15,WhatsApp broadcast,144.16,4959,316,26,24,2,3.6,Monday
+2026-06-15,Local flyers,571.5,17705,90,5,26,1,6.2,Monday
+2026-06-16,Instagram,675.59,14240,179,8,35,5,4.1,Tuesday
+2026-06-16,Google,767.74,23134,893,24,6,0,4.0,Tuesday
+2026-06-16,WhatsApp broadcast,156.74,6168,373,27,18,3,6.4,Tuesday
+2026-06-16,Local flyers,314.42,12517,39,2,21,0,4.3,Tuesday
+2026-06-17,Instagram,683.35,17274,253,10,28,3,2.7,Wednesday
+2026-06-17,Google,846.54,18980,660,52,23,3,5.7,Wednesday
+2026-06-17,WhatsApp broadcast,137.06,3172,129,6,39,3,3.8,Wednesday
+2026-06-17,Local flyers,221.85,4216,18,0,31,1,2.9,Wednesday
+2026-06-18,Instagram,977.73,32739,417,14,18,1,3.1,Thursday
+2026-06-18,Google,2198.68,64712,1449,77,30,2,4.9,Thursday
+2026-06-18,WhatsApp broadcast,206.12,6715,470,40,30,4,3.8,Thursday
+2026-06-18,Local flyers,467.23,13358,52,4,5,0,1.8,Thursday
+2026-06-19,Instagram,1191.9,24354,493,16,25,1,6.0,Friday
+2026-06-19,Google,912.88,23413,628,24,24,2,2.5,Friday
+2026-06-19,WhatsApp broadcast,230.85,6572,449,31,6,0,2.2,Friday
+2026-06-19,Local flyers,547.13,19174,59,2,19,0,4.2,Friday
+2026-06-20,Instagram,1301.11,54105,1244,31,24,1,2.1,Saturday
+2026-06-20,Google,1878.58,54599,1659,70,8,0,2.5,Saturday
+2026-06-20,WhatsApp broadcast,95.68,3910,247,12,6,0,6.2,Saturday
+2026-06-20,Local flyers,575.54,23812,81,2,37,0,1.7,Saturday
+2026-06-21,Instagram,1407.27,56096,790,42,31,3,1.8,Sunday
+2026-06-21,Google,1322.62,26663,1096,74,27,4,6.1,Sunday
+2026-06-21,WhatsApp broadcast,190.81,7261,300,8,38,1,5.0,Sunday
+2026-06-21,Local flyers,446.67,10225,42,2,28,2,2.8,Sunday
+2026-06-22,Instagram,1103.19,25770,445,22,25,0,4.8,Monday
+2026-06-22,Google,964.82,24814,820,29,4,0,5.9,Monday
+2026-06-22,WhatsApp broadcast,210.58,6592,257,13,18,2,6.4,Monday
+2026-06-22,Local flyers,464.85,14034,56,1,36,2,1.6,Monday
+2026-06-23,Instagram,1436.81,52154,842,46,22,3,2.4,Tuesday
+2026-06-23,Google,1203.32,47463,1212,59,14,1,2.3,Tuesday
+2026-06-23,WhatsApp broadcast,142.84,4729,264,9,23,1,5.6,Tuesday
+2026-06-23,Local flyers,392.26,14668,60,4,35,0,3.2,Tuesday
+2026-06-24,Instagram,721.16,23280,337,17,22,0,6.3,Wednesday
+2026-06-24,Google,928.74,33497,866,53,15,1,5.8,Wednesday
+2026-06-24,WhatsApp broadcast,214.01,5463,354,16,32,1,3.4,Wednesday
+2026-06-24,Local flyers,391.78,9132,33,2,10,0,6.0,Wednesday
+2026-06-25,Instagram,1226.59,46447,740,21,33,0,4.4,Thursday
+2026-06-25,Google,1965.48,61588,2188,157,16,0,3.1,Thursday
+2026-06-25,WhatsApp broadcast,160.88,3239,178,5,30,4,6.3,Thursday
+2026-06-25,Local flyers,298.76,8569,41,1,30,1,5.8,Thursday
+2026-06-26,Instagram,668.76,25725,552,25,7,1,4.3,Friday
+2026-06-26,Google,984.83,31346,1132,35,36,5,1.3,Friday
+2026-06-26,WhatsApp broadcast,158.36,3845,238,11,36,4,2.8,Friday
+2026-06-26,Local flyers,510.51,13077,46,2,26,4,6.5,Friday
+2026-06-27,Instagram,618.09,22378,514,40,23,1,4.7,Saturday
+2026-06-27,Google,904.99,21069,741,62,17,1,1.5,Saturday
+2026-06-27,WhatsApp broadcast,209.66,5111,246,15,25,3,2.6,Saturday
+2026-06-27,Local flyers,292.91,8731,40,1,24,2,2.2,Saturday
+2026-06-28,Instagram,1439.08,51346,691,24,24,4,4.6,Sunday
+2026-06-28,Google,2022.93,50737,1423,101,26,3,3.5,Sunday
+2026-06-28,WhatsApp broadcast,126.34,2822,128,7,6,0,6.2,Sunday
+2026-06-28,Local flyers,495.33,12239,51,1,32,4,4.9,Sunday
+2026-06-29,Instagram,466.4,13512,220,5,38,4,2.6,Monday
+2026-06-29,Google,1657.91,68490,2634,88,28,1,5.6,Monday
+2026-06-29,WhatsApp broadcast,153.32,5414,363,19,29,3,5.4,Monday
+2026-06-29,Local flyers,531.58,15749,67,4,11,0,4.1,Monday
+2026-06-30,Instagram,1086.71,35220,552,46,24,3,2.5,Tuesday
+2026-06-30,Google,1603.96,59206,1885,79,15,1,5.3,Tuesday
+2026-06-30,WhatsApp broadcast,114.24,2565,115,8,33,0,4.5,Tuesday
+2026-06-30,Local flyers,238.69,6999,25,0,36,4,1.9,Tuesday
+2026-07-01,Instagram,1273.74,27460,454,32,7,1,5.6,Wednesday
+2026-07-01,Google,982.81,25979,917,28,31,3,4.8,Wednesday
+2026-07-01,WhatsApp broadcast,234.97,6540,464,26,24,3,6.0,Wednesday
+2026-07-01,Local flyers,363.66,12209,50,1,15,1,3.0,Wednesday
+2026-07-02,Instagram,717.24,28708,552,43,33,1,1.9,Thursday
+2026-07-02,Google,1892.77,40320,980,69,25,0,3.6,Thursday
+2026-07-02,WhatsApp broadcast,85.14,1594,79,5,8,0,1.8,Thursday
+2026-07-02,Local flyers,478.68,11426,37,2,21,3,4.9,Thursday
+2026-07-03,Instagram,861.73,27506,599,29,21,1,2.9,Friday
+2026-07-03,Google,1961.29,66916,1521,127,20,3,5.7,Friday
+2026-07-03,WhatsApp broadcast,185.65,7641,420,32,19,1,2.1,Friday
+2026-07-03,Local flyers,565.82,14495,72,6,15,2,1.6,Friday
+2026-07-04,Instagram,998.83,32980,473,10,30,2,5.7,Saturday
+2026-07-04,Google,2010.88,56971,2295,199,13,0,4.0,Saturday
+2026-07-04,WhatsApp broadcast,217.92,4455,226,9,39,4,3.2,Saturday
+2026-07-04,Local flyers,623.69,20705,72,5,32,1,6.3,Saturday
+2026-07-05,Instagram,1164.56,31758,594,25,25,1,2.8,Sunday
+2026-07-05,Google,1602.68,46618,1901,50,32,2,2.0,Sunday
+2026-07-05,WhatsApp broadcast,132.16,3386,204,4,36,6,1.9,Sunday
+2026-07-05,Local flyers,430.66,12629,63,3,23,1,2.3,Sunday
+2026-07-06,Instagram,711.72,18224,245,13,14,1,2.8,Monday
+2026-07-06,Google,1935.36,38032,1470,127,37,2,4.7,Monday
+2026-07-06,WhatsApp broadcast,147.74,3531,187,4,27,2,3.7,Monday
+2026-07-06,Local flyers,454.51,17257,58,2,14,0,3.9,Monday
+2026-07-07,Instagram,857.67,16120,274,16,30,3,3.4,Tuesday
+2026-07-07,Google,1248.52,32801,1175,94,25,1,2.6,Tuesday
+2026-07-07,WhatsApp broadcast,107.05,4378,267,5,10,0,2.8,Tuesday
+2026-07-07,Local flyers,293.91,6262,18,1,14,1,2.9,Tuesday
+2026-07-08,Instagram,662.7,19188,387,30,30,4,6.0,Wednesday
+2026-07-08,Google,1579.02,57528,1937,42,18,1,4.1,Wednesday
+2026-07-08,WhatsApp broadcast,237.89,9284,571,39,13,0,1.7,Wednesday
+2026-07-08,Local flyers,382.39,12366,59,5,22,3,2.6,Wednesday
+2026-07-09,Instagram,1042.32,19946,393,13,31,1,3.5,Thursday
+2026-07-09,Google,1513.33,39732,1283,67,34,3,3.2,Thursday
+2026-07-09,WhatsApp broadcast,187.69,6228,321,24,12,0,3.4,Thursday
+2026-07-09,Local flyers,572.42,15881,68,4,23,4,5.3,Thursday
+2026-07-10,Instagram,916.86,34554,720,31,6,0,4.9,Friday
+2026-07-10,Google,2006.14,38907,1498,33,14,1,2.4,Friday
+2026-07-10,WhatsApp broadcast,206.13,8240,466,11,7,1,3.8,Friday
+2026-07-10,Local flyers,242.78,6108,23,1,16,0,6.1,Friday
+2026-07-11,Instagram,1424.48,35547,636,25,26,3,6.1,Saturday
+2026-07-11,Google,1863.27,43096,999,45,20,0,1.6,Saturday
+2026-07-11,WhatsApp broadcast,195.91,6272,387,22,21,0,5.9,Saturday
+2026-07-11,Local flyers,323.74,11215,32,2,33,1,4.6,Saturday
+2026-07-12,Instagram,546.1,15147,273,18,5,0,2.4,Sunday
+2026-07-12,Google,1092.97,37221,1386,80,14,0,3.0,Sunday
+2026-07-12,WhatsApp broadcast,227.31,8699,431,32,7,0,5.9,Sunday
+2026-07-12,Local flyers,538.55,19514,84,7,33,2,3.9,Sunday
+2026-07-13,Instagram,755.18,21529,397,21,17,0,3.4,Monday
+2026-07-13,Google,1437.31,58161,2029,135,36,0,2.2,Monday
+2026-07-13,WhatsApp broadcast,202.82,6794,304,11,32,2,3.9,Monday
+2026-07-13,Local flyers,475.91,17618,53,2,23,2,6.4,Monday
+2026-07-14,Instagram,927.52,34597,455,37,13,0,2.6,Tuesday
+2026-07-14,Google,1753.29,65969,1731,119,13,2,2.5,Tuesday
+2026-07-14,WhatsApp broadcast,128.55,3315,138,11,12,0,5.6,Tuesday
+2026-07-14,Local flyers,238.71,4479,12,0,35,3,5.0,Tuesday
+2026-07-15,Instagram,1212.79,24478,567,17,25,4,3.8,Wednesday
+2026-07-15,Google,1344.1,28606,1175,81,35,5,4.6,Wednesday
+2026-07-15,WhatsApp broadcast,170.78,3898,199,6,37,1,4.3,Wednesday
+2026-07-15,Local flyers,491.37,14582,67,5,21,1,1.7,Wednesday
+2026-07-16,Instagram,1297.37,28591,503,35,15,1,1.7,Thursday
+2026-07-16,Google,1238.46,25445,969,20,34,6,3.1,Thursday
+2026-07-16,WhatsApp broadcast,97.38,3692,241,11,6,1,2.5,Thursday
+2026-07-16,Local flyers,373.04,8494,31,2,15,2,4.9,Thursday
+2026-07-17,Instagram,773.39,23848,508,10,20,1,1.3,Friday
+2026-07-17,Google,1179.19,29399,804,22,28,0,3.1,Friday
+2026-07-17,WhatsApp broadcast,114.44,3077,180,13,39,6,3.3,Friday
+2026-07-17,Local flyers,357.77,12914,65,5,10,0,3.3,Friday
+2026-07-18,Instagram,992.5,21129,440,10,21,3,2.1,Saturday
+2026-07-18,Google,1495.73,50010,1699,101,31,0,2.9,Saturday
+2026-07-18,WhatsApp broadcast,222.45,4809,327,8,8,0,3.8,Saturday
+2026-07-18,Local flyers,579.78,20608,102,9,12,0,4.5,Saturday
+2026-07-19,Instagram,865.47,18946,435,21,23,2,5.4,Sunday
+2026-07-19,Google,1829.38,50695,1859,120,38,3,1.4,Sunday
+2026-07-19,WhatsApp broadcast,81.62,1769,112,8,35,0,4.0,Sunday
+2026-07-19,Local flyers,393.89,9116,43,1,38,0,1.8,Sunday
+2026-07-20,Instagram,999.2,19700,346,28,23,0,5.2,Monday
+2026-07-20,Google,770.19,20178,727,60,38,1,5.1,Monday
+2026-07-20,WhatsApp broadcast,185.72,3579,239,16,19,0,4.4,Monday
+2026-07-20,Local flyers,519.23,17153,69,4,12,0,1.7,Monday
+2026-07-21,Instagram,521.83,17780,225,8,33,1,3.9,Tuesday
+2026-07-21,Google,784.88,17290,621,53,7,0,3.5,Tuesday
+2026-07-21,WhatsApp broadcast,232.03,8104,442,10,39,5,2.4,Tuesday
+2026-07-21,Local flyers,412.96,13428,61,4,39,1,3.1,Tuesday
+2026-07-22,Instagram,881.2,20561,359,15,22,0,5.0,Wednesday
+2026-07-22,Google,873.79,33898,1373,48,13,2,1.6,Wednesday
+2026-07-22,WhatsApp broadcast,161.66,3034,182,3,19,0,3.5,Wednesday
+2026-07-22,Local flyers,244.99,8218,26,1,17,2,5.3,Wednesday
+2026-07-23,Instagram,1361.93,33703,544,14,16,0,3.6,Thursday
+2026-07-23,Google,1145.49,46352,1702,36,23,0,1.2,Thursday
+2026-07-23,WhatsApp broadcast,230.21,7402,361,15,27,3,2.4,Thursday
+2026-07-23,Local flyers,289.86,6478,18,0,25,1,2.7,Thursday
+2026-07-24,Instagram,1085.58,40960,633,21,35,1,4.7,Friday
+2026-07-24,Google,1963.76,60419,2203,144,38,3,2.8,Friday
+2026-07-24,WhatsApp broadcast,164.28,3761,210,8,38,0,4.7,Friday
+2026-07-24,Local flyers,377.82,10474,29,1,26,0,2.6,Friday
+2026-07-25,Instagram,856.96,20031,332,11,8,1,3.3,Saturday
+2026-07-25,Google,1354.01,35275,1201,66,25,0,4.7,Saturday
+2026-07-25,WhatsApp broadcast,80.19,2047,111,8,31,2,2.7,Saturday
+2026-07-25,Local flyers,328.96,11118,38,1,28,0,2.9,Saturday
+2026-07-26,Instagram,1184.83,38084,583,18,13,1,4.0,Sunday
+2026-07-26,Google,985.51,29853,680,33,35,0,3.4,Sunday
+2026-07-26,WhatsApp broadcast,170.95,6499,418,19,29,0,4.2,Sunday
+2026-07-26,Local flyers,310.64,8613,34,0,36,2,6.2,Sunday
+2026-07-27,Instagram,883.89,31241,634,46,35,3,2.9,Monday
+2026-07-27,Google,1676.62,51887,1802,89,20,1,2.6,Monday
+2026-07-27,WhatsApp broadcast,120.24,2400,148,11,23,3,4.7,Monday
+2026-07-27,Local flyers,625.91,20170,64,4,31,0,6.4,Monday
+2026-07-28,Instagram,519.24,17735,248,8,28,2,3.7,Tuesday
+2026-07-28,Google,1296.09,25726,973,81,14,0,6.2,Tuesday
+2026-07-28,WhatsApp broadcast,113.98,3484,182,4,11,0,6.0,Tuesday
+2026-07-28,Local flyers,261.35,8545,36,3,10,0,6.5,Tuesday
+2026-07-29,Instagram,1331.82,36965,777,26,28,0,1.6,Wednesday
+2026-07-29,Google,2091.33,41311,1611,57,13,0,4.6,Wednesday
+2026-07-29,WhatsApp broadcast,129.04,3147,176,12,36,5,5.2,Wednesday
+2026-07-29,Local flyers,290.59,7752,24,1,34,0,4.0,Wednesday
+2026-07-30,Instagram,1322.95,53042,745,33,31,2,4.1,Thursday
+2026-07-30,Google,1556.46,39109,887,36,4,0,1.6,Thursday
+2026-07-30,WhatsApp broadcast,99.16,4156,229,14,33,5,6.1,Thursday
+2026-07-30,Local flyers,570.11,12885,38,1,20,0,1.8,Thursday
+2026-07-31,Instagram,641.05,13687,261,19,24,1,6.0,Friday
+2026-07-31,Google,1950.82,40385,1226,44,36,2,1.7,Friday
+2026-07-31,WhatsApp broadcast,133.35,5186,307,9,31,4,6.3,Friday
+2026-07-31,Local flyers,504.33,12373,57,2,27,3,5.9,Friday
+2026-08-01,Instagram,504.91,10656,138,3,18,3,3.6,Saturday
+2026-08-01,Google,1565.49,63829,2531,194,21,1,2.0,Saturday
+2026-08-01,WhatsApp broadcast,177.01,5438,346,21,29,2,2.3,Saturday
+2026-08-01,Local flyers,356.99,11387,43,1,37,3,2.3,Saturday
+2026-08-02,Instagram,663.83,17183,293,12,13,0,3.8,Sunday
+2026-08-02,Google,889.96,30647,1034,34,22,2,4.1,Sunday
+2026-08-02,WhatsApp broadcast,103.73,4149,258,7,24,0,2.2,Sunday
+2026-08-02,Local flyers,219.06,4750,19,1,5,0,4.5,Sunday
+2026-08-03,Instagram,1156.88,44426,771,33,36,5,4.3,Monday
+2026-08-03,Google,1650.6,68512,2219,187,35,1,2.6,Monday
+2026-08-03,WhatsApp broadcast,97.76,3676,248,9,6,0,1.7,Monday
+2026-08-03,Local flyers,469.86,11424,54,3,4,0,5.1,Monday
+2026-08-04,Instagram,503.18,20793,328,21,29,4,5.1,Tuesday
+2026-08-04,Google,1331.87,28229,837,33,24,4,4.6,Tuesday
+2026-08-04,WhatsApp broadcast,123.15,4670,240,19,18,2,2.7,Tuesday
+2026-08-04,Local flyers,395.55,11701,49,1,29,2,6.1,Tuesday
+2026-08-05,Instagram,1051.1,20071,316,7,37,0,5.4,Wednesday
+2026-08-05,Google,1223.27,48247,1587,137,15,1,6.5,Wednesday
+2026-08-05,WhatsApp broadcast,198.65,6551,382,21,7,0,4.3,Wednesday
+2026-08-05,Local flyers,605.56,22272,63,4,16,1,2.5,Wednesday
+2026-08-06,Instagram,1431.31,51216,1054,81,19,1,1.4,Thursday
+2026-08-06,Google,1690.02,51798,2083,45,35,0,4.8,Thursday
+2026-08-06,WhatsApp broadcast,175.46,6997,321,12,32,3,3.0,Thursday
+2026-08-06,Local flyers,311.58,5938,26,2,23,3,4.5,Thursday
+2026-08-07,Instagram,475.95,13127,296,12,30,5,3.7,Friday
+2026-08-07,Google,884.33,17487,636,23,9,0,5.3,Friday
+2026-08-07,WhatsApp broadcast,226.19,5503,240,17,5,0,5.1,Friday
+2026-08-07,Local flyers,346.27,11278,40,3,37,1,2.5,Friday
+2026-08-08,Instagram,862.4,22505,494,37,4,0,2.5,Saturday
+2026-08-08,Google,2056.16,51223,2023,131,11,1,4.6,Saturday
+2026-08-08,WhatsApp broadcast,197.62,4595,272,12,20,2,2.3,Saturday
+2026-08-08,Local flyers,412.15,12386,62,2,36,5,4.4,Saturday
+2026-08-09,Instagram,941.88,37102,748,22,35,1,4.3,Sunday
+2026-08-09,Google,1188.42,39874,1258,28,30,2,2.5,Sunday
+2026-08-09,WhatsApp broadcast,130.62,4097,175,13,18,3,3.5,Sunday
+2026-08-09,Local flyers,431.09,8561,41,3,40,5,5.6,Sunday
+2026-08-10,Instagram,1167.25,23498,442,18,32,4,1.5,Monday
+2026-08-10,Google,2155.38,72341,2707,180,9,0,5.9,Monday
+2026-08-10,WhatsApp broadcast,186.24,5230,254,13,37,0,4.3,Monday
+2026-08-10,Local flyers,540.41,11436,46,3,17,1,2.2,Monday
+2026-08-11,Instagram,1197.07,46658,987,80,26,0,4.4,Tuesday
+2026-08-11,Google,1134.83,34696,855,70,40,3,4.1,Tuesday
+2026-08-11,WhatsApp broadcast,127.62,4670,236,20,22,1,3.4,Tuesday
+2026-08-11,Local flyers,533.07,10920,44,2,8,0,3.2,Tuesday
+2026-08-12,Instagram,1436.7,43204,720,43,29,4,4.6,Wednesday
+2026-08-12,Google,1836.72,58055,1653,67,30,4,6.3,Wednesday
+2026-08-12,WhatsApp broadcast,109.62,4567,206,13,22,2,3.7,Wednesday
+2026-08-12,Local flyers,208.06,7665,25,0,35,4,4.2,Wednesday
+2026-08-13,Instagram,531.98,11103,149,3,40,4,2.6,Thursday
+2026-08-13,Google,1761.21,63595,1986,57,23,2,4.6,Thursday
+2026-08-13,WhatsApp broadcast,196.49,5112,356,26,32,2,6.1,Thursday
+2026-08-13,Local flyers,381.26,15602,71,3,20,1,6.0,Thursday
+2026-08-14,Instagram,1301.81,24193,431,19,16,2,4.6,Friday
+2026-08-14,Google,1100.35,39046,1353,43,36,1,5.1,Friday
+2026-08-14,WhatsApp broadcast,79.88,2316,143,7,12,1,2.9,Friday
+2026-08-14,Local flyers,609.37,15637,44,3,9,0,5.1,Friday
+2026-08-15,Instagram,839.69,16048,302,25,7,0,5.5,Saturday
+2026-08-15,Google,1571.13,45565,1068,38,7,0,5.6,Saturday
+2026-08-15,WhatsApp broadcast,203.2,5700,302,8,33,3,5.0,Saturday
+2026-08-15,Local flyers,606.57,19077,68,4,24,1,1.6,Saturday
+2026-08-16,Instagram,1126.08,44130,682,44,18,2,6.1,Sunday
+2026-08-16,Google,1421.87,39792,1115,97,38,3,4.9,Sunday
+2026-08-16,WhatsApp broadcast,150.76,3286,156,4,10,1,3.0,Sunday
+2026-08-16,Local flyers,532.38,19712,99,2,17,3,2.4,Sunday
+2026-08-17,Instagram,1268.39,46135,911,47,31,4,2.1,Monday
+2026-08-17,Google,1392.74,45471,1409,112,28,0,6.4,Monday
+2026-08-17,WhatsApp broadcast,226.59,7286,479,38,13,0,1.6,Monday
+2026-08-17,Local flyers,621.02,11828,49,2,17,1,4.5,Monday
+2026-08-18,Instagram,890.47,29906,586,14,18,2,5.4,Tuesday
+2026-08-18,Google,800.62,20981,859,74,26,1,5.0,Tuesday
+2026-08-18,WhatsApp broadcast,229.11,7300,495,27,36,1,5.4,Tuesday
+2026-08-18,Local flyers,572.19,12509,45,2,30,1,3.8,Tuesday
+2026-08-19,Instagram,974.53,23366,425,24,40,4,2.7,Wednesday
+2026-08-19,Google,2095.45,73221,1957,65,19,0,4.6,Wednesday
+2026-08-19,WhatsApp broadcast,199.24,6707,351,17,28,0,3.3,Wednesday
+2026-08-19,Local flyers,202.81,3654,15,0,4,0,4.1,Wednesday
+2026-08-20,Instagram,1123.87,26614,463,31,26,3,6.3,Thursday
+2026-08-20,Google,1089.97,23775,606,51,6,0,5.3,Thursday
+2026-08-20,WhatsApp broadcast,94.98,3782,169,10,16,0,1.6,Thursday
+2026-08-20,Local flyers,337.25,13617,70,2,10,1,5.6,Thursday
+2026-08-21,Instagram,831.24,15007,272,6,18,1,3.9,Friday
+2026-08-21,Google,825.36,18478,529,12,10,1,2.8,Friday
+2026-08-21,WhatsApp broadcast,90.53,2421,125,5,21,3,5.8,Friday
+2026-08-21,Local flyers,371.27,13740,65,1,38,2,1.5,Friday
+2026-08-22,Instagram,472.68,13135,206,7,14,0,2.1,Saturday
+2026-08-22,Google,1093.71,28071,1139,102,16,0,1.4,Saturday
+2026-08-22,WhatsApp broadcast,100.09,3440,215,13,21,2,2.8,Saturday
+2026-08-22,Local flyers,619.76,14676,75,5,15,0,4.3,Saturday
+2026-08-23,Instagram,780.91,27795,610,12,5,0,3.7,Sunday
+2026-08-23,Google,2103.17,48566,1552,126,9,1,4.6,Sunday
+2026-08-23,WhatsApp broadcast,171.38,4218,269,23,32,4,5.7,Sunday
+2026-08-23,Local flyers,555.39,21312,93,4,19,0,4.1,Sunday
+2026-08-24,Instagram,493.01,14365,315,22,9,1,3.8,Monday
+2026-08-24,Google,1516.61,41405,1462,75,26,2,5.2,Monday
+2026-08-24,WhatsApp broadcast,176.69,4684,192,14,13,1,3.6,Monday
+2026-08-24,Local flyers,517.8,16050,63,2,7,0,3.3,Monday
+2026-08-25,Instagram,594.1,16655,240,11,20,0,2.6,Tuesday
+2026-08-25,Google,1242.96,50093,1303,50,21,1,3.7,Tuesday
+2026-08-25,WhatsApp broadcast,187.12,7338,323,21,10,0,2.2,Tuesday
+2026-08-25,Local flyers,306.09,7326,23,0,32,0,1.9,Tuesday
+2026-08-26,Instagram,582.97,21205,285,21,32,5,2.5,Wednesday
+2026-08-26,Google,2077.83,84894,3281,213,18,0,3.6,Wednesday
+2026-08-26,WhatsApp broadcast,143.73,3591,255,12,36,1,5.1,Wednesday
+2026-08-26,Local flyers,355.81,7129,22,0,6,0,3.4,Wednesday
+2026-08-27,Instagram,1227.88,33192,758,38,40,2,3.0,Thursday
+2026-08-27,Google,1744.53,39880,1534,90,16,1,2.3,Thursday
+2026-08-27,WhatsApp broadcast,85.26,2130,82,2,22,2,5.4,Thursday
+2026-08-27,Local flyers,536.3,19283,58,1,21,3,4.2,Thursday

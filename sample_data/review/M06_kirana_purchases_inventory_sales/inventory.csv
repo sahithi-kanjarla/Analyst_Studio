@@ -1,0 +1,13 @@
+item_code,item,category,qty_on_hand,reorder_level,unit
+KIR-ATT5,Atta 5kg,Staples,34,5,pcs
+KIR-SUG1,Sugar 1kg,Staples,77,5,pcs
+KIR-TOO1,Toor Dal 1kg,Staples,72,15,pack
+KIR-OIL1,Refined Oil 1L,Staples,48,5,kg
+KIR-TEA2,Tea 250g,Beverages,35,5,pack
+KIR-RIC10,Rice 10kg,Staples,64,15,pack
+KIR-SAL1,Salt 1kg,Staples,20,15,kg
+KIR-DET1,Detergent 1kg,Household,5,5,pack
+KIR-BIS1,Biscuits Pack,Snacks,43,5,kg
+KIR-MLK5,Milk Powder 500g,Dairy,5,10,pcs
+KIR-SOA1,Soap Bar,Household,57,5,kg
+KIR-POH1,Poha 1kg,Staples,38,10,kg

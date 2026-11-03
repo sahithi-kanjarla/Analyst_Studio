@@ -1,0 +1,841 @@
+order_id,order_date,item,sku,category,quantity,amount,status,return_reason,return_date,refund_amount,courier
+EL70001,2026-03-16,HDMI Cable 2m,ELC-HDM1,Cables,2,798,Delivered,,,0.0,Delhivery
+EL70002,2026-04-24,Bluetooth Speaker,ELC-SPK1,Audio,2,3598,Returned,Wrong item sent,2026-05-10,3598.0,Ecom
+EL70003,2026-03-14,Neckband Earphone,ELC-NCK1,Audio,1,1099,Delivered,,,0.0,India Post
+EL70004,2026-03-22,Wireless Mouse,ELC-MOU1,Computer,2,1398,Refunded,Duplicate order,2026-04-10,1398.0,Ecom
+EL70005,2026-02-19,USB-C Cable 1m,ELC-USB1,Cables,1,249,Cancelled,Payment failed,2026-03-10,0.0,India Post
+EL70006,2026-05-06,HDMI Cable 2m,ELC-HDM1,Cables,2,798,Delivered,,,0.0,India Post
+EL70007,2026-05-22,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Cancelled,Payment failed,2026-06-02,0.0,Delhivery
+EL70008,2026-07-27,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Delivered,,,0.0,BlueDart
+EL70009,2026-04-01,Wireless Earbuds,ELC-EAR1,Audio,2,4998,Returned,Size/fit issue,2026-04-12,4998.0,BlueDart
+EL70010,2026-02-16,Charger 20W,ELC-CHG1,Power,2,1798,Returned,Wrong item sent,2026-03-05,1798.0,Delhivery
+EL70011,2026-04-07,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Delivered,,,0.0,Ecom
+EL70012,2026-08-21,HDMI Cable 2m,ELC-HDM1,Cables,2,798,Delivered,,,0.0,India Post
+EL70013,2026-04-27,Wireless Mouse,ELC-MOU1,Computer,1,699,Delivered,,,0.0,BlueDart
+EL70014,2026-05-02,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Delivered,,,0.0,Delhivery
+EL70015,2026-05-20,Wireless Mouse,ELC-MOU1,Computer,1,699,Refunded,Battery fault,2026-06-06,699.0,BlueDart
+EL70016,2026-04-28,Wireless Earbuds,ELC-EAR1,Audio,2,4998,Delivered,,,0.0,BlueDart
+EL70017,2026-08-17,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Delivered,,,0.0,Delhivery
+EL70018,2026-06-22,Power Bank 10000mAh,ELC-PWB1,Power,2,2598,Delivered,,,0.0,India Post
+EL70019,2026-03-29,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Delivered,,,0.0,Ecom
+EL70020,2026-07-31,Phone Case,ELC-CAS1,Accessories,1,299,Delivered,,,0.0,BlueDart
+EL70021,2026-07-01,Neckband Earphone,ELC-NCK1,Audio,1,1099,Delivered,,,0.0,BlueDart
+EL70022,2026-07-08,Laptop Sleeve,ELC-SLV1,Accessories,2,1498,Cancelled,Payment failed,2026-07-12,0.0,BlueDart
+EL70023,2026-07-02,Mechanical Keyboard,ELC-KEY1,Computer,1,2899,Delivered,,,0.0,Ecom
+EL70024,2026-07-16,Laptop Sleeve,ELC-SLV1,Accessories,1,749,Delivered,,,0.0,Ecom
+EL70025,2026-03-18,Phone Case,ELC-CAS1,Accessories,1,299,Delivered,,,0.0,BlueDart
+EL70026,2026-05-01,Charger 20W,ELC-CHG1,Power,2,1798,Delivered,,,0.0,Ecom
+EL70027,2026-06-18,HDMI Cable 2m,ELC-HDM1,Cables,2,798,Delivered,,,0.0,BlueDart
+EL70028,2026-01-22,HDMI Cable 2m,ELC-HDM1,Cables,2,798,Delivered,,,0.0,India Post
+EL70029,2026-05-01,Bluetooth Speaker,ELC-SPK1,Audio,1,1799,Delivered,,,0.0,BlueDart
+EL70030,2026-04-07,USB-C Cable 1m,ELC-USB1,Cables,1,249,Cancelled,Payment failed,2026-04-25,0.0,BlueDart
+EL70031,2026-05-27,Bluetooth Speaker,ELC-SPK1,Audio,1,1799,Delivered,,,0.0,India Post
+EL70032,2026-07-27,Laptop Sleeve,ELC-SLV1,Accessories,1,749,Delivered,,,0.0,Ecom
+EL70033,2026-08-03,Charger 20W,ELC-CHG1,Power,1,899,Delivered,,,0.0,Ecom
+EL70034,2026-05-17,USB-C Cable 1m,ELC-USB1,Cables,2,498,Refunded,Battery fault,2026-06-04,498.0,BlueDart
+EL70035,2026-06-07,Mechanical Keyboard,ELC-KEY1,Computer,2,5798,Refunded,Battery fault,2026-06-22,5798.0,Delhivery
+EL70036,2026-03-08,Mechanical Keyboard,ELC-KEY1,Computer,1,2899,Delivered,,,0.0,BlueDart
+EL70037,2026-02-09,Neckband Earphone,ELC-NCK1,Audio,2,2198,Delivered,,,0.0,India Post
+EL70038,2026-08-06,Laptop Sleeve,ELC-SLV1,Accessories,1,749,Refunded,Stopped working,2026-08-18,749.0,India Post
+EL70039,2026-04-07,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Delivered,,,0.0,India Post
+EL70040,2026-02-12,Neckband Earphone,ELC-NCK1,Audio,1,1099,Delivered,,,0.0,Delhivery
+EL70041,2026-07-16,Smart Watch,ELC-WAT1,Wearables,1,3499,Delivered,,,0.0,BlueDart
+EL70042,2026-06-07,Charger 20W,ELC-CHG1,Power,1,899,Delivered,,,0.0,BlueDart
+EL70043,2026-08-13,Charger 20W,ELC-CHG1,Power,1,899,Delivered,,,0.0,BlueDart
+EL70044,2026-05-25,Mechanical Keyboard,ELC-KEY1,Computer,2,5798,Delivered,,,0.0,Delhivery
+EL70045,2026-02-13,Laptop Sleeve,ELC-SLV1,Accessories,2,1498,Exchanged,Model upgrade,2026-02-17,0.0,Delhivery
+EL70046,2026-02-12,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Delivered,,,0.0,Delhivery
+EL70047,2026-04-06,Phone Case,ELC-CAS1,Accessories,1,299,Cancelled,Payment failed,2026-04-17,0.0,Ecom
+EL70048,2026-03-30,Charger 20W,ELC-CHG1,Power,1,899,Delivered,,,0.0,BlueDart
+EL70049,2026-08-04,Bluetooth Speaker,ELC-SPK1,Audio,1,1799,Cancelled,Address not serviceable,2026-08-21,0.0,Delhivery
+EL70050,2026-03-15,Charger 20W,ELC-CHG1,Power,2,1798,Delivered,,,0.0,BlueDart
+EL70051,2026-07-03,Wireless Earbuds,ELC-EAR1,Audio,2,4998,Delivered,,,0.0,Ecom
+EL70052,2026-04-02,Neckband Earphone,ELC-NCK1,Audio,2,2198,Delivered,,,0.0,Delhivery
+EL70053,2026-03-01,Mechanical Keyboard,ELC-KEY1,Computer,1,2899,Delivered,,,0.0,Ecom
+EL70054,2026-06-13,Mechanical Keyboard,ELC-KEY1,Computer,1,2899,Delivered,,,0.0,BlueDart
+EL70055,2026-05-19,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Delivered,,,0.0,BlueDart
+EL70056,2026-04-10,Bluetooth Speaker,ELC-SPK1,Audio,2,3598,Delivered,,,0.0,India Post
+EL70057,2026-03-29,Charger 20W,ELC-CHG1,Power,1,899,Delivered,,,0.0,BlueDart
+EL70058,2026-02-20,Phone Case,ELC-CAS1,Accessories,2,598,Returned,Wrong item sent,2026-03-08,598.0,Ecom
+EL70059,2026-03-30,USB-C Cable 1m,ELC-USB1,Cables,2,498,Delivered,,,0.0,India Post
+EL70060,2026-05-23,Bluetooth Speaker,ELC-SPK1,Audio,1,1799,Returned,Size/fit issue,2026-05-31,1799.0,Delhivery
+EL70061,2026-02-19,USB-C Cable 1m,ELC-USB1,Cables,2,498,Refunded,Duplicate order,2026-02-24,498.0,Ecom
+EL70062,2026-07-26,USB-C Cable 1m,ELC-USB1,Cables,1,249,Cancelled,Payment failed,2026-08-05,0.0,Delhivery
+EL70063,2026-02-18,Neckband Earphone,ELC-NCK1,Audio,1,1099,Cancelled,Payment failed,2026-02-26,0.0,Ecom
+EL70064,2026-07-03,Neckband Earphone,ELC-NCK1,Audio,1,1099,Delivered,,,0.0,Delhivery
+EL70065,2026-03-07,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Delivered,,,0.0,BlueDart
+EL70066,2026-05-17,Wireless Mouse,ELC-MOU1,Computer,2,1398,Delivered,,,0.0,Ecom
+EL70067,2026-03-25,USB-C Cable 1m,ELC-USB1,Cables,2,498,Delivered,,,0.0,India Post
+EL70068,2026-02-08,Charger 20W,ELC-CHG1,Power,1,899,Refunded,Battery fault,2026-02-14,899.0,Ecom
+EL70069,2026-01-17,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Delivered,,,0.0,India Post
+EL70070,2026-08-17,Power Bank 10000mAh,ELC-PWB1,Power,2,2598,Delivered,,,0.0,Ecom
+EL70071,2026-05-29,Laptop Sleeve,ELC-SLV1,Accessories,1,749,Delivered,,,0.0,Ecom
+EL70072,2026-03-18,Mechanical Keyboard,ELC-KEY1,Computer,1,2899,Cancelled,Payment failed,2026-04-07,0.0,Ecom
+EL70073,2026-08-08,Bluetooth Speaker,ELC-SPK1,Audio,2,3598,Delivered,,,0.0,Delhivery
+EL70074,2026-04-26,Mechanical Keyboard,ELC-KEY1,Computer,1,2899,Delivered,,,0.0,Delhivery
+EL70075,2026-01-16,USB-C Cable 1m,ELC-USB1,Cables,1,249,Cancelled,Address not serviceable,2026-01-25,0.0,Ecom
+EL70076,2026-07-25,Smart Watch,ELC-WAT1,Wearables,2,6998,Cancelled,Customer changed mind,2026-08-01,0.0,Ecom
+EL70077,2026-01-17,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Delivered,,,0.0,India Post
+EL70078,2026-01-24,Mechanical Keyboard,ELC-KEY1,Computer,1,2899,Returned,Wrong item sent,2026-01-31,2899.0,BlueDart
+EL70079,2026-02-12,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Delivered,,,0.0,BlueDart
+EL70080,2026-03-02,Neckband Earphone,ELC-NCK1,Audio,1,1099,Returned,Not as described,2026-03-20,1099.0,BlueDart
+EL70081,2026-05-07,Bluetooth Speaker,ELC-SPK1,Audio,1,1799,Delivered,,,0.0,BlueDart
+EL70082,2026-04-05,Charger 20W,ELC-CHG1,Power,1,899,Exchanged,Colour change,2026-04-24,0.0,BlueDart
+EL70083,2026-02-20,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Returned,Not as described,2026-03-09,399.0,BlueDart
+EL70084,2026-08-21,Neckband Earphone,ELC-NCK1,Audio,2,2198,Delivered,,,0.0,Delhivery
+EL70085,2026-06-08,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Returned,Not as described,2026-06-15,1299.0,India Post
+EL70086,2026-01-20,Bluetooth Speaker,ELC-SPK1,Audio,1,1799,Delivered,,,0.0,India Post
+EL70087,2026-02-11,Smart Watch,ELC-WAT1,Wearables,1,3499,Exchanged,Model upgrade,2026-02-23,0.0,India Post
+EL70088,2026-05-15,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Cancelled,Customer changed mind,2026-05-20,0.0,India Post
+EL70089,2026-06-02,Laptop Sleeve,ELC-SLV1,Accessories,1,749,Delivered,,,0.0,Ecom
+EL70090,2026-04-16,Laptop Sleeve,ELC-SLV1,Accessories,1,749,Returned,Not as described,2026-05-04,749.0,Delhivery
+EL70091,2026-07-13,Laptop Sleeve,ELC-SLV1,Accessories,1,749,Cancelled,Customer changed mind,2026-07-20,0.0,Delhivery
+EL70092,2026-08-23,Neckband Earphone,ELC-NCK1,Audio,1,1099,Cancelled,Out of stock,2026-09-11,0.0,BlueDart
+EL70093,2026-03-17,USB-C Cable 1m,ELC-USB1,Cables,2,498,Delivered,,,0.0,Delhivery
+EL70094,2026-04-20,Smart Watch,ELC-WAT1,Wearables,1,3499,Delivered,,,0.0,BlueDart
+EL70095,2026-03-06,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Delivered,,,0.0,BlueDart
+EL70096,2026-07-05,Mechanical Keyboard,ELC-KEY1,Computer,1,2899,Delivered,,,0.0,BlueDart
+EL70097,2026-04-10,Wireless Mouse,ELC-MOU1,Computer,1,699,Exchanged,Model upgrade,2026-04-15,0.0,Delhivery
+EL70098,2026-01-26,Mechanical Keyboard,ELC-KEY1,Computer,1,2899,Delivered,,,0.0,Ecom
+EL70099,2026-02-27,Smart Watch,ELC-WAT1,Wearables,2,6998,Delivered,,,0.0,Ecom
+EL70100,2026-06-15,USB-C Cable 1m,ELC-USB1,Cables,1,249,Returned,Not as described,2026-06-25,249.0,BlueDart
+EL70101,2026-03-18,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Delivered,,,0.0,BlueDart
+EL70102,2026-02-19,Bluetooth Speaker,ELC-SPK1,Audio,2,3598,Refunded,Duplicate order,2026-03-10,3598.0,BlueDart
+EL70103,2026-07-19,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Delivered,,,0.0,Delhivery
+EL70104,2026-02-02,Bluetooth Speaker,ELC-SPK1,Audio,2,3598,Delivered,,,0.0,Delhivery
+EL70105,2026-01-19,Power Bank 10000mAh,ELC-PWB1,Power,2,2598,Delivered,,,0.0,BlueDart
+EL70106,2026-01-26,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Delivered,,,0.0,India Post
+EL70107,2026-06-21,Wireless Mouse,ELC-MOU1,Computer,1,699,Delivered,,,0.0,BlueDart
+EL70108,2026-01-23,Laptop Sleeve,ELC-SLV1,Accessories,1,749,Delivered,,,0.0,BlueDart
+EL70109,2026-02-22,Charger 20W,ELC-CHG1,Power,1,899,Delivered,,,0.0,India Post
+EL70110,2026-07-07,Neckband Earphone,ELC-NCK1,Audio,2,2198,Delivered,,,0.0,Ecom
+EL70111,2026-01-19,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Delivered,,,0.0,Ecom
+EL70112,2026-03-02,Mechanical Keyboard,ELC-KEY1,Computer,2,5798,Returned,Not as described,2026-03-21,5798.0,BlueDart
+EL70113,2026-07-13,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Delivered,,,0.0,Delhivery
+EL70114,2026-05-30,HDMI Cable 2m,ELC-HDM1,Cables,2,798,Delivered,,,0.0,Delhivery
+EL70115,2026-08-06,USB-C Cable 1m,ELC-USB1,Cables,1,249,Delivered,,,0.0,Ecom
+EL70116,2026-06-16,USB-C Cable 1m,ELC-USB1,Cables,2,498,Delivered,,,0.0,BlueDart
+EL70117,2026-08-15,Phone Case,ELC-CAS1,Accessories,1,299,Delivered,,,0.0,BlueDart
+EL70118,2026-03-12,Neckband Earphone,ELC-NCK1,Audio,1,1099,Delivered,,,0.0,Ecom
+EL70119,2026-04-06,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Cancelled,Out of stock,2026-04-25,0.0,BlueDart
+EL70120,2026-04-06,Neckband Earphone,ELC-NCK1,Audio,2,2198,Delivered,,,0.0,Delhivery
+EL70121,2026-04-15,Power Bank 10000mAh,ELC-PWB1,Power,2,2598,Refunded,Stopped working,2026-05-03,2598.0,BlueDart
+EL70122,2026-02-19,Wireless Mouse,ELC-MOU1,Computer,2,1398,Delivered,,,0.0,India Post
+EL70123,2026-08-12,USB-C Cable 1m,ELC-USB1,Cables,1,249,Delivered,,,0.0,BlueDart
+EL70124,2026-08-23,Mechanical Keyboard,ELC-KEY1,Computer,2,5798,Delivered,,,0.0,India Post
+EL70125,2026-04-13,Wireless Mouse,ELC-MOU1,Computer,2,1398,Delivered,,,0.0,BlueDart
+EL70126,2026-08-18,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Delivered,,,0.0,Ecom
+EL70127,2026-06-29,Mechanical Keyboard,ELC-KEY1,Computer,1,2899,Returned,Not as described,2026-07-04,2899.0,Ecom
+EL70128,2026-04-02,USB-C Cable 1m,ELC-USB1,Cables,1,249,Delivered,,,0.0,Delhivery
+EL70129,2026-03-17,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Delivered,,,0.0,Ecom
+EL70130,2026-04-17,Bluetooth Speaker,ELC-SPK1,Audio,1,1799,Delivered,,,0.0,BlueDart
+EL70131,2026-06-14,USB-C Cable 1m,ELC-USB1,Cables,1,249,Delivered,,,0.0,Delhivery
+EL70132,2026-03-16,Neckband Earphone,ELC-NCK1,Audio,2,2198,Delivered,,,0.0,India Post
+EL70133,2026-06-27,Charger 20W,ELC-CHG1,Power,1,899,Delivered,,,0.0,BlueDart
+EL70134,2026-03-19,Power Bank 10000mAh,ELC-PWB1,Power,2,2598,Cancelled,Address not serviceable,2026-03-22,0.0,Delhivery
+EL70135,2026-08-21,Neckband Earphone,ELC-NCK1,Audio,1,1099,Delivered,,,0.0,Delhivery
+EL70136,2026-03-31,Neckband Earphone,ELC-NCK1,Audio,2,2198,Cancelled,Customer changed mind,2026-04-20,0.0,India Post
+EL70137,2026-07-22,Smart Watch,ELC-WAT1,Wearables,1,3499,Refunded,Duplicate order,2026-07-30,3499.0,BlueDart
+EL70138,2026-06-22,Laptop Sleeve,ELC-SLV1,Accessories,1,749,Delivered,,,0.0,Ecom
+EL70139,2026-07-10,Mechanical Keyboard,ELC-KEY1,Computer,2,5798,Refunded,Stopped working,2026-07-27,5798.0,BlueDart
+EL70140,2026-08-19,Phone Case,ELC-CAS1,Accessories,1,299,Cancelled,Payment failed,2026-08-31,0.0,India Post
+EL70141,2026-05-18,Neckband Earphone,ELC-NCK1,Audio,1,1099,Refunded,Stopped working,2026-05-27,1099.0,Ecom
+EL70142,2026-05-19,Mechanical Keyboard,ELC-KEY1,Computer,1,2899,Refunded,Battery fault,2026-05-30,2899.0,Ecom
+EL70143,2026-08-18,Smart Watch,ELC-WAT1,Wearables,1,3499,Delivered,,,0.0,India Post
+EL70144,2026-08-04,Smart Watch,ELC-WAT1,Wearables,1,3499,Delivered,,,0.0,BlueDart
+EL70145,2026-08-20,USB-C Cable 1m,ELC-USB1,Cables,1,249,Delivered,,,0.0,Delhivery
+EL70146,2026-02-09,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Delivered,,,0.0,Ecom
+EL70147,2026-02-28,Charger 20W,ELC-CHG1,Power,1,899,Returned,Damaged in transit,2026-03-07,899.0,Ecom
+EL70148,2026-08-18,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Returned,Not as described,2026-08-29,1299.0,Ecom
+EL70149,2026-05-11,Laptop Sleeve,ELC-SLV1,Accessories,2,1498,Returned,Size/fit issue,2026-05-25,1498.0,Delhivery
+EL70150,2026-05-18,Charger 20W,ELC-CHG1,Power,1,899,Cancelled,Payment failed,2026-06-02,0.0,BlueDart
+EL70151,2026-08-06,Bluetooth Speaker,ELC-SPK1,Audio,1,1799,Delivered,,,0.0,BlueDart
+EL70152,2026-06-13,Neckband Earphone,ELC-NCK1,Audio,1,1099,Cancelled,Customer changed mind,2026-07-01,0.0,India Post
+EL70153,2026-07-25,Wireless Mouse,ELC-MOU1,Computer,2,1398,Delivered,,,0.0,Ecom
+EL70154,2026-06-16,Laptop Sleeve,ELC-SLV1,Accessories,1,749,Returned,Wrong item sent,2026-06-26,749.0,BlueDart
+EL70155,2026-06-12,Charger 20W,ELC-CHG1,Power,1,899,Delivered,,,0.0,India Post
+EL70156,2026-07-19,Charger 20W,ELC-CHG1,Power,1,899,Refunded,Battery fault,2026-07-26,899.0,Delhivery
+EL70157,2026-05-03,Wireless Mouse,ELC-MOU1,Computer,1,699,Delivered,,,0.0,India Post
+EL70158,2026-05-23,Power Bank 10000mAh,ELC-PWB1,Power,2,2598,Cancelled,Payment failed,2026-06-10,0.0,BlueDart
+EL70159,2026-07-04,Charger 20W,ELC-CHG1,Power,1,899,Delivered,,,0.0,Delhivery
+EL70160,2026-05-08,Neckband Earphone,ELC-NCK1,Audio,1,1099,Delivered,,,0.0,BlueDart
+EL70161,2026-02-10,Neckband Earphone,ELC-NCK1,Audio,1,1099,Delivered,,,0.0,Ecom
+EL70162,2026-02-09,Smart Watch,ELC-WAT1,Wearables,2,6998,Delivered,,,0.0,BlueDart
+EL70163,2026-06-18,Smart Watch,ELC-WAT1,Wearables,1,3499,Delivered,,,0.0,BlueDart
+EL70164,2026-05-05,Phone Case,ELC-CAS1,Accessories,1,299,Returned,Damaged in transit,2026-05-11,299.0,India Post
+EL70165,2026-01-21,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Delivered,,,0.0,Ecom
+EL70166,2026-02-27,Bluetooth Speaker,ELC-SPK1,Audio,2,3598,Delivered,,,0.0,India Post
+EL70167,2026-04-01,Bluetooth Speaker,ELC-SPK1,Audio,1,1799,Delivered,,,0.0,BlueDart
+EL70168,2026-07-15,Wireless Mouse,ELC-MOU1,Computer,1,699,Delivered,,,0.0,Ecom
+EL70169,2026-03-07,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Delivered,,,0.0,Delhivery
+EL70170,2026-06-07,Phone Case,ELC-CAS1,Accessories,2,598,Delivered,,,0.0,Ecom
+EL70171,2026-04-23,Neckband Earphone,ELC-NCK1,Audio,2,2198,Delivered,,,0.0,BlueDart
+EL70172,2026-02-25,Charger 20W,ELC-CHG1,Power,1,899,Delivered,,,0.0,Delhivery
+EL70173,2026-06-23,Power Bank 10000mAh,ELC-PWB1,Power,2,2598,Cancelled,Customer changed mind,2026-07-10,0.0,Ecom
+EL70174,2026-02-04,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Delivered,,,0.0,BlueDart
+EL70175,2026-07-19,USB-C Cable 1m,ELC-USB1,Cables,2,498,Delivered,,,0.0,Delhivery
+EL70176,2026-05-18,Laptop Sleeve,ELC-SLV1,Accessories,2,1498,Delivered,,,0.0,BlueDart
+EL70177,2026-07-30,Charger 20W,ELC-CHG1,Power,2,1798,Delivered,,,0.0,Ecom
+EL70178,2026-03-26,Neckband Earphone,ELC-NCK1,Audio,2,2198,Returned,Damaged in transit,2026-04-08,2198.0,BlueDart
+EL70179,2026-02-27,Smart Watch,ELC-WAT1,Wearables,2,6998,Delivered,,,0.0,Delhivery
+EL70180,2026-03-31,Charger 20W,ELC-CHG1,Power,1,899,Refunded,Stopped working,2026-04-08,899.0,Ecom
+EL70181,2026-04-08,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Cancelled,Payment failed,2026-04-19,0.0,Delhivery
+EL70182,2026-04-12,Smart Watch,ELC-WAT1,Wearables,1,3499,Delivered,,,0.0,BlueDart
+EL70183,2026-03-25,Smart Watch,ELC-WAT1,Wearables,2,6998,Delivered,,,0.0,Ecom
+EL70184,2026-08-13,Neckband Earphone,ELC-NCK1,Audio,1,1099,Cancelled,Payment failed,2026-08-31,0.0,BlueDart
+EL70185,2026-05-10,Smart Watch,ELC-WAT1,Wearables,1,3499,Delivered,,,0.0,Delhivery
+EL70186,2026-01-24,USB-C Cable 1m,ELC-USB1,Cables,2,498,Cancelled,Payment failed,2026-02-13,0.0,India Post
+EL70187,2026-05-24,Phone Case,ELC-CAS1,Accessories,1,299,Refunded,Battery fault,2026-06-13,299.0,Ecom
+EL70188,2026-08-17,Wireless Mouse,ELC-MOU1,Computer,1,699,Delivered,,,0.0,India Post
+EL70189,2026-03-12,Bluetooth Speaker,ELC-SPK1,Audio,2,3598,Exchanged,Model upgrade,2026-03-27,0.0,Ecom
+EL70190,2026-05-10,Bluetooth Speaker,ELC-SPK1,Audio,1,1799,Delivered,,,0.0,Delhivery
+EL70191,2026-03-26,Charger 20W,ELC-CHG1,Power,2,1798,Delivered,,,0.0,Delhivery
+EL70192,2026-05-02,Laptop Sleeve,ELC-SLV1,Accessories,2,1498,Delivered,,,0.0,Delhivery
+EL70193,2026-01-23,Laptop Sleeve,ELC-SLV1,Accessories,1,749,Refunded,Battery fault,2026-02-11,749.0,BlueDart
+EL70194,2026-06-29,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Delivered,,,0.0,India Post
+EL70195,2026-06-26,Phone Case,ELC-CAS1,Accessories,1,299,Delivered,,,0.0,Ecom
+EL70196,2026-06-08,Laptop Sleeve,ELC-SLV1,Accessories,1,749,Delivered,,,0.0,India Post
+EL70197,2026-05-19,Charger 20W,ELC-CHG1,Power,2,1798,Delivered,,,0.0,BlueDart
+EL70198,2026-02-16,Bluetooth Speaker,ELC-SPK1,Audio,2,3598,Delivered,,,0.0,Ecom
+EL70199,2026-04-03,Laptop Sleeve,ELC-SLV1,Accessories,1,749,Delivered,,,0.0,BlueDart
+EL70200,2026-04-28,Charger 20W,ELC-CHG1,Power,2,1798,Returned,Size/fit issue,2026-05-13,1798.0,India Post
+EL70201,2026-03-08,Smart Watch,ELC-WAT1,Wearables,1,3499,Delivered,,,0.0,India Post
+EL70202,2026-04-01,Neckband Earphone,ELC-NCK1,Audio,2,2198,Delivered,,,0.0,India Post
+EL70203,2026-02-08,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Delivered,,,0.0,BlueDart
+EL70204,2026-06-10,Charger 20W,ELC-CHG1,Power,1,899,Delivered,,,0.0,Ecom
+EL70205,2026-07-11,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Refunded,Duplicate order,2026-07-24,2499.0,BlueDart
+EL70206,2026-08-04,Neckband Earphone,ELC-NCK1,Audio,1,1099,Delivered,,,0.0,Ecom
+EL70207,2026-03-12,Smart Watch,ELC-WAT1,Wearables,1,3499,Delivered,,,0.0,BlueDart
+EL70208,2026-07-05,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Delivered,,,0.0,Ecom
+EL70209,2026-07-11,Smart Watch,ELC-WAT1,Wearables,1,3499,Delivered,,,0.0,Delhivery
+EL70210,2026-04-12,Neckband Earphone,ELC-NCK1,Audio,1,1099,Delivered,,,0.0,Delhivery
+EL70211,2026-07-25,Wireless Earbuds,ELC-EAR1,Audio,2,4998,Delivered,,,0.0,Ecom
+EL70212,2026-07-27,Charger 20W,ELC-CHG1,Power,1,899,Delivered,,,0.0,Ecom
+EL70213,2026-01-19,Phone Case,ELC-CAS1,Accessories,1,299,Delivered,,,0.0,BlueDart
+EL70214,2026-07-05,Bluetooth Speaker,ELC-SPK1,Audio,2,3598,Delivered,,,0.0,India Post
+EL70215,2026-07-14,Wireless Mouse,ELC-MOU1,Computer,1,699,Cancelled,Payment failed,2026-07-31,0.0,BlueDart
+EL70216,2026-05-01,Laptop Sleeve,ELC-SLV1,Accessories,1,749,Delivered,,,0.0,India Post
+EL70217,2026-02-01,Bluetooth Speaker,ELC-SPK1,Audio,2,3598,Delivered,,,0.0,BlueDart
+EL70218,2026-03-14,Phone Case,ELC-CAS1,Accessories,2,598,Delivered,,,0.0,Delhivery
+EL70219,2026-05-06,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Delivered,,,0.0,Ecom
+EL70220,2026-06-24,Wireless Mouse,ELC-MOU1,Computer,1,699,Cancelled,Customer changed mind,2026-07-05,0.0,Delhivery
+EL70221,2026-07-22,Charger 20W,ELC-CHG1,Power,2,1798,Delivered,,,0.0,Delhivery
+EL70222,2026-06-26,Phone Case,ELC-CAS1,Accessories,1,299,Delivered,,,0.0,BlueDart
+EL70223,2026-08-14,Wireless Mouse,ELC-MOU1,Computer,2,1398,Delivered,,,0.0,Ecom
+EL70224,2026-08-10,Wireless Mouse,ELC-MOU1,Computer,2,1398,Delivered,,,0.0,India Post
+EL70225,2026-07-25,Laptop Sleeve,ELC-SLV1,Accessories,2,1498,Returned,Wrong item sent,2026-08-01,1498.0,India Post
+EL70226,2026-08-03,USB-C Cable 1m,ELC-USB1,Cables,1,249,Delivered,,,0.0,BlueDart
+EL70227,2026-08-20,Charger 20W,ELC-CHG1,Power,2,1798,Delivered,,,0.0,Ecom
+EL70228,2026-06-28,Wireless Mouse,ELC-MOU1,Computer,2,1398,Cancelled,Out of stock,2026-07-17,0.0,BlueDart
+EL70229,2026-04-22,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Delivered,,,0.0,Ecom
+EL70230,2026-06-26,Wireless Mouse,ELC-MOU1,Computer,2,1398,Delivered,,,0.0,India Post
+EL70231,2026-04-19,Phone Case,ELC-CAS1,Accessories,1,299,Delivered,,,0.0,Delhivery
+EL70232,2026-06-06,Mechanical Keyboard,ELC-KEY1,Computer,1,2899,Exchanged,Model upgrade,2026-06-15,0.0,Ecom
+EL70233,2026-04-15,Wireless Earbuds,ELC-EAR1,Audio,2,4998,Delivered,,,0.0,BlueDart
+EL70234,2026-05-29,Bluetooth Speaker,ELC-SPK1,Audio,1,1799,Delivered,,,0.0,Ecom
+EL70235,2026-07-10,Charger 20W,ELC-CHG1,Power,1,899,Delivered,,,0.0,BlueDart
+EL70236,2026-05-21,USB-C Cable 1m,ELC-USB1,Cables,2,498,Delivered,,,0.0,India Post
+EL70237,2026-07-13,Phone Case,ELC-CAS1,Accessories,1,299,Refunded,Duplicate order,2026-07-30,299.0,BlueDart
+EL70238,2026-02-14,USB-C Cable 1m,ELC-USB1,Cables,2,498,Delivered,,,0.0,BlueDart
+EL70239,2026-02-03,HDMI Cable 2m,ELC-HDM1,Cables,2,798,Delivered,,,0.0,Delhivery
+EL70240,2026-07-09,Wireless Mouse,ELC-MOU1,Computer,1,699,Delivered,,,0.0,Ecom
+EL70241,2026-05-24,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Exchanged,Colour change,2026-06-02,0.0,Ecom
+EL70242,2026-04-10,Wireless Mouse,ELC-MOU1,Computer,1,699,Delivered,,,0.0,BlueDart
+EL70243,2026-08-02,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Delivered,,,0.0,India Post
+EL70244,2026-05-27,Wireless Mouse,ELC-MOU1,Computer,1,699,Delivered,,,0.0,Ecom
+EL70245,2026-07-14,Bluetooth Speaker,ELC-SPK1,Audio,2,3598,Delivered,,,0.0,Delhivery
+EL70246,2026-05-19,Phone Case,ELC-CAS1,Accessories,2,598,Delivered,,,0.0,BlueDart
+EL70247,2026-07-16,Laptop Sleeve,ELC-SLV1,Accessories,1,749,Delivered,,,0.0,India Post
+EL70248,2026-07-07,Wireless Earbuds,ELC-EAR1,Audio,2,4998,Delivered,,,0.0,BlueDart
+EL70249,2026-04-15,Charger 20W,ELC-CHG1,Power,1,899,Delivered,,,0.0,BlueDart
+EL70250,2026-07-09,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Delivered,,,0.0,Delhivery
+EL70251,2026-03-05,HDMI Cable 2m,ELC-HDM1,Cables,2,798,Returned,Not as described,2026-03-11,798.0,India Post
+EL70252,2026-03-21,Charger 20W,ELC-CHG1,Power,1,899,Delivered,,,0.0,Ecom
+EL70253,2026-04-25,Wireless Mouse,ELC-MOU1,Computer,1,699,Returned,Damaged in transit,2026-05-09,699.0,BlueDart
+EL70254,2026-05-17,Smart Watch,ELC-WAT1,Wearables,1,3499,Delivered,,,0.0,India Post
+EL70255,2026-03-19,HDMI Cable 2m,ELC-HDM1,Cables,2,798,Refunded,Duplicate order,2026-03-24,798.0,Ecom
+EL70256,2026-07-07,Phone Case,ELC-CAS1,Accessories,2,598,Delivered,,,0.0,Delhivery
+EL70257,2026-08-20,Laptop Sleeve,ELC-SLV1,Accessories,1,749,Delivered,,,0.0,Delhivery
+EL70258,2026-06-08,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Delivered,,,0.0,BlueDart
+EL70259,2026-07-29,Smart Watch,ELC-WAT1,Wearables,1,3499,Delivered,,,0.0,Ecom
+EL70260,2026-08-03,Phone Case,ELC-CAS1,Accessories,1,299,Delivered,,,0.0,Ecom
+EL70261,2026-08-12,Laptop Sleeve,ELC-SLV1,Accessories,1,749,Returned,Size/fit issue,2026-08-22,749.0,India Post
+EL70262,2026-07-17,Wireless Earbuds,ELC-EAR1,Audio,2,4998,Delivered,,,0.0,BlueDart
+EL70263,2026-04-03,Laptop Sleeve,ELC-SLV1,Accessories,1,749,Delivered,,,0.0,Ecom
+EL70264,2026-05-09,Charger 20W,ELC-CHG1,Power,1,899,Cancelled,Address not serviceable,2026-05-25,0.0,Delhivery
+EL70265,2026-05-16,Mechanical Keyboard,ELC-KEY1,Computer,2,5798,Exchanged,Colour change,2026-05-20,0.0,BlueDart
+EL70266,2026-08-10,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Returned,Size/fit issue,2026-08-29,2499.0,India Post
+EL70267,2026-05-09,Neckband Earphone,ELC-NCK1,Audio,1,1099,Cancelled,Customer changed mind,2026-05-24,0.0,India Post
+EL70268,2026-06-04,Wireless Mouse,ELC-MOU1,Computer,1,699,Delivered,,,0.0,India Post
+EL70269,2026-07-21,Laptop Sleeve,ELC-SLV1,Accessories,2,1498,Returned,Not as described,2026-08-01,1498.0,BlueDart
+EL70270,2026-03-24,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Delivered,,,0.0,Ecom
+EL70271,2026-01-20,Wireless Mouse,ELC-MOU1,Computer,1,699,Returned,Size/fit issue,2026-02-05,699.0,Ecom
+EL70272,2026-03-07,Bluetooth Speaker,ELC-SPK1,Audio,1,1799,Returned,Damaged in transit,2026-03-24,1799.0,India Post
+EL70273,2026-05-16,Wireless Earbuds,ELC-EAR1,Audio,2,4998,Delivered,,,0.0,BlueDart
+EL70274,2026-02-10,Neckband Earphone,ELC-NCK1,Audio,1,1099,Delivered,,,0.0,Delhivery
+EL70275,2026-08-14,Charger 20W,ELC-CHG1,Power,1,899,Exchanged,Model upgrade,2026-08-28,0.0,India Post
+EL70276,2026-07-31,Smart Watch,ELC-WAT1,Wearables,1,3499,Refunded,Battery fault,2026-08-17,3499.0,BlueDart
+EL70277,2026-07-20,Smart Watch,ELC-WAT1,Wearables,2,6998,Returned,Not as described,2026-08-06,6998.0,Ecom
+EL70278,2026-02-09,Phone Case,ELC-CAS1,Accessories,2,598,Delivered,,,0.0,BlueDart
+EL70279,2026-07-25,Wireless Mouse,ELC-MOU1,Computer,1,699,Delivered,,,0.0,Delhivery
+EL70280,2026-07-09,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Returned,Wrong item sent,2026-07-15,399.0,BlueDart
+EL70281,2026-02-07,Charger 20W,ELC-CHG1,Power,1,899,Exchanged,Model upgrade,2026-02-11,0.0,Ecom
+EL70282,2026-06-03,Wireless Mouse,ELC-MOU1,Computer,2,1398,Refunded,Duplicate order,2026-06-16,1398.0,Ecom
+EL70283,2026-07-26,HDMI Cable 2m,ELC-HDM1,Cables,2,798,Delivered,,,0.0,Delhivery
+EL70284,2026-05-01,Wireless Mouse,ELC-MOU1,Computer,1,699,Delivered,,,0.0,Ecom
+EL70285,2026-04-21,Mechanical Keyboard,ELC-KEY1,Computer,1,2899,Delivered,,,0.0,BlueDart
+EL70286,2026-03-22,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Delivered,,,0.0,BlueDart
+EL70287,2026-04-06,Phone Case,ELC-CAS1,Accessories,1,299,Delivered,,,0.0,Delhivery
+EL70288,2026-03-24,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Delivered,,,0.0,BlueDart
+EL70289,2026-03-15,USB-C Cable 1m,ELC-USB1,Cables,1,249,Delivered,,,0.0,Ecom
+EL70290,2026-08-04,Mechanical Keyboard,ELC-KEY1,Computer,2,5798,Delivered,,,0.0,BlueDart
+EL70291,2026-04-18,Mechanical Keyboard,ELC-KEY1,Computer,2,5798,Refunded,Stopped working,2026-04-22,5798.0,Delhivery
+EL70292,2026-02-10,Phone Case,ELC-CAS1,Accessories,2,598,Cancelled,Customer changed mind,2026-02-18,0.0,Ecom
+EL70293,2026-06-27,USB-C Cable 1m,ELC-USB1,Cables,1,249,Refunded,Battery fault,2026-07-05,249.0,Ecom
+EL70294,2026-04-16,Bluetooth Speaker,ELC-SPK1,Audio,2,3598,Delivered,,,0.0,Delhivery
+EL70295,2026-02-15,Wireless Mouse,ELC-MOU1,Computer,2,1398,Delivered,,,0.0,BlueDart
+EL70296,2026-05-29,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Delivered,,,0.0,BlueDart
+EL70297,2026-01-26,Smart Watch,ELC-WAT1,Wearables,2,6998,Delivered,,,0.0,India Post
+EL70298,2026-05-12,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Delivered,,,0.0,Delhivery
+EL70299,2026-05-24,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Delivered,,,0.0,BlueDart
+EL70300,2026-08-04,Neckband Earphone,ELC-NCK1,Audio,2,2198,Returned,Not as described,2026-08-15,2198.0,BlueDart
+EL70301,2026-03-13,HDMI Cable 2m,ELC-HDM1,Cables,2,798,Delivered,,,0.0,Ecom
+EL70302,2026-06-26,USB-C Cable 1m,ELC-USB1,Cables,1,249,Exchanged,Model upgrade,2026-06-29,0.0,India Post
+EL70303,2026-04-15,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Returned,Size/fit issue,2026-04-23,2499.0,Ecom
+EL70304,2026-04-07,USB-C Cable 1m,ELC-USB1,Cables,1,249,Delivered,,,0.0,BlueDart
+EL70305,2026-06-11,Neckband Earphone,ELC-NCK1,Audio,1,1099,Delivered,,,0.0,India Post
+EL70306,2026-03-01,Mechanical Keyboard,ELC-KEY1,Computer,1,2899,Delivered,,,0.0,BlueDart
+EL70307,2026-03-15,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Delivered,,,0.0,Delhivery
+EL70308,2026-08-01,Wireless Earbuds,ELC-EAR1,Audio,2,4998,Delivered,,,0.0,India Post
+EL70309,2026-07-14,Mechanical Keyboard,ELC-KEY1,Computer,1,2899,Delivered,,,0.0,Delhivery
+EL70310,2026-02-09,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Delivered,,,0.0,Delhivery
+EL70311,2026-05-09,Wireless Earbuds,ELC-EAR1,Audio,2,4998,Exchanged,Colour change,2026-05-14,0.0,Ecom
+EL70312,2026-06-08,Smart Watch,ELC-WAT1,Wearables,1,3499,Delivered,,,0.0,BlueDart
+EL70313,2026-01-29,Bluetooth Speaker,ELC-SPK1,Audio,2,3598,Delivered,,,0.0,BlueDart
+EL70314,2026-06-25,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Delivered,,,0.0,Delhivery
+EL70315,2026-05-08,Neckband Earphone,ELC-NCK1,Audio,1,1099,Delivered,,,0.0,Ecom
+EL70316,2026-05-19,Bluetooth Speaker,ELC-SPK1,Audio,1,1799,Refunded,Duplicate order,2026-05-25,1799.0,India Post
+EL70317,2026-04-18,Power Bank 10000mAh,ELC-PWB1,Power,2,2598,Delivered,,,0.0,India Post
+EL70318,2026-07-15,Charger 20W,ELC-CHG1,Power,1,899,Delivered,,,0.0,BlueDart
+EL70319,2026-02-03,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Delivered,,,0.0,BlueDart
+EL70320,2026-06-18,Phone Case,ELC-CAS1,Accessories,2,598,Delivered,,,0.0,BlueDart
+EL70321,2026-06-30,Laptop Sleeve,ELC-SLV1,Accessories,1,749,Delivered,,,0.0,India Post
+EL70322,2026-05-23,HDMI Cable 2m,ELC-HDM1,Cables,2,798,Delivered,,,0.0,Ecom
+EL70323,2026-07-22,Smart Watch,ELC-WAT1,Wearables,1,3499,Delivered,,,0.0,India Post
+EL70324,2026-06-11,Wireless Mouse,ELC-MOU1,Computer,1,699,Refunded,Stopped working,2026-06-30,699.0,India Post
+EL70325,2026-01-29,Mechanical Keyboard,ELC-KEY1,Computer,2,5798,Cancelled,Customer changed mind,2026-02-09,0.0,Ecom
+EL70326,2026-02-12,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Delivered,,,0.0,BlueDart
+EL70327,2026-07-05,Wireless Mouse,ELC-MOU1,Computer,1,699,Delivered,,,0.0,BlueDart
+EL70328,2026-01-31,Smart Watch,ELC-WAT1,Wearables,1,3499,Delivered,,,0.0,Ecom
+EL70329,2026-03-05,Mechanical Keyboard,ELC-KEY1,Computer,1,2899,Delivered,,,0.0,BlueDart
+EL70330,2026-05-16,USB-C Cable 1m,ELC-USB1,Cables,1,249,Returned,Damaged in transit,2026-05-21,249.0,India Post
+EL70331,2026-03-17,Smart Watch,ELC-WAT1,Wearables,1,3499,Delivered,,,0.0,Ecom
+EL70332,2026-07-05,Wireless Mouse,ELC-MOU1,Computer,2,1398,Refunded,Stopped working,2026-07-18,1398.0,India Post
+EL70333,2026-01-24,Laptop Sleeve,ELC-SLV1,Accessories,1,749,Delivered,,,0.0,Ecom
+EL70334,2026-06-29,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Delivered,,,0.0,BlueDart
+EL70335,2026-02-27,Phone Case,ELC-CAS1,Accessories,1,299,Delivered,,,0.0,BlueDart
+EL70336,2026-03-17,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Refunded,Duplicate order,2026-03-23,1299.0,Delhivery
+EL70337,2026-02-10,Laptop Sleeve,ELC-SLV1,Accessories,1,749,Delivered,,,0.0,India Post
+EL70338,2026-07-26,Bluetooth Speaker,ELC-SPK1,Audio,2,3598,Delivered,,,0.0,India Post
+EL70339,2026-06-18,Charger 20W,ELC-CHG1,Power,1,899,Delivered,,,0.0,India Post
+EL70340,2026-07-28,Neckband Earphone,ELC-NCK1,Audio,1,1099,Delivered,,,0.0,Ecom
+EL70341,2026-07-20,Wireless Mouse,ELC-MOU1,Computer,2,1398,Delivered,,,0.0,Delhivery
+EL70342,2026-06-25,Wireless Mouse,ELC-MOU1,Computer,2,1398,Delivered,,,0.0,Delhivery
+EL70343,2026-08-08,Charger 20W,ELC-CHG1,Power,1,899,Delivered,,,0.0,Ecom
+EL70344,2026-06-06,Smart Watch,ELC-WAT1,Wearables,1,3499,Returned,Not as described,2026-06-23,3499.0,BlueDart
+EL70345,2026-06-10,USB-C Cable 1m,ELC-USB1,Cables,2,498,Delivered,,,0.0,India Post
+EL70346,2026-08-01,Laptop Sleeve,ELC-SLV1,Accessories,1,749,Delivered,,,0.0,BlueDart
+EL70347,2026-07-12,Laptop Sleeve,ELC-SLV1,Accessories,1,749,Delivered,,,0.0,Ecom
+EL70348,2026-02-15,Smart Watch,ELC-WAT1,Wearables,2,6998,Delivered,,,0.0,Ecom
+EL70349,2026-08-09,Bluetooth Speaker,ELC-SPK1,Audio,2,3598,Delivered,,,0.0,India Post
+EL70350,2026-05-13,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Delivered,,,0.0,Ecom
+EL70351,2026-04-10,Smart Watch,ELC-WAT1,Wearables,1,3499,Delivered,,,0.0,Delhivery
+EL70352,2026-06-09,Bluetooth Speaker,ELC-SPK1,Audio,1,1799,Delivered,,,0.0,BlueDart
+EL70353,2026-07-15,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Delivered,,,0.0,Ecom
+EL70354,2026-05-23,Smart Watch,ELC-WAT1,Wearables,1,3499,Returned,Size/fit issue,2026-06-06,3499.0,Delhivery
+EL70355,2026-02-13,Charger 20W,ELC-CHG1,Power,2,1798,Delivered,,,0.0,Ecom
+EL70356,2026-03-29,Neckband Earphone,ELC-NCK1,Audio,1,1099,Delivered,,,0.0,India Post
+EL70357,2026-08-01,Phone Case,ELC-CAS1,Accessories,1,299,Delivered,,,0.0,BlueDart
+EL70358,2026-04-22,Phone Case,ELC-CAS1,Accessories,1,299,Delivered,,,0.0,India Post
+EL70359,2026-05-05,Wireless Mouse,ELC-MOU1,Computer,1,699,Returned,Size/fit issue,2026-05-16,699.0,India Post
+EL70360,2026-03-02,Wireless Mouse,ELC-MOU1,Computer,2,1398,Delivered,,,0.0,BlueDart
+EL70361,2026-04-09,Phone Case,ELC-CAS1,Accessories,1,299,Delivered,,,0.0,India Post
+EL70362,2026-05-27,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Cancelled,Payment failed,2026-06-02,0.0,Ecom
+EL70363,2026-03-21,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Delivered,,,0.0,Delhivery
+EL70364,2026-02-23,USB-C Cable 1m,ELC-USB1,Cables,1,249,Delivered,,,0.0,Delhivery
+EL70365,2026-06-04,Laptop Sleeve,ELC-SLV1,Accessories,1,749,Delivered,,,0.0,Delhivery
+EL70366,2026-06-14,Wireless Mouse,ELC-MOU1,Computer,1,699,Delivered,,,0.0,India Post
+EL70367,2026-03-13,Bluetooth Speaker,ELC-SPK1,Audio,1,1799,Delivered,,,0.0,India Post
+EL70368,2026-05-02,USB-C Cable 1m,ELC-USB1,Cables,2,498,Delivered,,,0.0,Delhivery
+EL70369,2026-04-21,USB-C Cable 1m,ELC-USB1,Cables,2,498,Delivered,,,0.0,Delhivery
+EL70370,2026-06-10,Charger 20W,ELC-CHG1,Power,2,1798,Delivered,,,0.0,Ecom
+EL70371,2026-04-06,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Cancelled,Payment failed,2026-04-17,0.0,BlueDart
+EL70372,2026-04-10,Smart Watch,ELC-WAT1,Wearables,1,3499,Refunded,Duplicate order,2026-04-19,3499.0,Ecom
+EL70373,2026-02-06,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Delivered,,,0.0,BlueDart
+EL70374,2026-07-29,Wireless Mouse,ELC-MOU1,Computer,2,1398,Delivered,,,0.0,Ecom
+EL70375,2026-04-19,USB-C Cable 1m,ELC-USB1,Cables,1,249,Returned,Damaged in transit,2026-05-09,249.0,Ecom
+EL70376,2026-06-22,Bluetooth Speaker,ELC-SPK1,Audio,2,3598,Delivered,,,0.0,Ecom
+EL70377,2026-03-03,Phone Case,ELC-CAS1,Accessories,1,299,Delivered,,,0.0,Delhivery
+EL70378,2026-05-26,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Delivered,,,0.0,BlueDart
+EL70379,2026-08-21,Bluetooth Speaker,ELC-SPK1,Audio,2,3598,Delivered,,,0.0,Delhivery
+EL70380,2026-02-01,Bluetooth Speaker,ELC-SPK1,Audio,1,1799,Delivered,,,0.0,India Post
+EL70381,2026-04-07,Neckband Earphone,ELC-NCK1,Audio,2,2198,Exchanged,Colour change,2026-04-10,0.0,Ecom
+EL70382,2026-04-03,Neckband Earphone,ELC-NCK1,Audio,2,2198,Exchanged,Model upgrade,2026-04-13,0.0,Delhivery
+EL70383,2026-02-13,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Delivered,,,0.0,Ecom
+EL70384,2026-01-26,Laptop Sleeve,ELC-SLV1,Accessories,1,749,Delivered,,,0.0,BlueDart
+EL70385,2026-01-24,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Delivered,,,0.0,Ecom
+EL70386,2026-07-21,Neckband Earphone,ELC-NCK1,Audio,1,1099,Delivered,,,0.0,BlueDart
+EL70387,2026-07-09,HDMI Cable 2m,ELC-HDM1,Cables,2,798,Delivered,,,0.0,BlueDart
+EL70388,2026-07-15,USB-C Cable 1m,ELC-USB1,Cables,1,249,Delivered,,,0.0,India Post
+EL70389,2026-02-06,USB-C Cable 1m,ELC-USB1,Cables,1,249,Delivered,,,0.0,India Post
+EL70390,2026-01-19,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Delivered,,,0.0,India Post
+EL70391,2026-07-04,Charger 20W,ELC-CHG1,Power,2,1798,Returned,Size/fit issue,2026-07-22,1798.0,Ecom
+EL70392,2026-07-14,Bluetooth Speaker,ELC-SPK1,Audio,1,1799,Delivered,,,0.0,BlueDart
+EL70393,2026-05-28,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Delivered,,,0.0,India Post
+EL70394,2026-06-17,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Refunded,Battery fault,2026-07-03,399.0,India Post
+EL70395,2026-04-26,Charger 20W,ELC-CHG1,Power,1,899,Cancelled,Out of stock,2026-04-29,0.0,BlueDart
+EL70396,2026-07-19,Wireless Earbuds,ELC-EAR1,Audio,2,4998,Delivered,,,0.0,Ecom
+EL70397,2026-04-11,Mechanical Keyboard,ELC-KEY1,Computer,1,2899,Delivered,,,0.0,BlueDart
+EL70398,2026-05-07,USB-C Cable 1m,ELC-USB1,Cables,1,249,Delivered,,,0.0,India Post
+EL70399,2026-04-25,Wireless Earbuds,ELC-EAR1,Audio,2,4998,Returned,Wrong item sent,2026-04-28,4998.0,Delhivery
+EL70400,2026-04-01,Smart Watch,ELC-WAT1,Wearables,2,6998,Delivered,,,0.0,Delhivery
+EL70401,2026-04-28,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Delivered,,,0.0,Ecom
+EL70402,2026-05-04,Neckband Earphone,ELC-NCK1,Audio,1,1099,Delivered,,,0.0,BlueDart
+EL70403,2026-05-06,HDMI Cable 2m,ELC-HDM1,Cables,2,798,Delivered,,,0.0,BlueDart
+EL70404,2026-07-01,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Delivered,,,0.0,India Post
+EL70405,2026-07-25,Laptop Sleeve,ELC-SLV1,Accessories,2,1498,Delivered,,,0.0,India Post
+EL70406,2026-05-02,Laptop Sleeve,ELC-SLV1,Accessories,1,749,Delivered,,,0.0,BlueDart
+EL70407,2026-03-03,Power Bank 10000mAh,ELC-PWB1,Power,2,2598,Delivered,,,0.0,Delhivery
+EL70408,2026-02-19,Neckband Earphone,ELC-NCK1,Audio,1,1099,Delivered,,,0.0,BlueDart
+EL70409,2026-02-20,Wireless Mouse,ELC-MOU1,Computer,1,699,Delivered,,,0.0,BlueDart
+EL70410,2026-02-17,Mechanical Keyboard,ELC-KEY1,Computer,2,5798,Delivered,,,0.0,BlueDart
+EL70411,2026-02-15,Wireless Earbuds,ELC-EAR1,Audio,2,4998,Delivered,,,0.0,India Post
+EL70412,2026-03-08,USB-C Cable 1m,ELC-USB1,Cables,1,249,Cancelled,Customer changed mind,2026-03-13,0.0,India Post
+EL70413,2026-01-17,Smart Watch,ELC-WAT1,Wearables,2,6998,Delivered,,,0.0,Ecom
+EL70414,2026-02-02,Wireless Earbuds,ELC-EAR1,Audio,2,4998,Delivered,,,0.0,Ecom
+EL70415,2026-04-17,Wireless Mouse,ELC-MOU1,Computer,1,699,Delivered,,,0.0,Ecom
+EL70416,2026-04-13,Phone Case,ELC-CAS1,Accessories,2,598,Delivered,,,0.0,India Post
+EL70417,2026-05-21,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Delivered,,,0.0,Delhivery
+EL70418,2026-06-17,Power Bank 10000mAh,ELC-PWB1,Power,2,2598,Delivered,,,0.0,BlueDart
+EL70419,2026-06-23,Neckband Earphone,ELC-NCK1,Audio,1,1099,Delivered,,,0.0,BlueDart
+EL70420,2026-01-29,USB-C Cable 1m,ELC-USB1,Cables,1,249,Delivered,,,0.0,Ecom
+EL70421,2026-04-24,Bluetooth Speaker,ELC-SPK1,Audio,2,3598,Delivered,,,0.0,India Post
+EL70422,2026-03-16,Wireless Earbuds,ELC-EAR1,Audio,2,4998,Delivered,,,0.0,BlueDart
+EL70423,2026-07-29,Phone Case,ELC-CAS1,Accessories,1,299,Delivered,,,0.0,Ecom
+EL70424,2026-03-29,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Returned,Wrong item sent,2026-04-01,2499.0,India Post
+EL70425,2026-03-13,USB-C Cable 1m,ELC-USB1,Cables,2,498,Delivered,,,0.0,India Post
+EL70426,2026-04-10,Wireless Mouse,ELC-MOU1,Computer,1,699,Delivered,,,0.0,BlueDart
+EL70427,2026-05-13,Charger 20W,ELC-CHG1,Power,1,899,Delivered,,,0.0,Ecom
+EL70428,2026-03-15,Smart Watch,ELC-WAT1,Wearables,2,6998,Delivered,,,0.0,India Post
+EL70429,2026-06-01,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Refunded,Duplicate order,2026-06-14,399.0,BlueDart
+EL70430,2026-05-13,Power Bank 10000mAh,ELC-PWB1,Power,2,2598,Delivered,,,0.0,India Post
+EL70431,2026-02-15,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Delivered,,,0.0,Delhivery
+EL70432,2026-05-06,Laptop Sleeve,ELC-SLV1,Accessories,1,749,Delivered,,,0.0,Delhivery
+EL70433,2026-04-16,Smart Watch,ELC-WAT1,Wearables,2,6998,Refunded,Battery fault,2026-04-19,6998.0,India Post
+EL70434,2026-05-24,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Delivered,,,0.0,Delhivery
+EL70435,2026-03-31,Mechanical Keyboard,ELC-KEY1,Computer,1,2899,Delivered,,,0.0,Delhivery
+EL70436,2026-06-28,Laptop Sleeve,ELC-SLV1,Accessories,2,1498,Delivered,,,0.0,Ecom
+EL70437,2026-03-06,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Delivered,,,0.0,Delhivery
+EL70438,2026-06-19,Neckband Earphone,ELC-NCK1,Audio,2,2198,Returned,Size/fit issue,2026-07-03,2198.0,Delhivery
+EL70439,2026-05-03,Phone Case,ELC-CAS1,Accessories,1,299,Delivered,,,0.0,Ecom
+EL70440,2026-07-02,Bluetooth Speaker,ELC-SPK1,Audio,1,1799,Delivered,,,0.0,India Post
+EL70441,2026-08-11,Wireless Mouse,ELC-MOU1,Computer,1,699,Delivered,,,0.0,Delhivery
+EL70442,2026-06-18,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Delivered,,,0.0,Ecom
+EL70443,2026-03-18,Smart Watch,ELC-WAT1,Wearables,1,3499,Delivered,,,0.0,Ecom
+EL70444,2026-01-20,Charger 20W,ELC-CHG1,Power,1,899,Delivered,,,0.0,Ecom
+EL70445,2026-05-19,USB-C Cable 1m,ELC-USB1,Cables,1,249,Cancelled,Payment failed,2026-06-06,0.0,BlueDart
+EL70446,2026-02-16,Charger 20W,ELC-CHG1,Power,1,899,Exchanged,Model upgrade,2026-02-24,0.0,BlueDart
+EL70447,2026-07-18,Bluetooth Speaker,ELC-SPK1,Audio,1,1799,Delivered,,,0.0,Delhivery
+EL70448,2026-01-31,Charger 20W,ELC-CHG1,Power,2,1798,Delivered,,,0.0,BlueDart
+EL70449,2026-02-14,Bluetooth Speaker,ELC-SPK1,Audio,2,3598,Delivered,,,0.0,India Post
+EL70450,2026-02-08,Smart Watch,ELC-WAT1,Wearables,2,6998,Refunded,Battery fault,2026-02-17,6998.0,India Post
+EL70451,2026-07-22,Wireless Earbuds,ELC-EAR1,Audio,2,4998,Returned,Not as described,2026-08-04,4998.0,Ecom
+EL70452,2026-07-14,Charger 20W,ELC-CHG1,Power,1,899,Delivered,,,0.0,BlueDart
+EL70453,2026-01-29,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Delivered,,,0.0,India Post
+EL70454,2026-05-11,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Returned,Not as described,2026-05-21,399.0,India Post
+EL70455,2026-05-23,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Delivered,,,0.0,Ecom
+EL70456,2026-07-28,USB-C Cable 1m,ELC-USB1,Cables,1,249,Delivered,,,0.0,Delhivery
+EL70457,2026-08-17,HDMI Cable 2m,ELC-HDM1,Cables,2,798,Delivered,,,0.0,Delhivery
+EL70458,2026-06-04,Mechanical Keyboard,ELC-KEY1,Computer,1,2899,Delivered,,,0.0,BlueDart
+EL70459,2026-04-16,Smart Watch,ELC-WAT1,Wearables,2,6998,Delivered,,,0.0,Delhivery
+EL70460,2026-04-19,Smart Watch,ELC-WAT1,Wearables,1,3499,Delivered,,,0.0,Delhivery
+EL70461,2026-05-15,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Delivered,,,0.0,Ecom
+EL70462,2026-04-29,Smart Watch,ELC-WAT1,Wearables,1,3499,Delivered,,,0.0,Delhivery
+EL70463,2026-03-29,Wireless Mouse,ELC-MOU1,Computer,1,699,Delivered,,,0.0,BlueDart
+EL70464,2026-04-20,Neckband Earphone,ELC-NCK1,Audio,1,1099,Cancelled,Out of stock,2026-05-06,0.0,Delhivery
+EL70465,2026-04-23,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Delivered,,,0.0,Delhivery
+EL70466,2026-04-06,Wireless Mouse,ELC-MOU1,Computer,2,1398,Delivered,,,0.0,Delhivery
+EL70467,2026-02-23,Charger 20W,ELC-CHG1,Power,2,1798,Returned,Damaged in transit,2026-03-09,1798.0,India Post
+EL70468,2026-05-16,Charger 20W,ELC-CHG1,Power,1,899,Delivered,,,0.0,India Post
+EL70469,2026-04-27,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Cancelled,Address not serviceable,2026-05-17,0.0,Ecom
+EL70470,2026-03-20,Laptop Sleeve,ELC-SLV1,Accessories,2,1498,Delivered,,,0.0,BlueDart
+EL70471,2026-05-26,HDMI Cable 2m,ELC-HDM1,Cables,2,798,Delivered,,,0.0,Ecom
+EL70472,2026-03-07,Power Bank 10000mAh,ELC-PWB1,Power,2,2598,Returned,Not as described,2026-03-19,2598.0,Ecom
+EL70473,2026-06-18,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Exchanged,Colour change,2026-07-03,0.0,Ecom
+EL70474,2026-02-11,Bluetooth Speaker,ELC-SPK1,Audio,1,1799,Delivered,,,0.0,Ecom
+EL70475,2026-05-07,Phone Case,ELC-CAS1,Accessories,2,598,Delivered,,,0.0,Ecom
+EL70476,2026-03-20,Bluetooth Speaker,ELC-SPK1,Audio,2,3598,Delivered,,,0.0,Delhivery
+EL70477,2026-06-26,HDMI Cable 2m,ELC-HDM1,Cables,2,798,Cancelled,Out of stock,2026-07-06,0.0,India Post
+EL70478,2026-01-21,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Delivered,,,0.0,Delhivery
+EL70479,2026-08-18,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Delivered,,,0.0,Delhivery
+EL70480,2026-07-09,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Delivered,,,0.0,BlueDart
+EL70481,2026-02-01,Charger 20W,ELC-CHG1,Power,1,899,Cancelled,Address not serviceable,2026-02-09,0.0,India Post
+EL70482,2026-02-16,Smart Watch,ELC-WAT1,Wearables,1,3499,Cancelled,Out of stock,2026-03-05,0.0,Delhivery
+EL70483,2026-06-29,Phone Case,ELC-CAS1,Accessories,1,299,Delivered,,,0.0,BlueDart
+EL70484,2026-07-28,Charger 20W,ELC-CHG1,Power,1,899,Delivered,,,0.0,Ecom
+EL70485,2026-04-09,Laptop Sleeve,ELC-SLV1,Accessories,2,1498,Refunded,Stopped working,2026-04-12,1498.0,Ecom
+EL70486,2026-01-25,HDMI Cable 2m,ELC-HDM1,Cables,2,798,Delivered,,,0.0,India Post
+EL70487,2026-06-06,Wireless Mouse,ELC-MOU1,Computer,1,699,Returned,Wrong item sent,2026-06-10,699.0,Delhivery
+EL70488,2026-07-14,Mechanical Keyboard,ELC-KEY1,Computer,1,2899,Exchanged,Model upgrade,2026-07-18,0.0,Ecom
+EL70489,2026-04-06,Wireless Mouse,ELC-MOU1,Computer,1,699,Delivered,,,0.0,India Post
+EL70490,2026-04-15,Smart Watch,ELC-WAT1,Wearables,2,6998,Delivered,,,0.0,Delhivery
+EL70491,2026-01-16,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Returned,Size/fit issue,2026-01-30,399.0,India Post
+EL70492,2026-06-06,Bluetooth Speaker,ELC-SPK1,Audio,2,3598,Cancelled,Address not serviceable,2026-06-12,0.0,Ecom
+EL70493,2026-04-17,Wireless Earbuds,ELC-EAR1,Audio,2,4998,Refunded,Stopped working,2026-05-04,4998.0,BlueDart
+EL70494,2026-03-12,Charger 20W,ELC-CHG1,Power,1,899,Delivered,,,0.0,BlueDart
+EL70495,2026-02-25,Phone Case,ELC-CAS1,Accessories,1,299,Delivered,,,0.0,Delhivery
+EL70496,2026-08-18,Mechanical Keyboard,ELC-KEY1,Computer,1,2899,Delivered,,,0.0,Delhivery
+EL70497,2026-06-15,USB-C Cable 1m,ELC-USB1,Cables,2,498,Delivered,,,0.0,BlueDart
+EL70498,2026-06-25,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Delivered,,,0.0,India Post
+EL70499,2026-05-13,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Cancelled,Address not serviceable,2026-05-17,0.0,India Post
+EL70500,2026-05-23,USB-C Cable 1m,ELC-USB1,Cables,2,498,Delivered,,,0.0,BlueDart
+EL70501,2026-05-29,USB-C Cable 1m,ELC-USB1,Cables,2,498,Delivered,,,0.0,BlueDart
+EL70502,2026-08-09,Charger 20W,ELC-CHG1,Power,1,899,Delivered,,,0.0,India Post
+EL70503,2026-04-14,Wireless Mouse,ELC-MOU1,Computer,1,699,Delivered,,,0.0,Delhivery
+EL70504,2026-06-27,Bluetooth Speaker,ELC-SPK1,Audio,2,3598,Returned,Not as described,2026-07-14,3598.0,BlueDart
+EL70505,2026-01-21,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Delivered,,,0.0,Ecom
+EL70506,2026-03-19,Charger 20W,ELC-CHG1,Power,1,899,Exchanged,Colour change,2026-03-23,0.0,Ecom
+EL70507,2026-01-25,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Delivered,,,0.0,Ecom
+EL70508,2026-06-01,Bluetooth Speaker,ELC-SPK1,Audio,1,1799,Delivered,,,0.0,BlueDart
+EL70509,2026-03-06,Bluetooth Speaker,ELC-SPK1,Audio,1,1799,Delivered,,,0.0,BlueDart
+EL70510,2026-06-26,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Delivered,,,0.0,Ecom
+EL70511,2026-07-26,Mechanical Keyboard,ELC-KEY1,Computer,1,2899,Delivered,,,0.0,Ecom
+EL70512,2026-03-24,USB-C Cable 1m,ELC-USB1,Cables,1,249,Cancelled,Address not serviceable,2026-04-09,0.0,Ecom
+EL70513,2026-06-23,Laptop Sleeve,ELC-SLV1,Accessories,1,749,Delivered,,,0.0,Delhivery
+EL70514,2026-03-24,Wireless Earbuds,ELC-EAR1,Audio,2,4998,Returned,Not as described,2026-04-02,4998.0,BlueDart
+EL70515,2026-01-30,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Delivered,,,0.0,Ecom
+EL70516,2026-08-07,Wireless Mouse,ELC-MOU1,Computer,2,1398,Delivered,,,0.0,India Post
+EL70517,2026-05-05,Smart Watch,ELC-WAT1,Wearables,1,3499,Delivered,,,0.0,Ecom
+EL70518,2026-08-15,Smart Watch,ELC-WAT1,Wearables,2,6998,Delivered,,,0.0,India Post
+EL70519,2026-04-03,Wireless Mouse,ELC-MOU1,Computer,1,699,Cancelled,Out of stock,2026-04-11,0.0,BlueDart
+EL70520,2026-06-17,Power Bank 10000mAh,ELC-PWB1,Power,2,2598,Delivered,,,0.0,Delhivery
+EL70521,2026-01-23,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Delivered,,,0.0,Ecom
+EL70522,2026-04-08,Power Bank 10000mAh,ELC-PWB1,Power,2,2598,Delivered,,,0.0,Ecom
+EL70523,2026-03-06,Wireless Mouse,ELC-MOU1,Computer,2,1398,Delivered,,,0.0,India Post
+EL70524,2026-08-21,Wireless Mouse,ELC-MOU1,Computer,2,1398,Exchanged,Model upgrade,2026-09-01,0.0,BlueDart
+EL70525,2026-05-17,Neckband Earphone,ELC-NCK1,Audio,2,2198,Delivered,,,0.0,Ecom
+EL70526,2026-08-19,Laptop Sleeve,ELC-SLV1,Accessories,2,1498,Delivered,,,0.0,Ecom
+EL70527,2026-01-31,Wireless Mouse,ELC-MOU1,Computer,1,699,Delivered,,,0.0,BlueDart
+EL70528,2026-04-28,Neckband Earphone,ELC-NCK1,Audio,1,1099,Delivered,,,0.0,Delhivery
+EL70529,2026-03-12,Mechanical Keyboard,ELC-KEY1,Computer,1,2899,Delivered,,,0.0,Ecom
+EL70530,2026-03-26,Wireless Mouse,ELC-MOU1,Computer,2,1398,Delivered,,,0.0,Ecom
+EL70531,2026-05-15,Phone Case,ELC-CAS1,Accessories,1,299,Cancelled,Customer changed mind,2026-05-29,0.0,BlueDart
+EL70532,2026-06-27,Mechanical Keyboard,ELC-KEY1,Computer,1,2899,Cancelled,Out of stock,2026-07-07,0.0,Ecom
+EL70533,2026-03-15,Laptop Sleeve,ELC-SLV1,Accessories,2,1498,Delivered,,,0.0,India Post
+EL70534,2026-07-31,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Delivered,,,0.0,India Post
+EL70535,2026-07-06,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Cancelled,Customer changed mind,2026-07-11,0.0,India Post
+EL70536,2026-04-04,Neckband Earphone,ELC-NCK1,Audio,1,1099,Cancelled,Customer changed mind,2026-04-19,0.0,Delhivery
+EL70537,2026-07-31,Wireless Mouse,ELC-MOU1,Computer,1,699,Exchanged,Colour change,2026-08-09,0.0,Delhivery
+EL70538,2026-07-09,Bluetooth Speaker,ELC-SPK1,Audio,1,1799,Cancelled,Payment failed,2026-07-23,0.0,India Post
+EL70539,2026-02-26,Neckband Earphone,ELC-NCK1,Audio,1,1099,Delivered,,,0.0,Ecom
+EL70540,2026-05-19,Power Bank 10000mAh,ELC-PWB1,Power,2,2598,Cancelled,Address not serviceable,2026-06-03,0.0,BlueDart
+EL70541,2026-05-31,Bluetooth Speaker,ELC-SPK1,Audio,1,1799,Delivered,,,0.0,India Post
+EL70542,2026-08-13,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Delivered,,,0.0,India Post
+EL70543,2026-06-22,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Cancelled,Customer changed mind,2026-07-06,0.0,BlueDart
+EL70544,2026-02-05,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Delivered,,,0.0,BlueDart
+EL70545,2026-01-26,Bluetooth Speaker,ELC-SPK1,Audio,2,3598,Exchanged,Model upgrade,2026-02-12,0.0,Delhivery
+EL70546,2026-06-04,Charger 20W,ELC-CHG1,Power,1,899,Delivered,,,0.0,Ecom
+EL70547,2026-04-16,Neckband Earphone,ELC-NCK1,Audio,1,1099,Returned,Wrong item sent,2026-04-21,1099.0,India Post
+EL70548,2026-04-01,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Delivered,,,0.0,Ecom
+EL70549,2026-07-17,Bluetooth Speaker,ELC-SPK1,Audio,2,3598,Delivered,,,0.0,Ecom
+EL70550,2026-02-04,Neckband Earphone,ELC-NCK1,Audio,1,1099,Refunded,Stopped working,2026-02-08,1099.0,Delhivery
+EL70551,2026-06-05,Charger 20W,ELC-CHG1,Power,1,899,Returned,Wrong item sent,2026-06-25,899.0,Ecom
+EL70552,2026-03-27,Bluetooth Speaker,ELC-SPK1,Audio,2,3598,Delivered,,,0.0,BlueDart
+EL70553,2026-07-01,USB-C Cable 1m,ELC-USB1,Cables,1,249,Delivered,,,0.0,Delhivery
+EL70554,2026-08-21,Wireless Earbuds,ELC-EAR1,Audio,2,4998,Cancelled,Address not serviceable,2026-09-08,0.0,Delhivery
+EL70555,2026-03-05,Bluetooth Speaker,ELC-SPK1,Audio,1,1799,Returned,Damaged in transit,2026-03-15,1799.0,Ecom
+EL70556,2026-07-14,HDMI Cable 2m,ELC-HDM1,Cables,2,798,Cancelled,Payment failed,2026-07-30,0.0,Delhivery
+EL70557,2026-06-03,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Cancelled,Customer changed mind,2026-06-15,0.0,BlueDart
+EL70558,2026-02-21,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Cancelled,Customer changed mind,2026-02-26,0.0,Ecom
+EL70559,2026-03-09,USB-C Cable 1m,ELC-USB1,Cables,2,498,Delivered,,,0.0,India Post
+EL70560,2026-04-07,Smart Watch,ELC-WAT1,Wearables,1,3499,Delivered,,,0.0,Ecom
+EL70561,2026-08-22,Charger 20W,ELC-CHG1,Power,1,899,Delivered,,,0.0,BlueDart
+EL70562,2026-06-19,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Exchanged,Model upgrade,2026-07-09,0.0,Ecom
+EL70563,2026-03-28,Wireless Mouse,ELC-MOU1,Computer,1,699,Delivered,,,0.0,Ecom
+EL70564,2026-04-17,Smart Watch,ELC-WAT1,Wearables,2,6998,Cancelled,Address not serviceable,2026-04-25,0.0,Delhivery
+EL70565,2026-01-15,Bluetooth Speaker,ELC-SPK1,Audio,1,1799,Delivered,,,0.0,BlueDart
+EL70566,2026-06-20,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Delivered,,,0.0,India Post
+EL70567,2026-06-13,Bluetooth Speaker,ELC-SPK1,Audio,2,3598,Delivered,,,0.0,Ecom
+EL70568,2026-06-14,USB-C Cable 1m,ELC-USB1,Cables,1,249,Delivered,,,0.0,BlueDart
+EL70569,2026-05-05,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Exchanged,Colour change,2026-05-15,0.0,Ecom
+EL70570,2026-08-15,Neckband Earphone,ELC-NCK1,Audio,2,2198,Delivered,,,0.0,BlueDart
+EL70571,2026-07-11,Bluetooth Speaker,ELC-SPK1,Audio,1,1799,Delivered,,,0.0,BlueDart
+EL70572,2026-04-24,Laptop Sleeve,ELC-SLV1,Accessories,2,1498,Delivered,,,0.0,BlueDart
+EL70573,2026-02-24,Phone Case,ELC-CAS1,Accessories,2,598,Delivered,,,0.0,Ecom
+EL70574,2026-07-15,USB-C Cable 1m,ELC-USB1,Cables,1,249,Returned,Size/fit issue,2026-07-29,249.0,BlueDart
+EL70575,2026-01-21,USB-C Cable 1m,ELC-USB1,Cables,1,249,Delivered,,,0.0,Ecom
+EL70576,2026-06-22,HDMI Cable 2m,ELC-HDM1,Cables,2,798,Delivered,,,0.0,Delhivery
+EL70577,2026-08-01,Charger 20W,ELC-CHG1,Power,1,899,Delivered,,,0.0,India Post
+EL70578,2026-07-10,Laptop Sleeve,ELC-SLV1,Accessories,1,749,Delivered,,,0.0,Delhivery
+EL70579,2026-02-02,Neckband Earphone,ELC-NCK1,Audio,1,1099,Delivered,,,0.0,Delhivery
+EL70580,2026-06-22,Wireless Mouse,ELC-MOU1,Computer,1,699,Delivered,,,0.0,Ecom
+EL70581,2026-04-01,Wireless Earbuds,ELC-EAR1,Audio,2,4998,Delivered,,,0.0,India Post
+EL70582,2026-08-05,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Delivered,,,0.0,BlueDart
+EL70583,2026-02-24,USB-C Cable 1m,ELC-USB1,Cables,1,249,Delivered,,,0.0,Delhivery
+EL70584,2026-05-04,Smart Watch,ELC-WAT1,Wearables,2,6998,Delivered,,,0.0,Ecom
+EL70585,2026-08-22,Phone Case,ELC-CAS1,Accessories,2,598,Delivered,,,0.0,BlueDart
+EL70586,2026-03-10,Charger 20W,ELC-CHG1,Power,1,899,Delivered,,,0.0,BlueDart
+EL70587,2026-06-16,Smart Watch,ELC-WAT1,Wearables,2,6998,Delivered,,,0.0,BlueDart
+EL70588,2026-05-21,Wireless Mouse,ELC-MOU1,Computer,1,699,Delivered,,,0.0,BlueDart
+EL70589,2026-04-17,Neckband Earphone,ELC-NCK1,Audio,1,1099,Delivered,,,0.0,BlueDart
+EL70590,2026-04-03,Charger 20W,ELC-CHG1,Power,1,899,Returned,Wrong item sent,2026-04-10,899.0,Ecom
+EL70591,2026-03-21,Laptop Sleeve,ELC-SLV1,Accessories,2,1498,Delivered,,,0.0,BlueDart
+EL70592,2026-07-02,Bluetooth Speaker,ELC-SPK1,Audio,2,3598,Cancelled,Payment failed,2026-07-18,0.0,Delhivery
+EL70593,2026-03-02,Bluetooth Speaker,ELC-SPK1,Audio,1,1799,Delivered,,,0.0,Ecom
+EL70594,2026-07-24,Wireless Mouse,ELC-MOU1,Computer,2,1398,Delivered,,,0.0,India Post
+EL70595,2026-02-14,Bluetooth Speaker,ELC-SPK1,Audio,1,1799,Delivered,,,0.0,Delhivery
+EL70596,2026-03-25,Wireless Mouse,ELC-MOU1,Computer,1,699,Returned,Size/fit issue,2026-03-30,699.0,Ecom
+EL70597,2026-04-05,Smart Watch,ELC-WAT1,Wearables,1,3499,Delivered,,,0.0,India Post
+EL70598,2026-05-23,Bluetooth Speaker,ELC-SPK1,Audio,2,3598,Delivered,,,0.0,BlueDart
+EL70599,2026-05-07,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Delivered,,,0.0,BlueDart
+EL70600,2026-02-18,Neckband Earphone,ELC-NCK1,Audio,2,2198,Delivered,,,0.0,Ecom
+EL70601,2026-07-26,Neckband Earphone,ELC-NCK1,Audio,2,2198,Delivered,,,0.0,Ecom
+EL70602,2026-03-12,Wireless Mouse,ELC-MOU1,Computer,2,1398,Delivered,,,0.0,India Post
+EL70603,2026-06-24,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Delivered,,,0.0,Ecom
+EL70604,2026-06-17,Phone Case,ELC-CAS1,Accessories,1,299,Delivered,,,0.0,India Post
+EL70605,2026-08-22,Phone Case,ELC-CAS1,Accessories,2,598,Delivered,,,0.0,BlueDart
+EL70606,2026-04-21,Neckband Earphone,ELC-NCK1,Audio,2,2198,Delivered,,,0.0,BlueDart
+EL70607,2026-05-18,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Returned,Wrong item sent,2026-06-04,2499.0,Delhivery
+EL70608,2026-01-24,Charger 20W,ELC-CHG1,Power,2,1798,Cancelled,Customer changed mind,2026-02-09,0.0,BlueDart
+EL70609,2026-07-09,Wireless Mouse,ELC-MOU1,Computer,1,699,Returned,Not as described,2026-07-16,699.0,BlueDart
+EL70610,2026-02-26,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Cancelled,Out of stock,2026-03-13,0.0,BlueDart
+EL70611,2026-08-17,Bluetooth Speaker,ELC-SPK1,Audio,1,1799,Refunded,Battery fault,2026-08-26,1799.0,India Post
+EL70612,2026-02-03,Wireless Mouse,ELC-MOU1,Computer,1,699,Delivered,,,0.0,Ecom
+EL70613,2026-01-29,Neckband Earphone,ELC-NCK1,Audio,1,1099,Delivered,,,0.0,Ecom
+EL70614,2026-06-22,Laptop Sleeve,ELC-SLV1,Accessories,1,749,Cancelled,Customer changed mind,2026-07-12,0.0,Ecom
+EL70615,2026-04-13,Power Bank 10000mAh,ELC-PWB1,Power,2,2598,Delivered,,,0.0,India Post
+EL70616,2026-02-15,Charger 20W,ELC-CHG1,Power,1,899,Exchanged,Model upgrade,2026-03-04,0.0,BlueDart
+EL70617,2026-05-24,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Delivered,,,0.0,BlueDart
+EL70618,2026-03-18,Wireless Earbuds,ELC-EAR1,Audio,2,4998,Delivered,,,0.0,India Post
+EL70619,2026-06-01,Charger 20W,ELC-CHG1,Power,1,899,Cancelled,Payment failed,2026-06-07,0.0,BlueDart
+EL70620,2026-06-14,Bluetooth Speaker,ELC-SPK1,Audio,1,1799,Exchanged,Colour change,2026-07-03,0.0,Ecom
+EL70621,2026-03-19,Mechanical Keyboard,ELC-KEY1,Computer,1,2899,Delivered,,,0.0,Ecom
+EL70622,2026-08-05,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Delivered,,,0.0,BlueDart
+EL70623,2026-04-16,Phone Case,ELC-CAS1,Accessories,1,299,Returned,Not as described,2026-05-04,299.0,Delhivery
+EL70624,2026-07-28,Neckband Earphone,ELC-NCK1,Audio,2,2198,Delivered,,,0.0,India Post
+EL70625,2026-05-04,Wireless Mouse,ELC-MOU1,Computer,2,1398,Delivered,,,0.0,Delhivery
+EL70626,2026-02-24,Power Bank 10000mAh,ELC-PWB1,Power,2,2598,Cancelled,Out of stock,2026-03-02,0.0,BlueDart
+EL70627,2026-03-11,HDMI Cable 2m,ELC-HDM1,Cables,2,798,Delivered,,,0.0,BlueDart
+EL70628,2026-04-21,Mechanical Keyboard,ELC-KEY1,Computer,1,2899,Delivered,,,0.0,BlueDart
+EL70629,2026-05-10,Phone Case,ELC-CAS1,Accessories,1,299,Delivered,,,0.0,Ecom
+EL70630,2026-06-12,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Cancelled,Payment failed,2026-06-28,0.0,Delhivery
+EL70631,2026-02-23,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Delivered,,,0.0,Delhivery
+EL70632,2026-07-10,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Delivered,,,0.0,BlueDart
+EL70633,2026-02-23,Mechanical Keyboard,ELC-KEY1,Computer,2,5798,Delivered,,,0.0,BlueDart
+EL70634,2026-08-22,Wireless Earbuds,ELC-EAR1,Audio,2,4998,Returned,Wrong item sent,2026-09-04,4998.0,India Post
+EL70635,2026-01-30,Phone Case,ELC-CAS1,Accessories,1,299,Delivered,,,0.0,India Post
+EL70636,2026-07-13,Phone Case,ELC-CAS1,Accessories,2,598,Delivered,,,0.0,Ecom
+EL70637,2026-06-07,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Delivered,,,0.0,Delhivery
+EL70638,2026-07-04,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Delivered,,,0.0,Delhivery
+EL70639,2026-02-20,Mechanical Keyboard,ELC-KEY1,Computer,2,5798,Delivered,,,0.0,Ecom
+EL70640,2026-03-31,Neckband Earphone,ELC-NCK1,Audio,2,2198,Cancelled,Payment failed,2026-04-17,0.0,BlueDart
+EL70641,2026-08-22,Laptop Sleeve,ELC-SLV1,Accessories,2,1498,Exchanged,Colour change,2026-09-02,0.0,India Post
+EL70642,2026-04-13,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Delivered,,,0.0,India Post
+EL70643,2026-02-18,Smart Watch,ELC-WAT1,Wearables,1,3499,Refunded,Battery fault,2026-02-28,3499.0,India Post
+EL70644,2026-03-30,Wireless Earbuds,ELC-EAR1,Audio,2,4998,Delivered,,,0.0,Delhivery
+EL70645,2026-03-29,Neckband Earphone,ELC-NCK1,Audio,1,1099,Returned,Not as described,2026-04-15,1099.0,India Post
+EL70646,2026-05-31,Phone Case,ELC-CAS1,Accessories,1,299,Delivered,,,0.0,Delhivery
+EL70647,2026-03-20,Smart Watch,ELC-WAT1,Wearables,1,3499,Delivered,,,0.0,India Post
+EL70648,2026-06-04,Laptop Sleeve,ELC-SLV1,Accessories,1,749,Delivered,,,0.0,BlueDart
+EL70649,2026-08-14,Bluetooth Speaker,ELC-SPK1,Audio,1,1799,Delivered,,,0.0,Ecom
+EL70650,2026-05-24,Bluetooth Speaker,ELC-SPK1,Audio,2,3598,Returned,Damaged in transit,2026-06-13,3598.0,Delhivery
+EL70651,2026-07-14,Bluetooth Speaker,ELC-SPK1,Audio,1,1799,Delivered,,,0.0,BlueDart
+EL70652,2026-06-04,USB-C Cable 1m,ELC-USB1,Cables,1,249,Delivered,,,0.0,India Post
+EL70653,2026-01-26,Phone Case,ELC-CAS1,Accessories,2,598,Refunded,Duplicate order,2026-02-02,598.0,Ecom
+EL70654,2026-01-23,Charger 20W,ELC-CHG1,Power,2,1798,Delivered,,,0.0,Ecom
+EL70655,2026-08-17,Phone Case,ELC-CAS1,Accessories,2,598,Returned,Size/fit issue,2026-08-22,598.0,Delhivery
+EL70656,2026-08-09,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Delivered,,,0.0,Ecom
+EL70657,2026-08-02,Wireless Mouse,ELC-MOU1,Computer,2,1398,Delivered,,,0.0,Ecom
+EL70658,2026-07-13,Bluetooth Speaker,ELC-SPK1,Audio,1,1799,Cancelled,Payment failed,2026-07-19,0.0,Ecom
+EL70659,2026-04-30,Bluetooth Speaker,ELC-SPK1,Audio,1,1799,Delivered,,,0.0,BlueDart
+EL70660,2026-04-17,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Delivered,,,0.0,Ecom
+EL70661,2026-05-02,Neckband Earphone,ELC-NCK1,Audio,1,1099,Delivered,,,0.0,India Post
+EL70662,2026-08-03,Charger 20W,ELC-CHG1,Power,1,899,Delivered,,,0.0,India Post
+EL70663,2026-07-20,Phone Case,ELC-CAS1,Accessories,1,299,Delivered,,,0.0,India Post
+EL70664,2026-06-20,Wireless Earbuds,ELC-EAR1,Audio,2,4998,Delivered,,,0.0,India Post
+EL70665,2026-03-30,Phone Case,ELC-CAS1,Accessories,1,299,Returned,Wrong item sent,2026-04-02,299.0,India Post
+EL70666,2026-02-28,Smart Watch,ELC-WAT1,Wearables,2,6998,Refunded,Duplicate order,2026-03-20,6998.0,India Post
+EL70667,2026-03-18,USB-C Cable 1m,ELC-USB1,Cables,1,249,Delivered,,,0.0,BlueDart
+EL70668,2026-03-16,Wireless Mouse,ELC-MOU1,Computer,2,1398,Delivered,,,0.0,Delhivery
+EL70669,2026-05-20,USB-C Cable 1m,ELC-USB1,Cables,2,498,Delivered,,,0.0,BlueDart
+EL70670,2026-08-03,Laptop Sleeve,ELC-SLV1,Accessories,1,749,Delivered,,,0.0,Ecom
+EL70671,2026-03-19,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Delivered,,,0.0,Ecom
+EL70672,2026-04-23,Neckband Earphone,ELC-NCK1,Audio,1,1099,Delivered,,,0.0,BlueDart
+EL70673,2026-05-01,Charger 20W,ELC-CHG1,Power,2,1798,Exchanged,Colour change,2026-05-13,0.0,Delhivery
+EL70674,2026-02-18,Phone Case,ELC-CAS1,Accessories,1,299,Delivered,,,0.0,BlueDart
+EL70675,2026-04-12,HDMI Cable 2m,ELC-HDM1,Cables,2,798,Cancelled,Customer changed mind,2026-04-27,0.0,Ecom
+EL70676,2026-06-17,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Delivered,,,0.0,India Post
+EL70677,2026-01-30,Phone Case,ELC-CAS1,Accessories,1,299,Delivered,,,0.0,Delhivery
+EL70678,2026-08-07,Smart Watch,ELC-WAT1,Wearables,1,3499,Returned,Not as described,2026-08-25,3499.0,Delhivery
+EL70679,2026-06-28,Laptop Sleeve,ELC-SLV1,Accessories,1,749,Delivered,,,0.0,BlueDart
+EL70680,2026-08-06,Neckband Earphone,ELC-NCK1,Audio,2,2198,Delivered,,,0.0,Ecom
+EL70681,2026-04-09,Bluetooth Speaker,ELC-SPK1,Audio,1,1799,Delivered,,,0.0,Delhivery
+EL70682,2026-07-24,Wireless Earbuds,ELC-EAR1,Audio,2,4998,Refunded,Stopped working,2026-08-04,4998.0,Ecom
+EL70683,2026-08-23,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Delivered,,,0.0,Delhivery
+EL70684,2026-02-17,Smart Watch,ELC-WAT1,Wearables,2,6998,Delivered,,,0.0,Ecom
+EL70685,2026-01-25,USB-C Cable 1m,ELC-USB1,Cables,2,498,Delivered,,,0.0,Ecom
+EL70686,2026-04-28,Wireless Mouse,ELC-MOU1,Computer,2,1398,Refunded,Duplicate order,2026-05-12,1398.0,BlueDart
+EL70687,2026-03-31,Charger 20W,ELC-CHG1,Power,1,899,Delivered,,,0.0,Ecom
+EL70688,2026-04-14,Power Bank 10000mAh,ELC-PWB1,Power,2,2598,Delivered,,,0.0,Ecom
+EL70689,2026-05-12,Bluetooth Speaker,ELC-SPK1,Audio,1,1799,Delivered,,,0.0,BlueDart
+EL70690,2026-02-02,HDMI Cable 2m,ELC-HDM1,Cables,2,798,Delivered,,,0.0,Ecom
+EL70691,2026-02-17,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Refunded,Stopped working,2026-02-23,1299.0,Delhivery
+EL70692,2026-07-19,Wireless Mouse,ELC-MOU1,Computer,1,699,Returned,Not as described,2026-07-24,699.0,Ecom
+EL70693,2026-03-16,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Delivered,,,0.0,India Post
+EL70694,2026-03-17,USB-C Cable 1m,ELC-USB1,Cables,2,498,Delivered,,,0.0,Delhivery
+EL70695,2026-02-28,Power Bank 10000mAh,ELC-PWB1,Power,2,2598,Delivered,,,0.0,Ecom
+EL70696,2026-03-10,Phone Case,ELC-CAS1,Accessories,2,598,Delivered,,,0.0,Delhivery
+EL70697,2026-04-20,Laptop Sleeve,ELC-SLV1,Accessories,2,1498,Delivered,,,0.0,BlueDart
+EL70698,2026-08-04,Wireless Mouse,ELC-MOU1,Computer,1,699,Delivered,,,0.0,Delhivery
+EL70699,2026-02-12,Neckband Earphone,ELC-NCK1,Audio,2,2198,Refunded,Duplicate order,2026-02-21,2198.0,Delhivery
+EL70700,2026-05-15,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Delivered,,,0.0,Ecom
+EL70701,2026-07-18,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Delivered,,,0.0,Ecom
+EL70702,2026-02-23,Charger 20W,ELC-CHG1,Power,1,899,Delivered,,,0.0,Delhivery
+EL70703,2026-05-11,Power Bank 10000mAh,ELC-PWB1,Power,2,2598,Delivered,,,0.0,BlueDart
+EL70704,2026-06-10,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Delivered,,,0.0,Delhivery
+EL70705,2026-04-18,Phone Case,ELC-CAS1,Accessories,2,598,Returned,Not as described,2026-05-06,598.0,India Post
+EL70706,2026-08-11,Phone Case,ELC-CAS1,Accessories,2,598,Cancelled,Address not serviceable,2026-08-30,0.0,India Post
+EL70707,2026-01-28,Phone Case,ELC-CAS1,Accessories,2,598,Delivered,,,0.0,India Post
+EL70708,2026-03-23,Wireless Mouse,ELC-MOU1,Computer,1,699,Delivered,,,0.0,BlueDart
+EL70709,2026-01-24,Bluetooth Speaker,ELC-SPK1,Audio,1,1799,Refunded,Battery fault,2026-02-03,1799.0,India Post
+EL70710,2026-07-10,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Delivered,,,0.0,India Post
+EL70711,2026-05-13,Neckband Earphone,ELC-NCK1,Audio,1,1099,Returned,Size/fit issue,2026-05-18,1099.0,Delhivery
+EL70712,2026-06-30,Bluetooth Speaker,ELC-SPK1,Audio,1,1799,Delivered,,,0.0,India Post
+EL70713,2026-03-16,Phone Case,ELC-CAS1,Accessories,1,299,Returned,Size/fit issue,2026-04-04,299.0,BlueDart
+EL70714,2026-07-25,Laptop Sleeve,ELC-SLV1,Accessories,2,1498,Delivered,,,0.0,BlueDart
+EL70715,2026-07-30,Charger 20W,ELC-CHG1,Power,1,899,Delivered,,,0.0,Ecom
+EL70716,2026-06-17,HDMI Cable 2m,ELC-HDM1,Cables,2,798,Delivered,,,0.0,Ecom
+EL70717,2026-05-08,HDMI Cable 2m,ELC-HDM1,Cables,2,798,Delivered,,,0.0,Delhivery
+EL70718,2026-05-30,Neckband Earphone,ELC-NCK1,Audio,2,2198,Delivered,,,0.0,Ecom
+EL70719,2026-08-08,Mechanical Keyboard,ELC-KEY1,Computer,1,2899,Delivered,,,0.0,Delhivery
+EL70720,2026-07-28,Smart Watch,ELC-WAT1,Wearables,1,3499,Delivered,,,0.0,Ecom
+EL70721,2026-06-26,HDMI Cable 2m,ELC-HDM1,Cables,2,798,Cancelled,Address not serviceable,2026-07-07,0.0,India Post
+EL70722,2026-01-25,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Cancelled,Customer changed mind,2026-02-12,0.0,Delhivery
+EL70723,2026-07-06,HDMI Cable 2m,ELC-HDM1,Cables,2,798,Delivered,,,0.0,Delhivery
+EL70724,2026-04-07,USB-C Cable 1m,ELC-USB1,Cables,2,498,Delivered,,,0.0,India Post
+EL70725,2026-05-26,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Delivered,,,0.0,Delhivery
+EL70726,2026-07-15,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Delivered,,,0.0,India Post
+EL70727,2026-04-01,USB-C Cable 1m,ELC-USB1,Cables,2,498,Delivered,,,0.0,India Post
+EL70728,2026-02-22,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Delivered,,,0.0,Ecom
+EL70729,2026-04-28,Charger 20W,ELC-CHG1,Power,2,1798,Delivered,,,0.0,India Post
+EL70730,2026-05-17,Laptop Sleeve,ELC-SLV1,Accessories,1,749,Returned,Damaged in transit,2026-05-21,749.0,Delhivery
+EL70731,2026-02-24,Phone Case,ELC-CAS1,Accessories,1,299,Delivered,,,0.0,BlueDart
+EL70732,2026-06-26,Mechanical Keyboard,ELC-KEY1,Computer,2,5798,Returned,Not as described,2026-07-05,5798.0,Ecom
+EL70733,2026-06-14,Bluetooth Speaker,ELC-SPK1,Audio,2,3598,Delivered,,,0.0,India Post
+EL70734,2026-01-19,Charger 20W,ELC-CHG1,Power,1,899,Returned,Size/fit issue,2026-01-22,899.0,India Post
+EL70735,2026-04-20,Phone Case,ELC-CAS1,Accessories,1,299,Delivered,,,0.0,Ecom
+EL70736,2026-07-11,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Delivered,,,0.0,Ecom
+EL70737,2026-07-05,Phone Case,ELC-CAS1,Accessories,2,598,Delivered,,,0.0,Delhivery
+EL70738,2026-07-04,Phone Case,ELC-CAS1,Accessories,1,299,Delivered,,,0.0,Ecom
+EL70739,2026-04-22,Wireless Mouse,ELC-MOU1,Computer,1,699,Delivered,,,0.0,Ecom
+EL70740,2026-04-07,Neckband Earphone,ELC-NCK1,Audio,1,1099,Delivered,,,0.0,Ecom
+EL70741,2026-02-07,Laptop Sleeve,ELC-SLV1,Accessories,2,1498,Delivered,,,0.0,India Post
+EL70742,2026-05-31,Wireless Earbuds,ELC-EAR1,Audio,2,4998,Delivered,,,0.0,Delhivery
+EL70743,2026-07-27,Bluetooth Speaker,ELC-SPK1,Audio,1,1799,Refunded,Duplicate order,2026-08-15,1799.0,Ecom
+EL70744,2026-08-18,Power Bank 10000mAh,ELC-PWB1,Power,2,2598,Delivered,,,0.0,Delhivery
+EL70745,2026-07-17,Neckband Earphone,ELC-NCK1,Audio,1,1099,Refunded,Stopped working,2026-08-06,1099.0,BlueDart
+EL70746,2026-01-17,Phone Case,ELC-CAS1,Accessories,1,299,Delivered,,,0.0,Ecom
+EL70747,2026-05-03,Laptop Sleeve,ELC-SLV1,Accessories,2,1498,Delivered,,,0.0,Ecom
+EL70748,2026-08-08,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Delivered,,,0.0,Delhivery
+EL70749,2026-05-15,Bluetooth Speaker,ELC-SPK1,Audio,1,1799,Cancelled,Address not serviceable,2026-05-21,0.0,Delhivery
+EL70750,2026-03-06,Bluetooth Speaker,ELC-SPK1,Audio,2,3598,Refunded,Stopped working,2026-03-23,3598.0,India Post
+EL70751,2026-08-13,Phone Case,ELC-CAS1,Accessories,1,299,Delivered,,,0.0,Delhivery
+EL70752,2026-07-03,Charger 20W,ELC-CHG1,Power,1,899,Exchanged,Model upgrade,2026-07-18,0.0,Ecom
+EL70753,2026-05-08,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Delivered,,,0.0,Delhivery
+EL70754,2026-04-20,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Delivered,,,0.0,BlueDart
+EL70755,2026-05-08,Neckband Earphone,ELC-NCK1,Audio,1,1099,Refunded,Duplicate order,2026-05-26,1099.0,BlueDart
+EL70756,2026-05-13,Charger 20W,ELC-CHG1,Power,2,1798,Returned,Not as described,2026-05-30,1798.0,Delhivery
+EL70757,2026-04-09,Wireless Mouse,ELC-MOU1,Computer,1,699,Delivered,,,0.0,India Post
+EL70758,2026-01-28,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Refunded,Battery fault,2026-02-01,1299.0,Ecom
+EL70759,2026-03-26,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Cancelled,Payment failed,2026-04-11,0.0,BlueDart
+EL70760,2026-07-14,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Delivered,,,0.0,BlueDart
+EL70761,2026-08-20,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Returned,Damaged in transit,2026-09-07,2499.0,Ecom
+EL70762,2026-03-13,Power Bank 10000mAh,ELC-PWB1,Power,2,2598,Delivered,,,0.0,BlueDart
+EL70763,2026-02-09,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Delivered,,,0.0,BlueDart
+EL70764,2026-07-14,Smart Watch,ELC-WAT1,Wearables,2,6998,Refunded,Battery fault,2026-07-22,6998.0,India Post
+EL70765,2026-01-21,Wireless Mouse,ELC-MOU1,Computer,2,1398,Delivered,,,0.0,India Post
+EL70766,2026-04-16,USB-C Cable 1m,ELC-USB1,Cables,1,249,Returned,Not as described,2026-04-25,249.0,Delhivery
+EL70767,2026-04-28,Mechanical Keyboard,ELC-KEY1,Computer,1,2899,Delivered,,,0.0,Delhivery
+EL70768,2026-08-18,USB-C Cable 1m,ELC-USB1,Cables,1,249,Delivered,,,0.0,India Post
+EL70769,2026-07-27,Power Bank 10000mAh,ELC-PWB1,Power,2,2598,Delivered,,,0.0,Delhivery
+EL70770,2026-06-14,Mechanical Keyboard,ELC-KEY1,Computer,1,2899,Delivered,,,0.0,Delhivery
+EL70771,2026-03-04,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Returned,Damaged in transit,2026-03-17,2499.0,BlueDart
+EL70772,2026-03-06,Charger 20W,ELC-CHG1,Power,2,1798,Delivered,,,0.0,India Post
+EL70773,2026-05-28,Laptop Sleeve,ELC-SLV1,Accessories,1,749,Delivered,,,0.0,India Post
+EL70774,2026-08-21,USB-C Cable 1m,ELC-USB1,Cables,1,249,Delivered,,,0.0,Delhivery
+EL70775,2026-02-17,Laptop Sleeve,ELC-SLV1,Accessories,2,1498,Delivered,,,0.0,India Post
+EL70776,2026-04-02,Smart Watch,ELC-WAT1,Wearables,1,3499,Delivered,,,0.0,Ecom
+EL70777,2026-06-15,HDMI Cable 2m,ELC-HDM1,Cables,2,798,Delivered,,,0.0,Ecom
+EL70778,2026-01-19,Smart Watch,ELC-WAT1,Wearables,2,6998,Returned,Not as described,2026-02-03,6998.0,Ecom
+EL70779,2026-08-20,Mechanical Keyboard,ELC-KEY1,Computer,2,5798,Delivered,,,0.0,India Post
+EL70780,2026-01-15,Bluetooth Speaker,ELC-SPK1,Audio,2,3598,Refunded,Stopped working,2026-01-29,3598.0,India Post
+EL70781,2026-06-18,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Delivered,,,0.0,BlueDart
+EL70782,2026-05-29,Smart Watch,ELC-WAT1,Wearables,1,3499,Cancelled,Address not serviceable,2026-06-12,0.0,Delhivery
+EL70783,2026-03-08,Charger 20W,ELC-CHG1,Power,2,1798,Delivered,,,0.0,BlueDart
+EL70784,2026-05-12,Bluetooth Speaker,ELC-SPK1,Audio,1,1799,Delivered,,,0.0,India Post
+EL70785,2026-03-30,Laptop Sleeve,ELC-SLV1,Accessories,1,749,Delivered,,,0.0,BlueDart
+EL70786,2026-05-16,Neckband Earphone,ELC-NCK1,Audio,1,1099,Delivered,,,0.0,Delhivery
+EL70787,2026-02-03,Smart Watch,ELC-WAT1,Wearables,2,6998,Delivered,,,0.0,Delhivery
+EL70788,2026-08-23,Wireless Mouse,ELC-MOU1,Computer,1,699,Returned,Wrong item sent,2026-08-30,699.0,Ecom
+EL70789,2026-01-23,Mechanical Keyboard,ELC-KEY1,Computer,1,2899,Delivered,,,0.0,Ecom
+EL70790,2026-07-01,Charger 20W,ELC-CHG1,Power,1,899,Cancelled,Address not serviceable,2026-07-17,0.0,BlueDart
+EL70791,2026-07-16,Wireless Earbuds,ELC-EAR1,Audio,2,4998,Delivered,,,0.0,Ecom
+EL70792,2026-08-13,Mechanical Keyboard,ELC-KEY1,Computer,2,5798,Delivered,,,0.0,Delhivery
+EL70793,2026-04-04,Phone Case,ELC-CAS1,Accessories,1,299,Cancelled,Payment failed,2026-04-19,0.0,Ecom
+EL70794,2026-01-20,Smart Watch,ELC-WAT1,Wearables,1,3499,Delivered,,,0.0,Delhivery
+EL70795,2026-06-30,Charger 20W,ELC-CHG1,Power,1,899,Delivered,,,0.0,India Post
+EL70796,2026-03-14,Mechanical Keyboard,ELC-KEY1,Computer,1,2899,Refunded,Stopped working,2026-03-19,2899.0,BlueDart
+EL70797,2026-03-12,Mechanical Keyboard,ELC-KEY1,Computer,1,2899,Returned,Damaged in transit,2026-03-22,2899.0,India Post
+EL70798,2026-06-21,USB-C Cable 1m,ELC-USB1,Cables,1,249,Delivered,,,0.0,BlueDart
+EL70799,2026-04-26,Smart Watch,ELC-WAT1,Wearables,1,3499,Delivered,,,0.0,Delhivery
+EL70800,2026-04-11,Charger 20W,ELC-CHG1,Power,2,1798,Delivered,,,0.0,BlueDart
+EL70801,2026-02-09,USB-C Cable 1m,ELC-USB1,Cables,1,249,Delivered,,,0.0,Delhivery
+EL70802,2026-08-13,Smart Watch,ELC-WAT1,Wearables,1,3499,Delivered,,,0.0,India Post
+EL70803,2026-04-28,Bluetooth Speaker,ELC-SPK1,Audio,1,1799,Cancelled,Address not serviceable,2026-05-08,0.0,Delhivery
+EL70804,2026-06-24,Phone Case,ELC-CAS1,Accessories,2,598,Cancelled,Customer changed mind,2026-07-11,0.0,India Post
+EL70805,2026-03-05,Power Bank 10000mAh,ELC-PWB1,Power,2,2598,Exchanged,Colour change,2026-03-21,0.0,Delhivery
+EL70806,2026-02-06,Phone Case,ELC-CAS1,Accessories,2,598,Cancelled,Out of stock,2026-02-10,0.0,Ecom
+EL70807,2026-07-03,Power Bank 10000mAh,ELC-PWB1,Power,1,1299,Delivered,,,0.0,Ecom
+EL70808,2026-07-16,Wireless Mouse,ELC-MOU1,Computer,1,699,Delivered,,,0.0,Delhivery
+EL70809,2026-06-23,Mechanical Keyboard,ELC-KEY1,Computer,1,2899,Delivered,,,0.0,Delhivery
+EL70810,2026-01-15,Smart Watch,ELC-WAT1,Wearables,1,3499,Delivered,,,0.0,Ecom
+EL70811,2026-03-25,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Cancelled,Out of stock,2026-04-01,0.0,BlueDart
+EL70812,2026-05-08,Charger 20W,ELC-CHG1,Power,1,899,Delivered,,,0.0,Ecom
+EL70813,2026-07-29,Laptop Sleeve,ELC-SLV1,Accessories,1,749,Delivered,,,0.0,Delhivery
+EL70814,2026-04-20,Neckband Earphone,ELC-NCK1,Audio,2,2198,Delivered,,,0.0,Delhivery
+EL70815,2026-02-01,Charger 20W,ELC-CHG1,Power,1,899,Delivered,,,0.0,Delhivery
+EL70816,2026-02-20,Mechanical Keyboard,ELC-KEY1,Computer,1,2899,Delivered,,,0.0,Ecom
+EL70817,2026-03-09,HDMI Cable 2m,ELC-HDM1,Cables,2,798,Delivered,,,0.0,Ecom
+EL70818,2026-04-14,Neckband Earphone,ELC-NCK1,Audio,1,1099,Delivered,,,0.0,India Post
+EL70819,2026-08-23,Mechanical Keyboard,ELC-KEY1,Computer,2,5798,Delivered,,,0.0,India Post
+EL70820,2026-04-14,Smart Watch,ELC-WAT1,Wearables,2,6998,Refunded,Duplicate order,2026-04-24,6998.0,Delhivery
+EL70821,2026-08-09,Wireless Mouse,ELC-MOU1,Computer,1,699,Returned,Damaged in transit,2026-08-19,699.0,Delhivery
+EL70822,2026-06-08,Smart Watch,ELC-WAT1,Wearables,1,3499,Delivered,,,0.0,Ecom
+EL70823,2026-03-21,Laptop Sleeve,ELC-SLV1,Accessories,1,749,Delivered,,,0.0,Ecom
+EL70824,2026-05-24,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Delivered,,,0.0,Delhivery
+EL70825,2026-04-29,USB-C Cable 1m,ELC-USB1,Cables,1,249,Returned,Size/fit issue,2026-05-09,249.0,BlueDart
+EL70826,2026-03-12,Wireless Earbuds,ELC-EAR1,Audio,2,4998,Delivered,,,0.0,Delhivery
+EL70827,2026-04-29,Laptop Sleeve,ELC-SLV1,Accessories,1,749,Delivered,,,0.0,Ecom
+EL70828,2026-07-17,Mechanical Keyboard,ELC-KEY1,Computer,1,2899,Returned,Not as described,2026-07-29,2899.0,BlueDart
+EL70829,2026-06-16,Laptop Sleeve,ELC-SLV1,Accessories,1,749,Delivered,,,0.0,BlueDart
+EL70830,2026-01-22,Bluetooth Speaker,ELC-SPK1,Audio,1,1799,Delivered,,,0.0,Ecom
+EL70831,2026-02-08,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Cancelled,Out of stock,2026-02-11,0.0,Ecom
+EL70832,2026-07-19,Wireless Mouse,ELC-MOU1,Computer,2,1398,Delivered,,,0.0,Ecom
+EL70833,2026-02-26,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Delivered,,,0.0,India Post
+EL70834,2026-03-16,HDMI Cable 2m,ELC-HDM1,Cables,1,399,Cancelled,Address not serviceable,2026-03-29,0.0,BlueDart
+EL70835,2026-05-14,Charger 20W,ELC-CHG1,Power,2,1798,Delivered,,,0.0,India Post
+EL70836,2026-07-19,Charger 20W,ELC-CHG1,Power,1,899,Delivered,,,0.0,India Post
+EL70837,2026-08-13,Wireless Earbuds,ELC-EAR1,Audio,2,4998,Returned,Size/fit issue,2026-09-01,4998.0,India Post
+EL70838,2026-06-16,Wireless Earbuds,ELC-EAR1,Audio,1,2499,Delivered,,,0.0,Delhivery
+EL70839,2026-05-17,Wireless Mouse,ELC-MOU1,Computer,2,1398,Delivered,,,0.0,India Post
+EL70840,2026-01-28,Charger 20W,ELC-CHG1,Power,1,899,Delivered,,,0.0,Delhivery

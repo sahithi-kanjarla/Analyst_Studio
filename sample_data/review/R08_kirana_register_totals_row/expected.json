@@ -1,0 +1,125 @@
+{
+  "id": "R08",
+  "business_type": "kirana store",
+  "kind": "sales",
+  "what_it_tests": "three notes above the table, a merged group header row above the real header, a blank row, and a TOTAL row at the bottom",
+  "app_should": "find the real header row, drop the TOTAL row from the data, and never count the total as one more bill",
+  "generated_by": "scripts/make_review_datasets.py",
+  "seed": 20261103,
+  "files": {
+    "kirana_register.xlsx": {
+      "reader": "excel",
+      "options": {
+        "skiprows": 5
+      },
+      "note": "rows 1-3 are notes, row 5 is a merged group header, row 6 is the real header, the last row is TOTAL",
+      "rows": 522,
+      "columns": 7,
+      "column_names": [
+        "Bill No",
+        "Date",
+        "Customer",
+        "Item",
+        "Quantity",
+        "Rate",
+        "Amount"
+      ],
+      "missing_per_column": {
+        "Bill No": 1,
+        "Date": 2,
+        "Customer": 2,
+        "Item": 2,
+        "Quantity": 1,
+        "Rate": 2,
+        "Amount": 1
+      },
+      "exact_duplicate_rows": 0
+    }
+  },
+  "cleaning_applied": [
+    "read with skiprows=5 so row 6 is the header",
+    "dropped the blank row and the TOTAL row at the bottom"
+  ],
+  "answers": {
+    "row_count": {
+      "kirana_register.xlsx": 520
+    },
+    "main_total": {
+      "file": "kirana_register.xlsx",
+      "column": "Amount",
+      "means": "revenue, with the TOTAL row excluded",
+      "value": 580855.0,
+      "rows_counted": 520,
+      "mean": 1117.03
+    },
+    "top_3_main_category": {
+      "file": "kirana_register.xlsx",
+      "group_by": "Item",
+      "ranked_by": "Amount",
+      "items": [
+        {
+          "name": "Rice 10kg",
+          "total": 253580.0
+        },
+        {
+          "name": "Milk Powder 500g",
+          "total": 85550.0
+        },
+        {
+          "name": "Atta 5kg",
+          "total": 46500.0
+        }
+      ]
+    },
+    "distinct_key_counts": {
+      "kirana_register.xlsx.Bill No": 520,
+      "kirana_register.xlsx.Item": 12
+    },
+    "duplicates": {
+      "kirana_register.xlsx": {
+        "exact_duplicate_rows": 0
+      }
+    },
+    "missing_values_per_column": {
+      "kirana_register.xlsx": {
+        "Bill No": 0,
+        "Date": 0,
+        "Customer": 0,
+        "Item": 0,
+        "Quantity": 0,
+        "Rate": 0,
+        "Amount": 0
+      }
+    },
+    "bills": 520,
+    "total_row_amount_stated_in_the_file": 580855.0,
+    "total_row_quantity_stated_in_the_file": 3324,
+    "amount_total_if_the_TOTAL_row_is_wrongly_counted": 1161710.0,
+    "note": "the computed Amount total must equal the TOTAL row's figure, and the bill count must be 520, not 521"
+  },
+  "files_after_cleaning": {
+    "kirana_register.xlsx": {
+      "rows": 520,
+      "columns": 7,
+      "column_names": [
+        "Bill No",
+        "Date",
+        "Customer",
+        "Item",
+        "Quantity",
+        "Rate",
+        "Amount"
+      ],
+      "missing_per_column": {
+        "Bill No": 0,
+        "Date": 0,
+        "Customer": 0,
+        "Item": 0,
+        "Quantity": 0,
+        "Rate": 0,
+        "Amount": 0
+      },
+      "exact_duplicate_rows": 0
+    }
+  }
+}

@@ -1,0 +1,196 @@
+{
+  "id": "R12",
+  "business_type": "salon",
+  "kind": "expenses",
+  "what_it_tests": "the same expense category spelled several ways (case, abbreviations, a typo, a trailing space), so the raw grouping is wrong",
+  "app_should": "group the spellings together before ranking, and say it did; the raw top 3 and the tidied top 3 are different",
+  "generated_by": "scripts/make_review_datasets.py",
+  "seed": 20261103,
+  "files": {
+    "salon_expenses.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "34 spellings for 7 real categories, including 'Electricty' and 'maintainance'",
+      "rows": 900,
+      "columns": 6,
+      "column_names": [
+        "expense_date",
+        "category",
+        "amount",
+        "payment_method",
+        "paid_to",
+        "notes"
+      ],
+      "missing_per_column": {
+        "expense_date": 0,
+        "category": 0,
+        "amount": 0,
+        "payment_method": 0,
+        "paid_to": 0,
+        "notes": 362
+      },
+      "exact_duplicate_rows": 0
+    }
+  },
+  "cleaning_applied": [
+    "mapped the category spellings onto seven canonical names (category_clean)"
+  ],
+  "answers": {
+    "row_count": {
+      "salon_expenses.csv": 900
+    },
+    "main_total": {
+      "file": "salon_expenses.csv",
+      "column": "amount",
+      "means": "money spent",
+      "value": 13692253.3,
+      "rows_counted": 900,
+      "mean": 15213.61
+    },
+    "top_3_main_category": {
+      "file": "salon_expenses.csv",
+      "group_by": "category_clean",
+      "ranked_by": "amount",
+      "items": [
+        {
+          "name": "Staff salary",
+          "total": 5769429.14
+        },
+        {
+          "name": "Rent",
+          "total": 4419774.16
+        },
+        {
+          "name": "Products and stock",
+          "total": 1550854.2
+        }
+      ]
+    },
+    "top_3_by_category_as_written_WRONG": {
+      "file": "salon_expenses.csv",
+      "group_by": "category",
+      "ranked_by": "amount",
+      "items": [
+        {
+          "name": "Salary",
+          "total": 1425660.14
+        },
+        {
+          "name": "Salaries",
+          "total": 1339026.83
+        },
+        {
+          "name": "staff salaries",
+          "total": 1189543.35
+        }
+      ]
+    },
+    "distinct_key_counts": {
+      "salon_expenses.csv.category": 34,
+      "salon_expenses.csv.category_clean": 7,
+      "salon_expenses.csv.payment_method": 4
+    },
+    "duplicates": {
+      "salon_expenses.csv": {
+        "exact_duplicate_rows": 0
+      }
+    },
+    "missing_values_per_column": {
+      "salon_expenses.csv": {
+        "expense_date": 0,
+        "category": 0,
+        "amount": 0,
+        "payment_method": 0,
+        "paid_to": 0,
+        "notes": 362,
+        "category_clean": 0
+      }
+    },
+    "distinct_spellings": 34,
+    "real_categories": 7,
+    "spelling_groups": {
+      "Electricity": [
+        "Electricity",
+        "electricity",
+        "Elec.",
+        "Electricty",
+        "ELECTRICITY",
+        "Electricity Bill"
+      ],
+      "Rent": [
+        "Rent",
+        "rent",
+        "Shop Rent",
+        "RENT",
+        "Rent "
+      ],
+      "Staff salary": [
+        "Salaries",
+        "Salary",
+        "salaries",
+        "Staff Salary",
+        "staff salaries"
+      ],
+      "Products and stock": [
+        "Products",
+        "Product Purchase",
+        "products",
+        "Product purchase",
+        "Stock"
+      ],
+      "Internet": [
+        "Internet",
+        "Internet Bill",
+        "wifi",
+        "WiFi",
+        "internet"
+      ],
+      "Maintenance": [
+        "Maintenance",
+        "maintainance",
+        "Maintenence",
+        "maintenance"
+      ],
+      "Marketing": [
+        "Marketing",
+        "Ads",
+        "marketing",
+        "Advertising"
+      ]
+    },
+    "total_by_tidied_category": {
+      "Staff salary": 5769429.14,
+      "Rent": 4419774.16,
+      "Products and stock": 1550854.2,
+      "Marketing": 707727.32,
+      "Electricity": 654319.25,
+      "Maintenance": 447787.73,
+      "Internet": 142361.5
+    }
+  },
+  "files_after_cleaning": {
+    "salon_expenses.csv": {
+      "rows": 900,
+      "columns": 7,
+      "column_names": [
+        "expense_date",
+        "category",
+        "amount",
+        "payment_method",
+        "paid_to",
+        "notes",
+        "category_clean"
+      ],
+      "missing_per_column": {
+        "expense_date": 0,
+        "category": 0,
+        "amount": 0,
+        "payment_method": 0,
+        "paid_to": 0,
+        "notes": 362,
+        "category_clean": 0
+      },
+      "exact_duplicate_rows": 0
+    }
+  }
+}

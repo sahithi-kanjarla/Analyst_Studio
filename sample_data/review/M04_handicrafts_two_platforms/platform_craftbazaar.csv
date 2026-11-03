@@ -1,0 +1,521 @@
+Order No,Order Date,Item,Qty,Amount,Buyer City,Status
+CB-20001,20-05-2026,Jute Tote Bag,1,Rs. 540,Hyderabad,In transit
+CB-20002,23-03-2026,Beaded Necklace,2,Rs. 780,Chennai,Delivered
+CB-20003,09-05-2026,Beaded Necklace,1,Rs. 390,Ahmedabad,In transit
+CB-20004,10-06-2026,Madhubani Painting,1,"Rs. 2,400",Bengaluru,In transit
+CB-20005,09-04-2026,Clay Pot Set,1,Rs. 620,Jaipur,In transit
+CB-20006,27-05-2026,Macrame Wall Hanging,1,"Rs. 1,150",Kolkata,Cancelled
+CB-20007,02-06-2026,Warli Coasters,1,Rs. 360,Chennai,Cancelled
+CB-20008,20-06-2026,Madhubani Painting,2,"Rs. 4,800",Jaipur,Delivered
+CB-20009,22-05-2026,Jute Tote Bag,2,"Rs. 1,080",Delhi,Delivered
+CB-20010,12-08-2026,Dhokra Figurine,1,"Rs. 1,680",Hyderabad,Delivered
+CB-20011,05-03-2026,Wooden Elephant,1,"Rs. 1,250",Indore,In transit
+CB-20012,20-06-2026,Beaded Necklace,1,Rs. 390,Nagpur,In transit
+CB-20013,28-03-2026,Jute Tote Bag,2,"Rs. 1,080",Pune,In transit
+CB-20014,19-08-2026,Bamboo Serving Tray,1,Rs. 780,Indore,In transit
+CB-20015,31-03-2026,Clay Pot Set,2,"Rs. 1,240",Kochi,In transit
+CB-20016,04-08-2026,Jute Tote Bag,1,Rs. 540,Indore,Cancelled
+CB-20017,11-05-2026,Terracotta Vase,2,"Rs. 1,700",Chennai,In transit
+CB-20018,11-05-2026,Terracotta Vase,1,Rs. 850,Indore,Cancelled
+CB-20019,04-05-2026,Terracotta Vase,2,"Rs. 1,700",Chennai,Delivered
+CB-20020,13-02-2026,Beaded Necklace,1,Rs. 390,Chennai,Delivered
+CB-20021,27-02-2026,Bamboo Serving Tray,1,Rs. 780,Nagpur,In transit
+CB-20022,09-02-2026,Dhokra Figurine,1,"Rs. 1,680",Delhi,Delivered
+CB-20023,01-06-2026,Madhubani Painting,1,"Rs. 2,400",Indore,Delivered
+CB-20024,25-04-2026,Block Print Cushion,2,Rs. 900,Bengaluru,Cancelled
+CB-20025,29-07-2026,Block Print Cushion,1,Rs. 450,Bengaluru,In transit
+CB-20026,20-05-2026,Bamboo Serving Tray,2,"Rs. 1,560",Kolkata,Cancelled
+CB-20027,12-04-2026,Beaded Necklace,1,Rs. 390,Bengaluru,Delivered
+CB-20028,10-02-2026,Brass Diya Set,2,"Rs. 1,380",Kolkata,Cancelled
+CB-20029,01-04-2026,Madhubani Painting,1,"Rs. 2,400",Jaipur,Delivered
+CB-20030,07-08-2026,Warli Coasters,2,Rs. 720,Mumbai,Cancelled
+CB-20031,05-06-2026,Warli Coasters,1,Rs. 360,Kochi,Delivered
+CB-20032,16-02-2026,Beaded Necklace,2,Rs. 780,Ahmedabad,Delivered
+CB-20033,20-03-2026,Block Print Cushion,1,Rs. 450,Hyderabad,Delivered
+CB-20034,09-08-2026,Block Print Cushion,1,Rs. 450,Pune,Delivered
+CB-20035,18-08-2026,Wooden Elephant,1,"Rs. 1,250",Ahmedabad,Delivered
+CB-20036,14-06-2026,Clay Pot Set,1,Rs. 620,Jaipur,Delivered
+CB-20037,01-02-2026,Clay Pot Set,2,"Rs. 1,240",Chennai,Delivered
+CB-20038,08-06-2026,Macrame Wall Hanging,2,"Rs. 2,300",Kochi,Cancelled
+CB-20039,08-08-2026,Block Print Cushion,1,Rs. 450,Kolkata,Cancelled
+CB-20040,08-08-2026,Jute Tote Bag,1,Rs. 540,Ahmedabad,Delivered
+CB-20041,27-07-2026,Dhokra Figurine,1,"Rs. 1,680",Ahmedabad,Delivered
+CB-20042,18-03-2026,Madhubani Painting,2,"Rs. 4,800",Kochi,Delivered
+CB-20043,07-08-2026,Jute Tote Bag,1,Rs. 540,Mumbai,Cancelled
+CB-20044,26-07-2026,Beaded Necklace,2,Rs. 780,Nagpur,Cancelled
+CB-20045,14-03-2026,Bamboo Serving Tray,1,Rs. 780,Hyderabad,In transit
+CB-20046,03-03-2026,Terracotta Vase,1,Rs. 850,Nagpur,Cancelled
+CB-20047,19-02-2026,Madhubani Painting,1,"Rs. 2,400",Chennai,Delivered
+CB-20048,14-07-2026,Madhubani Painting,1,"Rs. 2,400",Kochi,Delivered
+CB-20049,07-05-2026,Madhubani Painting,1,"Rs. 2,400",Bengaluru,Delivered
+CB-20050,27-05-2026,Block Print Cushion,1,Rs. 450,Ahmedabad,In transit
+CB-20051,02-08-2026,Jute Tote Bag,1,Rs. 540,Kochi,Delivered
+CB-20052,11-07-2026,Wooden Elephant,1,"Rs. 1,250",Hyderabad,In transit
+CB-20053,19-08-2026,Jute Tote Bag,1,Rs. 540,Pune,In transit
+CB-20054,03-04-2026,Block Print Cushion,1,Rs. 450,Chennai,Delivered
+CB-20055,05-03-2026,Clay Pot Set,1,Rs. 620,Kolkata,Delivered
+CB-20056,21-05-2026,Madhubani Painting,2,"Rs. 4,800",Pune,Delivered
+CB-20057,09-07-2026,Beaded Necklace,1,Rs. 390,Hyderabad,Delivered
+CB-20058,23-02-2026,Brass Diya Set,1,Rs. 690,Kochi,In transit
+CB-20059,03-03-2026,Beaded Necklace,1,Rs. 390,Delhi,In transit
+CB-20060,16-06-2026,Warli Coasters,2,Rs. 720,Kolkata,Cancelled
+CB-20061,18-04-2026,Terracotta Vase,1,Rs. 850,Jaipur,In transit
+CB-20062,25-07-2026,Bamboo Serving Tray,1,Rs. 780,Nagpur,In transit
+CB-20063,28-05-2026,Beaded Necklace,2,Rs. 780,Nagpur,Delivered
+CB-20064,03-05-2026,Wooden Elephant,2,"Rs. 2,500",Bengaluru,Cancelled
+CB-20065,24-06-2026,Brass Diya Set,1,Rs. 690,Hyderabad,Delivered
+CB-20066,10-06-2026,Bamboo Serving Tray,2,"Rs. 1,560",Jaipur,Delivered
+CB-20067,09-04-2026,Block Print Cushion,1,Rs. 450,Hyderabad,Delivered
+CB-20068,30-04-2026,Bamboo Serving Tray,1,Rs. 780,Chennai,Delivered
+CB-20069,23-06-2026,Wooden Elephant,2,"Rs. 2,500",Delhi,Delivered
+CB-20070,21-07-2026,Macrame Wall Hanging,1,"Rs. 1,150",Jaipur,Delivered
+CB-20071,07-08-2026,Macrame Wall Hanging,2,"Rs. 2,300",Delhi,Cancelled
+CB-20072,14-08-2026,Bamboo Serving Tray,2,"Rs. 1,560",Pune,Delivered
+CB-20073,21-06-2026,Madhubani Painting,1,"Rs. 2,400",Kochi,In transit
+CB-20074,19-03-2026,Wooden Elephant,2,"Rs. 2,500",Hyderabad,Cancelled
+CB-20075,26-04-2026,Clay Pot Set,1,Rs. 620,Ahmedabad,Cancelled
+CB-20076,06-03-2026,Warli Coasters,1,Rs. 360,Delhi,Delivered
+CB-20077,07-05-2026,Wooden Elephant,1,"Rs. 1,250",Kolkata,In transit
+CB-20078,25-07-2026,Madhubani Painting,2,"Rs. 4,800",Pune,Cancelled
+CB-20079,25-06-2026,Macrame Wall Hanging,2,"Rs. 2,300",Hyderabad,Delivered
+CB-20080,25-02-2026,Terracotta Vase,1,Rs. 850,Nagpur,Cancelled
+CB-20081,15-04-2026,Macrame Wall Hanging,1,"Rs. 1,150",Mumbai,Delivered
+CB-20082,15-05-2026,Wooden Elephant,2,"Rs. 2,500",Nagpur,Cancelled
+CB-20083,17-08-2026,Dhokra Figurine,2,"Rs. 3,360",Nagpur,Cancelled
+CB-20084,27-07-2026,Dhokra Figurine,2,"Rs. 3,360",Indore,Cancelled
+CB-20085,23-03-2026,Terracotta Vase,1,Rs. 850,Pune,Cancelled
+CB-20086,13-07-2026,Bamboo Serving Tray,1,Rs. 780,Chennai,In transit
+CB-20087,24-05-2026,Madhubani Painting,1,"Rs. 2,400",Indore,Cancelled
+CB-20088,06-04-2026,Wooden Elephant,2,"Rs. 2,500",Ahmedabad,In transit
+CB-20089,22-02-2026,Madhubani Painting,1,"Rs. 2,400",Delhi,Cancelled
+CB-20090,13-06-2026,Terracotta Vase,1,Rs. 850,Bengaluru,In transit
+CB-20091,11-06-2026,Warli Coasters,2,Rs. 720,Kolkata,Delivered
+CB-20092,24-02-2026,Terracotta Vase,2,"Rs. 1,700",Indore,Cancelled
+CB-20093,09-06-2026,Dhokra Figurine,2,"Rs. 3,360",Kolkata,Delivered
+CB-20094,06-02-2026,Clay Pot Set,1,Rs. 620,Delhi,Cancelled
+CB-20095,20-02-2026,Beaded Necklace,1,Rs. 390,Jaipur,In transit
+CB-20096,22-04-2026,Brass Diya Set,1,Rs. 690,Jaipur,Delivered
+CB-20097,14-07-2026,Warli Coasters,1,Rs. 360,Pune,Cancelled
+CB-20098,28-05-2026,Wooden Elephant,1,"Rs. 1,250",Ahmedabad,Cancelled
+CB-20099,18-03-2026,Block Print Cushion,1,Rs. 450,Chennai,In transit
+CB-20100,30-04-2026,Dhokra Figurine,1,"Rs. 1,680",Delhi,Delivered
+CB-20101,09-02-2026,Bamboo Serving Tray,2,"Rs. 1,560",Nagpur,Cancelled
+CB-20102,08-05-2026,Wooden Elephant,2,"Rs. 2,500",Chennai,Delivered
+CB-20103,05-06-2026,Bamboo Serving Tray,1,Rs. 780,Chennai,Cancelled
+CB-20104,19-07-2026,Wooden Elephant,1,"Rs. 1,250",Kochi,Cancelled
+CB-20105,11-04-2026,Brass Diya Set,1,Rs. 690,Pune,In transit
+CB-20106,20-02-2026,Beaded Necklace,2,Rs. 780,Pune,In transit
+CB-20107,26-07-2026,Bamboo Serving Tray,2,"Rs. 1,560",Mumbai,In transit
+CB-20108,14-06-2026,Wooden Elephant,1,"Rs. 1,250",Kochi,Delivered
+CB-20109,08-04-2026,Bamboo Serving Tray,1,Rs. 780,Jaipur,Delivered
+CB-20110,23-02-2026,Block Print Cushion,1,Rs. 450,Kolkata,In transit
+CB-20111,03-06-2026,Wooden Elephant,1,"Rs. 1,250",Delhi,Delivered
+CB-20112,21-04-2026,Bamboo Serving Tray,1,Rs. 780,Ahmedabad,Delivered
+CB-20113,21-02-2026,Clay Pot Set,1,Rs. 620,Kolkata,Delivered
+CB-20114,30-05-2026,Beaded Necklace,2,Rs. 780,Kolkata,In transit
+CB-20115,05-03-2026,Macrame Wall Hanging,1,"Rs. 1,150",Indore,In transit
+CB-20116,04-08-2026,Warli Coasters,1,Rs. 360,Indore,In transit
+CB-20117,20-05-2026,Block Print Cushion,1,Rs. 450,Chennai,Delivered
+CB-20118,12-02-2026,Wooden Elephant,1,"Rs. 1,250",Mumbai,Cancelled
+CB-20119,03-08-2026,Terracotta Vase,2,"Rs. 1,700",Bengaluru,Cancelled
+CB-20120,06-04-2026,Block Print Cushion,1,Rs. 450,Mumbai,In transit
+CB-20121,17-08-2026,Dhokra Figurine,2,"Rs. 3,360",Hyderabad,In transit
+CB-20122,12-07-2026,Terracotta Vase,1,Rs. 850,Pune,Delivered
+CB-20123,28-03-2026,Brass Diya Set,1,Rs. 690,Delhi,Delivered
+CB-20124,20-08-2026,Dhokra Figurine,1,"Rs. 1,680",Indore,Cancelled
+CB-20125,23-07-2026,Dhokra Figurine,2,"Rs. 3,360",Ahmedabad,Cancelled
+CB-20126,23-05-2026,Bamboo Serving Tray,1,Rs. 780,Hyderabad,Cancelled
+CB-20127,19-03-2026,Block Print Cushion,1,Rs. 450,Ahmedabad,Delivered
+CB-20128,12-04-2026,Beaded Necklace,1,Rs. 390,Kochi,Cancelled
+CB-20129,10-04-2026,Block Print Cushion,2,Rs. 900,Chennai,In transit
+CB-20130,29-06-2026,Beaded Necklace,1,Rs. 390,Hyderabad,Delivered
+CB-20131,13-06-2026,Bamboo Serving Tray,1,Rs. 780,Hyderabad,In transit
+CB-20132,20-04-2026,Bamboo Serving Tray,1,Rs. 780,Kolkata,Delivered
+CB-20133,31-05-2026,Clay Pot Set,1,Rs. 620,Pune,Delivered
+CB-20134,09-03-2026,Beaded Necklace,2,Rs. 780,Chennai,Cancelled
+CB-20135,10-05-2026,Block Print Cushion,2,Rs. 900,Kolkata,Cancelled
+CB-20136,29-06-2026,Bamboo Serving Tray,2,"Rs. 1,560",Hyderabad,Delivered
+CB-20137,17-04-2026,Terracotta Vase,1,Rs. 850,Kolkata,Delivered
+CB-20138,10-03-2026,Warli Coasters,1,Rs. 360,Kochi,Cancelled
+CB-20139,06-06-2026,Wooden Elephant,1,"Rs. 1,250",Ahmedabad,Delivered
+CB-20140,08-06-2026,Macrame Wall Hanging,2,"Rs. 2,300",Pune,Delivered
+CB-20141,06-06-2026,Clay Pot Set,1,Rs. 620,Bengaluru,Cancelled
+CB-20142,03-05-2026,Dhokra Figurine,1,"Rs. 1,680",Kolkata,In transit
+CB-20143,19-02-2026,Beaded Necklace,1,Rs. 390,Indore,Cancelled
+CB-20144,28-06-2026,Madhubani Painting,1,"Rs. 2,400",Mumbai,In transit
+CB-20145,17-06-2026,Terracotta Vase,1,Rs. 850,Kolkata,In transit
+CB-20146,23-05-2026,Beaded Necklace,2,Rs. 780,Kolkata,Delivered
+CB-20147,14-06-2026,Madhubani Painting,1,"Rs. 2,400",Hyderabad,Delivered
+CB-20148,23-05-2026,Warli Coasters,1,Rs. 360,Delhi,Delivered
+CB-20149,10-06-2026,Madhubani Painting,1,"Rs. 2,400",Mumbai,In transit
+CB-20150,09-05-2026,Terracotta Vase,1,Rs. 850,Jaipur,Delivered
+CB-20151,16-05-2026,Madhubani Painting,1,"Rs. 2,400",Pune,Delivered
+CB-20152,09-03-2026,Jute Tote Bag,1,Rs. 540,Kolkata,In transit
+CB-20153,15-06-2026,Brass Diya Set,2,"Rs. 1,380",Bengaluru,Delivered
+CB-20154,18-07-2026,Brass Diya Set,2,"Rs. 1,380",Pune,Delivered
+CB-20155,25-06-2026,Bamboo Serving Tray,1,Rs. 780,Kochi,Delivered
+CB-20156,10-03-2026,Dhokra Figurine,2,"Rs. 3,360",Kochi,Delivered
+CB-20157,11-07-2026,Dhokra Figurine,2,"Rs. 3,360",Indore,Delivered
+CB-20158,07-04-2026,Beaded Necklace,2,Rs. 780,Jaipur,In transit
+CB-20159,08-02-2026,Terracotta Vase,2,"Rs. 1,700",Delhi,Delivered
+CB-20160,27-06-2026,Terracotta Vase,1,Rs. 850,Mumbai,Delivered
+CB-20161,13-08-2026,Terracotta Vase,1,Rs. 850,Kochi,Cancelled
+CB-20162,24-06-2026,Clay Pot Set,1,Rs. 620,Hyderabad,In transit
+CB-20163,12-06-2026,Block Print Cushion,1,Rs. 450,Kolkata,Delivered
+CB-20164,20-02-2026,Beaded Necklace,1,Rs. 390,Delhi,In transit
+CB-20165,18-02-2026,Macrame Wall Hanging,1,"Rs. 1,150",Kochi,Cancelled
+CB-20166,29-06-2026,Macrame Wall Hanging,1,"Rs. 1,150",Hyderabad,Cancelled
+CB-20167,31-05-2026,Beaded Necklace,2,Rs. 780,Pune,In transit
+CB-20168,13-04-2026,Macrame Wall Hanging,1,"Rs. 1,150",Kolkata,Cancelled
+CB-20169,20-03-2026,Warli Coasters,1,Rs. 360,Indore,In transit
+CB-20170,10-05-2026,Warli Coasters,1,Rs. 360,Indore,In transit
+CB-20171,04-06-2026,Block Print Cushion,1,Rs. 450,Kolkata,In transit
+CB-20172,21-06-2026,Bamboo Serving Tray,1,Rs. 780,Delhi,Cancelled
+CB-20173,14-07-2026,Madhubani Painting,2,"Rs. 4,800",Delhi,In transit
+CB-20174,20-03-2026,Bamboo Serving Tray,1,Rs. 780,Indore,Delivered
+CB-20175,08-02-2026,Bamboo Serving Tray,1,Rs. 780,Indore,Cancelled
+CB-20176,08-05-2026,Madhubani Painting,2,"Rs. 4,800",Nagpur,Delivered
+CB-20177,04-08-2026,Bamboo Serving Tray,1,Rs. 780,Kochi,Delivered
+CB-20178,12-04-2026,Macrame Wall Hanging,1,"Rs. 1,150",Chennai,Cancelled
+CB-20179,06-07-2026,Terracotta Vase,1,Rs. 850,Kolkata,In transit
+CB-20180,12-06-2026,Brass Diya Set,1,Rs. 690,Mumbai,Delivered
+CB-20181,05-08-2026,Madhubani Painting,1,"Rs. 2,400",Kolkata,In transit
+CB-20182,09-05-2026,Bamboo Serving Tray,1,Rs. 780,Ahmedabad,In transit
+CB-20183,21-06-2026,Warli Coasters,1,Rs. 360,Hyderabad,Delivered
+CB-20184,09-03-2026,Warli Coasters,2,Rs. 720,Jaipur,Delivered
+CB-20185,14-05-2026,Bamboo Serving Tray,1,Rs. 780,Indore,Delivered
+CB-20186,08-08-2026,Macrame Wall Hanging,1,"Rs. 1,150",Pune,In transit
+CB-20187,07-03-2026,Dhokra Figurine,1,"Rs. 1,680",Kochi,In transit
+CB-20188,17-04-2026,Block Print Cushion,1,Rs. 450,Nagpur,In transit
+CB-20189,13-04-2026,Block Print Cushion,2,Rs. 900,Indore,Cancelled
+CB-20190,27-03-2026,Macrame Wall Hanging,1,"Rs. 1,150",Bengaluru,Delivered
+CB-20191,30-04-2026,Macrame Wall Hanging,2,"Rs. 2,300",Mumbai,In transit
+CB-20192,08-06-2026,Bamboo Serving Tray,2,"Rs. 1,560",Bengaluru,Delivered
+CB-20193,09-03-2026,Madhubani Painting,1,"Rs. 2,400",Jaipur,Delivered
+CB-20194,19-08-2026,Brass Diya Set,1,Rs. 690,Delhi,Delivered
+CB-20195,22-03-2026,Terracotta Vase,1,Rs. 850,Pune,In transit
+CB-20196,10-06-2026,Wooden Elephant,1,"Rs. 1,250",Kolkata,Delivered
+CB-20197,03-07-2026,Brass Diya Set,1,Rs. 690,Chennai,In transit
+CB-20198,10-05-2026,Jute Tote Bag,2,"Rs. 1,080",Indore,Cancelled
+CB-20199,22-06-2026,Madhubani Painting,1,"Rs. 2,400",Hyderabad,In transit
+CB-20200,02-03-2026,Jute Tote Bag,1,Rs. 540,Mumbai,In transit
+CB-20201,12-06-2026,Block Print Cushion,1,Rs. 450,Chennai,Delivered
+CB-20202,12-06-2026,Madhubani Painting,1,"Rs. 2,400",Hyderabad,Delivered
+CB-20203,27-07-2026,Bamboo Serving Tray,2,"Rs. 1,560",Chennai,Cancelled
+CB-20204,21-02-2026,Clay Pot Set,1,Rs. 620,Chennai,In transit
+CB-20205,27-03-2026,Warli Coasters,1,Rs. 360,Ahmedabad,Cancelled
+CB-20206,08-05-2026,Clay Pot Set,1,Rs. 620,Kochi,Delivered
+CB-20207,14-08-2026,Terracotta Vase,1,Rs. 850,Ahmedabad,In transit
+CB-20208,05-04-2026,Brass Diya Set,1,Rs. 690,Bengaluru,Cancelled
+CB-20209,07-05-2026,Beaded Necklace,2,Rs. 780,Pune,Delivered
+CB-20210,07-02-2026,Bamboo Serving Tray,2,"Rs. 1,560",Pune,Cancelled
+CB-20211,15-08-2026,Brass Diya Set,1,Rs. 690,Jaipur,Cancelled
+CB-20212,07-08-2026,Macrame Wall Hanging,1,"Rs. 1,150",Ahmedabad,Cancelled
+CB-20213,18-06-2026,Clay Pot Set,1,Rs. 620,Chennai,In transit
+CB-20214,07-08-2026,Jute Tote Bag,2,"Rs. 1,080",Delhi,Delivered
+CB-20215,31-07-2026,Terracotta Vase,1,Rs. 850,Kolkata,In transit
+CB-20216,27-03-2026,Bamboo Serving Tray,1,Rs. 780,Jaipur,In transit
+CB-20217,08-04-2026,Brass Diya Set,1,Rs. 690,Kochi,Delivered
+CB-20218,06-07-2026,Bamboo Serving Tray,2,"Rs. 1,560",Delhi,Delivered
+CB-20219,05-08-2026,Brass Diya Set,1,Rs. 690,Nagpur,Delivered
+CB-20220,04-08-2026,Brass Diya Set,1,Rs. 690,Bengaluru,In transit
+CB-20221,18-04-2026,Dhokra Figurine,1,"Rs. 1,680",Kochi,Delivered
+CB-20222,08-03-2026,Brass Diya Set,2,"Rs. 1,380",Pune,Cancelled
+CB-20223,18-06-2026,Clay Pot Set,2,"Rs. 1,240",Nagpur,Delivered
+CB-20224,26-02-2026,Brass Diya Set,1,Rs. 690,Kolkata,Delivered
+CB-20225,23-03-2026,Terracotta Vase,1,Rs. 850,Mumbai,Delivered
+CB-20226,05-03-2026,Warli Coasters,2,Rs. 720,Bengaluru,Cancelled
+CB-20227,01-03-2026,Wooden Elephant,1,"Rs. 1,250",Ahmedabad,Delivered
+CB-20228,09-07-2026,Dhokra Figurine,2,"Rs. 3,360",Hyderabad,In transit
+CB-20229,25-06-2026,Madhubani Painting,2,"Rs. 4,800",Bengaluru,Delivered
+CB-20230,08-07-2026,Terracotta Vase,1,Rs. 850,Mumbai,Cancelled
+CB-20231,18-05-2026,Block Print Cushion,1,Rs. 450,Kochi,In transit
+CB-20232,10-02-2026,Macrame Wall Hanging,1,"Rs. 1,150",Bengaluru,Cancelled
+CB-20233,25-02-2026,Brass Diya Set,1,Rs. 690,Nagpur,In transit
+CB-20234,14-02-2026,Wooden Elephant,2,"Rs. 2,500",Indore,Cancelled
+CB-20235,04-08-2026,Macrame Wall Hanging,2,"Rs. 2,300",Mumbai,Cancelled
+CB-20236,26-02-2026,Wooden Elephant,1,"Rs. 1,250",Chennai,Cancelled
+CB-20237,11-02-2026,Jute Tote Bag,2,"Rs. 1,080",Hyderabad,Delivered
+CB-20238,04-07-2026,Warli Coasters,2,Rs. 720,Ahmedabad,Cancelled
+CB-20239,19-02-2026,Beaded Necklace,1,Rs. 390,Ahmedabad,In transit
+CB-20240,01-05-2026,Bamboo Serving Tray,1,Rs. 780,Mumbai,In transit
+CB-20241,02-04-2026,Clay Pot Set,1,Rs. 620,Pune,Cancelled
+CB-20242,10-05-2026,Bamboo Serving Tray,1,Rs. 780,Pune,Delivered
+CB-20243,08-06-2026,Macrame Wall Hanging,1,"Rs. 1,150",Kochi,In transit
+CB-20244,16-02-2026,Beaded Necklace,1,Rs. 390,Indore,Delivered
+CB-20245,10-04-2026,Warli Coasters,1,Rs. 360,Hyderabad,Delivered
+CB-20246,23-02-2026,Beaded Necklace,2,Rs. 780,Nagpur,Delivered
+CB-20247,27-06-2026,Clay Pot Set,2,"Rs. 1,240",Mumbai,Delivered
+CB-20248,21-04-2026,Dhokra Figurine,1,"Rs. 1,680",Jaipur,Cancelled
+CB-20249,01-07-2026,Brass Diya Set,1,Rs. 690,Mumbai,Delivered
+CB-20250,15-08-2026,Madhubani Painting,1,"Rs. 2,400",Kochi,Cancelled
+CB-20251,16-03-2026,Madhubani Painting,1,"Rs. 2,400",Indore,Cancelled
+CB-20252,23-06-2026,Wooden Elephant,1,"Rs. 1,250",Delhi,Delivered
+CB-20253,10-03-2026,Warli Coasters,1,Rs. 360,Hyderabad,In transit
+CB-20254,29-03-2026,Macrame Wall Hanging,1,"Rs. 1,150",Kolkata,Cancelled
+CB-20255,25-03-2026,Terracotta Vase,2,"Rs. 1,700",Ahmedabad,Delivered
+CB-20256,15-07-2026,Terracotta Vase,2,"Rs. 1,700",Mumbai,Cancelled
+CB-20257,07-02-2026,Brass Diya Set,1,Rs. 690,Kolkata,Delivered
+CB-20258,16-07-2026,Dhokra Figurine,1,"Rs. 1,680",Mumbai,Cancelled
+CB-20259,06-03-2026,Bamboo Serving Tray,2,"Rs. 1,560",Chennai,Delivered
+CB-20260,28-04-2026,Clay Pot Set,2,"Rs. 1,240",Nagpur,In transit
+CB-20261,04-04-2026,Wooden Elephant,1,"Rs. 1,250",Ahmedabad,In transit
+CB-20262,14-07-2026,Terracotta Vase,1,Rs. 850,Pune,Cancelled
+CB-20263,24-05-2026,Warli Coasters,2,Rs. 720,Indore,Delivered
+CB-20264,21-06-2026,Terracotta Vase,1,Rs. 850,Mumbai,Delivered
+CB-20265,16-07-2026,Bamboo Serving Tray,2,"Rs. 1,560",Kolkata,Cancelled
+CB-20266,27-03-2026,Madhubani Painting,1,"Rs. 2,400",Mumbai,Delivered
+CB-20267,08-04-2026,Jute Tote Bag,1,Rs. 540,Kochi,In transit
+CB-20268,05-02-2026,Terracotta Vase,1,Rs. 850,Delhi,Delivered
+CB-20269,21-05-2026,Clay Pot Set,1,Rs. 620,Pune,Delivered
+CB-20270,31-03-2026,Block Print Cushion,1,Rs. 450,Ahmedabad,In transit
+CB-20271,15-06-2026,Dhokra Figurine,1,"Rs. 1,680",Hyderabad,Delivered
+CB-20272,14-02-2026,Terracotta Vase,2,"Rs. 1,700",Chennai,Delivered
+CB-20273,18-07-2026,Terracotta Vase,1,Rs. 850,Kochi,Delivered
+CB-20274,27-03-2026,Bamboo Serving Tray,2,"Rs. 1,560",Delhi,Cancelled
+CB-20275,02-08-2026,Macrame Wall Hanging,1,"Rs. 1,150",Hyderabad,Delivered
+CB-20276,19-03-2026,Clay Pot Set,1,Rs. 620,Hyderabad,Delivered
+CB-20277,22-06-2026,Warli Coasters,1,Rs. 360,Mumbai,Delivered
+CB-20278,03-04-2026,Warli Coasters,1,Rs. 360,Pune,Delivered
+CB-20279,03-07-2026,Clay Pot Set,1,Rs. 620,Pune,In transit
+CB-20280,06-02-2026,Wooden Elephant,1,"Rs. 1,250",Bengaluru,Delivered
+CB-20281,09-05-2026,Wooden Elephant,2,"Rs. 2,500",Delhi,Delivered
+CB-20282,08-07-2026,Clay Pot Set,2,"Rs. 1,240",Ahmedabad,Cancelled
+CB-20283,19-02-2026,Madhubani Painting,1,"Rs. 2,400",Bengaluru,In transit
+CB-20284,18-07-2026,Dhokra Figurine,1,"Rs. 1,680",Bengaluru,Delivered
+CB-20285,22-05-2026,Jute Tote Bag,1,Rs. 540,Chennai,In transit
+CB-20286,06-06-2026,Macrame Wall Hanging,1,"Rs. 1,150",Chennai,In transit
+CB-20287,21-07-2026,Brass Diya Set,1,Rs. 690,Nagpur,In transit
+CB-20288,03-05-2026,Macrame Wall Hanging,1,"Rs. 1,150",Ahmedabad,Delivered
+CB-20289,29-06-2026,Wooden Elephant,1,"Rs. 1,250",Chennai,Delivered
+CB-20290,13-07-2026,Madhubani Painting,1,"Rs. 2,400",Jaipur,In transit
+CB-20291,09-08-2026,Clay Pot Set,2,"Rs. 1,240",Indore,Delivered
+CB-20292,08-07-2026,Beaded Necklace,1,Rs. 390,Ahmedabad,In transit
+CB-20293,28-02-2026,Clay Pot Set,1,Rs. 620,Delhi,Cancelled
+CB-20294,18-04-2026,Warli Coasters,1,Rs. 360,Kochi,In transit
+CB-20295,18-08-2026,Brass Diya Set,1,Rs. 690,Bengaluru,Delivered
+CB-20296,17-05-2026,Clay Pot Set,1,Rs. 620,Jaipur,In transit
+CB-20297,29-04-2026,Warli Coasters,1,Rs. 360,Kolkata,Cancelled
+CB-20298,09-03-2026,Madhubani Painting,2,"Rs. 4,800",Chennai,Delivered
+CB-20299,17-04-2026,Bamboo Serving Tray,1,Rs. 780,Indore,Delivered
+CB-20300,09-02-2026,Dhokra Figurine,1,"Rs. 1,680",Delhi,In transit
+CB-20301,13-03-2026,Jute Tote Bag,1,Rs. 540,Pune,Delivered
+CB-20302,21-05-2026,Terracotta Vase,1,Rs. 850,Chennai,Delivered
+CB-20303,01-07-2026,Macrame Wall Hanging,2,"Rs. 2,300",Indore,Delivered
+CB-20304,06-04-2026,Warli Coasters,1,Rs. 360,Mumbai,Delivered
+CB-20305,30-05-2026,Block Print Cushion,1,Rs. 450,Kolkata,Delivered
+CB-20306,06-06-2026,Dhokra Figurine,2,"Rs. 3,360",Nagpur,Delivered
+CB-20307,17-08-2026,Madhubani Painting,2,"Rs. 4,800",Ahmedabad,Delivered
+CB-20308,26-06-2026,Bamboo Serving Tray,1,Rs. 780,Nagpur,In transit
+CB-20309,05-04-2026,Bamboo Serving Tray,2,"Rs. 1,560",Mumbai,Delivered
+CB-20310,19-04-2026,Clay Pot Set,2,"Rs. 1,240",Indore,Delivered
+CB-20311,10-08-2026,Clay Pot Set,2,"Rs. 1,240",Mumbai,Cancelled
+CB-20312,18-02-2026,Jute Tote Bag,1,Rs. 540,Ahmedabad,Delivered
+CB-20313,26-07-2026,Clay Pot Set,1,Rs. 620,Pune,Delivered
+CB-20314,02-02-2026,Macrame Wall Hanging,1,"Rs. 1,150",Bengaluru,Cancelled
+CB-20315,07-06-2026,Madhubani Painting,1,"Rs. 2,400",Chennai,Cancelled
+CB-20316,06-02-2026,Beaded Necklace,2,Rs. 780,Bengaluru,Cancelled
+CB-20317,29-06-2026,Macrame Wall Hanging,2,"Rs. 2,300",Kochi,In transit
+CB-20318,01-05-2026,Jute Tote Bag,1,Rs. 540,Mumbai,Delivered
+CB-20319,08-02-2026,Macrame Wall Hanging,1,"Rs. 1,150",Indore,Cancelled
+CB-20320,28-05-2026,Bamboo Serving Tray,1,Rs. 780,Hyderabad,In transit
+CB-20321,04-06-2026,Terracotta Vase,1,Rs. 850,Pune,Cancelled
+CB-20322,14-03-2026,Beaded Necklace,2,Rs. 780,Bengaluru,In transit
+CB-20323,19-03-2026,Terracotta Vase,1,Rs. 850,Mumbai,In transit
+CB-20324,27-03-2026,Macrame Wall Hanging,1,"Rs. 1,150",Hyderabad,Delivered
+CB-20325,28-06-2026,Block Print Cushion,2,Rs. 900,Kochi,Cancelled
+CB-20326,02-02-2026,Bamboo Serving Tray,1,Rs. 780,Delhi,Delivered
+CB-20327,04-02-2026,Macrame Wall Hanging,1,"Rs. 1,150",Mumbai,Cancelled
+CB-20328,06-07-2026,Block Print Cushion,1,Rs. 450,Chennai,Delivered
+CB-20329,03-05-2026,Warli Coasters,2,Rs. 720,Delhi,Delivered
+CB-20330,29-07-2026,Dhokra Figurine,2,"Rs. 3,360",Bengaluru,Delivered
+CB-20331,02-07-2026,Warli Coasters,1,Rs. 360,Nagpur,Cancelled
+CB-20332,04-06-2026,Macrame Wall Hanging,1,"Rs. 1,150",Kochi,Delivered
+CB-20333,14-06-2026,Terracotta Vase,2,"Rs. 1,700",Ahmedabad,Delivered
+CB-20334,02-08-2026,Bamboo Serving Tray,1,Rs. 780,Chennai,Cancelled
+CB-20335,02-04-2026,Madhubani Painting,1,"Rs. 2,400",Pune,Delivered
+CB-20336,07-07-2026,Brass Diya Set,1,Rs. 690,Kolkata,In transit
+CB-20337,25-03-2026,Warli Coasters,1,Rs. 360,Kolkata,Delivered
+CB-20338,01-04-2026,Wooden Elephant,2,"Rs. 2,500",Bengaluru,In transit
+CB-20339,07-08-2026,Wooden Elephant,1,"Rs. 1,250",Delhi,Cancelled
+CB-20340,10-08-2026,Madhubani Painting,1,"Rs. 2,400",Chennai,Cancelled
+CB-20341,12-03-2026,Block Print Cushion,1,Rs. 450,Bengaluru,Cancelled
+CB-20342,05-07-2026,Warli Coasters,1,Rs. 360,Nagpur,In transit
+CB-20343,18-08-2026,Wooden Elephant,1,"Rs. 1,250",Kolkata,Cancelled
+CB-20344,15-02-2026,Dhokra Figurine,2,"Rs. 3,360",Indore,Delivered
+CB-20345,23-04-2026,Terracotta Vase,1,Rs. 850,Indore,Delivered
+CB-20346,02-02-2026,Brass Diya Set,1,Rs. 690,Kochi,Delivered
+CB-20347,28-05-2026,Beaded Necklace,1,Rs. 390,Kochi,Cancelled
+CB-20348,12-07-2026,Terracotta Vase,2,"Rs. 1,700",Nagpur,In transit
+CB-20349,29-04-2026,Block Print Cushion,1,Rs. 450,Bengaluru,Cancelled
+CB-20350,03-04-2026,Clay Pot Set,1,Rs. 620,Nagpur,Delivered
+CB-20351,01-05-2026,Wooden Elephant,1,"Rs. 1,250",Indore,In transit
+CB-20352,06-04-2026,Dhokra Figurine,1,"Rs. 1,680",Kolkata,Cancelled
+CB-20353,28-06-2026,Block Print Cushion,1,Rs. 450,Pune,Delivered
+CB-20354,18-03-2026,Wooden Elephant,1,"Rs. 1,250",Ahmedabad,Cancelled
+CB-20355,26-03-2026,Dhokra Figurine,1,"Rs. 1,680",Indore,Cancelled
+CB-20356,08-06-2026,Dhokra Figurine,2,"Rs. 3,360",Ahmedabad,Delivered
+CB-20357,26-05-2026,Terracotta Vase,1,Rs. 850,Kochi,Delivered
+CB-20358,05-06-2026,Jute Tote Bag,2,"Rs. 1,080",Delhi,Delivered
+CB-20359,08-08-2026,Warli Coasters,2,Rs. 720,Jaipur,Delivered
+CB-20360,04-07-2026,Dhokra Figurine,1,"Rs. 1,680",Hyderabad,Delivered
+CB-20361,09-08-2026,Wooden Elephant,1,"Rs. 1,250",Indore,Cancelled
+CB-20362,15-03-2026,Clay Pot Set,1,Rs. 620,Jaipur,Cancelled
+CB-20363,02-05-2026,Madhubani Painting,2,"Rs. 4,800",Ahmedabad,Delivered
+CB-20364,09-03-2026,Beaded Necklace,2,Rs. 780,Chennai,Cancelled
+CB-20365,27-02-2026,Beaded Necklace,1,Rs. 390,Chennai,In transit
+CB-20366,17-06-2026,Dhokra Figurine,1,"Rs. 1,680",Ahmedabad,Delivered
+CB-20367,23-02-2026,Madhubani Painting,1,"Rs. 2,400",Nagpur,Cancelled
+CB-20368,19-07-2026,Jute Tote Bag,1,Rs. 540,Pune,In transit
+CB-20369,16-08-2026,Clay Pot Set,1,Rs. 620,Hyderabad,In transit
+CB-20370,15-08-2026,Terracotta Vase,1,Rs. 850,Chennai,Cancelled
+CB-20371,18-05-2026,Madhubani Painting,1,"Rs. 2,400",Jaipur,Delivered
+CB-20372,28-07-2026,Terracotta Vase,2,"Rs. 1,700",Pune,Cancelled
+CB-20373,15-05-2026,Brass Diya Set,1,Rs. 690,Bengaluru,Delivered
+CB-20374,10-08-2026,Macrame Wall Hanging,1,"Rs. 1,150",Pune,Delivered
+CB-20375,07-03-2026,Terracotta Vase,2,"Rs. 1,700",Hyderabad,In transit
+CB-20376,06-02-2026,Macrame Wall Hanging,1,"Rs. 1,150",Mumbai,Cancelled
+CB-20377,07-08-2026,Jute Tote Bag,1,Rs. 540,Nagpur,Delivered
+CB-20378,15-04-2026,Beaded Necklace,2,Rs. 780,Mumbai,Cancelled
+CB-20379,25-05-2026,Wooden Elephant,2,"Rs. 2,500",Bengaluru,Delivered
+CB-20380,03-05-2026,Macrame Wall Hanging,1,"Rs. 1,150",Jaipur,Delivered
+CB-20381,06-02-2026,Dhokra Figurine,1,"Rs. 1,680",Kochi,Cancelled
+CB-20382,09-04-2026,Wooden Elephant,1,"Rs. 1,250",Mumbai,Delivered
+CB-20383,02-05-2026,Dhokra Figurine,2,"Rs. 3,360",Delhi,Cancelled
+CB-20384,16-05-2026,Wooden Elephant,2,"Rs. 2,500",Nagpur,Delivered
+CB-20385,29-04-2026,Dhokra Figurine,1,"Rs. 1,680",Kochi,In transit
+CB-20386,11-03-2026,Warli Coasters,1,Rs. 360,Pune,In transit
+CB-20387,29-04-2026,Madhubani Painting,1,"Rs. 2,400",Delhi,Cancelled
+CB-20388,12-06-2026,Block Print Cushion,1,Rs. 450,Mumbai,Cancelled
+CB-20389,07-02-2026,Terracotta Vase,1,Rs. 850,Kolkata,Delivered
+CB-20390,03-02-2026,Madhubani Painting,1,"Rs. 2,400",Chennai,Cancelled
+CB-20391,02-08-2026,Warli Coasters,1,Rs. 360,Delhi,Cancelled
+CB-20392,14-07-2026,Warli Coasters,1,Rs. 360,Indore,In transit
+CB-20393,19-06-2026,Wooden Elephant,1,"Rs. 1,250",Kolkata,In transit
+CB-20394,06-08-2026,Macrame Wall Hanging,2,"Rs. 2,300",Hyderabad,In transit
+CB-20395,16-08-2026,Clay Pot Set,2,"Rs. 1,240",Hyderabad,Delivered
+CB-20396,14-07-2026,Warli Coasters,1,Rs. 360,Nagpur,Delivered
+CB-20397,10-08-2026,Jute Tote Bag,1,Rs. 540,Indore,Delivered
+CB-20398,06-07-2026,Brass Diya Set,1,Rs. 690,Mumbai,In transit
+CB-20399,20-06-2026,Block Print Cushion,2,Rs. 900,Kochi,In transit
+CB-20400,11-02-2026,Beaded Necklace,1,Rs. 390,Bengaluru,Delivered
+CB-20401,03-04-2026,Wooden Elephant,1,"Rs. 1,250",Indore,Delivered
+CB-20402,08-03-2026,Jute Tote Bag,1,Rs. 540,Pune,Cancelled
+CB-20403,11-03-2026,Block Print Cushion,2,Rs. 900,Delhi,Cancelled
+CB-20404,14-08-2026,Block Print Cushion,2,Rs. 900,Kochi,Cancelled
+CB-20405,16-04-2026,Brass Diya Set,1,Rs. 690,Kolkata,Cancelled
+CB-20406,19-08-2026,Bamboo Serving Tray,1,Rs. 780,Bengaluru,Delivered
+CB-20407,08-04-2026,Clay Pot Set,1,Rs. 620,Hyderabad,Delivered
+CB-20408,07-03-2026,Beaded Necklace,2,Rs. 780,Jaipur,In transit
+CB-20409,22-05-2026,Brass Diya Set,1,Rs. 690,Pune,Delivered
+CB-20410,06-05-2026,Warli Coasters,1,Rs. 360,Chennai,Cancelled
+CB-20411,22-07-2026,Macrame Wall Hanging,1,"Rs. 1,150",Jaipur,Delivered
+CB-20412,15-06-2026,Wooden Elephant,1,"Rs. 1,250",Nagpur,Cancelled
+CB-20413,27-02-2026,Block Print Cushion,1,Rs. 450,Pune,In transit
+CB-20414,14-03-2026,Bamboo Serving Tray,1,Rs. 780,Kochi,Cancelled
+CB-20415,14-07-2026,Terracotta Vase,2,"Rs. 1,700",Ahmedabad,In transit
+CB-20416,12-05-2026,Block Print Cushion,1,Rs. 450,Ahmedabad,Delivered
+CB-20417,12-08-2026,Dhokra Figurine,2,"Rs. 3,360",Kochi,Delivered
+CB-20418,28-05-2026,Wooden Elephant,2,"Rs. 2,500",Indore,Delivered
+CB-20419,20-07-2026,Warli Coasters,1,Rs. 360,Mumbai,Delivered
+CB-20420,03-04-2026,Jute Tote Bag,1,Rs. 540,Indore,Delivered
+CB-20421,02-08-2026,Clay Pot Set,1,Rs. 620,Nagpur,Delivered
+CB-20422,12-07-2026,Jute Tote Bag,2,"Rs. 1,080",Bengaluru,Delivered
+CB-20423,30-06-2026,Jute Tote Bag,2,"Rs. 1,080",Mumbai,Delivered
+CB-20424,18-08-2026,Bamboo Serving Tray,2,"Rs. 1,560",Hyderabad,In transit
+CB-20425,21-05-2026,Dhokra Figurine,2,"Rs. 3,360",Indore,Cancelled
+CB-20426,17-08-2026,Warli Coasters,2,Rs. 720,Nagpur,In transit
+CB-20427,31-03-2026,Jute Tote Bag,2,"Rs. 1,080",Ahmedabad,Cancelled
+CB-20428,26-03-2026,Dhokra Figurine,2,"Rs. 3,360",Indore,Cancelled
+CB-20429,25-02-2026,Clay Pot Set,2,"Rs. 1,240",Nagpur,Delivered
+CB-20430,13-03-2026,Brass Diya Set,2,"Rs. 1,380",Indore,Delivered
+CB-20431,09-03-2026,Madhubani Painting,1,"Rs. 2,400",Hyderabad,In transit
+CB-20432,18-07-2026,Brass Diya Set,1,Rs. 690,Kolkata,Delivered
+CB-20433,09-08-2026,Beaded Necklace,1,Rs. 390,Bengaluru,In transit
+CB-20434,22-05-2026,Dhokra Figurine,1,"Rs. 1,680",Indore,Delivered
+CB-20435,31-03-2026,Madhubani Painting,1,"Rs. 2,400",Pune,Delivered
+CB-20436,26-07-2026,Wooden Elephant,2,"Rs. 2,500",Bengaluru,Delivered
+CB-20437,17-04-2026,Jute Tote Bag,1,Rs. 540,Mumbai,Delivered
+CB-20438,09-07-2026,Dhokra Figurine,1,"Rs. 1,680",Pune,Delivered
+CB-20439,06-06-2026,Wooden Elephant,1,"Rs. 1,250",Mumbai,Delivered
+CB-20440,22-04-2026,Brass Diya Set,1,Rs. 690,Bengaluru,Delivered
+CB-20441,03-04-2026,Beaded Necklace,1,Rs. 390,Delhi,Delivered
+CB-20442,18-07-2026,Beaded Necklace,2,Rs. 780,Mumbai,Delivered
+CB-20443,14-07-2026,Brass Diya Set,1,Rs. 690,Bengaluru,Delivered
+CB-20444,01-04-2026,Warli Coasters,2,Rs. 720,Hyderabad,Delivered
+CB-20445,11-02-2026,Warli Coasters,2,Rs. 720,Pune,Delivered
+CB-20446,08-04-2026,Jute Tote Bag,1,Rs. 540,Nagpur,In transit
+CB-20447,24-04-2026,Bamboo Serving Tray,1,Rs. 780,Pune,Delivered
+CB-20448,23-06-2026,Brass Diya Set,2,"Rs. 1,380",Nagpur,Delivered
+CB-20449,14-04-2026,Clay Pot Set,1,Rs. 620,Mumbai,In transit
+CB-20450,09-04-2026,Clay Pot Set,1,Rs. 620,Pune,In transit
+CB-20451,25-07-2026,Brass Diya Set,1,Rs. 690,Nagpur,In transit
+CB-20452,17-07-2026,Dhokra Figurine,1,"Rs. 1,680",Delhi,Delivered
+CB-20453,19-08-2026,Macrame Wall Hanging,1,"Rs. 1,150",Chennai,In transit
+CB-20454,28-07-2026,Jute Tote Bag,1,Rs. 540,Ahmedabad,Delivered
+CB-20455,13-06-2026,Warli Coasters,2,Rs. 720,Kochi,Delivered
+CB-20456,20-02-2026,Terracotta Vase,2,"Rs. 1,700",Kolkata,Delivered
+CB-20457,25-05-2026,Clay Pot Set,2,"Rs. 1,240",Chennai,Delivered
+CB-20458,10-04-2026,Beaded Necklace,1,Rs. 390,Kolkata,Cancelled
+CB-20459,21-03-2026,Beaded Necklace,1,Rs. 390,Kolkata,Delivered
+CB-20460,26-02-2026,Terracotta Vase,2,"Rs. 1,700",Chennai,Delivered
+CB-20461,17-06-2026,Clay Pot Set,1,Rs. 620,Pune,Delivered
+CB-20462,15-04-2026,Warli Coasters,2,Rs. 720,Delhi,In transit
+CB-20463,12-05-2026,Warli Coasters,2,Rs. 720,Chennai,Delivered
+CB-20464,27-07-2026,Block Print Cushion,2,Rs. 900,Chennai,Cancelled
+CB-20465,20-06-2026,Wooden Elephant,1,"Rs. 1,250",Nagpur,In transit
+CB-20466,01-03-2026,Jute Tote Bag,1,Rs. 540,Nagpur,In transit
+CB-20467,25-03-2026,Clay Pot Set,1,Rs. 620,Bengaluru,Delivered
+CB-20468,21-04-2026,Clay Pot Set,2,"Rs. 1,240",Bengaluru,Delivered
+CB-20469,30-06-2026,Madhubani Painting,1,"Rs. 2,400",Chennai,In transit
+CB-20470,18-05-2026,Bamboo Serving Tray,2,"Rs. 1,560",Chennai,Delivered
+CB-20471,29-04-2026,Madhubani Painting,2,"Rs. 4,800",Kolkata,Delivered
+CB-20472,25-05-2026,Beaded Necklace,1,Rs. 390,Chennai,Cancelled
+CB-20473,30-03-2026,Madhubani Painting,2,"Rs. 4,800",Delhi,In transit
+CB-20474,10-04-2026,Warli Coasters,1,Rs. 360,Kolkata,Cancelled
+CB-20475,13-03-2026,Wooden Elephant,2,"Rs. 2,500",Chennai,In transit
+CB-20476,24-03-2026,Block Print Cushion,2,Rs. 900,Delhi,Delivered
+CB-20477,21-03-2026,Bamboo Serving Tray,1,Rs. 780,Delhi,Delivered
+CB-20478,07-04-2026,Dhokra Figurine,1,"Rs. 1,680",Mumbai,In transit
+CB-20479,28-05-2026,Macrame Wall Hanging,2,"Rs. 2,300",Nagpur,Cancelled
+CB-20480,07-07-2026,Beaded Necklace,1,Rs. 390,Kolkata,Delivered
+CB-20481,19-03-2026,Block Print Cushion,1,Rs. 450,Indore,Delivered
+CB-20482,16-02-2026,Clay Pot Set,1,Rs. 620,Jaipur,Delivered
+CB-20483,09-07-2026,Wooden Elephant,1,"Rs. 1,250",Mumbai,Delivered
+CB-20484,08-03-2026,Block Print Cushion,1,Rs. 450,Kochi,Cancelled
+CB-20485,16-03-2026,Madhubani Painting,2,"Rs. 4,800",Hyderabad,In transit
+CB-20486,23-06-2026,Block Print Cushion,1,Rs. 450,Mumbai,Delivered
+CB-20487,03-06-2026,Clay Pot Set,1,Rs. 620,Ahmedabad,Delivered
+CB-20488,01-07-2026,Bamboo Serving Tray,1,Rs. 780,Jaipur,Delivered
+CB-20489,15-03-2026,Macrame Wall Hanging,1,"Rs. 1,150",Indore,Delivered
+CB-20490,02-06-2026,Terracotta Vase,1,Rs. 850,Kochi,Delivered
+CB-20491,15-02-2026,Terracotta Vase,1,Rs. 850,Delhi,In transit
+CB-20492,06-02-2026,Clay Pot Set,1,Rs. 620,Nagpur,Delivered
+CB-20493,16-04-2026,Macrame Wall Hanging,2,"Rs. 2,300",Delhi,Delivered
+CB-20494,04-02-2026,Bamboo Serving Tray,1,Rs. 780,Kochi,Cancelled
+CB-20495,11-04-2026,Brass Diya Set,1,Rs. 690,Mumbai,Delivered
+CB-20496,26-02-2026,Brass Diya Set,1,Rs. 690,Kochi,Delivered
+CB-20497,31-03-2026,Dhokra Figurine,2,"Rs. 3,360",Chennai,Delivered
+CB-20498,28-05-2026,Wooden Elephant,1,"Rs. 1,250",Mumbai,Cancelled
+CB-20499,11-06-2026,Brass Diya Set,1,Rs. 690,Bengaluru,In transit
+CB-20500,21-07-2026,Warli Coasters,2,Rs. 720,Jaipur,Delivered
+CB-20501,24-03-2026,Beaded Necklace,1,Rs. 390,Pune,Delivered
+CB-20502,16-05-2026,Macrame Wall Hanging,1,"Rs. 1,150",Mumbai,Delivered
+CB-20503,19-08-2026,Bamboo Serving Tray,2,"Rs. 1,560",Mumbai,Delivered
+CB-20504,15-03-2026,Bamboo Serving Tray,2,"Rs. 1,560",Hyderabad,Cancelled
+CB-20505,03-05-2026,Wooden Elephant,1,"Rs. 1,250",Indore,Delivered
+CB-20506,25-03-2026,Warli Coasters,1,Rs. 360,Kolkata,In transit
+CB-20507,23-03-2026,Terracotta Vase,1,Rs. 850,Jaipur,Delivered
+CB-20508,01-02-2026,Beaded Necklace,2,Rs. 780,Kolkata,Delivered
+CB-20509,25-03-2026,Brass Diya Set,2,"Rs. 1,380",Delhi,In transit
+CB-20510,07-06-2026,Block Print Cushion,1,Rs. 450,Kochi,Delivered
+CB-20511,21-04-2026,Macrame Wall Hanging,2,"Rs. 2,300",Hyderabad,Cancelled
+CB-20512,05-07-2026,Clay Pot Set,2,"Rs. 1,240",Hyderabad,Delivered
+CB-20513,21-07-2026,Jute Tote Bag,1,Rs. 540,Bengaluru,Cancelled
+CB-20514,11-03-2026,Wooden Elephant,1,"Rs. 1,250",Mumbai,Cancelled
+CB-20515,01-04-2026,Madhubani Painting,1,"Rs. 2,400",Kochi,Cancelled
+CB-20516,06-05-2026,Beaded Necklace,1,Rs. 390,Pune,In transit
+CB-20517,15-05-2026,Brass Diya Set,1,Rs. 690,Pune,In transit
+CB-20518,20-05-2026,Wooden Elephant,2,"Rs. 2,500",Kochi,In transit
+CB-20519,08-02-2026,Beaded Necklace,2,Rs. 780,Pune,Delivered
+CB-20520,25-04-2026,Terracotta Vase,2,"Rs. 1,700",Pune,Cancelled

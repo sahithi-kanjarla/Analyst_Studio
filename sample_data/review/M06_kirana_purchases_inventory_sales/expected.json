@@ -1,0 +1,263 @@
+{
+  "id": "M06",
+  "business_type": "kirana store",
+  "kind": "connected (3 files, one business)",
+  "what_it_tests": "the three sides of one shop joined on item_code: what was bought, what is in stock, and what was sold, with one item sold that neither of the other two files knows",
+  "app_should": "link all three on item_code, compare bought against sold per item, and name the item code that appears only in sales",
+  "generated_by": "scripts/make_review_datasets.py",
+  "seed": 20261103,
+  "files": {
+    "purchases.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "what the shop bought, with cost",
+      "rows": 420,
+      "columns": 8,
+      "column_names": [
+        "purchase_id",
+        "purchase_date",
+        "item_code",
+        "supplier",
+        "qty_purchased",
+        "unit_cost",
+        "total_cost",
+        "payment_status"
+      ],
+      "missing_per_column": {
+        "purchase_id": 0,
+        "purchase_date": 0,
+        "item_code": 0,
+        "supplier": 0,
+        "qty_purchased": 0,
+        "unit_cost": 0,
+        "total_cost": 0,
+        "payment_status": 0
+      },
+      "exact_duplicate_rows": 0
+    },
+    "inventory.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "the item master and current stock, 12 items",
+      "rows": 12,
+      "columns": 6,
+      "column_names": [
+        "item_code",
+        "item",
+        "category",
+        "qty_on_hand",
+        "reorder_level",
+        "unit"
+      ],
+      "missing_per_column": {
+        "item_code": 0,
+        "item": 0,
+        "category": 0,
+        "qty_on_hand": 0,
+        "reorder_level": 0,
+        "unit": 0
+      },
+      "exact_duplicate_rows": 0
+    },
+    "sales.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "10 sales rows use item_code KIR-XTR9, which is in neither other file",
+      "rows": 1100,
+      "columns": 7,
+      "column_names": [
+        "bill_no",
+        "bill_date",
+        "item_code",
+        "qty_sold",
+        "rate",
+        "amount",
+        "payment_mode"
+      ],
+      "missing_per_column": {
+        "bill_no": 0,
+        "bill_date": 0,
+        "item_code": 0,
+        "qty_sold": 0,
+        "rate": 0,
+        "amount": 0,
+        "payment_mode": 0
+      },
+      "exact_duplicate_rows": 0
+    }
+  },
+  "cleaning_applied": [],
+  "answers": {
+    "row_count": {
+      "purchases.csv": 420,
+      "inventory.csv": 12,
+      "sales.csv": 1100
+    },
+    "main_total": {
+      "file": "sales.csv",
+      "column": "amount",
+      "means": "revenue",
+      "value": 407600.0,
+      "rows_counted": 1100,
+      "mean": 370.55
+    },
+    "distinct_key_counts": {
+      "purchases.csv.purchase_id": 420,
+      "purchases.csv.item_code": 12,
+      "purchases.csv.supplier": 3,
+      "inventory.csv.item_code": 12,
+      "inventory.csv.category": 5,
+      "sales.csv.bill_no": 1100,
+      "sales.csv.item_code": 13
+    },
+    "total_purchase_cost": {
+      "file": "purchases.csv",
+      "column": "total_cost",
+      "means": "money spent buying stock",
+      "value": 1965039.0
+    },
+    "total_units_sold": {
+      "file": "sales.csv",
+      "column": "qty_sold",
+      "means": "units sold",
+      "value": 2636.0
+    },
+    "total_units_purchased": {
+      "file": "purchases.csv",
+      "column": "qty_purchased",
+      "means": "units bought",
+      "value": 13783.0
+    },
+    "total_units_in_stock": {
+      "file": "inventory.csv",
+      "column": "qty_on_hand",
+      "means": "units on hand",
+      "value": 498.0
+    },
+    "duplicates": {
+      "purchases.csv": {
+        "exact_duplicate_rows": 0
+      },
+      "inventory.csv": {
+        "exact_duplicate_rows": 0
+      },
+      "sales.csv": {
+        "exact_duplicate_rows": 0
+      }
+    },
+    "missing_values_per_column": {
+      "purchases.csv": {
+        "purchase_id": 0,
+        "purchase_date": 0,
+        "item_code": 0,
+        "supplier": 0,
+        "qty_purchased": 0,
+        "unit_cost": 0,
+        "total_cost": 0,
+        "payment_status": 0
+      },
+      "inventory.csv": {
+        "item_code": 0,
+        "item": 0,
+        "category": 0,
+        "qty_on_hand": 0,
+        "reorder_level": 0,
+        "unit": 0
+      },
+      "sales.csv": {
+        "bill_no": 0,
+        "bill_date": 0,
+        "item_code": 0,
+        "qty_sold": 0,
+        "rate": 0,
+        "amount": 0,
+        "payment_mode": 0
+      }
+    },
+    "joins": [
+      {
+        "left": "sales.csv",
+        "right": "inventory.csv",
+        "on": "item_code = item_code",
+        "left_rows": 1100,
+        "right_rows": 12,
+        "inner_join_rows": 1090,
+        "left_join_rows": 1100,
+        "left_rows_with_no_match": 10,
+        "unmatched_ids_in_left": [
+          "KIR-XTR9"
+        ],
+        "unmatched_ids_in_right": [],
+        "repeated_key_values_in_right": [],
+        "note": "sales -> inventory; KIR-XTR9 is the orphan"
+      },
+      {
+        "left": "purchases.csv",
+        "right": "inventory.csv",
+        "on": "item_code = item_code",
+        "left_rows": 420,
+        "right_rows": 12,
+        "inner_join_rows": 420,
+        "left_join_rows": 420,
+        "left_rows_with_no_match": 0,
+        "unmatched_ids_in_left": [],
+        "unmatched_ids_in_right": [],
+        "repeated_key_values_in_right": [],
+        "note": "purchases -> inventory"
+      }
+    ],
+    "item_code_only_in_sales": "KIR-XTR9",
+    "sales_rows_with_unknown_item": 10,
+    "revenue_of_unknown_item": 1725.0,
+    "units_sold_vs_purchased_per_item": {
+      "KIR-ATT5": {
+        "purchased": 788,
+        "sold": 237
+      },
+      "KIR-BIS1": {
+        "purchased": 717,
+        "sold": 253
+      },
+      "KIR-DET1": {
+        "purchased": 1256,
+        "sold": 196
+      },
+      "KIR-MLK5": {
+        "purchased": 1278,
+        "sold": 186
+      },
+      "KIR-OIL1": {
+        "purchased": 1178,
+        "sold": 214
+      },
+      "KIR-POH1": {
+        "purchased": 925,
+        "sold": 230
+      },
+      "KIR-RIC10": {
+        "purchased": 1253,
+        "sold": 211
+      },
+      "KIR-SAL1": {
+        "purchased": 1234,
+        "sold": 233
+      },
+      "KIR-SOA1": {
+        "purchased": 868,
+        "sold": 220
+      },
+      "KIR-SUG1": {
+        "purchased": 1368,
+        "sold": 207
+      },
+      "KIR-TEA2": {
+        "purchased": 1594,
+        "sold": 229
+      },
+      "KIR-TOO1": {
+        "purchased": 1324,
+        "sold": 197
+      }
+    }
+  }
+}

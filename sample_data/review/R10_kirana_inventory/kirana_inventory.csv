@@ -1,0 +1,421 @@
+item_code,item,category,unit,qty_on_hand,reorder_level,last_restocked,damaged_units,shelf,supplier
+SKU-0001,Patanjali Soap pack of 6,Dairy,pcs,1,5,2026-10-05,3,D7,Pune Wholesale
+SKU-0002,Aashirvaad Soap 250g,Personal Care,ltr,0,12,2026-10-17,0,A5,Metro Cash
+SKU-0003,Saffola Soap 2kg,Household,pcs,0,3,2026-10-01,3,E4,Pune Wholesale
+SKU-0004,Surf Detergent 250g,Beverages,pack,60,10,2026-10-04,0,E7,Direct
+SKU-0005,Surf Atta pack of 12,Household,ltr,18,20,2026-09-20,0,A6,Direct
+SKU-0006,Saffola Soap 1kg,Beverages,pack,4,3,2026-10-11,1,E5,Pune Wholesale
+SKU-0007,Everest Soap pack of 6,Personal Care,kg,12,20,2026-10-23,0,A3,Metro Cash
+SKU-0008,Local Sugar 5kg,Household,kg,18,5,2026-10-16,2,C5,Metro Cash
+SKU-0009,Amul Toor pack of 12,Personal Care,kg,8,10,2026-10-14,1,A7,Pune Wholesale
+SKU-0010,Aashirvaad Detergent 250g,Staples,ltr,2,3,2026-09-02,0,D4,Pune Wholesale
+SKU-0011,Saffola Refined 1kg,Household,ltr,8,10,2026-09-18,0,C6,Metro Cash
+SKU-0012,Everest Rice pack of 6,Dairy,ltr,25,5,2026-09-25,3,E1,Shree Distributors
+SKU-0013,Surf Salt pack of 12,Household,kg,60,3,2026-09-08,0,B6,Direct
+SKU-0014,Parle Sugar 1kg,Snacks,ltr,60,3,2026-10-04,0,A5,Pune Wholesale
+SKU-0015,Amul Milk pack of 12,Beverages,pack,0,3,2026-10-12,0,E5,Shree Distributors
+SKU-0016,Nestle Salt pack of 12,Snacks,ltr,25,5,2026-09-11,3,D9,Pune Wholesale
+SKU-0017,Local Tea 2kg,Personal Care,pack,25,5,2026-09-17,0,C4,Metro Cash
+SKU-0018,Local Salt 5kg,Snacks,pcs,60,10,2026-09-17,0,D2,Pune Wholesale
+SKU-0019,Everest Sugar 500g,Personal Care,pcs,1,12,2026-09-26,0,B9,Pune Wholesale
+SKU-0020,Saffola Soap 2kg,Personal Care,pcs,1,3,2026-10-24,0,D8,Pune Wholesale
+SKU-0021,Saffola Rice pack of 12,Staples,kg,4,3,2026-09-29,0,A7,Direct
+SKU-0022,Fortune Salt 1L,Beverages,pcs,2,12,2026-09-25,0,E2,Metro Cash
+SKU-0023,Local Biscuits 250g,Personal Care,pack,8,5,2026-10-15,1,C3,Metro Cash
+SKU-0024,Dabur Milk 2kg,Personal Care,pack,12,10,2026-10-11,0,D2,Pune Wholesale
+SKU-0025,Aashirvaad Atta 250g,Household,pcs,12,10,2026-09-04,2,A7,Direct
+SKU-0026,Tata Atta 250g,Personal Care,pack,4,3,2026-10-19,0,C5,Metro Cash
+SKU-0027,Parle Milk pack of 6,Personal Care,ltr,4,5,2026-09-07,3,D4,Shree Distributors
+SKU-0028,Patanjali Soap 250g,Dairy,ltr,25,5,2026-10-10,2,B2,Metro Cash
+SKU-0029,Patanjali Toor pack of 12,Snacks,pcs,4,10,2026-09-03,0,C8,Direct
+SKU-0030,Saffola Sugar 100g,Staples,pack,0,5,2026-09-28,0,D4,Pune Wholesale
+SKU-0031,Saffola Atta 5kg,Dairy,ltr,6,10,2026-09-13,3,C9,Shree Distributors
+SKU-0032,Patanjali Toor 250g,Dairy,pcs,6,10,2026-10-22,0,E4,Metro Cash
+SKU-0033,Local Salt 1L,Staples,kg,40,3,2026-09-06,2,B1,Direct
+SKU-0034,Surf Milk 2kg,Household,kg,40,5,2026-10-05,0,D4,Shree Distributors
+SKU-0035,Saffola Sugar 1L,Beverages,ltr,2,5,2026-10-03,0,C8,Metro Cash
+SKU-0036,Everest Salt 500g,Household,ltr,25,5,2026-09-28,3,E1,Shree Distributors
+SKU-0037,Fortune Sugar 100g,Snacks,pack,6,10,2026-09-02,0,B6,Pune Wholesale
+SKU-0038,Everest Soap 1kg,Snacks,pack,1,5,2026-10-21,1,A5,Shree Distributors
+SKU-0039,Patanjali Salt 250g,Dairy,pcs,2,12,2026-09-14,2,E8,Shree Distributors
+SKU-0040,Tata Salt 2kg,Household,pack,1,12,2026-09-18,0,A9,Pune Wholesale
+SKU-0041,Patanjali Salt pack of 12,Dairy,pack,0,3,2026-10-24,3,D5,Direct
+SKU-0042,Local Salt 100g,Personal Care,ltr,12,5,2026-10-13,0,B8,Shree Distributors
+SKU-0043,Aashirvaad Poha 1L,Beverages,pcs,18,3,2026-09-22,1,B1,Pune Wholesale
+SKU-0044,Aashirvaad Refined 100g,Household,pcs,60,20,2026-10-13,3,B9,Shree Distributors
+SKU-0045,Nestle Atta pack of 12,Household,pcs,8,3,2026-09-28,0,D2,Shree Distributors
+SKU-0046,Nestle Sugar 250g,Beverages,ltr,8,10,2026-10-03,2,C8,Shree Distributors
+SKU-0047,Nestle Detergent 1L,Personal Care,pcs,60,5,2026-10-12,0,A8,Direct
+SKU-0048,Everest Toor 100g,Beverages,ltr,2,10,2026-09-17,0,C6,Metro Cash
+SKU-0049,Dabur Tea 250g,Staples,ltr,0,12,2026-10-15,1,E1,Metro Cash
+SKU-0050,Fortune Atta 250g,Personal Care,pcs,8,5,2026-10-07,0,C1,Pune Wholesale
+SKU-0051,Aashirvaad Rice 5kg,Beverages,kg,12,5,2026-09-08,1,C9,Pune Wholesale
+SKU-0052,Parle Toor 1kg,Snacks,pcs,60,10,2026-09-10,0,B4,Shree Distributors
+SKU-0053,Local Atta 100g,Household,pcs,0,5,2026-10-17,0,E3,Pune Wholesale
+SKU-0054,Local Tea 5kg,Personal Care,pcs,12,5,2026-09-20,3,B3,Direct
+SKU-0055,Tata Poha 5kg,Beverages,ltr,18,20,2026-10-22,2,D1,Pune Wholesale
+SKU-0056,Everest Tea 500g,Dairy,ltr,60,5,2026-10-22,0,A4,Pune Wholesale
+SKU-0057,Amul Poha 250g,Personal Care,ltr,4,12,2026-09-14,0,D4,Pune Wholesale
+SKU-0058,Aashirvaad Tea pack of 12,Household,pcs,4,5,2026-09-10,0,C3,Shree Distributors
+SKU-0059,Nestle Refined 100g,Staples,kg,18,3,2026-10-15,0,D8,Metro Cash
+SKU-0060,Everest Sugar pack of 12,Household,pack,0,3,2026-09-20,0,B5,Pune Wholesale
+SKU-0061,Amul Sugar 1L,Staples,ltr,12,10,2026-10-09,0,D9,Direct
+SKU-0062,Dabur Tea 100g,Beverages,kg,2,3,2026-09-27,0,C9,Direct
+SKU-0063,Amul Toor pack of 6,Personal Care,pcs,60,5,2026-09-20,0,B2,Shree Distributors
+SKU-0064,Fortune Toor 100g,Beverages,kg,0,5,2026-10-14,0,B1,Direct
+SKU-0065,Everest Tea pack of 6,Personal Care,ltr,4,5,2026-09-20,0,D1,Metro Cash
+SKU-0066,Surf Detergent 1kg,Personal Care,ltr,40,10,2026-10-25,2,A4,Direct
+SKU-0067,Amul Biscuits 100g,Beverages,pack,40,5,2026-09-11,0,A8,Metro Cash
+SKU-0068,Fortune Detergent pack of 12,Dairy,pcs,18,5,2026-09-29,3,E6,Direct
+SKU-0069,Local Toor 5kg,Beverages,pack,2,5,2026-09-28,2,B8,Shree Distributors
+SKU-0070,Parle Soap 5kg,Personal Care,pack,2,10,2026-09-18,3,A6,Pune Wholesale
+SKU-0071,Patanjali Atta 1kg,Household,pack,90,5,2026-10-07,1,E8,Direct
+SKU-0072,Amul Biscuits 100g,Staples,pcs,0,3,2026-09-06,3,D6,Shree Distributors
+SKU-0073,Tata Tea 1kg,Snacks,ltr,0,20,2026-09-19,0,E6,Metro Cash
+SKU-0074,Fortune Tea 1L,Personal Care,pack,1,10,2026-09-06,3,B5,Pune Wholesale
+SKU-0075,Nestle Biscuits 1L,Staples,pcs,1,10,2026-10-11,2,D8,Shree Distributors
+SKU-0076,Dabur Milk 250g,Household,ltr,90,5,2026-09-17,3,B9,Metro Cash
+SKU-0077,Patanjali Soap 100g,Beverages,pack,6,3,2026-09-01,3,E3,Direct
+SKU-0078,Tata Toor 100g,Household,ltr,60,20,2026-09-06,3,B6,Pune Wholesale
+SKU-0079,Tata Sugar 100g,Personal Care,pack,90,10,2026-10-04,2,B9,Pune Wholesale
+SKU-0080,Local Refined 5kg,Dairy,pack,60,12,2026-09-24,3,E2,Shree Distributors
+SKU-0081,Nestle Detergent 500g,Beverages,pcs,90,3,2026-10-24,1,C5,Metro Cash
+SKU-0082,Patanjali Salt pack of 6,Personal Care,pcs,90,5,2026-10-24,0,B3,Metro Cash
+SKU-0083,Local Milk 500g,Beverages,kg,0,12,2026-10-07,0,A2,Pune Wholesale
+SKU-0084,Everest Sugar 5kg,Snacks,pack,90,12,2026-10-15,0,C4,Shree Distributors
+SKU-0085,Surf Poha pack of 6,Beverages,pack,0,5,2026-09-11,0,D7,Metro Cash
+SKU-0086,Tata Soap 100g,Dairy,kg,40,12,2026-09-01,0,E7,Pune Wholesale
+SKU-0087,Fortune Soap 1L,Personal Care,pack,1,12,2026-09-29,1,C5,Metro Cash
+SKU-0088,Parle Refined pack of 12,Household,pcs,1,10,2026-09-19,0,C5,Metro Cash
+SKU-0089,Nestle Soap 500g,Snacks,ltr,6,5,2026-09-18,3,D1,Direct
+SKU-0090,Dabur Atta 1kg,Staples,kg,0,10,2026-10-09,0,B1,Metro Cash
+SKU-0091,Parle Tea 5kg,Staples,pack,8,3,2026-09-16,0,B2,Direct
+SKU-0092,Everest Soap 250g,Dairy,pack,6,5,2026-10-22,0,E9,Shree Distributors
+SKU-0093,Nestle Salt 2kg,Personal Care,kg,0,20,2026-10-13,1,B9,Direct
+SKU-0094,Surf Poha pack of 6,Snacks,pcs,12,5,2026-10-07,2,A9,Shree Distributors
+SKU-0095,Parle Refined 5kg,Dairy,ltr,4,10,2026-09-20,3,B1,Metro Cash
+SKU-0096,Tata Salt pack of 12,Dairy,kg,90,10,2026-10-24,0,C1,Direct
+SKU-0097,Tata Tea pack of 6,Dairy,pack,40,5,2026-09-16,0,A4,Metro Cash
+SKU-0098,Saffola Rice 2kg,Dairy,ltr,40,5,2026-09-05,0,C5,Pune Wholesale
+SKU-0099,Local Milk 1kg,Snacks,kg,12,10,2026-09-25,2,B7,Metro Cash
+SKU-0100,Patanjali Soap 500g,Staples,kg,60,12,2026-10-01,3,A7,Direct
+SKU-0101,Aashirvaad Refined 2kg,Snacks,pack,18,12,2026-09-24,0,B7,Metro Cash
+SKU-0102,Amul Sugar 1L,Personal Care,pack,25,20,2026-10-01,2,E6,Direct
+SKU-0103,Tata Salt 1L,Personal Care,kg,1,5,2026-10-04,3,A1,Pune Wholesale
+SKU-0104,Fortune Detergent pack of 6,Household,ltr,18,10,2026-10-08,3,C9,Pune Wholesale
+SKU-0105,Amul Rice 1L,Dairy,kg,18,3,2026-09-11,0,A1,Metro Cash
+SKU-0106,Amul Rice 250g,Household,pack,90,10,2026-09-07,2,A2,Shree Distributors
+SKU-0107,Parle Sugar 1kg,Beverages,pack,40,5,2026-10-24,0,E6,Pune Wholesale
+SKU-0108,Surf Tea 2kg,Personal Care,pcs,90,5,2026-09-25,3,A9,Shree Distributors
+SKU-0109,Patanjali Salt pack of 6,Dairy,kg,40,3,2026-09-13,1,D9,Pune Wholesale
+SKU-0110,Parle Rice pack of 12,Dairy,ltr,90,10,2026-09-04,2,C3,Direct
+SKU-0111,Fortune Biscuits 5kg,Household,kg,8,10,2026-10-11,2,B2,Metro Cash
+SKU-0112,Dabur Salt 1L,Personal Care,ltr,1,20,2026-09-24,1,C1,Pune Wholesale
+SKU-0113,Everest Refined 2kg,Staples,ltr,8,3,2026-10-25,0,A9,Direct
+SKU-0114,Parle Salt 100g,Personal Care,kg,12,3,2026-10-12,2,A1,Pune Wholesale
+SKU-0115,Saffola Detergent pack of 6,Beverages,ltr,60,20,2026-09-02,1,A7,Metro Cash
+SKU-0116,Dabur Detergent 500g,Dairy,ltr,8,3,2026-10-20,1,B9,Pune Wholesale
+SKU-0117,Dabur Tea pack of 6,Beverages,kg,0,20,2026-10-20,2,C1,Direct
+SKU-0118,Parle Tea 500g,Dairy,pcs,4,5,2026-10-20,0,B1,Shree Distributors
+SKU-0119,Nestle Detergent pack of 12,Snacks,kg,2,10,2026-10-02,0,E1,Pune Wholesale
+SKU-0120,Saffola Toor 1kg,Household,pack,40,5,2026-10-01,2,D1,Shree Distributors
+SKU-0121,Patanjali Detergent pack of 12,Household,kg,90,10,2026-09-15,2,A8,Pune Wholesale
+SKU-0122,Parle Sugar pack of 6,Beverages,pack,8,5,2026-09-26,2,D1,Direct
+SKU-0123,Local Poha 2kg,Beverages,pack,4,10,2026-10-02,0,C8,Shree Distributors
+SKU-0124,Saffola Tea 1L,Household,pack,0,20,2026-09-13,0,B7,Shree Distributors
+SKU-0125,Amul Toor 5kg,Snacks,pcs,6,3,2026-09-18,2,D5,Metro Cash
+SKU-0126,Surf Tea 500g,Household,ltr,0,12,2026-10-02,3,A4,Pune Wholesale
+SKU-0127,Local Detergent 5kg,Personal Care,ltr,0,3,2026-10-18,0,D7,Metro Cash
+SKU-0128,Aashirvaad Salt 1L,Beverages,pcs,2,3,2026-10-02,0,B6,Direct
+SKU-0129,Local Milk 1kg,Snacks,pcs,8,5,2026-10-09,2,A6,Direct
+SKU-0130,Everest Rice 1L,Staples,pcs,12,20,2026-09-01,2,A2,Direct
+SKU-0131,Nestle Biscuits pack of 12,Dairy,kg,8,10,2026-10-04,0,A8,Shree Distributors
+SKU-0132,Fortune Soap pack of 6,Personal Care,pack,90,3,2026-09-15,0,D7,Pune Wholesale
+SKU-0133,Patanjali Biscuits 100g,Dairy,ltr,12,20,2026-10-10,3,B7,Direct
+SKU-0134,Saffola Tea 1L,Dairy,ltr,90,20,2026-09-14,0,C2,Pune Wholesale
+SKU-0135,Dabur Salt 5kg,Household,pcs,0,5,2026-09-04,0,C1,Metro Cash
+SKU-0136,Everest Poha 100g,Dairy,ltr,60,12,2026-10-24,2,C4,Metro Cash
+SKU-0137,Local Soap 500g,Personal Care,ltr,6,10,2026-10-03,0,C1,Metro Cash
+SKU-0138,Patanjali Soap 100g,Personal Care,ltr,0,3,2026-09-15,0,D8,Direct
+SKU-0139,Aashirvaad Sugar 1kg,Personal Care,pack,8,10,2026-10-11,0,E4,Pune Wholesale
+SKU-0140,Surf Atta 500g,Snacks,ltr,0,10,2026-10-18,0,A8,Direct
+SKU-0141,Aashirvaad Biscuits 1kg,Snacks,pcs,40,20,2026-10-26,1,E5,Metro Cash
+SKU-0142,Aashirvaad Milk pack of 6,Household,pcs,0,10,2026-10-09,3,E8,Pune Wholesale
+SKU-0143,Fortune Atta 500g,Dairy,pcs,6,5,2026-09-06,3,B8,Shree Distributors
+SKU-0144,Patanjali Salt 250g,Household,pcs,12,3,2026-09-26,0,A4,Direct
+SKU-0145,Amul Poha pack of 6,Household,ltr,18,10,2026-10-05,2,B4,Pune Wholesale
+SKU-0146,Everest Soap 2kg,Dairy,kg,12,5,2026-10-14,0,E8,Pune Wholesale
+SKU-0147,Dabur Salt 100g,Personal Care,kg,8,20,2026-09-30,0,B3,Metro Cash
+SKU-0148,Everest Atta 250g,Snacks,ltr,90,10,2026-09-04,0,D7,Pune Wholesale
+SKU-0149,Dabur Biscuits 250g,Household,pack,12,20,2026-10-19,0,E1,Metro Cash
+SKU-0150,Saffola Atta 100g,Dairy,ltr,8,20,2026-09-23,0,E9,Pune Wholesale
+SKU-0151,Saffola Milk 2kg,Staples,ltr,0,5,2026-10-03,3,C6,Pune Wholesale
+SKU-0152,Nestle Poha 100g,Household,kg,2,10,2026-09-15,1,D7,Pune Wholesale
+SKU-0153,Parle Toor 250g,Beverages,ltr,40,12,2026-10-03,1,A5,Shree Distributors
+SKU-0154,Aashirvaad Refined 500g,Snacks,pack,25,12,2026-09-10,3,E1,Shree Distributors
+SKU-0155,Tata Refined 250g,Snacks,pcs,40,10,2026-09-21,0,D8,Pune Wholesale
+SKU-0156,Dabur Poha 5kg,Staples,pcs,40,20,2026-09-05,1,A1,Metro Cash
+SKU-0157,Surf Sugar 500g,Household,ltr,8,10,2026-10-25,3,C2,Pune Wholesale
+SKU-0158,Local Salt 2kg,Household,pcs,8,20,2026-10-20,2,E4,Metro Cash
+SKU-0159,Aashirvaad Soap 2kg,Personal Care,ltr,0,5,2026-10-06,0,B3,Pune Wholesale
+SKU-0160,Patanjali Toor 500g,Personal Care,ltr,60,5,2026-09-10,0,C8,Pune Wholesale
+SKU-0161,Fortune Tea 1L,Staples,kg,0,3,2026-10-16,1,A7,Metro Cash
+SKU-0162,Saffola Salt 500g,Household,pack,25,3,2026-09-01,0,B5,Shree Distributors
+SKU-0163,Dabur Detergent 1kg,Household,kg,0,20,2026-10-20,0,D1,Shree Distributors
+SKU-0164,Surf Sugar pack of 12,Personal Care,kg,12,5,2026-10-15,2,B2,Metro Cash
+SKU-0165,Patanjali Atta 100g,Personal Care,ltr,25,10,2026-09-08,2,D3,Shree Distributors
+SKU-0166,Surf Detergent 2kg,Beverages,kg,4,20,2026-09-18,0,D8,Pune Wholesale
+SKU-0167,Everest Refined 2kg,Household,pcs,6,5,2026-09-18,1,C8,Shree Distributors
+SKU-0168,Parle Soap pack of 6,Personal Care,pack,90,20,2026-09-05,0,A9,Pune Wholesale
+SKU-0169,Local Detergent 250g,Household,ltr,1,12,2026-10-24,0,C2,Metro Cash
+SKU-0170,Amul Atta 100g,Personal Care,pack,18,10,2026-09-11,3,A1,Direct
+SKU-0171,Amul Sugar pack of 12,Beverages,kg,40,20,2026-09-04,0,A1,Shree Distributors
+SKU-0172,Everest Salt pack of 12,Household,ltr,2,20,2026-09-10,0,B2,Direct
+SKU-0173,Amul Detergent pack of 12,Personal Care,ltr,6,20,2026-09-07,0,A8,Direct
+SKU-0174,Dabur Refined 1L,Snacks,ltr,60,3,2026-09-15,1,C3,Shree Distributors
+SKU-0175,Parle Rice pack of 6,Staples,pack,1,20,2026-10-02,0,B7,Direct
+SKU-0176,Surf Soap 1L,Personal Care,pack,60,10,2026-10-25,0,E5,Direct
+SKU-0177,Aashirvaad Milk 2kg,Dairy,kg,6,12,2026-09-25,3,E4,Pune Wholesale
+SKU-0178,Nestle Tea 250g,Snacks,ltr,12,5,2026-09-30,0,E2,Metro Cash
+SKU-0179,Parle Refined pack of 6,Snacks,pcs,4,10,2026-09-22,1,A7,Shree Distributors
+SKU-0180,Saffola Poha 1L,Personal Care,pcs,1,20,2026-09-24,0,B3,Shree Distributors
+SKU-0181,Dabur Salt 1kg,Beverages,pack,12,20,2026-10-16,0,B4,Pune Wholesale
+SKU-0182,Amul Toor 1L,Personal Care,ltr,4,10,2026-10-01,0,B5,Metro Cash
+SKU-0183,Local Rice 1kg,Personal Care,pack,60,10,2026-10-14,1,D3,Shree Distributors
+SKU-0184,Saffola Soap pack of 6,Snacks,kg,6,20,2026-09-12,0,D3,Shree Distributors
+SKU-0185,Amul Salt 250g,Beverages,kg,0,10,2026-09-01,3,E7,Shree Distributors
+SKU-0186,Parle Refined 2kg,Staples,pack,0,20,2026-09-28,2,C5,Metro Cash
+SKU-0187,Patanjali Poha 5kg,Staples,kg,90,10,2026-09-13,2,D1,Direct
+SKU-0188,Everest Toor 1kg,Household,ltr,0,5,2026-09-03,0,C8,Shree Distributors
+SKU-0189,Surf Milk 250g,Personal Care,pack,8,5,2026-09-27,0,E4,Metro Cash
+SKU-0190,Nestle Atta 250g,Beverages,kg,0,5,2026-10-08,0,C8,Pune Wholesale
+SKU-0191,Aashirvaad Biscuits pack of 12,Household,pcs,6,3,2026-10-04,1,A9,Shree Distributors
+SKU-0192,Patanjali Milk 500g,Snacks,pack,18,12,2026-09-14,0,A6,Direct
+SKU-0193,Everest Salt 500g,Snacks,pack,6,20,2026-10-08,1,A7,Metro Cash
+SKU-0194,Aashirvaad Salt 5kg,Snacks,pack,40,5,2026-10-21,0,B3,Metro Cash
+SKU-0195,Aashirvaad Poha pack of 12,Beverages,pack,18,10,2026-10-04,0,B8,Direct
+SKU-0196,Amul Soap 2kg,Staples,kg,2,5,2026-10-13,2,A6,Pune Wholesale
+SKU-0197,Saffola Detergent pack of 6,Household,ltr,18,12,2026-10-19,0,B5,Metro Cash
+SKU-0198,Everest Tea pack of 12,Dairy,pcs,18,3,2026-10-17,0,B2,Direct
+SKU-0199,Dabur Rice 2kg,Snacks,pcs,0,12,2026-09-30,0,B1,Pune Wholesale
+SKU-0200,Tata Soap 1L,Beverages,ltr,25,10,2026-09-04,1,E2,Direct
+SKU-0201,Amul Soap 5kg,Personal Care,kg,1,10,2026-09-13,0,D8,Metro Cash
+SKU-0202,Amul Refined 250g,Beverages,pack,1,20,2026-10-26,0,A2,Shree Distributors
+SKU-0203,Everest Biscuits 250g,Dairy,kg,90,20,2026-09-12,1,C1,Shree Distributors
+SKU-0204,Everest Toor 1L,Household,kg,40,5,2026-10-03,0,B9,Metro Cash
+SKU-0205,Tata Atta 100g,Snacks,ltr,25,3,2026-09-08,0,B1,Shree Distributors
+SKU-0206,Nestle Poha 500g,Snacks,kg,8,10,2026-09-17,0,E6,Shree Distributors
+SKU-0207,Patanjali Soap 2kg,Dairy,kg,12,5,2026-10-16,3,D1,Shree Distributors
+SKU-0208,Amul Atta pack of 6,Dairy,pcs,25,5,2026-09-17,2,C9,Metro Cash
+SKU-0209,Everest Tea pack of 12,Beverages,pack,2,5,2026-09-05,3,B6,Pune Wholesale
+SKU-0210,Tata Salt pack of 12,Personal Care,pack,2,3,2026-09-24,0,D2,Pune Wholesale
+SKU-0211,Fortune Soap 5kg,Beverages,pack,0,10,2026-09-30,0,D1,Shree Distributors
+SKU-0212,Patanjali Tea 500g,Personal Care,pcs,0,10,2026-10-14,0,C9,Metro Cash
+SKU-0213,Surf Refined 250g,Personal Care,ltr,90,3,2026-09-22,0,E6,Pune Wholesale
+SKU-0214,Saffola Rice pack of 12,Household,pack,90,5,2026-09-29,0,A6,Shree Distributors
+SKU-0215,Parle Atta pack of 12,Personal Care,pcs,4,3,2026-09-02,0,A8,Direct
+SKU-0216,Everest Refined pack of 6,Household,pack,1,3,2026-10-23,2,D3,Metro Cash
+SKU-0217,Everest Rice pack of 6,Beverages,kg,0,12,2026-09-04,0,B3,Metro Cash
+SKU-0218,Dabur Poha 1kg,Household,kg,4,20,2026-09-14,1,E8,Direct
+SKU-0219,Patanjali Sugar 1kg,Personal Care,pcs,0,10,2026-10-24,3,C2,Direct
+SKU-0220,Everest Toor pack of 12,Beverages,pcs,1,10,2026-09-21,0,A2,Metro Cash
+SKU-0221,Everest Milk 250g,Snacks,ltr,0,3,2026-10-09,0,D2,Pune Wholesale
+SKU-0222,Everest Biscuits 500g,Staples,pcs,8,10,2026-09-06,0,B2,Direct
+SKU-0223,Aashirvaad Tea 5kg,Snacks,kg,12,20,2026-09-23,3,D2,Shree Distributors
+SKU-0224,Aashirvaad Rice 500g,Staples,ltr,60,20,2026-09-28,3,A9,Shree Distributors
+SKU-0225,Nestle Salt 2kg,Beverages,kg,2,5,2026-10-11,3,E3,Shree Distributors
+SKU-0226,Surf Toor pack of 6,Snacks,kg,4,20,2026-10-24,0,A3,Pune Wholesale
+SKU-0227,Tata Salt pack of 6,Dairy,ltr,4,20,2026-10-14,3,E9,Shree Distributors
+SKU-0228,Surf Tea 100g,Snacks,pack,40,10,2026-09-18,0,E8,Metro Cash
+SKU-0229,Local Milk 2kg,Beverages,pack,25,3,2026-09-07,0,D3,Pune Wholesale
+SKU-0230,Patanjali Sugar 500g,Household,kg,90,3,2026-09-14,0,E2,Direct
+SKU-0231,Parle Poha 5kg,Personal Care,kg,2,12,2026-09-30,0,E2,Shree Distributors
+SKU-0232,Amul Toor 100g,Beverages,kg,60,5,2026-10-02,0,C3,Direct
+SKU-0233,Saffola Poha 1kg,Personal Care,kg,25,3,2026-10-03,0,A4,Direct
+SKU-0234,Local Biscuits 5kg,Snacks,ltr,1,3,2026-09-16,0,D3,Metro Cash
+SKU-0235,Tata Salt 2kg,Household,pcs,4,5,2026-10-10,0,E6,Direct
+SKU-0236,Aashirvaad Atta 1kg,Beverages,pack,1,12,2026-10-04,2,A2,Direct
+SKU-0237,Surf Soap 5kg,Beverages,pack,0,5,2026-10-05,1,D5,Pune Wholesale
+SKU-0238,Everest Salt 1L,Staples,ltr,8,12,2026-10-25,0,C1,Metro Cash
+SKU-0239,Aashirvaad Soap pack of 12,Personal Care,pcs,2,20,2026-10-25,0,D1,Shree Distributors
+SKU-0240,Amul Toor 250g,Household,pcs,0,12,2026-09-30,0,C2,Pune Wholesale
+SKU-0241,Amul Tea 5kg,Snacks,pcs,40,3,2026-09-04,0,C3,Shree Distributors
+SKU-0242,Parle Soap 100g,Household,kg,8,5,2026-09-17,1,C6,Pune Wholesale
+SKU-0243,Everest Milk 250g,Beverages,pack,90,10,2026-10-18,0,A5,Shree Distributors
+SKU-0244,Patanjali Poha pack of 12,Dairy,ltr,12,10,2026-09-10,0,C6,Metro Cash
+SKU-0245,Local Soap 100g,Household,pcs,0,3,2026-09-29,0,D1,Pune Wholesale
+SKU-0246,Dabur Refined 1kg,Household,pcs,60,20,2026-10-04,2,B3,Pune Wholesale
+SKU-0247,Dabur Salt 1kg,Snacks,ltr,2,20,2026-09-07,0,D8,Shree Distributors
+SKU-0248,Aashirvaad Atta 1L,Snacks,kg,12,12,2026-09-28,0,C4,Direct
+SKU-0249,Surf Poha pack of 12,Personal Care,pcs,90,20,2026-09-29,3,D4,Metro Cash
+SKU-0250,Nestle Milk pack of 12,Personal Care,pcs,90,3,2026-09-01,0,A5,Metro Cash
+SKU-0251,Nestle Tea 5kg,Household,ltr,2,12,2026-09-13,0,E5,Direct
+SKU-0252,Local Salt 1kg,Dairy,pack,90,12,2026-10-16,0,E2,Pune Wholesale
+SKU-0253,Tata Soap pack of 12,Household,kg,8,3,2026-09-10,0,D5,Pune Wholesale
+SKU-0254,Fortune Detergent 250g,Snacks,ltr,0,5,2026-10-03,0,E5,Shree Distributors
+SKU-0255,Nestle Milk pack of 12,Beverages,ltr,8,3,2026-09-15,0,C9,Direct
+SKU-0256,Nestle Salt 5kg,Staples,kg,40,20,2026-10-18,0,E7,Direct
+SKU-0257,Parle Toor 1L,Snacks,kg,0,12,2026-09-11,0,B1,Metro Cash
+SKU-0258,Tata Milk 100g,Staples,kg,1,20,2026-09-15,0,C3,Pune Wholesale
+SKU-0259,Amul Poha 500g,Personal Care,kg,0,12,2026-10-26,1,D1,Shree Distributors
+SKU-0260,Everest Detergent pack of 12,Beverages,kg,18,3,2026-09-10,0,A9,Pune Wholesale
+SKU-0261,Local Detergent pack of 6,Snacks,pcs,8,10,2026-09-11,0,E4,Pune Wholesale
+SKU-0262,Patanjali Sugar 1L,Dairy,pack,12,5,2026-09-11,0,C5,Pune Wholesale
+SKU-0263,Saffola Toor 1kg,Beverages,ltr,6,10,2026-10-13,0,C9,Direct
+SKU-0264,Aashirvaad Detergent 1kg,Staples,pack,90,3,2026-09-03,1,E6,Direct
+SKU-0265,Aashirvaad Refined pack of 12,Dairy,kg,90,10,2026-10-16,1,E3,Shree Distributors
+SKU-0266,Local Toor pack of 12,Snacks,pcs,12,5,2026-09-26,2,C4,Shree Distributors
+SKU-0267,Patanjali Detergent 1L,Personal Care,kg,18,10,2026-10-26,0,D3,Pune Wholesale
+SKU-0268,Patanjali Sugar 1kg,Personal Care,ltr,0,3,2026-10-03,3,A5,Shree Distributors
+SKU-0269,Nestle Milk 2kg,Personal Care,ltr,0,3,2026-10-21,0,C1,Shree Distributors
+SKU-0270,Parle Milk 1kg,Snacks,kg,18,5,2026-09-02,0,C5,Metro Cash
+SKU-0271,Dabur Toor 500g,Personal Care,kg,18,12,2026-10-06,1,B5,Pune Wholesale
+SKU-0272,Patanjali Toor 100g,Dairy,ltr,25,5,2026-10-01,3,A6,Shree Distributors
+SKU-0273,Dabur Milk pack of 6,Beverages,pack,0,20,2026-09-05,0,E4,Pune Wholesale
+SKU-0274,Aashirvaad Milk pack of 6,Personal Care,kg,12,5,2026-09-21,2,C3,Metro Cash
+SKU-0275,Patanjali Toor 5kg,Dairy,pack,25,5,2026-09-26,3,E6,Metro Cash
+SKU-0276,Fortune Milk pack of 6,Dairy,ltr,0,3,2026-09-11,2,C3,Metro Cash
+SKU-0277,Aashirvaad Atta 1kg,Beverages,kg,12,5,2026-09-20,2,A3,Direct
+SKU-0278,Local Salt 2kg,Personal Care,pack,18,20,2026-10-19,3,B9,Pune Wholesale
+SKU-0279,Fortune Salt 500g,Snacks,pack,0,20,2026-09-08,0,B3,Metro Cash
+SKU-0280,Parle Toor 5kg,Staples,ltr,1,10,2026-10-25,3,C5,Pune Wholesale
+SKU-0281,Fortune Soap pack of 6,Household,ltr,60,10,2026-10-23,2,D6,Pune Wholesale
+SKU-0282,Surf Biscuits pack of 12,Snacks,pack,6,20,2026-09-02,0,A7,Direct
+SKU-0283,Aashirvaad Milk 1kg,Household,pcs,25,12,2026-09-24,0,A1,Metro Cash
+SKU-0284,Aashirvaad Milk 1L,Beverages,kg,90,3,2026-09-19,0,D1,Shree Distributors
+SKU-0285,Everest Soap pack of 12,Beverages,ltr,0,12,2026-09-17,1,C2,Direct
+SKU-0286,Local Toor 2kg,Household,pack,40,20,2026-10-24,0,E6,Metro Cash
+SKU-0287,Dabur Toor 1L,Personal Care,ltr,18,5,2026-09-19,0,C5,Metro Cash
+SKU-0288,Patanjali Sugar 100g,Household,kg,25,10,2026-10-03,0,E5,Direct
+SKU-0289,Local Milk 5kg,Household,pcs,0,10,2026-10-01,3,B6,Direct
+SKU-0290,Local Sugar pack of 6,Staples,pcs,40,3,2026-10-23,3,B9,Metro Cash
+SKU-0291,Parle Detergent 1kg,Beverages,kg,1,5,2026-09-21,0,A9,Metro Cash
+SKU-0292,Amul Biscuits 500g,Household,kg,0,10,2026-09-15,0,E3,Shree Distributors
+SKU-0293,Nestle Detergent 100g,Personal Care,kg,0,5,2026-10-26,0,D7,Shree Distributors
+SKU-0294,Saffola Detergent 500g,Snacks,pack,90,20,2026-10-22,0,B8,Pune Wholesale
+SKU-0295,Parle Tea 1L,Personal Care,pack,60,12,2026-09-02,3,C6,Pune Wholesale
+SKU-0296,Fortune Salt 1L,Staples,ltr,6,10,2026-09-01,0,A1,Pune Wholesale
+SKU-0297,Tata Refined 1kg,Household,pcs,90,5,2026-10-02,0,C1,Direct
+SKU-0298,Fortune Biscuits 500g,Dairy,pack,12,12,2026-09-09,0,D2,Direct
+SKU-0299,Saffola Sugar 250g,Staples,ltr,6,3,2026-09-16,3,E9,Pune Wholesale
+SKU-0300,Parle Toor 500g,Beverages,ltr,0,5,2026-10-11,0,D5,Metro Cash
+SKU-0301,Saffola Salt 250g,Household,kg,90,5,2026-09-15,2,D3,Metro Cash
+SKU-0302,Tata Toor pack of 6,Staples,ltr,18,12,2026-09-20,0,D3,Direct
+SKU-0303,Surf Poha 500g,Staples,ltr,1,10,2026-10-15,2,C2,Pune Wholesale
+SKU-0304,Aashirvaad Detergent 5kg,Household,ltr,2,10,2026-09-07,3,A2,Pune Wholesale
+SKU-0305,Saffola Rice pack of 12,Snacks,pack,4,12,2026-10-14,0,E3,Shree Distributors
+SKU-0306,Patanjali Rice 100g,Personal Care,pcs,60,3,2026-10-11,0,E7,Shree Distributors
+SKU-0307,Saffola Salt pack of 6,Personal Care,pcs,2,10,2026-10-18,2,D9,Direct
+SKU-0308,Surf Biscuits pack of 12,Beverages,pack,12,3,2026-10-09,3,E6,Pune Wholesale
+SKU-0309,Aashirvaad Salt pack of 12,Dairy,pcs,0,20,2026-10-14,0,B2,Pune Wholesale
+SKU-0310,Aashirvaad Sugar 100g,Staples,kg,1,10,2026-10-14,0,D7,Pune Wholesale
+SKU-0311,Everest Detergent 500g,Snacks,ltr,40,10,2026-10-07,1,D1,Metro Cash
+SKU-0312,Parle Milk 100g,Snacks,pack,60,10,2026-10-24,0,C2,Direct
+SKU-0313,Saffola Salt 100g,Snacks,ltr,2,10,2026-10-06,2,B9,Metro Cash
+SKU-0314,Dabur Toor 2kg,Beverages,pack,8,3,2026-10-11,2,D2,Metro Cash
+SKU-0315,Parle Sugar pack of 6,Staples,kg,0,12,2026-09-20,0,A8,Direct
+SKU-0316,Parle Biscuits pack of 12,Snacks,ltr,8,20,2026-09-25,0,D3,Direct
+SKU-0317,Parle Detergent 2kg,Beverages,kg,6,20,2026-09-14,0,E5,Metro Cash
+SKU-0318,Saffola Salt 250g,Staples,ltr,18,20,2026-10-09,2,A3,Direct
+SKU-0319,Amul Milk pack of 6,Beverages,pack,60,20,2026-10-19,2,D9,Direct
+SKU-0320,Parle Sugar 2kg,Beverages,ltr,90,12,2026-10-26,1,A8,Pune Wholesale
+SKU-0321,Aashirvaad Poha 250g,Personal Care,kg,6,20,2026-09-17,0,D2,Shree Distributors
+SKU-0322,Nestle Atta 100g,Household,ltr,8,12,2026-09-10,1,D9,Metro Cash
+SKU-0323,Dabur Milk 500g,Beverages,ltr,8,5,2026-10-23,0,C3,Shree Distributors
+SKU-0324,Saffola Toor 100g,Snacks,kg,1,20,2026-09-03,2,D3,Direct
+SKU-0325,Nestle Refined 1L,Dairy,kg,6,10,2026-10-26,0,A5,Direct
+SKU-0326,Dabur Toor 500g,Dairy,pcs,18,20,2026-09-10,0,E4,Direct
+SKU-0327,Local Biscuits 5kg,Household,ltr,0,10,2026-10-14,3,B5,Direct
+SKU-0328,Parle Soap pack of 6,Snacks,ltr,0,12,2026-09-28,1,B5,Shree Distributors
+SKU-0329,Everest Biscuits pack of 12,Personal Care,kg,8,5,2026-09-08,3,E3,Metro Cash
+SKU-0330,Dabur Atta 100g,Dairy,ltr,0,3,2026-10-17,1,B9,Metro Cash
+SKU-0331,Fortune Detergent 100g,Household,kg,6,3,2026-10-03,3,A1,Metro Cash
+SKU-0332,Surf Refined 500g,Personal Care,kg,0,5,2026-09-09,0,A3,Shree Distributors
+SKU-0333,Dabur Poha 500g,Household,pack,90,10,2026-10-06,1,E4,Direct
+SKU-0334,Aashirvaad Milk 1kg,Dairy,ltr,6,10,2026-09-04,0,E7,Pune Wholesale
+SKU-0335,Everest Tea pack of 6,Household,pcs,1,5,2026-09-01,0,E1,Pune Wholesale
+SKU-0336,Parle Tea 2kg,Personal Care,kg,18,5,2026-09-27,0,B3,Pune Wholesale
+SKU-0337,Nestle Milk pack of 6,Personal Care,kg,4,12,2026-09-02,0,A1,Metro Cash
+SKU-0338,Everest Salt 250g,Dairy,ltr,90,3,2026-09-10,0,A9,Shree Distributors
+SKU-0339,Patanjali Refined 500g,Personal Care,pack,25,12,2026-09-11,0,A3,Pune Wholesale
+SKU-0340,Saffola Tea 500g,Personal Care,pack,90,12,2026-09-19,0,E1,Direct
+SKU-0341,Saffola Soap 1L,Beverages,kg,40,20,2026-10-04,1,E6,Pune Wholesale
+SKU-0342,Fortune Biscuits 1kg,Dairy,pcs,18,20,2026-09-13,0,A5,Shree Distributors
+SKU-0343,Fortune Salt 1L,Snacks,kg,0,10,2026-10-13,1,A8,Shree Distributors
+SKU-0344,Everest Poha 1kg,Personal Care,pack,18,5,2026-09-11,0,E1,Shree Distributors
+SKU-0345,Dabur Detergent 500g,Snacks,pcs,2,10,2026-09-04,0,A9,Pune Wholesale
+SKU-0346,Amul Poha 1L,Snacks,kg,0,10,2026-09-04,3,B6,Direct
+SKU-0347,Everest Detergent 5kg,Staples,pcs,12,12,2026-10-06,1,A8,Metro Cash
+SKU-0348,Everest Sugar pack of 6,Staples,kg,12,20,2026-09-21,2,D6,Pune Wholesale
+SKU-0349,Patanjali Milk 1kg,Snacks,pack,40,3,2026-09-13,3,E6,Pune Wholesale
+SKU-0350,Surf Salt 250g,Dairy,pack,40,10,2026-10-09,0,E6,Direct
+SKU-0351,Everest Biscuits 100g,Beverages,pcs,6,20,2026-09-05,0,A9,Metro Cash
+SKU-0352,Surf Refined 1L,Snacks,ltr,60,12,2026-10-13,0,D9,Pune Wholesale
+SKU-0353,Everest Toor 1kg,Staples,pcs,4,3,2026-10-23,2,A6,Direct
+SKU-0354,Surf Refined 5kg,Personal Care,pcs,1,20,2026-09-26,2,E5,Direct
+SKU-0355,Parle Detergent 2kg,Personal Care,pack,60,5,2026-10-03,2,D4,Pune Wholesale
+SKU-0356,Nestle Detergent 5kg,Dairy,ltr,25,20,2026-10-18,0,B8,Pune Wholesale
+SKU-0357,Amul Poha 2kg,Dairy,pcs,12,12,2026-09-25,0,E5,Shree Distributors
+SKU-0358,Parle Poha 5kg,Household,kg,8,12,2026-10-08,0,B5,Direct
+SKU-0359,Aashirvaad Tea 1L,Personal Care,kg,60,5,2026-10-05,3,E4,Metro Cash
+SKU-0360,Aashirvaad Refined 2kg,Snacks,pack,60,20,2026-09-06,1,A9,Shree Distributors
+SKU-0361,Surf Soap pack of 6,Dairy,kg,0,5,2026-09-26,1,C9,Shree Distributors
+SKU-0362,Amul Soap 2kg,Household,kg,6,12,2026-10-11,0,B6,Metro Cash
+SKU-0363,Fortune Poha 100g,Dairy,pcs,40,10,2026-10-10,0,A1,Shree Distributors
+SKU-0364,Tata Refined 500g,Snacks,ltr,60,5,2026-10-04,3,A1,Pune Wholesale
+SKU-0365,Fortune Rice 100g,Staples,kg,4,5,2026-10-08,2,B9,Metro Cash
+SKU-0366,Patanjali Atta 5kg,Personal Care,ltr,4,10,2026-09-24,2,D7,Pune Wholesale
+SKU-0367,Surf Sugar 250g,Staples,pcs,0,5,2026-10-15,0,A7,Pune Wholesale
+SKU-0368,Dabur Milk 5kg,Staples,ltr,6,5,2026-10-14,2,C1,Direct
+SKU-0369,Tata Salt 1L,Personal Care,ltr,60,20,2026-09-21,0,C2,Metro Cash
+SKU-0370,Tata Refined 500g,Household,pcs,2,10,2026-10-22,3,C1,Metro Cash
+SKU-0371,Saffola Toor 2kg,Dairy,pcs,0,5,2026-10-12,0,B9,Shree Distributors
+SKU-0372,Everest Toor pack of 12,Dairy,pcs,2,12,2026-09-18,3,E7,Metro Cash
+SKU-0373,Surf Rice 100g,Staples,pack,25,20,2026-09-23,0,E6,Shree Distributors
+SKU-0374,Amul Toor 1L,Household,pack,18,3,2026-09-04,0,B3,Pune Wholesale
+SKU-0375,Dabur Milk 500g,Staples,pcs,0,5,2026-10-02,3,C8,Shree Distributors
+SKU-0376,Tata Salt pack of 12,Dairy,kg,1,10,2026-10-21,0,D3,Pune Wholesale
+SKU-0377,Fortune Biscuits 250g,Beverages,ltr,6,3,2026-10-23,0,C8,Shree Distributors
+SKU-0378,Tata Detergent 2kg,Dairy,pack,6,5,2026-10-22,0,A3,Shree Distributors
+SKU-0379,Dabur Rice pack of 6,Staples,pcs,6,12,2026-09-06,0,D4,Metro Cash
+SKU-0380,Surf Soap 250g,Dairy,pcs,0,20,2026-09-17,3,A9,Shree Distributors
+SKU-0381,Everest Tea 500g,Household,pcs,12,20,2026-10-01,0,D2,Metro Cash
+SKU-0382,Dabur Sugar 500g,Beverages,ltr,40,12,2026-09-21,0,D6,Pune Wholesale
+SKU-0383,Saffola Sugar 1L,Household,pack,1,3,2026-09-17,0,C4,Metro Cash
+SKU-0384,Tata Milk 1kg,Personal Care,ltr,0,3,2026-10-03,0,D9,Metro Cash
+SKU-0385,Parle Refined 2kg,Household,ltr,25,5,2026-10-13,2,B7,Shree Distributors
+SKU-0386,Tata Poha 5kg,Personal Care,pcs,0,3,2026-10-01,0,E8,Direct
+SKU-0387,Dabur Detergent 1L,Dairy,ltr,18,12,2026-09-20,1,C9,Pune Wholesale
+SKU-0388,Amul Tea 2kg,Snacks,kg,8,5,2026-09-10,0,E2,Metro Cash
+SKU-0389,Nestle Milk 2kg,Staples,kg,25,10,2026-09-12,3,C9,Metro Cash
+SKU-0390,Surf Toor 500g,Beverages,pcs,2,12,2026-09-20,0,D3,Pune Wholesale
+SKU-0391,Fortune Detergent pack of 12,Staples,kg,60,12,2026-09-09,1,E7,Metro Cash
+SKU-0392,Dabur Toor 5kg,Beverages,pcs,2,3,2026-10-01,3,C4,Pune Wholesale
+SKU-0393,Dabur Tea 500g,Beverages,kg,0,12,2026-09-11,3,B7,Metro Cash
+SKU-0394,Surf Atta 5kg,Staples,pcs,12,10,2026-10-01,0,B9,Shree Distributors
+SKU-0395,Surf Toor 100g,Beverages,ltr,90,5,2026-10-26,0,C7,Shree Distributors
+SKU-0396,Nestle Refined 1L,Staples,ltr,0,12,2026-10-02,1,E8,Pune Wholesale
+SKU-0397,Aashirvaad Milk 100g,Dairy,pack,0,10,2026-09-13,0,B4,Shree Distributors
+SKU-0398,Fortune Rice 500g,Staples,ltr,8,3,2026-09-28,0,B9,Shree Distributors
+SKU-0399,Saffola Atta pack of 12,Snacks,ltr,40,3,2026-09-02,0,D6,Metro Cash
+SKU-0400,Nestle Refined pack of 6,Snacks,pcs,6,12,2026-09-27,0,C6,Metro Cash
+SKU-0401,Local Soap 100g,Household,kg,12,12,2026-10-17,0,A9,Metro Cash
+SKU-0402,Parle Toor 2kg,Beverages,kg,18,10,2026-10-13,0,C1,Pune Wholesale
+SKU-0403,Dabur Rice 500g,Dairy,pack,0,20,2026-09-11,3,B7,Shree Distributors
+SKU-0404,Aashirvaad Sugar 250g,Personal Care,ltr,4,20,2026-09-05,2,A8,Pune Wholesale
+SKU-0405,Dabur Toor 1L,Household,kg,6,10,2026-09-05,0,E5,Metro Cash
+SKU-0406,Parle Biscuits 2kg,Staples,pack,1,12,2026-10-25,1,A7,Pune Wholesale
+SKU-0407,Fortune Toor 1kg,Household,pack,12,10,2026-09-20,0,B2,Direct
+SKU-0408,Tata Poha 5kg,Snacks,pcs,18,20,2026-10-24,0,C6,Direct
+SKU-0409,Surf Biscuits 2kg,Staples,pcs,6,12,2026-10-09,3,E3,Metro Cash
+SKU-0410,Patanjali Atta 1L,Staples,kg,25,5,2026-10-20,0,E7,Shree Distributors
+SKU-0411,Surf Milk pack of 6,Household,pack,8,12,2026-09-03,1,B6,Metro Cash
+SKU-0412,Local Tea 2kg,Dairy,ltr,12,20,2026-10-08,0,A1,Direct
+SKU-0413,Saffola Refined 250g,Household,pcs,90,3,2026-10-08,3,A9,Pune Wholesale
+SKU-0414,Parle Detergent 250g,Dairy,ltr,12,10,2026-09-01,3,D9,Shree Distributors
+SKU-0415,Tata Biscuits pack of 6,Household,kg,8,10,2026-10-13,3,E6,Metro Cash
+SKU-0416,Dabur Tea 1L,Snacks,pcs,60,12,2026-09-01,0,C4,Metro Cash
+SKU-0417,Dabur Sugar 100g,Beverages,kg,1,20,2026-09-22,0,A6,Shree Distributors
+SKU-0418,Dabur Tea pack of 12,Household,pcs,1,10,2026-10-22,0,D7,Shree Distributors
+SKU-0419,Fortune Sugar 100g,Staples,ltr,4,3,2026-10-11,0,B3,Shree Distributors
+SKU-0420,Saffola Tea 1L,Personal Care,pcs,1,5,2026-09-23,0,A7,Shree Distributors

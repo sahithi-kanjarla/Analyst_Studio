@@ -1,0 +1,119 @@
+{
+  "id": "R06",
+  "business_type": "handicrafts seller",
+  "kind": "orders",
+  "what_it_tests": "long format: one row per order line, order ids repeating, and the order-level amount repeated on every line of that order",
+  "app_should": "count orders by distinct order_id and not add order_amount up once per line — the naive sum is far too high",
+  "generated_by": "scripts/make_review_datasets.py",
+  "seed": 20261103,
+  "files": {
+    "handicraft_order_lines.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "order_amount, order_shipping and order_payment_mode repeat on every line of the same order",
+      "rows": 1000,
+      "columns": 14,
+      "column_names": [
+        "order_id",
+        "order_date",
+        "customer_name",
+        "customer_email",
+        "order_amount",
+        "order_shipping",
+        "order_payment_mode",
+        "line_no",
+        "product",
+        "product_code",
+        "craft_type",
+        "line_qty",
+        "line_unit_price",
+        "line_amount"
+      ],
+      "missing_per_column": {
+        "order_id": 0,
+        "order_date": 0,
+        "customer_name": 0,
+        "customer_email": 0,
+        "order_amount": 0,
+        "order_shipping": 0,
+        "order_payment_mode": 0,
+        "line_no": 0,
+        "product": 0,
+        "product_code": 0,
+        "craft_type": 0,
+        "line_qty": 0,
+        "line_unit_price": 0,
+        "line_amount": 0
+      },
+      "exact_duplicate_rows": 0
+    }
+  },
+  "cleaning_applied": [],
+  "answers": {
+    "row_count": {
+      "handicraft_order_lines.csv": 1000
+    },
+    "main_total": {
+      "file": "handicraft_order_lines.csv",
+      "column": "line_amount",
+      "means": "revenue summed from the line amounts (the correct way)",
+      "value": 1452380.0,
+      "rows_counted": 1000,
+      "mean": 1452.38
+    },
+    "top_3_main_category": {
+      "file": "handicraft_order_lines.csv",
+      "group_by": "craft_type",
+      "ranked_by": "line_amount",
+      "items": [
+        {
+          "name": "Art",
+          "total": 375840.0
+        },
+        {
+          "name": "Textile",
+          "total": 286750.0
+        },
+        {
+          "name": "Metalcraft",
+          "total": 266340.0
+        }
+      ]
+    },
+    "distinct_key_counts": {
+      "handicraft_order_lines.csv.order_id": 460,
+      "handicraft_order_lines.csv.product_code": 12,
+      "handicraft_order_lines.csv.customer_email": 459
+    },
+    "duplicates": {
+      "handicraft_order_lines.csv": {
+        "exact_duplicate_rows": 0
+      }
+    },
+    "missing_values_per_column": {
+      "handicraft_order_lines.csv": {
+        "order_id": 0,
+        "order_date": 0,
+        "customer_name": 0,
+        "customer_email": 0,
+        "order_amount": 0,
+        "order_shipping": 0,
+        "order_payment_mode": 0,
+        "line_no": 0,
+        "product": 0,
+        "product_code": 0,
+        "craft_type": 0,
+        "line_qty": 0,
+        "line_unit_price": 0,
+        "line_amount": 0
+      }
+    },
+    "line_rows": 1000,
+    "distinct_orders": 460,
+    "order_amount_summed_per_distinct_order": 1452380.0,
+    "order_amount_summed_naively_over_all_rows": 3989370.0,
+    "shipping_per_distinct_order": 16380.0,
+    "average_lines_per_order": 2.17,
+    "note": "line_amount summed over all rows equals order_amount summed over distinct orders; the naive order_amount sum is the trap"
+  }
+}

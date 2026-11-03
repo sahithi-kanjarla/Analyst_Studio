@@ -1,0 +1,145 @@
+{
+  "id": "R11",
+  "business_type": "bakery",
+  "kind": "purchases",
+  "what_it_tests": "money flowing out, not in: supplier purchases with unit cost and payment status",
+  "app_should": "call this spending, not revenue, and report what is still unpaid by supplier",
+  "generated_by": "scripts/make_review_datasets.py",
+  "seed": 20261103,
+  "files": {
+    "bakery_purchases.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "total_cost = quantity x unit_cost; no selling price anywhere",
+      "rows": 700,
+      "columns": 11,
+      "column_names": [
+        "purchase_id",
+        "purchase_date",
+        "supplier",
+        "item",
+        "quantity",
+        "unit",
+        "unit_cost",
+        "total_cost",
+        "payment_status",
+        "invoice_no",
+        "due_date"
+      ],
+      "missing_per_column": {
+        "purchase_id": 0,
+        "purchase_date": 0,
+        "supplier": 0,
+        "item": 0,
+        "quantity": 0,
+        "unit": 0,
+        "unit_cost": 0,
+        "total_cost": 0,
+        "payment_status": 0,
+        "invoice_no": 0,
+        "due_date": 0
+      },
+      "exact_duplicate_rows": 0
+    }
+  },
+  "cleaning_applied": [],
+  "answers": {
+    "row_count": {
+      "bakery_purchases.csv": 700
+    },
+    "main_total": {
+      "file": "bakery_purchases.csv",
+      "column": "total_cost",
+      "means": "money spent on purchases",
+      "value": 5662764.92,
+      "rows_counted": 700,
+      "mean": 8089.66
+    },
+    "top_3_main_category": {
+      "file": "bakery_purchases.csv",
+      "group_by": "supplier",
+      "ranked_by": "total_cost",
+      "items": [
+        {
+          "name": "Nuts & More",
+          "total": 1266326.26
+        },
+        {
+          "name": "PackRight",
+          "total": 1159487.5
+        },
+        {
+          "name": "Sweet Supplies Co",
+          "total": 1153091.21
+        }
+      ]
+    },
+    "top_3_items_by_spend": {
+      "file": "bakery_purchases.csv",
+      "group_by": "item",
+      "ranked_by": "total_cost",
+      "items": [
+        {
+          "name": "Cocoa 2kg",
+          "total": 717896.8
+        },
+        {
+          "name": "Cream 1L",
+          "total": 672951.07
+        },
+        {
+          "name": "Almonds 1kg",
+          "total": 609529.58
+        }
+      ]
+    },
+    "spend_by_payment_status": {
+      "file": "bakery_purchases.csv",
+      "group_by": "payment_status",
+      "ranked_by": "total_cost",
+      "items": [
+        {
+          "name": "Paid",
+          "total": 3994588.75
+        },
+        {
+          "name": "Pending",
+          "total": 1343736.52
+        },
+        {
+          "name": "Partially paid",
+          "total": 324439.65
+        }
+      ]
+    },
+    "distinct_key_counts": {
+      "bakery_purchases.csv.purchase_id": 700,
+      "bakery_purchases.csv.supplier": 5,
+      "bakery_purchases.csv.item": 10,
+      "bakery_purchases.csv.invoice_no": 674
+    },
+    "duplicates": {
+      "bakery_purchases.csv": {
+        "exact_duplicate_rows": 0
+      }
+    },
+    "missing_values_per_column": {
+      "bakery_purchases.csv": {
+        "purchase_id": 0,
+        "purchase_date": 0,
+        "supplier": 0,
+        "item": 0,
+        "quantity": 0,
+        "unit": 0,
+        "unit_cost": 0,
+        "total_cost": 0,
+        "payment_status": 0,
+        "invoice_no": 0,
+        "due_date": 0
+      }
+    },
+    "this_is_spending_not_revenue": true,
+    "unpaid_amount": 1668176.17,
+    "unpaid_purchase_count": 206
+  }
+}

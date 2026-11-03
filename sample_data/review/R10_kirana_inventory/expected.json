@@ -1,0 +1,110 @@
+{
+  "id": "R10",
+  "business_type": "kirana store",
+  "kind": "inventory",
+  "what_it_tests": "stock levels with no money column at all: quantities, reorder levels, restock dates and damage",
+  "app_should": "recognise this is stock and not sales, report what is below its reorder level and what is damaged, and never report revenue",
+  "generated_by": "scripts/make_review_datasets.py",
+  "seed": 20261103,
+  "files": {
+    "kirana_inventory.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "no price, cost or amount column exists; qty_on_hand is the main measure",
+      "rows": 420,
+      "columns": 10,
+      "column_names": [
+        "item_code",
+        "item",
+        "category",
+        "unit",
+        "qty_on_hand",
+        "reorder_level",
+        "last_restocked",
+        "damaged_units",
+        "shelf",
+        "supplier"
+      ],
+      "missing_per_column": {
+        "item_code": 0,
+        "item": 0,
+        "category": 0,
+        "unit": 0,
+        "qty_on_hand": 0,
+        "reorder_level": 0,
+        "last_restocked": 0,
+        "damaged_units": 0,
+        "shelf": 0,
+        "supplier": 0
+      },
+      "exact_duplicate_rows": 0
+    }
+  },
+  "cleaning_applied": [],
+  "answers": {
+    "row_count": {
+      "kirana_inventory.csv": 420
+    },
+    "main_total": {
+      "file": "kirana_inventory.csv",
+      "column": "qty_on_hand",
+      "means": "units in stock (a quantity, not money)",
+      "value": 8722.0,
+      "rows_counted": 420,
+      "mean": 20.77
+    },
+    "top_3_main_category": {
+      "file": "kirana_inventory.csv",
+      "group_by": "category",
+      "ranked_by": "qty_on_hand",
+      "items": [
+        {
+          "name": "Personal Care",
+          "total": 1915.0
+        },
+        {
+          "name": "Household",
+          "total": 1812.0
+        },
+        {
+          "name": "Dairy",
+          "total": 1506.0
+        }
+      ]
+    },
+    "distinct_key_counts": {
+      "kirana_inventory.csv.item_code": 420,
+      "kirana_inventory.csv.category": 6,
+      "kirana_inventory.csv.supplier": 4
+    },
+    "total_damaged_units": {
+      "file": "kirana_inventory.csv",
+      "column": "damaged_units",
+      "means": "units written off as damaged",
+      "value": 386.0
+    },
+    "duplicates": {
+      "kirana_inventory.csv": {
+        "exact_duplicate_rows": 0
+      }
+    },
+    "missing_values_per_column": {
+      "kirana_inventory.csv": {
+        "item_code": 0,
+        "item": 0,
+        "category": 0,
+        "unit": 0,
+        "qty_on_hand": 0,
+        "reorder_level": 0,
+        "last_restocked": 0,
+        "damaged_units": 0,
+        "shelf": 0,
+        "supplier": 0
+      }
+    },
+    "money_columns_present": [],
+    "items_at_or_below_reorder_level": 215,
+    "items_out_of_stock": 72,
+    "items_with_any_damage": 183
+  }
+}

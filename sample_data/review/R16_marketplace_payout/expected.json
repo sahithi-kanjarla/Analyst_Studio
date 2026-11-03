@@ -1,0 +1,153 @@
+{
+  "id": "R16",
+  "business_type": "electronics seller",
+  "kind": "payout",
+  "what_it_tests": "a settlement statement where the money received is not the sale amount: four fee columns, GST on the fees, and negative adjustments",
+  "app_should": "report net payout and sale amount as different things, and not quietly treat sale_amount as what the seller received",
+  "generated_by": "scripts/make_review_datasets.py",
+  "seed": 20261103,
+  "files": {
+    "marketplace_settlement.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "net_payout = sale_amount - commission - shipping_fee - fixed_fee - gst_on_fees + adjustment; adjustment is negative on 90 rows",
+      "rows": 900,
+      "columns": 14,
+      "column_names": [
+        "settlement_id",
+        "order_id",
+        "order_date",
+        "settlement_date",
+        "sku",
+        "item",
+        "quantity",
+        "sale_amount",
+        "commission",
+        "shipping_fee",
+        "fixed_fee",
+        "gst_on_fees",
+        "adjustment",
+        "net_payout"
+      ],
+      "missing_per_column": {
+        "settlement_id": 0,
+        "order_id": 0,
+        "order_date": 0,
+        "settlement_date": 0,
+        "sku": 0,
+        "item": 0,
+        "quantity": 0,
+        "sale_amount": 0,
+        "commission": 0,
+        "shipping_fee": 0,
+        "fixed_fee": 0,
+        "gst_on_fees": 0,
+        "adjustment": 0,
+        "net_payout": 0
+      },
+      "exact_duplicate_rows": 0
+    }
+  },
+  "cleaning_applied": [],
+  "answers": {
+    "row_count": {
+      "marketplace_settlement.csv": 900
+    },
+    "main_total": {
+      "file": "marketplace_settlement.csv",
+      "column": "net_payout",
+      "means": "money actually received after fees and adjustments",
+      "value": 1285801.87,
+      "rows_counted": 900,
+      "mean": 1428.67
+    },
+    "top_3_main_category": {
+      "file": "marketplace_settlement.csv",
+      "group_by": "item",
+      "ranked_by": "net_payout",
+      "items": [
+        {
+          "name": "Smart Watch",
+          "total": 317195.64
+        },
+        {
+          "name": "Wireless Earbuds",
+          "total": 219030.17
+        },
+        {
+          "name": "Mechanical Keyboard",
+          "total": 195746.45
+        }
+      ]
+    },
+    "distinct_key_counts": {
+      "marketplace_settlement.csv.order_id": 900,
+      "marketplace_settlement.csv.sku": 12,
+      "marketplace_settlement.csv.settlement_id": 20
+    },
+    "total_sale_amount": {
+      "file": "marketplace_settlement.csv",
+      "column": "sale_amount",
+      "means": "what the customer paid, before fees",
+      "value": 1635703.0
+    },
+    "total_commission": {
+      "file": "marketplace_settlement.csv",
+      "column": "commission",
+      "means": "marketplace commission",
+      "value": 179927.33
+    },
+    "total_shipping_fee": {
+      "file": "marketplace_settlement.csv",
+      "column": "shipping_fee",
+      "means": "shipping charged by the marketplace",
+      "value": 48564.0
+    },
+    "total_fixed_fee": {
+      "file": "marketplace_settlement.csv",
+      "column": "fixed_fee",
+      "means": "fixed fee per order",
+      "value": 19800.0
+    },
+    "total_gst_on_fees": {
+      "file": "marketplace_settlement.csv",
+      "column": "gst_on_fees",
+      "means": "GST charged on the fees",
+      "value": 44692.2
+    },
+    "total_adjustment": {
+      "file": "marketplace_settlement.csv",
+      "column": "adjustment",
+      "means": "adjustments, mostly negative",
+      "value": -56917.6
+    },
+    "duplicates": {
+      "marketplace_settlement.csv": {
+        "exact_duplicate_rows": 0
+      }
+    },
+    "missing_values_per_column": {
+      "marketplace_settlement.csv": {
+        "settlement_id": 0,
+        "order_id": 0,
+        "order_date": 0,
+        "settlement_date": 0,
+        "sku": 0,
+        "item": 0,
+        "quantity": 0,
+        "sale_amount": 0,
+        "commission": 0,
+        "shipping_fee": 0,
+        "fixed_fee": 0,
+        "gst_on_fees": 0,
+        "adjustment": 0,
+        "net_payout": 0
+      }
+    },
+    "negative_adjustment_rows": 90,
+    "positive_adjustment_rows": 27,
+    "total_fees": 292983.53,
+    "fees_as_pct_of_sale": 17.91,
+    "net_payout_check": 1285801.87
+  }
+}

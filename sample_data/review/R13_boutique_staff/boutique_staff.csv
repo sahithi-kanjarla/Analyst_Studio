@@ -1,0 +1,61 @@
+employee_id,employee_name,role,branch,phone,email,date_of_birth,joining_date,monthly_pay,days_present,hours_worked,emergency_contact,city
+EMP001,Pooja Menon,Store manager,Baner,6412828938,pooja.menon5@example.com,1990-01-17,2024-07-18,40435.53,18,172,8364560348,Ahmedabad
+EMP002,Bilal Patel,Visual merchandiser,Koregaon Park,9522790597,bilal.patel69@example.com,1993-04-30,2022-02-23,26870.32,18,193,7864476285,Pune
+EMP003,Kiara Shetty,Store manager,Koregaon Park,8664584207,kiara.shetty51@example.com,1985-10-26,2023-05-03,37548.14,19,178,8294639610,Delhi
+EMP004,Rohan Nair,Cashier,Baner,8950972351,rohan.nair80@example.com,1992-08-02,2023-04-05,16947.36,26,177,9199893565,Hyderabad
+EMP005,Ritu Pillai,Helper,Baner,9246063009,ritu.pillai1@example.com,1998-06-27,2021-03-24,12509.59,25,191,6551012919,Nagpur
+EMP006,Sneha Das,Cashier,Baner,9224525433,sneha.das90@example.com,1994-08-11,2024-03-12,15906.78,26,133,8415155972,Chennai
+EMP007,Sana Joshi,Helper,Baner,8647515121,sana.joshi85@example.com,1998-08-10,2021-12-08,11624.66,22,147,7513429883,Chennai
+EMP008,Aarav Menon,Cashier,Baner,9485590033,aarav.menon20@example.com,1994-08-30,2022-07-18,17374.22,17,170,6776138392,Ahmedabad
+EMP009,Dev Patel,Tailor,FC Road,7584416654,dev.patel51@example.com,1987-04-26,2021-10-05,24704.49,21,194,6158752093,Nagpur
+EMP010,Diya Shetty,Sales associate,FC Road,6703350429,diya.shetty59@example.com,1990-11-11,2022-01-10,19156.48,25,145,7171406119,Jaipur
+EMP011,Vikram Menon,Sales associate,FC Road,8388027957,vikram.menon34@example.com,1992-11-28,2023-12-16,19825.72,21,122,9469815886,Chennai
+EMP012,Lakshmi Iyer,Store manager,Baner,8203793448,lakshmi.iyer98@example.com,1993-11-01,2023-08-25,36345.16,22,130,9760228821,Ahmedabad
+EMP013,Vikram Nair,Store manager,Baner,6100002647,vikram.nair93@example.com,1985-07-28,2023-07-23,40452.14,25,190,9977740221,Kochi
+EMP014,Kabir Singh,Store manager,Baner,7593429488,kabir.singh61@example.com,1990-06-30,2024-02-15,40589.62,19,158,9863934124,Jaipur
+EMP015,Arjun Nair,Tailor,Baner,8751512944,arjun.nair70@example.com,1990-06-13,2022-09-12,24647.23,19,147,8571822603,Hyderabad
+EMP016,Nitin Patel,Cashier,FC Road,7823499645,nitin.patel41@example.com,1989-12-15,2021-03-28,15961.29,24,162,7526446562,Delhi
+EMP017,Diya Iyer,Sales associate,Baner,9840434765,diya.iyer83@example.com,1985-01-13,2024-09-28,18548.92,19,205,6588752289,Pune
+EMP018,Nisha Menon,Visual merchandiser,Baner,9270230596,nisha.menon54@example.com,1988-12-22,2024-07-19,24646.49,18,204,7836818803,Ahmedabad
+EMP019,Imran Nair,Visual merchandiser,FC Road,9874051172,imran.nair2@example.com,1992-11-20,2024-04-07,29221.71,24,196,7973889898,Nagpur
+EMP020,Rahul Menon,Visual merchandiser,Baner,9570732278,rahul.menon73@example.com,1992-11-26,2023-09-16,24165.29,20,144,8850447167,Kochi
+EMP021,Imran Iyer,Sales associate,Koregaon Park,6241266465,imran.iyer74@example.com,1985-04-13,2023-08-04,19179.06,19,147,8553976668,Chennai
+EMP022,Anaya Nair,Store manager,Koregaon Park,8134780955,anaya.nair90@example.com,1998-07-17,2021-06-27,38011.25,18,156,9612531041,Kolkata
+EMP023,Zoya Khan,Visual merchandiser,FC Road,6299865480,zoya.khan50@example.com,1996-08-12,2022-03-04,27721.78,21,181,7179847392,Indore
+EMP024,Kabir Khan,Visual merchandiser,Baner,9657233247,kabir.khan11@example.com,1996-07-08,2025-01-24,24268.42,25,192,8401821405,Ahmedabad
+EMP025,Dev Joshi,Cashier,Baner,9267774656,dev.joshi94@example.com,1998-08-24,2022-12-03,16327.72,24,197,6283309154,Hyderabad
+EMP026,Meera Pillai,Helper,Baner,6742668881,meera.pillai8@example.com,1997-04-20,2023-10-15,11098.63,22,189,8849988342,Hyderabad
+EMP027,Kiara Chavan,Store manager,FC Road,8581560128,kiara.chavan47@example.com,1986-10-30,2024-11-22,39540.93,25,182,8975888097,Kolkata
+EMP028,Sneha Singh,Visual merchandiser,Baner,6385248852,sneha.singh32@example.com,1996-02-17,2022-04-12,26862.07,24,175,6587887145,Bengaluru
+EMP029,Gauri Sharma,Visual merchandiser,Baner,8603288825,gauri.sharma4@example.com,1987-01-08,2022-09-09,26046.54,26,128,9831793975,Bengaluru
+EMP030,Rohan Mehta,Helper,Baner,9932646852,rohan.mehta26@example.com,1996-11-02,2023-06-08,12645.14,17,182,8393136866,Jaipur
+EMP031,Zoya Khan,Tailor,FC Road,9405523225,zoya.khan20@example.com,1995-04-07,2021-12-16,20990.37,26,180,6403293143,Ahmedabad
+EMP032,Vihaan Patel,Visual merchandiser,Baner,8931110244,vihaan.patel55@example.com,1986-12-16,2023-03-22,24354.34,26,187,8214034579,Mumbai
+EMP033,Tara Shetty,Helper,Baner,9941383304,tara.shetty49@example.com,1996-10-20,2021-04-05,13535.75,20,148,8376793450,Mumbai
+EMP034,Sneha Mehta,Tailor,Koregaon Park,8634216099,sneha.mehta60@example.com,1996-06-23,2021-05-06,25114.1,26,175,8868634168,Pune
+EMP035,Zoya Singh,Tailor,Koregaon Park,7561517867,zoya.singh80@example.com,1985-12-21,2023-09-21,21586.17,18,141,8438235719,Chennai
+EMP036,Karan Ansari,Visual merchandiser,Baner,6929949846,karan.ansari45@example.com,1985-10-07,2021-09-20,29161.63,26,196,6103631605,Delhi
+EMP037,Vihaan Verma,Helper,Koregaon Park,6800687007,vihaan.verma59@example.com,1998-04-05,2024-02-12,11041.3,20,205,7703180797,Chennai
+EMP038,Kiara Mehta,Tailor,FC Road,7676713951,kiara.mehta38@example.com,1996-02-11,2022-10-05,23051.46,21,183,7869313671,Jaipur
+EMP039,Kiara Chavan,Visual merchandiser,Koregaon Park,7890205152,kiara.chavan25@example.com,1995-08-07,2022-07-19,28955.79,17,149,9136806775,Chennai
+EMP040,Kiara Singh,Sales associate,Baner,6456747472,kiara.singh65@example.com,1998-08-09,2024-03-28,17530.79,20,203,8117270790,Kochi
+EMP041,Gauri Mehta,Tailor,FC Road,6117228174,gauri.mehta25@example.com,1986-06-28,2023-12-03,20615.31,24,196,9245898670,Jaipur
+EMP042,Kiara Pillai,Store manager,Baner,9218179585,kiara.pillai29@example.com,1993-03-07,2024-02-07,41890.01,20,187,8726974746,Indore
+EMP043,Nisha Singh,Store manager,Koregaon Park,9704737227,nisha.singh52@example.com,1995-09-25,2024-04-14,42549.98,21,208,8852044841,Kolkata
+EMP044,Bilal Patel,Store manager,Koregaon Park,7662516900,bilal.patel71@example.com,1989-08-26,2021-02-25,43178.39,22,185,6749274103,Nagpur
+EMP045,Bilal Menon,Tailor,Baner,8416637420,bilal.menon3@example.com,1996-10-28,2022-03-02,24804.84,17,191,6981116945,Ahmedabad
+EMP046,Yash Verma,Store manager,Baner,8156078790,yash.verma42@example.com,1998-05-15,2021-06-02,41495.14,26,188,6612536248,Hyderabad
+EMP047,Lakshmi Singh,Sales associate,Koregaon Park,6689161083,lakshmi.singh40@example.com,1990-06-03,2024-11-20,17724.67,25,172,6827899436,Pune
+EMP048,Aarav Sharma,Cashier,Koregaon Park,8715247912,aarav.sharma92@example.com,1995-07-07,2025-01-18,16773.57,21,174,8679958791,Kochi
+EMP049,Rahul Pillai,Sales associate,Baner,7928529249,rahul.pillai22@example.com,1995-01-23,2022-08-21,18117.17,22,126,7264807395,Delhi
+EMP050,Kabir Shetty,Helper,Baner,7149900294,kabir.shetty84@example.com,1987-12-27,2021-09-06,13359.28,25,197,9779153061,Hyderabad
+EMP051,Aarav Verma,Helper,FC Road,7118306582,aarav.verma4@example.com,1997-06-09,2024-11-05,12974.86,18,136,7113146488,Kochi
+EMP052,Meera Khan,Sales associate,FC Road,9373224228,meera.khan84@example.com,1989-06-29,2022-07-08,19055.87,25,198,7549755440,Bengaluru
+EMP053,Pooja Bose,Sales associate,Baner,7266749218,pooja.bose47@example.com,1986-06-17,2021-12-02,17289.19,25,181,6457745874,Ahmedabad
+EMP054,Nisha Bose,Sales associate,Baner,7535003341,nisha.bose88@example.com,1989-04-28,2024-08-07,17924.01,21,192,6684387882,Kochi
+EMP055,Bilal Mehta,Store manager,Baner,8731848105,bilal.mehta27@example.com,1997-09-21,2023-11-02,38240.23,24,141,8646709645,Delhi
+EMP056,Asha Chavan,Cashier,Koregaon Park,9545138856,asha.chavan23@example.com,1987-05-25,2025-06-24,17012.52,24,127,6923438584,Bengaluru
+EMP057,Dev Chavan,Helper,FC Road,6326227320,dev.chavan56@example.com,1985-05-31,2022-04-01,13362.62,17,200,6278545387,Bengaluru
+EMP058,Rohan Menon,Cashier,FC Road,7957513059,rohan.menon99@example.com,1986-06-21,2025-04-03,15081.3,25,165,7419049822,Nagpur
+EMP059,Lakshmi Iyer,Store manager,Baner,9437783072,lakshmi.iyer19@example.com,1993-04-08,2025-07-31,41102.28,20,143,8987439244,Nagpur
+EMP060,Vihaan Khan,Visual merchandiser,FC Road,9965323109,vihaan.khan23@example.com,1986-12-27,2023-08-09,28405.49,24,203,9845229428,Nagpur

@@ -1,0 +1,255 @@
+{
+  "id": "M03",
+  "business_type": "kirana store",
+  "kind": "connected (5 files, one unrelated)",
+  "what_it_tests": "five files where four form a chain (orders -> order_lines -> items, orders -> customers) and the fifth, the electricity bill, joins to nothing",
+  "app_should": "link the four that connect, say plainly that the electricity bill shares no key with the rest, and not force a join",
+  "generated_by": "scripts/make_review_datasets.py",
+  "seed": 20261103,
+  "files": {
+    "orders.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "8 orders use customer_id K999, which is not in customers.csv",
+      "rows": 640,
+      "columns": 5,
+      "column_names": [
+        "order_id",
+        "order_date",
+        "customer_id",
+        "amount",
+        "payment_mode"
+      ],
+      "missing_per_column": {
+        "order_id": 0,
+        "order_date": 0,
+        "customer_id": 0,
+        "amount": 0,
+        "payment_mode": 0
+      },
+      "exact_duplicate_rows": 0
+    },
+    "order_lines.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "one row per item on an order",
+      "rows": 1273,
+      "columns": 6,
+      "column_names": [
+        "order_id",
+        "line_no",
+        "item_code",
+        "qty",
+        "rate",
+        "line_amount"
+      ],
+      "missing_per_column": {
+        "order_id": 0,
+        "line_no": 0,
+        "item_code": 0,
+        "qty": 0,
+        "rate": 0,
+        "line_amount": 0
+      },
+      "exact_duplicate_rows": 0
+    },
+    "items.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "the item master, 12 items",
+      "rows": 12,
+      "columns": 4,
+      "column_names": [
+        "item_code",
+        "item",
+        "category",
+        "unit"
+      ],
+      "missing_per_column": {
+        "item_code": 0,
+        "item": 0,
+        "category": 0,
+        "unit": 0
+      },
+      "exact_duplicate_rows": 0
+    },
+    "customers.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "130 customers",
+      "rows": 130,
+      "columns": 4,
+      "column_names": [
+        "customer_id",
+        "customer_name",
+        "area",
+        "khata"
+      ],
+      "missing_per_column": {
+        "customer_id": 0,
+        "customer_name": 0,
+        "area": 0,
+        "khata": 0
+      },
+      "exact_duplicate_rows": 0
+    },
+    "electricity_bills.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "joins to nothing: no order id, item code or customer id",
+      "rows": 14,
+      "columns": 5,
+      "column_names": [
+        "bill_month",
+        "meter_no",
+        "units_consumed",
+        "amount_paid",
+        "paid_on"
+      ],
+      "missing_per_column": {
+        "bill_month": 0,
+        "meter_no": 0,
+        "units_consumed": 0,
+        "amount_paid": 0,
+        "paid_on": 0
+      },
+      "exact_duplicate_rows": 0
+    }
+  },
+  "cleaning_applied": [],
+  "answers": {
+    "row_count": {
+      "orders.csv": 640,
+      "order_lines.csv": 1273,
+      "items.csv": 12,
+      "customers.csv": 130,
+      "electricity_bills.csv": 14
+    },
+    "main_total": {
+      "file": "orders.csv",
+      "column": "amount",
+      "means": "revenue from the order table",
+      "value": 714576.0,
+      "rows_counted": 640,
+      "mean": 1116.53
+    },
+    "distinct_key_counts": {
+      "orders.csv.order_id": 640,
+      "orders.csv.customer_id": 131,
+      "order_lines.csv.order_id": 640,
+      "order_lines.csv.item_code": 12,
+      "items.csv.item_code": 12,
+      "customers.csv.customer_id": 130
+    },
+    "order_lines_total": {
+      "file": "order_lines.csv",
+      "column": "line_amount",
+      "means": "revenue added up from the line table instead",
+      "value": 714576.0
+    },
+    "duplicates": {
+      "orders.csv": {
+        "exact_duplicate_rows": 0
+      },
+      "order_lines.csv": {
+        "exact_duplicate_rows": 0
+      },
+      "items.csv": {
+        "exact_duplicate_rows": 0
+      },
+      "customers.csv": {
+        "exact_duplicate_rows": 0
+      },
+      "electricity_bills.csv": {
+        "exact_duplicate_rows": 0
+      }
+    },
+    "missing_values_per_column": {
+      "orders.csv": {
+        "order_id": 0,
+        "order_date": 0,
+        "customer_id": 0,
+        "amount": 0,
+        "payment_mode": 0
+      },
+      "order_lines.csv": {
+        "order_id": 0,
+        "line_no": 0,
+        "item_code": 0,
+        "qty": 0,
+        "rate": 0,
+        "line_amount": 0
+      },
+      "items.csv": {
+        "item_code": 0,
+        "item": 0,
+        "category": 0,
+        "unit": 0
+      },
+      "customers.csv": {
+        "customer_id": 0,
+        "customer_name": 0,
+        "area": 0,
+        "khata": 0
+      },
+      "electricity_bills.csv": {
+        "bill_month": 0,
+        "meter_no": 0,
+        "units_consumed": 0,
+        "amount_paid": 0,
+        "paid_on": 0
+      }
+    },
+    "joins": [
+      {
+        "left": "order_lines.csv",
+        "right": "orders.csv",
+        "on": "order_id = order_id",
+        "left_rows": 1273,
+        "right_rows": 640,
+        "inner_join_rows": 1273,
+        "left_join_rows": 1273,
+        "left_rows_with_no_match": 0,
+        "unmatched_ids_in_left": [],
+        "unmatched_ids_in_right": [],
+        "repeated_key_values_in_right": [],
+        "note": "lines -> orders"
+      },
+      {
+        "left": "order_lines.csv",
+        "right": "items.csv",
+        "on": "item_code = item_code",
+        "left_rows": 1273,
+        "right_rows": 12,
+        "inner_join_rows": 1273,
+        "left_join_rows": 1273,
+        "left_rows_with_no_match": 0,
+        "unmatched_ids_in_left": [],
+        "unmatched_ids_in_right": [],
+        "repeated_key_values_in_right": [],
+        "note": "lines -> item master"
+      },
+      {
+        "left": "orders.csv",
+        "right": "customers.csv",
+        "on": "customer_id = customer_id",
+        "left_rows": 640,
+        "right_rows": 130,
+        "inner_join_rows": 632,
+        "left_join_rows": 640,
+        "left_rows_with_no_match": 8,
+        "unmatched_ids_in_left": [
+          "K999"
+        ],
+        "unmatched_ids_in_right": [],
+        "repeated_key_values_in_right": [],
+        "note": "orders -> customers; K999 is the orphan"
+      }
+    ],
+    "file_that_connects_to_nothing": "electricity_bills.csv",
+    "shared_columns_of_that_file": [],
+    "orders_with_unknown_customer": 8,
+    "order_total_matches_line_total": true,
+    "electricity_total_paid": 47310.37
+  }
+}

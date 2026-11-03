@@ -1,0 +1,1001 @@
+order_id,order_date,customer_name,customer_email,order_amount,order_shipping,order_payment_mode,line_no,product,product_code,craft_type,line_qty,line_unit_price,line_amount
+HC-4001,2026-09-01,Pooja Pillai,pooja.pillai92@example.com,3080,0.0,Card,1,Macrame Wall Hanging,HCF-MAC1,Textile,2,1150,2300
+HC-4001,2026-09-01,Pooja Pillai,pooja.pillai92@example.com,3080,0.0,COD,2,Bamboo Serving Tray,HCF-TRA1,Woodcraft,1,780,780
+HC-4002,2026-02-22,Faizan Reddy,faizan.reddy93@example.com,3300,0.0,UPI,1,Block Print Cushion,HCF-CUS1,Textile,3,450,1350
+HC-4002,2026-02-22,Faizan Reddy,faizan.reddy93@example.com,3300,0.0,UPI,2,Bamboo Serving Tray,HCF-TRA1,Woodcraft,1,780,780
+HC-4002,2026-02-22,Faizan Reddy,faizan.reddy93@example.com,3300,0.0,UPI,3,Beaded Necklace,HCF-NEC1,Jewellery,3,390,1170
+HC-4003,2026-04-10,Isha Chavan,isha.chavan8@example.com,4600,0.0,Card,1,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4003,2026-04-10,Isha Chavan,isha.chavan8@example.com,4600,0.0,UPI,2,Wooden Elephant,HCF-ELE1,Woodcraft,3,1250,3750
+HC-4004,2026-04-03,Yash Das,yash.das12@example.com,1540,90.0,UPI,1,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4004,2026-04-03,Yash Das,yash.das12@example.com,1540,90.0,COD,2,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4005,2026-07-29,Zoya Singh,zoya.singh46@example.com,450,90.0,Card,1,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4006,2026-07-22,Rahul Verma,rahul.verma63@example.com,10600,0.0,UPI,1,Madhubani Painting,HCF-MAD1,Art,3,2400,7200
+HC-4006,2026-07-22,Rahul Verma,rahul.verma63@example.com,10600,0.0,Card,2,Wooden Elephant,HCF-ELE1,Woodcraft,2,1250,2500
+HC-4006,2026-07-22,Rahul Verma,rahul.verma63@example.com,10600,0.0,Card,3,Block Print Cushion,HCF-CUS1,Textile,2,450,900
+HC-4007,2026-03-22,Bilal Chavan,bilal.chavan2@example.com,4050,0.0,UPI,1,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4007,2026-03-22,Bilal Chavan,bilal.chavan2@example.com,4050,0.0,COD,2,Warli Coasters,HCF-COA1,Art,3,360,1080
+HC-4007,2026-03-22,Bilal Chavan,bilal.chavan2@example.com,4050,0.0,COD,3,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4007,2026-03-22,Bilal Chavan,bilal.chavan2@example.com,4050,0.0,Card,4,Brass Diya Set,HCF-DIY1,Metalcraft,3,690,2070
+HC-4008,2026-07-30,Karan Chavan,karan.chavan53@example.com,2790,0.0,COD,1,Warli Coasters,HCF-COA1,Art,2,360,720
+HC-4008,2026-07-30,Karan Chavan,karan.chavan53@example.com,2790,0.0,Card,2,Brass Diya Set,HCF-DIY1,Metalcraft,3,690,2070
+HC-4009,2026-05-02,Anaya Shetty,anaya.shetty66@example.com,620,90.0,COD,1,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4010,2026-07-15,Vikram Ansari,vikram.ansari41@example.com,2760,0.0,COD,1,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4010,2026-07-15,Vikram Ansari,vikram.ansari41@example.com,2760,0.0,UPI,2,Brass Diya Set,HCF-DIY1,Metalcraft,3,690,2070
+HC-4011,2026-08-04,Diya Reddy,diya.reddy72@example.com,1860,90.0,UPI,1,Clay Pot Set,HCF-POT1,Pottery,3,620,1860
+HC-4012,2026-03-17,Bilal Pillai,bilal.pillai61@example.com,2400,0.0,UPI,1,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4013,2026-06-06,Kabir Kulkarni,kabir.kulkarni63@example.com,1950,90.0,UPI,1,Beaded Necklace,HCF-NEC1,Jewellery,3,390,1170
+HC-4013,2026-06-06,Kabir Kulkarni,kabir.kulkarni63@example.com,1950,90.0,Card,2,Bamboo Serving Tray,HCF-TRA1,Woodcraft,1,780,780
+HC-4014,2026-02-23,Meera Reddy,meera.reddy13@example.com,7420,0.0,COD,1,Dhokra Figurine,HCF-DHO1,Metalcraft,2,1680,3360
+HC-4014,2026-02-23,Meera Reddy,meera.reddy13@example.com,7420,0.0,COD,2,Clay Pot Set,HCF-POT1,Pottery,3,620,1860
+HC-4014,2026-02-23,Meera Reddy,meera.reddy13@example.com,7420,0.0,UPI,3,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4014,2026-02-23,Meera Reddy,meera.reddy13@example.com,7420,0.0,COD,4,Block Print Cushion,HCF-CUS1,Textile,3,450,1350
+HC-4015,2026-08-06,Asha Sharma,asha.sharma56@example.com,3400,0.0,COD,1,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4015,2026-08-06,Asha Sharma,asha.sharma56@example.com,3400,0.0,COD,2,Terracotta Vase,HCF-VAS1,Pottery,3,850,2550
+HC-4016,2026-02-22,Lakshmi Chavan,lakshmi.chavan47@example.com,1680,90.0,Card,1,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4017,2026-05-20,Anaya Chavan,anaya.chavan18@example.com,2420,0.0,UPI,1,Block Print Cushion,HCF-CUS1,Textile,3,450,1350
+HC-4017,2026-05-20,Anaya Chavan,anaya.chavan18@example.com,2420,0.0,Card,2,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4017,2026-05-20,Anaya Chavan,anaya.chavan18@example.com,2420,0.0,UPI,3,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4018,2026-07-03,Nisha Kulkarni,nisha.kulkarni76@example.com,5880,0.0,Card,1,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4018,2026-07-03,Nisha Kulkarni,nisha.kulkarni76@example.com,5880,0.0,Card,2,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4018,2026-07-03,Nisha Kulkarni,nisha.kulkarni76@example.com,5880,0.0,UPI,3,Block Print Cushion,HCF-CUS1,Textile,3,450,1350
+HC-4018,2026-07-03,Nisha Kulkarni,nisha.kulkarni76@example.com,5880,0.0,COD,4,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4019,2026-03-13,Sneha Chavan,sneha.chavan81@example.com,4200,0.0,Card,1,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4019,2026-03-13,Sneha Chavan,sneha.chavan81@example.com,4200,0.0,COD,2,Wooden Elephant,HCF-ELE1,Woodcraft,3,1250,3750
+HC-4020,2026-04-01,Isha Iyer,isha.iyer38@example.com,2130,0.0,COD,1,Beaded Necklace,HCF-NEC1,Jewellery,2,390,780
+HC-4020,2026-04-01,Isha Iyer,isha.iyer38@example.com,2130,0.0,COD,2,Block Print Cushion,HCF-CUS1,Textile,3,450,1350
+HC-4021,2026-03-22,Sneha Verma,sneha.verma38@example.com,6110,0.0,Card,1,Macrame Wall Hanging,HCF-MAC1,Textile,2,1150,2300
+HC-4021,2026-03-22,Sneha Verma,sneha.verma38@example.com,6110,0.0,Card,2,Block Print Cushion,HCF-CUS1,Textile,3,450,1350
+HC-4021,2026-03-22,Sneha Verma,sneha.verma38@example.com,6110,0.0,UPI,3,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4021,2026-03-22,Sneha Verma,sneha.verma38@example.com,6110,0.0,UPI,4,Beaded Necklace,HCF-NEC1,Jewellery,2,390,780
+HC-4022,2026-08-26,Aarav Shetty,aarav.shetty19@example.com,2460,0.0,UPI,1,Block Print Cushion,HCF-CUS1,Textile,2,450,900
+HC-4022,2026-08-26,Aarav Shetty,aarav.shetty19@example.com,2460,0.0,COD,2,Bamboo Serving Tray,HCF-TRA1,Woodcraft,2,780,1560
+HC-4023,2026-06-22,Zoya Shetty,zoya.shetty24@example.com,6700,0.0,Card,1,Wooden Elephant,HCF-ELE1,Woodcraft,3,1250,3750
+HC-4023,2026-06-22,Zoya Shetty,zoya.shetty24@example.com,6700,0.0,UPI,2,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4023,2026-06-22,Zoya Shetty,zoya.shetty24@example.com,6700,0.0,UPI,3,Wooden Elephant,HCF-ELE1,Woodcraft,2,1250,2500
+HC-4024,2026-09-07,Sana Patel,sana.patel23@example.com,6630,0.0,COD,1,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4024,2026-09-07,Sana Patel,sana.patel23@example.com,6630,0.0,Card,2,Bamboo Serving Tray,HCF-TRA1,Woodcraft,1,780,780
+HC-4024,2026-09-07,Sana Patel,sana.patel23@example.com,6630,0.0,COD,3,Macrame Wall Hanging,HCF-MAC1,Textile,3,1150,3450
+HC-4025,2026-05-09,Omkar Shetty,omkar.shetty71@example.com,9420,0.0,COD,1,Bamboo Serving Tray,HCF-TRA1,Woodcraft,3,780,2340
+HC-4025,2026-05-09,Omkar Shetty,omkar.shetty71@example.com,9420,0.0,UPI,2,Warli Coasters,HCF-COA1,Art,1,360,360
+HC-4025,2026-05-09,Omkar Shetty,omkar.shetty71@example.com,9420,0.0,COD,3,Dhokra Figurine,HCF-DHO1,Metalcraft,2,1680,3360
+HC-4025,2026-05-09,Omkar Shetty,omkar.shetty71@example.com,9420,0.0,UPI,4,Dhokra Figurine,HCF-DHO1,Metalcraft,2,1680,3360
+HC-4026,2026-04-01,Kabir Gupta,kabir.gupta73@example.com,5540,0.0,Card,1,Bamboo Serving Tray,HCF-TRA1,Woodcraft,1,780,780
+HC-4026,2026-04-01,Kabir Gupta,kabir.gupta73@example.com,5540,0.0,Card,2,Wooden Elephant,HCF-ELE1,Woodcraft,3,1250,3750
+HC-4026,2026-04-01,Kabir Gupta,kabir.gupta73@example.com,5540,0.0,Card,3,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4026,2026-04-01,Kabir Gupta,kabir.gupta73@example.com,5540,0.0,UPI,4,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4027,2026-09-03,Tara Menon,tara.menon44@example.com,4140,0.0,COD,1,Macrame Wall Hanging,HCF-MAC1,Textile,3,1150,3450
+HC-4027,2026-09-03,Tara Menon,tara.menon44@example.com,4140,0.0,Card,2,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4028,2026-06-18,Vihaan Kulkarni,vihaan.kulkarni23@example.com,3830,0.0,UPI,1,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4028,2026-06-18,Vihaan Kulkarni,vihaan.kulkarni23@example.com,3830,0.0,Card,2,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4028,2026-06-18,Vihaan Kulkarni,vihaan.kulkarni23@example.com,3830,0.0,UPI,3,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4028,2026-06-18,Vihaan Kulkarni,vihaan.kulkarni23@example.com,3830,0.0,Card,4,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4029,2026-04-27,Vihaan Joshi,vihaan.joshi96@example.com,5650,0.0,Card,1,Madhubani Painting,HCF-MAD1,Art,2,2400,4800
+HC-4029,2026-04-27,Vihaan Joshi,vihaan.joshi96@example.com,5650,0.0,UPI,2,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4030,2026-04-26,Pooja Patel,pooja.patel34@example.com,450,90.0,Card,1,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4031,2026-08-29,Bilal Das,bilal.das38@example.com,2870,0.0,Card,1,Warli Coasters,HCF-COA1,Art,2,360,720
+HC-4031,2026-08-29,Bilal Das,bilal.das38@example.com,2870,0.0,UPI,2,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4031,2026-08-29,Bilal Das,bilal.das38@example.com,2870,0.0,Card,3,Warli Coasters,HCF-COA1,Art,1,360,360
+HC-4031,2026-08-29,Bilal Das,bilal.das38@example.com,2870,0.0,COD,4,Wooden Elephant,HCF-ELE1,Woodcraft,1,1250,1250
+HC-4032,2026-03-30,Meera Pillai,meera.pillai34@example.com,1680,90.0,COD,1,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4033,2026-05-20,Kiara Ansari,kiara.ansari50@example.com,5260,0.0,Card,1,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4033,2026-05-20,Kiara Ansari,kiara.ansari50@example.com,5260,0.0,UPI,2,Wooden Elephant,HCF-ELE1,Woodcraft,1,1250,1250
+HC-4033,2026-05-20,Kiara Ansari,kiara.ansari50@example.com,5260,0.0,Card,3,Wooden Elephant,HCF-ELE1,Woodcraft,1,1250,1250
+HC-4033,2026-05-20,Kiara Ansari,kiara.ansari50@example.com,5260,0.0,COD,4,Warli Coasters,HCF-COA1,Art,1,360,360
+HC-4034,2026-08-09,Imran Verma,imran.verma31@example.com,1400,90.0,Card,1,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4034,2026-08-09,Imran Verma,imran.verma31@example.com,1400,90.0,Card,2,Beaded Necklace,HCF-NEC1,Jewellery,2,390,780
+HC-4035,2026-05-24,Rahul Das,rahul.das75@example.com,1560,90.0,COD,1,Bamboo Serving Tray,HCF-TRA1,Woodcraft,2,780,1560
+HC-4036,2026-08-21,Isha Mehta,isha.mehta45@example.com,1250,90.0,COD,1,Wooden Elephant,HCF-ELE1,Woodcraft,1,1250,1250
+HC-4037,2026-07-16,Rahul Bose,rahul.bose43@example.com,2400,0.0,UPI,1,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4038,2026-06-12,Aarav Joshi,aarav.joshi78@example.com,3150,0.0,UPI,1,Macrame Wall Hanging,HCF-MAC1,Textile,2,1150,2300
+HC-4038,2026-06-12,Aarav Joshi,aarav.joshi78@example.com,3150,0.0,UPI,2,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4039,2026-05-15,Rahul Nair,rahul.nair88@example.com,690,90.0,COD,1,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4040,2026-05-02,Yash Kulkarni,yash.kulkarni50@example.com,1680,90.0,UPI,1,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4041,2026-05-09,Imran Pillai,imran.pillai80@example.com,540,90.0,COD,1,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4042,2026-04-14,Zoya Pillai,zoya.pillai70@example.com,4740,0.0,Card,1,Bamboo Serving Tray,HCF-TRA1,Woodcraft,3,780,2340
+HC-4042,2026-04-14,Zoya Pillai,zoya.pillai70@example.com,4740,0.0,Card,2,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4042,2026-04-14,Zoya Pillai,zoya.pillai70@example.com,4740,0.0,UPI,3,Wooden Elephant,HCF-ELE1,Woodcraft,1,1250,1250
+HC-4043,2026-07-02,Anaya Kulkarni,anaya.kulkarni68@example.com,540,90.0,UPI,1,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4044,2026-05-23,Diya Ansari,diya.ansari2@example.com,5830,0.0,COD,1,Bamboo Serving Tray,HCF-TRA1,Woodcraft,1,780,780
+HC-4044,2026-05-23,Diya Ansari,diya.ansari2@example.com,5830,0.0,UPI,2,Wooden Elephant,HCF-ELE1,Woodcraft,2,1250,2500
+HC-4044,2026-05-23,Diya Ansari,diya.ansari2@example.com,5830,0.0,COD,3,Terracotta Vase,HCF-VAS1,Pottery,2,850,1700
+HC-4044,2026-05-23,Diya Ansari,diya.ansari2@example.com,5830,0.0,UPI,4,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4045,2026-08-16,Diya Chavan,diya.chavan9@example.com,3330,0.0,UPI,1,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4045,2026-08-16,Diya Chavan,diya.chavan9@example.com,3330,0.0,Card,2,Clay Pot Set,HCF-POT1,Pottery,3,620,1860
+HC-4045,2026-08-16,Diya Chavan,diya.chavan9@example.com,3330,0.0,UPI,3,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4046,2026-07-08,Dev Sharma,dev.sharma3@example.com,2930,0.0,Card,1,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4046,2026-07-08,Dev Sharma,dev.sharma3@example.com,2930,0.0,UPI,2,Wooden Elephant,HCF-ELE1,Woodcraft,1,1250,1250
+HC-4047,2026-02-27,Imran Khan,imran.khan10@example.com,7200,0.0,Card,1,Madhubani Painting,HCF-MAD1,Art,3,2400,7200
+HC-4048,2026-06-11,Yash Iyer,yash.iyer15@example.com,1080,90.0,UPI,1,Jute Tote Bag,HCF-JUT1,Textile,2,540,1080
+HC-4049,2026-03-14,Gauri Joshi,gauri.joshi73@example.com,2030,0.0,Card,1,Bamboo Serving Tray,HCF-TRA1,Woodcraft,1,780,780
+HC-4049,2026-03-14,Gauri Joshi,gauri.joshi73@example.com,2030,0.0,UPI,2,Wooden Elephant,HCF-ELE1,Woodcraft,1,1250,1250
+HC-4050,2026-08-06,Pooja Iyer,pooja.iyer58@example.com,3240,0.0,COD,1,Bamboo Serving Tray,HCF-TRA1,Woodcraft,1,780,780
+HC-4050,2026-08-06,Pooja Iyer,pooja.iyer58@example.com,3240,0.0,COD,2,Bamboo Serving Tray,HCF-TRA1,Woodcraft,1,780,780
+HC-4050,2026-08-06,Pooja Iyer,pooja.iyer58@example.com,3240,0.0,Card,3,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4051,2026-03-28,Karan Joshi,karan.joshi79@example.com,9270,0.0,Card,1,Macrame Wall Hanging,HCF-MAC1,Textile,3,1150,3450
+HC-4051,2026-03-28,Karan Joshi,karan.joshi79@example.com,9270,0.0,Card,2,Dhokra Figurine,HCF-DHO1,Metalcraft,3,1680,5040
+HC-4051,2026-03-28,Karan Joshi,karan.joshi79@example.com,9270,0.0,COD,3,Beaded Necklace,HCF-NEC1,Jewellery,2,390,780
+HC-4052,2026-09-05,Sana Bose,sana.bose20@example.com,1680,90.0,UPI,1,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4053,2026-08-06,Pooja Chavan,pooja.chavan78@example.com,1610,90.0,Card,1,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4053,2026-08-06,Pooja Chavan,pooja.chavan78@example.com,1610,90.0,COD,2,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4053,2026-08-06,Pooja Chavan,pooja.chavan78@example.com,1610,90.0,Card,3,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4054,2026-06-07,Lakshmi Khan,lakshmi.khan47@example.com,540,90.0,UPI,1,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4055,2026-06-17,Omkar Gupta,omkar.gupta63@example.com,2480,0.0,Card,1,Warli Coasters,HCF-COA1,Art,3,360,1080
+HC-4055,2026-06-17,Omkar Gupta,omkar.gupta63@example.com,2480,0.0,COD,2,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4055,2026-06-17,Omkar Gupta,omkar.gupta63@example.com,2480,0.0,Card,3,Bamboo Serving Tray,HCF-TRA1,Woodcraft,1,780,780
+HC-4056,2026-06-01,Isha Pillai,isha.pillai28@example.com,2100,0.0,COD,1,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4056,2026-06-01,Isha Pillai,isha.pillai28@example.com,2100,0.0,UPI,2,Wooden Elephant,HCF-ELE1,Woodcraft,1,1250,1250
+HC-4057,2026-05-12,Anaya Chavan,anaya.chavan32@example.com,1400,90.0,COD,1,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4057,2026-05-12,Anaya Chavan,anaya.chavan32@example.com,1400,90.0,Card,2,Bamboo Serving Tray,HCF-TRA1,Woodcraft,1,780,780
+HC-4058,2026-04-17,Yash Mehta,yash.mehta99@example.com,6060,0.0,Card,1,Bamboo Serving Tray,HCF-TRA1,Woodcraft,3,780,2340
+HC-4058,2026-04-17,Yash Mehta,yash.mehta99@example.com,6060,0.0,COD,2,Warli Coasters,HCF-COA1,Art,1,360,360
+HC-4058,2026-04-17,Yash Mehta,yash.mehta99@example.com,6060,0.0,Card,3,Dhokra Figurine,HCF-DHO1,Metalcraft,2,1680,3360
+HC-4059,2026-08-10,Asha Rao,asha.rao61@example.com,780,90.0,COD,1,Beaded Necklace,HCF-NEC1,Jewellery,2,390,780
+HC-4060,2026-08-02,Ritu Mehta,ritu.mehta7@example.com,2930,0.0,UPI,1,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4060,2026-08-02,Ritu Mehta,ritu.mehta7@example.com,2930,0.0,COD,2,Wooden Elephant,HCF-ELE1,Woodcraft,1,1250,1250
+HC-4061,2026-03-24,Arjun Sharma,arjun.sharma69@example.com,1770,90.0,UPI,1,Jute Tote Bag,HCF-JUT1,Textile,2,540,1080
+HC-4061,2026-03-24,Arjun Sharma,arjun.sharma69@example.com,1770,90.0,Card,2,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4062,2026-07-06,Meera Chavan,meera.chavan77@example.com,2220,0.0,COD,1,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4062,2026-07-06,Meera Chavan,meera.chavan77@example.com,2220,0.0,UPI,2,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4063,2026-05-14,Gauri Rao,gauri.rao16@example.com,1410,90.0,COD,1,Warli Coasters,HCF-COA1,Art,2,360,720
+HC-4063,2026-05-14,Gauri Rao,gauri.rao16@example.com,1410,90.0,COD,2,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4064,2026-05-08,Isha Patel,isha.patel14@example.com,5250,0.0,UPI,1,Block Print Cushion,HCF-CUS1,Textile,2,450,900
+HC-4064,2026-05-08,Isha Patel,isha.patel14@example.com,5250,0.0,Card,2,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4064,2026-05-08,Isha Patel,isha.patel14@example.com,5250,0.0,COD,3,Dhokra Figurine,HCF-DHO1,Metalcraft,2,1680,3360
+HC-4064,2026-05-08,Isha Patel,isha.patel14@example.com,5250,0.0,COD,4,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4065,2026-03-26,Omkar Mehta,omkar.mehta22@example.com,2920,0.0,Card,1,Brass Diya Set,HCF-DIY1,Metalcraft,3,690,2070
+HC-4065,2026-03-26,Omkar Mehta,omkar.mehta22@example.com,2920,0.0,UPI,2,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4066,2026-03-19,Sneha Das,sneha.das85@example.com,1250,90.0,UPI,1,Wooden Elephant,HCF-ELE1,Woodcraft,1,1250,1250
+HC-4067,2026-06-08,Pooja Kulkarni,pooja.kulkarni43@example.com,1230,90.0,Card,1,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4067,2026-06-08,Pooja Kulkarni,pooja.kulkarni43@example.com,1230,90.0,UPI,2,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4068,2026-02-18,Vihaan Ansari,vihaan.ansari52@example.com,2300,0.0,UPI,1,Macrame Wall Hanging,HCF-MAC1,Textile,2,1150,2300
+HC-4069,2026-05-27,Zoya Iyer,zoya.iyer13@example.com,450,90.0,UPI,1,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4070,2026-04-10,Isha Joshi,isha.joshi87@example.com,3560,0.0,Card,1,Clay Pot Set,HCF-POT1,Pottery,3,620,1860
+HC-4070,2026-04-10,Isha Joshi,isha.joshi87@example.com,3560,0.0,Card,2,Terracotta Vase,HCF-VAS1,Pottery,2,850,1700
+HC-4071,2026-04-06,Bilal Bose,bilal.bose87@example.com,390,90.0,Card,1,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4072,2026-08-21,Sana Verma,sana.verma95@example.com,900,90.0,COD,1,Block Print Cushion,HCF-CUS1,Textile,2,450,900
+HC-4073,2026-05-09,Lakshmi Rao,lakshmi.rao50@example.com,690,90.0,UPI,1,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4074,2026-09-04,Zoya Patel,zoya.patel33@example.com,780,90.0,COD,1,Beaded Necklace,HCF-NEC1,Jewellery,2,390,780
+HC-4075,2026-08-28,Rohan Patel,rohan.patel92@example.com,2460,0.0,COD,1,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4075,2026-08-28,Rohan Patel,rohan.patel92@example.com,2460,0.0,Card,2,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4075,2026-08-28,Rohan Patel,rohan.patel92@example.com,2460,0.0,UPI,3,Jute Tote Bag,HCF-JUT1,Textile,3,540,1620
+HC-4076,2026-04-25,Vihaan Menon,vihaan.menon41@example.com,4600,0.0,Card,1,Wooden Elephant,HCF-ELE1,Woodcraft,3,1250,3750
+HC-4076,2026-04-25,Vihaan Menon,vihaan.menon41@example.com,4600,0.0,Card,2,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4077,2026-07-01,Anaya Singh,anaya.singh33@example.com,2500,0.0,UPI,1,Wooden Elephant,HCF-ELE1,Woodcraft,2,1250,2500
+HC-4078,2026-04-28,Faizan Kulkarni,faizan.kulkarni29@example.com,1560,90.0,COD,1,Bamboo Serving Tray,HCF-TRA1,Woodcraft,2,780,1560
+HC-4079,2026-06-10,Sana Shetty,sana.shetty21@example.com,3720,0.0,UPI,1,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4079,2026-06-10,Sana Shetty,sana.shetty21@example.com,3720,0.0,Card,2,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4079,2026-06-10,Sana Shetty,sana.shetty21@example.com,3720,0.0,COD,3,Bamboo Serving Tray,HCF-TRA1,Woodcraft,1,780,780
+HC-4079,2026-06-10,Sana Shetty,sana.shetty21@example.com,3720,0.0,Card,4,Wooden Elephant,HCF-ELE1,Woodcraft,1,1250,1250
+HC-4080,2026-04-08,Zoya Rao,zoya.rao69@example.com,780,90.0,COD,1,Bamboo Serving Tray,HCF-TRA1,Woodcraft,1,780,780
+HC-4081,2026-03-27,Pooja Menon,pooja.menon26@example.com,930,90.0,Card,1,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4081,2026-03-27,Pooja Menon,pooja.menon26@example.com,930,90.0,UPI,2,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4082,2026-03-14,Karan Iyer,karan.iyer90@example.com,2470,0.0,UPI,1,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4082,2026-03-14,Karan Iyer,karan.iyer90@example.com,2470,0.0,COD,2,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4082,2026-03-14,Karan Iyer,karan.iyer90@example.com,2470,0.0,Card,3,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4082,2026-03-14,Karan Iyer,karan.iyer90@example.com,2470,0.0,Card,4,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4083,2026-03-01,Aarav Kulkarni,aarav.kulkarni57@example.com,4500,0.0,COD,1,Warli Coasters,HCF-COA1,Art,1,360,360
+HC-4083,2026-03-01,Aarav Kulkarni,aarav.kulkarni57@example.com,4500,0.0,COD,2,Macrame Wall Hanging,HCF-MAC1,Textile,3,1150,3450
+HC-4083,2026-03-01,Aarav Kulkarni,aarav.kulkarni57@example.com,4500,0.0,COD,3,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4084,2026-06-06,Diya Iyer,diya.iyer51@example.com,2070,0.0,COD,1,Brass Diya Set,HCF-DIY1,Metalcraft,3,690,2070
+HC-4085,2026-03-22,Diya Bose,diya.bose19@example.com,5750,0.0,Card,1,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4085,2026-03-22,Diya Bose,diya.bose19@example.com,5750,0.0,Card,2,Wooden Elephant,HCF-ELE1,Woodcraft,3,1250,3750
+HC-4085,2026-03-22,Diya Bose,diya.bose19@example.com,5750,0.0,UPI,3,Wooden Elephant,HCF-ELE1,Woodcraft,1,1250,1250
+HC-4085,2026-03-22,Diya Bose,diya.bose19@example.com,5750,0.0,Card,4,Warli Coasters,HCF-COA1,Art,1,360,360
+HC-4086,2026-03-27,Arjun Mehta,arjun.mehta58@example.com,620,90.0,UPI,1,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4087,2026-08-22,Diya Rao,diya.rao19@example.com,1390,90.0,COD,1,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4087,2026-08-22,Diya Rao,diya.rao19@example.com,1390,90.0,UPI,2,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4088,2026-08-16,Faizan Nair,faizan.nair83@example.com,2530,0.0,Card,1,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4088,2026-08-16,Faizan Nair,faizan.nair83@example.com,2530,0.0,Card,2,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4089,2026-02-13,Bilal Gupta,bilal.gupta89@example.com,9110,0.0,COD,1,Bamboo Serving Tray,HCF-TRA1,Woodcraft,3,780,2340
+HC-4089,2026-02-13,Bilal Gupta,bilal.gupta89@example.com,9110,0.0,UPI,2,Wooden Elephant,HCF-ELE1,Woodcraft,1,1250,1250
+HC-4089,2026-02-13,Bilal Gupta,bilal.gupta89@example.com,9110,0.0,Card,3,Madhubani Painting,HCF-MAD1,Art,2,2400,4800
+HC-4089,2026-02-13,Bilal Gupta,bilal.gupta89@example.com,9110,0.0,Card,4,Warli Coasters,HCF-COA1,Art,2,360,720
+HC-4090,2026-07-24,Nisha Menon,nisha.menon84@example.com,1930,90.0,Card,1,Jute Tote Bag,HCF-JUT1,Textile,2,540,1080
+HC-4090,2026-07-24,Nisha Menon,nisha.menon84@example.com,1930,90.0,UPI,2,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4091,2026-07-25,Kabir Gupta,kabir.gupta40@example.com,2320,0.0,COD,1,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4091,2026-07-25,Kabir Gupta,kabir.gupta40@example.com,2320,0.0,COD,2,Bamboo Serving Tray,HCF-TRA1,Woodcraft,1,780,780
+HC-4091,2026-07-25,Kabir Gupta,kabir.gupta40@example.com,2320,0.0,Card,3,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4092,2026-02-12,Vikram Joshi,vikram.joshi63@example.com,2100,0.0,Card,1,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4092,2026-02-12,Vikram Joshi,vikram.joshi63@example.com,2100,0.0,Card,2,Bamboo Serving Tray,HCF-TRA1,Woodcraft,2,780,1560
+HC-4093,2026-05-27,Imran Khan,imran.khan63@example.com,900,90.0,UPI,1,Block Print Cushion,HCF-CUS1,Textile,2,450,900
+HC-4094,2026-07-12,Karan Gupta,karan.gupta21@example.com,5050,0.0,Card,1,Wooden Elephant,HCF-ELE1,Woodcraft,1,1250,1250
+HC-4094,2026-07-12,Karan Gupta,karan.gupta21@example.com,5050,0.0,Card,2,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4094,2026-07-12,Karan Gupta,karan.gupta21@example.com,5050,0.0,Card,3,Beaded Necklace,HCF-NEC1,Jewellery,2,390,780
+HC-4094,2026-07-12,Karan Gupta,karan.gupta21@example.com,5050,0.0,UPI,4,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4095,2026-09-07,Dev Patel,dev.patel22@example.com,1080,90.0,Card,1,Warli Coasters,HCF-COA1,Art,3,360,1080
+HC-4096,2026-06-16,Bilal Pillai,bilal.pillai21@example.com,850,90.0,COD,1,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4097,2026-03-12,Faizan Pillai,faizan.pillai77@example.com,3160,0.0,COD,1,Jute Tote Bag,HCF-JUT1,Textile,3,540,1620
+HC-4097,2026-03-12,Faizan Pillai,faizan.pillai77@example.com,3160,0.0,Card,2,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4097,2026-03-12,Faizan Pillai,faizan.pillai77@example.com,3160,0.0,COD,3,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4098,2026-07-23,Nitin Sharma,nitin.sharma85@example.com,4800,0.0,UPI,1,Madhubani Painting,HCF-MAD1,Art,2,2400,4800
+HC-4099,2026-06-13,Nitin Reddy,nitin.reddy64@example.com,2070,0.0,UPI,1,Brass Diya Set,HCF-DIY1,Metalcraft,3,690,2070
+HC-4100,2026-04-04,Nisha Sharma,nisha.sharma99@example.com,1320,90.0,Card,1,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4100,2026-04-04,Nisha Sharma,nisha.sharma99@example.com,1320,90.0,UPI,2,Beaded Necklace,HCF-NEC1,Jewellery,2,390,780
+HC-4101,2026-07-23,Diya Das,diya.das48@example.com,2020,0.0,COD,1,Clay Pot Set,HCF-POT1,Pottery,2,620,1240
+HC-4101,2026-07-23,Diya Das,diya.das48@example.com,2020,0.0,COD,2,Bamboo Serving Tray,HCF-TRA1,Woodcraft,1,780,780
+HC-4102,2026-03-28,Diya Joshi,diya.joshi70@example.com,7330,0.0,UPI,1,Clay Pot Set,HCF-POT1,Pottery,2,620,1240
+HC-4102,2026-03-28,Diya Joshi,diya.joshi70@example.com,7330,0.0,UPI,2,Dhokra Figurine,HCF-DHO1,Metalcraft,2,1680,3360
+HC-4102,2026-03-28,Diya Joshi,diya.joshi70@example.com,7330,0.0,COD,3,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4102,2026-03-28,Diya Joshi,diya.joshi70@example.com,7330,0.0,COD,4,Bamboo Serving Tray,HCF-TRA1,Woodcraft,3,780,2340
+HC-4103,2026-03-22,Karan Chavan,karan.chavan2@example.com,5420,0.0,COD,1,Madhubani Painting,HCF-MAD1,Art,2,2400,4800
+HC-4103,2026-03-22,Karan Chavan,karan.chavan2@example.com,5420,0.0,UPI,2,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4104,2026-07-07,Tara Sharma,tara.sharma70@example.com,6790,0.0,COD,1,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4104,2026-07-07,Tara Sharma,tara.sharma70@example.com,6790,0.0,UPI,2,Clay Pot Set,HCF-POT1,Pottery,3,620,1860
+HC-4104,2026-07-07,Tara Sharma,tara.sharma70@example.com,6790,0.0,UPI,3,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4104,2026-07-07,Tara Sharma,tara.sharma70@example.com,6790,0.0,Card,4,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4105,2026-02-24,Tara Verma,tara.verma18@example.com,4580,0.0,Card,1,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4105,2026-02-24,Tara Verma,tara.verma18@example.com,4580,0.0,COD,2,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4105,2026-02-24,Tara Verma,tara.verma18@example.com,4580,0.0,COD,3,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4105,2026-02-24,Tara Verma,tara.verma18@example.com,4580,0.0,Card,4,Beaded Necklace,HCF-NEC1,Jewellery,3,390,1170
+HC-4106,2026-03-03,Meera Kulkarni,meera.kulkarni27@example.com,3180,0.0,UPI,1,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4106,2026-03-03,Meera Kulkarni,meera.kulkarni27@example.com,3180,0.0,UPI,2,Beaded Necklace,HCF-NEC1,Jewellery,2,390,780
+HC-4107,2026-03-17,Faizan Verma,faizan.verma73@example.com,2600,0.0,UPI,1,Block Print Cushion,HCF-CUS1,Textile,3,450,1350
+HC-4107,2026-03-17,Faizan Verma,faizan.verma73@example.com,2600,0.0,Card,2,Wooden Elephant,HCF-ELE1,Woodcraft,1,1250,1250
+HC-4108,2026-05-04,Rohan Bose,rohan.bose19@example.com,4440,0.0,UPI,1,Warli Coasters,HCF-COA1,Art,3,360,1080
+HC-4108,2026-05-04,Rohan Bose,rohan.bose19@example.com,4440,0.0,Card,2,Dhokra Figurine,HCF-DHO1,Metalcraft,2,1680,3360
+HC-4109,2026-04-07,Bilal Joshi,bilal.joshi6@example.com,6760,0.0,COD,1,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4109,2026-04-07,Bilal Joshi,bilal.joshi6@example.com,6760,0.0,COD,2,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4109,2026-04-07,Bilal Joshi,bilal.joshi6@example.com,6760,0.0,Card,3,Macrame Wall Hanging,HCF-MAC1,Textile,2,1150,2300
+HC-4109,2026-04-07,Bilal Joshi,bilal.joshi6@example.com,6760,0.0,UPI,4,Macrame Wall Hanging,HCF-MAC1,Textile,3,1150,3450
+HC-4110,2026-09-03,Asha Khan,asha.khan4@example.com,5640,0.0,COD,1,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4110,2026-09-03,Asha Khan,asha.khan4@example.com,5640,0.0,COD,2,Terracotta Vase,HCF-VAS1,Pottery,2,850,1700
+HC-4110,2026-09-03,Asha Khan,asha.khan4@example.com,5640,0.0,UPI,3,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4110,2026-09-03,Asha Khan,asha.khan4@example.com,5640,0.0,UPI,4,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4111,2026-02-20,Faizan Joshi,faizan.joshi72@example.com,5840,0.0,COD,1,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4111,2026-02-20,Faizan Joshi,faizan.joshi72@example.com,5840,0.0,UPI,2,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4111,2026-02-20,Faizan Joshi,faizan.joshi72@example.com,5840,0.0,UPI,3,Clay Pot Set,HCF-POT1,Pottery,3,620,1860
+HC-4111,2026-02-20,Faizan Joshi,faizan.joshi72@example.com,5840,0.0,UPI,4,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4112,2026-07-23,Sneha Chavan,sneha.chavan79@example.com,1540,90.0,COD,1,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4112,2026-07-23,Sneha Chavan,sneha.chavan79@example.com,1540,90.0,UPI,2,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4113,2026-07-31,Karan Khan,karan.khan17@example.com,1620,90.0,COD,1,Jute Tote Bag,HCF-JUT1,Textile,3,540,1620
+HC-4114,2026-08-15,Dev Rao,dev.rao38@example.com,1250,90.0,Card,1,Wooden Elephant,HCF-ELE1,Woodcraft,1,1250,1250
+HC-4115,2026-03-17,Bilal Mehta,bilal.mehta54@example.com,2400,0.0,COD,1,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4116,2026-05-01,Rohan Pillai,rohan.pillai20@example.com,1070,90.0,UPI,1,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4116,2026-05-01,Rohan Pillai,rohan.pillai20@example.com,1070,90.0,UPI,2,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4117,2026-06-20,Rahul Mehta,rahul.mehta71@example.com,2450,0.0,COD,1,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4117,2026-06-20,Rahul Mehta,rahul.mehta71@example.com,2450,0.0,UPI,2,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4117,2026-06-20,Rahul Mehta,rahul.mehta71@example.com,2450,0.0,COD,3,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4117,2026-06-20,Rahul Mehta,rahul.mehta71@example.com,2450,0.0,Card,4,Warli Coasters,HCF-COA1,Art,1,360,360
+HC-4118,2026-08-08,Sana Mehta,sana.mehta71@example.com,2700,0.0,Card,1,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4118,2026-08-08,Sana Mehta,sana.mehta71@example.com,2700,0.0,UPI,2,Bamboo Serving Tray,HCF-TRA1,Woodcraft,2,780,1560
+HC-4118,2026-08-08,Sana Mehta,sana.mehta71@example.com,2700,0.0,Card,3,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4119,2026-07-31,Faizan Sharma,faizan.sharma50@example.com,2610,0.0,COD,1,Beaded Necklace,HCF-NEC1,Jewellery,3,390,1170
+HC-4119,2026-07-31,Faizan Sharma,faizan.sharma50@example.com,2610,0.0,Card,2,Warli Coasters,HCF-COA1,Art,3,360,1080
+HC-4119,2026-07-31,Faizan Sharma,faizan.sharma50@example.com,2610,0.0,UPI,3,Warli Coasters,HCF-COA1,Art,1,360,360
+HC-4120,2026-05-17,Kiara Gupta,kiara.gupta23@example.com,1250,90.0,COD,1,Wooden Elephant,HCF-ELE1,Woodcraft,1,1250,1250
+HC-4121,2026-08-14,Bilal Bose,bilal.bose53@example.com,4850,0.0,UPI,1,Terracotta Vase,HCF-VAS1,Pottery,3,850,2550
+HC-4121,2026-08-14,Bilal Bose,bilal.bose53@example.com,4850,0.0,UPI,2,Macrame Wall Hanging,HCF-MAC1,Textile,2,1150,2300
+HC-4122,2026-05-23,Meera Bose,meera.bose76@example.com,3650,0.0,UPI,1,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4122,2026-05-23,Meera Bose,meera.bose76@example.com,3650,0.0,COD,2,Bamboo Serving Tray,HCF-TRA1,Woodcraft,3,780,2340
+HC-4122,2026-05-23,Meera Bose,meera.bose76@example.com,3650,0.0,Card,3,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4123,2026-02-12,Aarav Bose,aarav.bose44@example.com,780,90.0,Card,1,Bamboo Serving Tray,HCF-TRA1,Woodcraft,1,780,780
+HC-4124,2026-08-23,Arjun Chavan,arjun.chavan46@example.com,1740,90.0,COD,1,Block Print Cushion,HCF-CUS1,Textile,3,450,1350
+HC-4124,2026-08-23,Arjun Chavan,arjun.chavan46@example.com,1740,90.0,UPI,2,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4125,2026-04-17,Imran Sharma,imran.sharma48@example.com,2500,0.0,Card,1,Wooden Elephant,HCF-ELE1,Woodcraft,1,1250,1250
+HC-4125,2026-04-17,Imran Sharma,imran.sharma48@example.com,2500,0.0,UPI,2,Wooden Elephant,HCF-ELE1,Woodcraft,1,1250,1250
+HC-4126,2026-06-22,Dev Bose,dev.bose9@example.com,5720,0.0,COD,1,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4126,2026-06-22,Dev Bose,dev.bose9@example.com,5720,0.0,COD,2,Wooden Elephant,HCF-ELE1,Woodcraft,1,1250,1250
+HC-4126,2026-06-22,Dev Bose,dev.bose9@example.com,5720,0.0,COD,3,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4126,2026-06-22,Dev Bose,dev.bose9@example.com,5720,0.0,Card,4,Jute Tote Bag,HCF-JUT1,Textile,3,540,1620
+HC-4127,2026-03-17,Gauri Menon,gauri.menon48@example.com,3010,0.0,UPI,1,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4127,2026-03-17,Gauri Menon,gauri.menon48@example.com,3010,0.0,COD,2,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4127,2026-03-17,Gauri Menon,gauri.menon48@example.com,3010,0.0,UPI,3,Terracotta Vase,HCF-VAS1,Pottery,2,850,1700
+HC-4128,2026-06-20,Faizan Pillai,faizan.pillai40@example.com,2790,0.0,UPI,1,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4128,2026-06-20,Faizan Pillai,faizan.pillai40@example.com,2790,0.0,COD,2,Bamboo Serving Tray,HCF-TRA1,Woodcraft,3,780,2340
+HC-4129,2026-03-13,Zoya Chavan,zoya.chavan83@example.com,5040,0.0,UPI,1,Dhokra Figurine,HCF-DHO1,Metalcraft,3,1680,5040
+HC-4130,2026-02-17,Kabir Ansari,kabir.ansari80@example.com,2070,0.0,COD,1,Brass Diya Set,HCF-DIY1,Metalcraft,3,690,2070
+HC-4131,2026-04-06,Pooja Shetty,pooja.shetty30@example.com,1010,90.0,Card,1,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4131,2026-04-06,Pooja Shetty,pooja.shetty30@example.com,1010,90.0,Card,2,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4132,2026-02-23,Diya Menon,diya.menon54@example.com,2350,0.0,UPI,1,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4132,2026-02-23,Diya Menon,diya.menon54@example.com,2350,0.0,COD,2,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4132,2026-02-23,Diya Menon,diya.menon54@example.com,2350,0.0,Card,3,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4132,2026-02-23,Diya Menon,diya.menon54@example.com,2350,0.0,COD,4,Warli Coasters,HCF-COA1,Art,1,360,360
+HC-4133,2026-08-07,Arjun Gupta,arjun.gupta71@example.com,2220,0.0,UPI,1,Warli Coasters,HCF-COA1,Art,1,360,360
+HC-4133,2026-08-07,Arjun Gupta,arjun.gupta71@example.com,2220,0.0,UPI,2,Beaded Necklace,HCF-NEC1,Jewellery,3,390,1170
+HC-4133,2026-08-07,Arjun Gupta,arjun.gupta71@example.com,2220,0.0,COD,3,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4134,2026-05-23,Kiara Menon,kiara.menon3@example.com,2150,0.0,Card,1,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4134,2026-05-23,Kiara Menon,kiara.menon3@example.com,2150,0.0,Card,2,Terracotta Vase,HCF-VAS1,Pottery,2,850,1700
+HC-4135,2026-04-21,Ritu Singh,ritu.singh92@example.com,4530,0.0,UPI,1,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4135,2026-04-21,Ritu Singh,ritu.singh92@example.com,4530,0.0,Card,2,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4135,2026-04-21,Ritu Singh,ritu.singh92@example.com,4530,0.0,UPI,3,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4136,2026-07-13,Omkar Pillai,omkar.pillai74@example.com,850,90.0,UPI,1,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4137,2026-08-03,Faizan Chavan,faizan.chavan10@example.com,2690,0.0,UPI,1,Jute Tote Bag,HCF-JUT1,Textile,3,540,1620
+HC-4137,2026-08-03,Faizan Chavan,faizan.chavan10@example.com,2690,0.0,Card,2,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4137,2026-08-03,Faizan Chavan,faizan.chavan10@example.com,2690,0.0,UPI,3,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4138,2026-06-12,Lakshmi Verma,lakshmi.verma86@example.com,4660,0.0,COD,1,Wooden Elephant,HCF-ELE1,Woodcraft,2,1250,2500
+HC-4138,2026-06-12,Lakshmi Verma,lakshmi.verma86@example.com,4660,0.0,UPI,2,Brass Diya Set,HCF-DIY1,Metalcraft,2,690,1380
+HC-4138,2026-06-12,Lakshmi Verma,lakshmi.verma86@example.com,4660,0.0,Card,3,Bamboo Serving Tray,HCF-TRA1,Woodcraft,1,780,780
+HC-4139,2026-02-13,Tara Sharma,tara.sharma55@example.com,9960,0.0,UPI,1,Macrame Wall Hanging,HCF-MAC1,Textile,3,1150,3450
+HC-4139,2026-02-13,Tara Sharma,tara.sharma55@example.com,9960,0.0,Card,2,Block Print Cushion,HCF-CUS1,Textile,3,450,1350
+HC-4139,2026-02-13,Tara Sharma,tara.sharma55@example.com,9960,0.0,COD,3,Madhubani Painting,HCF-MAD1,Art,2,2400,4800
+HC-4139,2026-02-13,Tara Sharma,tara.sharma55@example.com,9960,0.0,Card,4,Warli Coasters,HCF-COA1,Art,1,360,360
+HC-4140,2026-09-01,Nitin Nair,nitin.nair57@example.com,1700,90.0,UPI,1,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4140,2026-09-01,Nitin Nair,nitin.nair57@example.com,1700,90.0,UPI,2,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4141,2026-02-17,Nisha Sharma,nisha.sharma67@example.com,540,90.0,COD,1,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4142,2026-04-08,Lakshmi Das,lakshmi.das52@example.com,690,90.0,COD,1,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4143,2026-06-19,Meera Joshi,meera.joshi44@example.com,1230,90.0,COD,1,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4143,2026-06-19,Meera Joshi,meera.joshi44@example.com,1230,90.0,UPI,2,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4144,2026-02-24,Ritu Iyer,ritu.iyer68@example.com,4510,0.0,COD,1,Terracotta Vase,HCF-VAS1,Pottery,3,850,2550
+HC-4144,2026-02-24,Ritu Iyer,ritu.iyer68@example.com,4510,0.0,Card,2,Warli Coasters,HCF-COA1,Art,1,360,360
+HC-4144,2026-02-24,Ritu Iyer,ritu.iyer68@example.com,4510,0.0,UPI,3,Warli Coasters,HCF-COA1,Art,1,360,360
+HC-4144,2026-02-24,Ritu Iyer,ritu.iyer68@example.com,4510,0.0,COD,4,Clay Pot Set,HCF-POT1,Pottery,2,620,1240
+HC-4145,2026-07-21,Kabir Chavan,kabir.chavan64@example.com,540,90.0,UPI,1,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4146,2026-07-21,Nitin Singh,nitin.singh96@example.com,8650,0.0,Card,1,Wooden Elephant,HCF-ELE1,Woodcraft,3,1250,3750
+HC-4146,2026-07-21,Nitin Singh,nitin.singh96@example.com,8650,0.0,UPI,2,Block Print Cushion,HCF-CUS1,Textile,3,450,1350
+HC-4146,2026-07-21,Nitin Singh,nitin.singh96@example.com,8650,0.0,Card,3,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4146,2026-07-21,Nitin Singh,nitin.singh96@example.com,8650,0.0,Card,4,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4147,2026-08-15,Sana Joshi,sana.joshi72@example.com,1260,90.0,COD,1,Warli Coasters,HCF-COA1,Art,1,360,360
+HC-4147,2026-08-15,Sana Joshi,sana.joshi72@example.com,1260,90.0,Card,2,Block Print Cushion,HCF-CUS1,Textile,2,450,900
+HC-4148,2026-04-08,Isha Iyer,isha.iyer64@example.com,4800,0.0,COD,1,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4148,2026-04-08,Isha Iyer,isha.iyer64@example.com,4800,0.0,UPI,2,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4149,2026-04-04,Rohan Singh,rohan.singh46@example.com,390,90.0,COD,1,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4150,2026-08-10,Imran Mehta,imran.mehta33@example.com,1840,90.0,Card,1,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4150,2026-08-10,Imran Mehta,imran.mehta33@example.com,1840,90.0,Card,2,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4151,2026-04-12,Vihaan Joshi,vihaan.joshi86@example.com,2640,0.0,COD,1,Beaded Necklace,HCF-NEC1,Jewellery,3,390,1170
+HC-4151,2026-04-12,Vihaan Joshi,vihaan.joshi86@example.com,2640,0.0,COD,2,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4151,2026-04-12,Vihaan Joshi,vihaan.joshi86@example.com,2640,0.0,UPI,3,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4152,2026-03-21,Anaya Menon,anaya.menon46@example.com,5820,0.0,COD,1,Bamboo Serving Tray,HCF-TRA1,Woodcraft,1,780,780
+HC-4152,2026-03-21,Anaya Menon,anaya.menon46@example.com,5820,0.0,Card,2,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4152,2026-03-21,Anaya Menon,anaya.menon46@example.com,5820,0.0,Card,3,Dhokra Figurine,HCF-DHO1,Metalcraft,2,1680,3360
+HC-4153,2026-03-30,Meera Das,meera.das65@example.com,5490,0.0,Card,1,Block Print Cushion,HCF-CUS1,Textile,3,450,1350
+HC-4153,2026-03-30,Meera Das,meera.das65@example.com,5490,0.0,COD,2,Bamboo Serving Tray,HCF-TRA1,Woodcraft,1,780,780
+HC-4153,2026-03-30,Meera Das,meera.das65@example.com,5490,0.0,Card,3,Dhokra Figurine,HCF-DHO1,Metalcraft,2,1680,3360
+HC-4154,2026-06-16,Dev Joshi,dev.joshi8@example.com,4510,0.0,Card,1,Block Print Cushion,HCF-CUS1,Textile,2,450,900
+HC-4154,2026-06-16,Dev Joshi,dev.joshi8@example.com,4510,0.0,UPI,2,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4154,2026-06-16,Dev Joshi,dev.joshi8@example.com,4510,0.0,Card,3,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4154,2026-06-16,Dev Joshi,dev.joshi8@example.com,4510,0.0,Card,4,Warli Coasters,HCF-COA1,Art,1,360,360
+HC-4155,2026-03-14,Meera Mehta,meera.mehta35@example.com,4100,0.0,Card,1,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4155,2026-03-14,Meera Mehta,meera.mehta35@example.com,4100,0.0,UPI,2,Terracotta Vase,HCF-VAS1,Pottery,2,850,1700
+HC-4156,2026-03-01,Arjun Rao,arjun.rao97@example.com,4160,0.0,COD,1,Clay Pot Set,HCF-POT1,Pottery,3,620,1860
+HC-4156,2026-03-01,Arjun Rao,arjun.rao97@example.com,4160,0.0,Card,2,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4156,2026-03-01,Arjun Rao,arjun.rao97@example.com,4160,0.0,UPI,3,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4157,2026-08-16,Zoya Mehta,zoya.mehta42@example.com,4780,0.0,COD,1,Terracotta Vase,HCF-VAS1,Pottery,3,850,2550
+HC-4157,2026-08-16,Zoya Mehta,zoya.mehta42@example.com,4780,0.0,COD,2,Warli Coasters,HCF-COA1,Art,3,360,1080
+HC-4157,2026-08-16,Zoya Mehta,zoya.mehta42@example.com,4780,0.0,Card,3,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4158,2026-06-09,Vikram Menon,vikram.menon26@example.com,1440,90.0,Card,1,Warli Coasters,HCF-COA1,Art,1,360,360
+HC-4158,2026-06-09,Vikram Menon,vikram.menon26@example.com,1440,90.0,UPI,2,Jute Tote Bag,HCF-JUT1,Textile,2,540,1080
+HC-4159,2026-03-13,Pooja Rao,pooja.rao41@example.com,1540,90.0,UPI,1,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4159,2026-03-13,Pooja Rao,pooja.rao41@example.com,1540,90.0,COD,2,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4160,2026-02-28,Sana Rao,sana.rao70@example.com,2030,0.0,Card,1,Wooden Elephant,HCF-ELE1,Woodcraft,1,1250,1250
+HC-4160,2026-02-28,Sana Rao,sana.rao70@example.com,2030,0.0,Card,2,Bamboo Serving Tray,HCF-TRA1,Woodcraft,1,780,780
+HC-4161,2026-03-01,Dev Singh,dev.singh86@example.com,8490,0.0,COD,1,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4161,2026-03-01,Dev Singh,dev.singh86@example.com,8490,0.0,Card,2,Warli Coasters,HCF-COA1,Art,1,360,360
+HC-4161,2026-03-01,Dev Singh,dev.singh86@example.com,8490,0.0,UPI,3,Madhubani Painting,HCF-MAD1,Art,3,2400,7200
+HC-4161,2026-03-01,Dev Singh,dev.singh86@example.com,8490,0.0,Card,4,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4162,2026-03-16,Imran Reddy,imran.reddy59@example.com,850,90.0,UPI,1,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4163,2026-05-15,Nitin Patel,nitin.patel3@example.com,4400,0.0,UPI,1,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4163,2026-05-15,Nitin Patel,nitin.patel3@example.com,4400,0.0,COD,2,Wooden Elephant,HCF-ELE1,Woodcraft,1,1250,1250
+HC-4163,2026-05-15,Nitin Patel,nitin.patel3@example.com,4400,0.0,UPI,3,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4163,2026-05-15,Nitin Patel,nitin.patel3@example.com,4400,0.0,Card,4,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4164,2026-06-05,Vikram Rao,vikram.rao2@example.com,1250,90.0,Card,1,Wooden Elephant,HCF-ELE1,Woodcraft,1,1250,1250
+HC-4165,2026-05-20,Kiara Verma,kiara.verma59@example.com,1240,90.0,UPI,1,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4165,2026-05-20,Kiara Verma,kiara.verma59@example.com,1240,90.0,Card,2,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4166,2026-08-18,Tara Mehta,tara.mehta55@example.com,390,90.0,UPI,1,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4167,2026-08-20,Sneha Mehta,sneha.mehta69@example.com,3500,0.0,UPI,1,Bamboo Serving Tray,HCF-TRA1,Woodcraft,1,780,780
+HC-4167,2026-08-20,Sneha Mehta,sneha.mehta69@example.com,3500,0.0,Card,2,Wooden Elephant,HCF-ELE1,Woodcraft,1,1250,1250
+HC-4167,2026-08-20,Sneha Mehta,sneha.mehta69@example.com,3500,0.0,COD,3,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4167,2026-08-20,Sneha Mehta,sneha.mehta69@example.com,3500,0.0,UPI,4,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4168,2026-04-12,Aarav Joshi,aarav.joshi97@example.com,1540,90.0,Card,1,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4168,2026-04-12,Aarav Joshi,aarav.joshi97@example.com,1540,90.0,UPI,2,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4169,2026-07-10,Omkar Ansari,omkar.ansari7@example.com,4890,0.0,Card,1,Bamboo Serving Tray,HCF-TRA1,Woodcraft,1,780,780
+HC-4169,2026-07-10,Omkar Ansari,omkar.ansari7@example.com,4890,0.0,COD,2,Warli Coasters,HCF-COA1,Art,1,360,360
+HC-4169,2026-07-10,Omkar Ansari,omkar.ansari7@example.com,4890,0.0,UPI,3,Block Print Cushion,HCF-CUS1,Textile,3,450,1350
+HC-4169,2026-07-10,Omkar Ansari,omkar.ansari7@example.com,4890,0.0,COD,4,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4170,2026-06-30,Sana Nair,sana.nair17@example.com,8400,0.0,UPI,1,Dhokra Figurine,HCF-DHO1,Metalcraft,3,1680,5040
+HC-4170,2026-06-30,Sana Nair,sana.nair17@example.com,8400,0.0,UPI,2,Beaded Necklace,HCF-NEC1,Jewellery,2,390,780
+HC-4170,2026-06-30,Sana Nair,sana.nair17@example.com,8400,0.0,UPI,3,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4170,2026-06-30,Sana Nair,sana.nair17@example.com,8400,0.0,UPI,4,Block Print Cushion,HCF-CUS1,Textile,2,450,900
+HC-4171,2026-06-06,Sana Rao,sana.rao86@example.com,1470,90.0,UPI,1,Jute Tote Bag,HCF-JUT1,Textile,2,540,1080
+HC-4171,2026-06-06,Sana Rao,sana.rao86@example.com,1470,90.0,COD,2,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4172,2026-07-05,Rohan Verma,rohan.verma98@example.com,3550,0.0,Card,1,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4172,2026-07-05,Rohan Verma,rohan.verma98@example.com,3550,0.0,COD,2,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4173,2026-06-03,Ritu Gupta,ritu.gupta67@example.com,540,90.0,Card,1,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4174,2026-05-16,Meera Iyer,meera.iyer51@example.com,3180,0.0,UPI,1,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4174,2026-05-16,Meera Iyer,meera.iyer51@example.com,3180,0.0,Card,2,Bamboo Serving Tray,HCF-TRA1,Woodcraft,1,780,780
+HC-4175,2026-05-01,Sana Kulkarni,sana.kulkarni95@example.com,2070,0.0,COD,1,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4175,2026-05-01,Sana Kulkarni,sana.kulkarni95@example.com,2070,0.0,COD,2,Brass Diya Set,HCF-DIY1,Metalcraft,2,690,1380
+HC-4176,2026-08-31,Nitin Pillai,nitin.pillai55@example.com,4800,0.0,Card,1,Madhubani Painting,HCF-MAD1,Art,2,2400,4800
+HC-4177,2026-03-29,Pooja Khan,pooja.khan28@example.com,3550,0.0,COD,1,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4177,2026-03-29,Pooja Khan,pooja.khan28@example.com,3550,0.0,COD,2,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4178,2026-06-02,Kiara Mehta,kiara.mehta84@example.com,1150,90.0,Card,1,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4179,2026-07-26,Ritu Rao,ritu.rao15@example.com,1300,90.0,COD,1,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4179,2026-07-26,Ritu Rao,ritu.rao15@example.com,1300,90.0,UPI,2,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4180,2026-07-21,Omkar Mehta,omkar.mehta15@example.com,390,90.0,COD,1,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4181,2026-02-16,Arjun Menon,arjun.menon44@example.com,850,90.0,COD,1,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4182,2026-05-27,Aarav Joshi,aarav.joshi95@example.com,2320,0.0,Card,1,Beaded Necklace,HCF-NEC1,Jewellery,3,390,1170
+HC-4182,2026-05-27,Aarav Joshi,aarav.joshi95@example.com,2320,0.0,Card,2,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4183,2026-06-13,Zoya Das,zoya.das8@example.com,4470,0.0,COD,1,Bamboo Serving Tray,HCF-TRA1,Woodcraft,3,780,2340
+HC-4183,2026-06-13,Zoya Das,zoya.das8@example.com,4470,0.0,COD,2,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4183,2026-06-13,Zoya Das,zoya.das8@example.com,4470,0.0,Card,3,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4184,2026-04-30,Kabir Patel,kabir.patel81@example.com,1410,90.0,UPI,1,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4184,2026-04-30,Kabir Patel,kabir.patel81@example.com,1410,90.0,COD,2,Warli Coasters,HCF-COA1,Art,2,360,720
+HC-4185,2026-03-21,Arjun Ansari,arjun.ansari72@example.com,4750,0.0,UPI,1,Bamboo Serving Tray,HCF-TRA1,Woodcraft,2,780,1560
+HC-4185,2026-03-21,Arjun Ansari,arjun.ansari72@example.com,4750,0.0,COD,2,Warli Coasters,HCF-COA1,Art,1,360,360
+HC-4185,2026-03-21,Arjun Ansari,arjun.ansari72@example.com,4750,0.0,COD,3,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4185,2026-03-21,Arjun Ansari,arjun.ansari72@example.com,4750,0.0,Card,4,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4186,2026-08-23,Tara Pillai,tara.pillai42@example.com,7200,0.0,Card,1,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4186,2026-08-23,Tara Pillai,tara.pillai42@example.com,7200,0.0,Card,2,Clay Pot Set,HCF-POT1,Pottery,3,620,1860
+HC-4186,2026-08-23,Tara Pillai,tara.pillai42@example.com,7200,0.0,UPI,3,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4186,2026-08-23,Tara Pillai,tara.pillai42@example.com,7200,0.0,Card,4,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4187,2026-05-20,Kiara Joshi,kiara.joshi61@example.com,690,90.0,UPI,1,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4188,2026-06-22,Pooja Rao,pooja.rao76@example.com,1980,90.0,Card,1,Jute Tote Bag,HCF-JUT1,Textile,2,540,1080
+HC-4188,2026-06-22,Pooja Rao,pooja.rao76@example.com,1980,90.0,UPI,2,Block Print Cushion,HCF-CUS1,Textile,2,450,900
+HC-4189,2026-05-05,Vihaan Sharma,vihaan.sharma14@example.com,3920,0.0,COD,1,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4189,2026-05-05,Vihaan Sharma,vihaan.sharma14@example.com,3920,0.0,UPI,2,Block Print Cushion,HCF-CUS1,Textile,2,450,900
+HC-4189,2026-05-05,Vihaan Sharma,vihaan.sharma14@example.com,3920,0.0,UPI,3,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4190,2026-06-26,Nisha Khan,nisha.khan60@example.com,4100,0.0,UPI,1,Terracotta Vase,HCF-VAS1,Pottery,2,850,1700
+HC-4190,2026-06-26,Nisha Khan,nisha.khan60@example.com,4100,0.0,COD,2,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4191,2026-08-24,Yash Gupta,yash.gupta48@example.com,6490,0.0,UPI,1,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4191,2026-08-24,Yash Gupta,yash.gupta48@example.com,6490,0.0,UPI,2,Madhubani Painting,HCF-MAD1,Art,2,2400,4800
+HC-4191,2026-08-24,Yash Gupta,yash.gupta48@example.com,6490,0.0,UPI,3,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4192,2026-03-18,Tara Singh,tara.singh5@example.com,2470,0.0,Card,1,Beaded Necklace,HCF-NEC1,Jewellery,3,390,1170
+HC-4192,2026-03-18,Tara Singh,tara.singh5@example.com,2470,0.0,UPI,2,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4192,2026-03-18,Tara Singh,tara.singh5@example.com,2470,0.0,COD,3,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4193,2026-06-22,Ritu Rao,ritu.rao63@example.com,1510,90.0,UPI,1,Warli Coasters,HCF-COA1,Art,1,360,360
+HC-4193,2026-06-22,Ritu Rao,ritu.rao63@example.com,1510,90.0,Card,2,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4194,2026-08-25,Gauri Ansari,gauri.ansari5@example.com,4800,0.0,Card,1,Madhubani Painting,HCF-MAD1,Art,2,2400,4800
+HC-4195,2026-09-08,Kiara Pillai,kiara.pillai31@example.com,13470,0.0,COD,1,Bamboo Serving Tray,HCF-TRA1,Woodcraft,1,780,780
+HC-4195,2026-09-08,Kiara Pillai,kiara.pillai31@example.com,13470,0.0,UPI,2,Dhokra Figurine,HCF-DHO1,Metalcraft,3,1680,5040
+HC-4195,2026-09-08,Kiara Pillai,kiara.pillai31@example.com,13470,0.0,Card,3,Madhubani Painting,HCF-MAD1,Art,3,2400,7200
+HC-4195,2026-09-08,Kiara Pillai,kiara.pillai31@example.com,13470,0.0,Card,4,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4196,2026-02-15,Anaya Khan,anaya.khan71@example.com,450,90.0,Card,1,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4197,2026-02-18,Anaya Patel,anaya.patel64@example.com,1510,90.0,Card,1,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4197,2026-02-18,Anaya Patel,anaya.patel64@example.com,1510,90.0,COD,2,Warli Coasters,HCF-COA1,Art,1,360,360
+HC-4198,2026-05-19,Kiara Chavan,kiara.chavan89@example.com,2370,0.0,Card,1,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4198,2026-05-19,Kiara Chavan,kiara.chavan89@example.com,2370,0.0,UPI,2,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4199,2026-04-21,Vikram Joshi,vikram.joshi48@example.com,2940,0.0,UPI,1,Terracotta Vase,HCF-VAS1,Pottery,3,850,2550
+HC-4199,2026-04-21,Vikram Joshi,vikram.joshi48@example.com,2940,0.0,Card,2,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4200,2026-08-03,Ritu Menon,ritu.menon47@example.com,5090,0.0,COD,1,Wooden Elephant,HCF-ELE1,Woodcraft,1,1250,1250
+HC-4200,2026-08-03,Ritu Menon,ritu.menon47@example.com,5090,0.0,COD,2,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4200,2026-08-03,Ritu Menon,ritu.menon47@example.com,5090,0.0,Card,3,Block Print Cushion,HCF-CUS1,Textile,2,450,900
+HC-4200,2026-08-03,Ritu Menon,ritu.menon47@example.com,5090,0.0,Card,4,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4201,2026-02-28,Bilal Patel,bilal.patel35@example.com,1010,90.0,Card,1,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4201,2026-02-28,Bilal Patel,bilal.patel35@example.com,1010,90.0,COD,2,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4202,2026-05-07,Vikram Bose,vikram.bose2@example.com,3480,0.0,COD,1,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4202,2026-05-07,Vikram Bose,vikram.bose2@example.com,3480,0.0,UPI,2,Jute Tote Bag,HCF-JUT1,Textile,2,540,1080
+HC-4203,2026-03-02,Rohan Singh,rohan.singh64@example.com,1930,90.0,Card,1,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4203,2026-03-02,Rohan Singh,rohan.singh64@example.com,1930,90.0,COD,2,Jute Tote Bag,HCF-JUT1,Textile,2,540,1080
+HC-4204,2026-03-08,Meera Das,meera.das94@example.com,3630,0.0,Card,1,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4204,2026-03-08,Meera Das,meera.das94@example.com,3630,0.0,COD,2,Terracotta Vase,HCF-VAS1,Pottery,2,850,1700
+HC-4204,2026-03-08,Meera Das,meera.das94@example.com,3630,0.0,COD,3,Clay Pot Set,HCF-POT1,Pottery,2,620,1240
+HC-4205,2026-05-28,Tara Ansari,tara.ansari25@example.com,2130,0.0,Card,1,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4205,2026-05-28,Tara Ansari,tara.ansari25@example.com,2130,0.0,Card,2,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4206,2026-02-28,Asha Reddy,asha.reddy18@example.com,4140,0.0,UPI,1,Macrame Wall Hanging,HCF-MAC1,Textile,3,1150,3450
+HC-4206,2026-02-28,Asha Reddy,asha.reddy18@example.com,4140,0.0,UPI,2,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4207,2026-06-25,Meera Menon,meera.menon64@example.com,9500,0.0,COD,1,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4207,2026-06-25,Meera Menon,meera.menon64@example.com,9500,0.0,UPI,2,Madhubani Painting,HCF-MAD1,Art,3,2400,7200
+HC-4207,2026-06-25,Meera Menon,meera.menon64@example.com,9500,0.0,UPI,3,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4208,2026-07-30,Rohan Pillai,rohan.pillai56@example.com,1240,90.0,Card,1,Clay Pot Set,HCF-POT1,Pottery,2,620,1240
+HC-4209,2026-02-15,Arjun Bose,arjun.bose11@example.com,3360,0.0,UPI,1,Dhokra Figurine,HCF-DHO1,Metalcraft,2,1680,3360
+HC-4210,2026-07-20,Gauri Das,gauri.das67@example.com,780,90.0,UPI,1,Beaded Necklace,HCF-NEC1,Jewellery,2,390,780
+HC-4211,2026-03-26,Diya Shetty,diya.shetty55@example.com,1080,90.0,Card,1,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4211,2026-03-26,Diya Shetty,diya.shetty55@example.com,1080,90.0,COD,2,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4212,2026-09-02,Imran Patel,imran.patel6@example.com,450,90.0,Card,1,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4213,2026-04-12,Pooja Pillai,pooja.pillai40@example.com,2340,0.0,UPI,1,Bamboo Serving Tray,HCF-TRA1,Woodcraft,3,780,2340
+HC-4214,2026-05-13,Zoya Ansari,zoya.ansari36@example.com,4350,0.0,COD,1,Clay Pot Set,HCF-POT1,Pottery,3,620,1860
+HC-4214,2026-05-13,Zoya Ansari,zoya.ansari36@example.com,4350,0.0,COD,2,Beaded Necklace,HCF-NEC1,Jewellery,3,390,1170
+HC-4214,2026-05-13,Zoya Ansari,zoya.ansari36@example.com,4350,0.0,UPI,3,Bamboo Serving Tray,HCF-TRA1,Woodcraft,1,780,780
+HC-4214,2026-05-13,Zoya Ansari,zoya.ansari36@example.com,4350,0.0,Card,4,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4215,2026-05-16,Rahul Patel,rahul.patel90@example.com,2530,0.0,COD,1,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4215,2026-05-16,Rahul Patel,rahul.patel90@example.com,2530,0.0,COD,2,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4216,2026-08-14,Asha Nair,asha.nair17@example.com,3060,0.0,UPI,1,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4216,2026-08-14,Asha Nair,asha.nair17@example.com,3060,0.0,UPI,2,Brass Diya Set,HCF-DIY1,Metalcraft,2,690,1380
+HC-4217,2026-05-21,Dev Mehta,dev.mehta67@example.com,450,90.0,Card,1,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4218,2026-05-18,Bilal Gupta,bilal.gupta93@example.com,450,90.0,Card,1,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4219,2026-07-15,Tara Kulkarni,tara.kulkarni40@example.com,450,90.0,UPI,1,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4220,2026-02-28,Yash Iyer,yash.iyer18@example.com,3450,0.0,Card,1,Macrame Wall Hanging,HCF-MAC1,Textile,3,1150,3450
+HC-4221,2026-07-08,Rohan Khan,rohan.khan76@example.com,2500,0.0,Card,1,Wooden Elephant,HCF-ELE1,Woodcraft,2,1250,2500
+HC-4222,2026-04-07,Faizan Joshi,faizan.joshi33@example.com,1240,90.0,UPI,1,Clay Pot Set,HCF-POT1,Pottery,2,620,1240
+HC-4223,2026-03-30,Rahul Singh,rahul.singh83@example.com,1770,90.0,Card,1,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4223,2026-03-30,Rahul Singh,rahul.singh83@example.com,1770,90.0,COD,2,Jute Tote Bag,HCF-JUT1,Textile,2,540,1080
+HC-4224,2026-08-18,Yash Bose,yash.bose40@example.com,1700,90.0,Card,1,Terracotta Vase,HCF-VAS1,Pottery,2,850,1700
+HC-4225,2026-03-10,Bilal Nair,bilal.nair38@example.com,4360,0.0,COD,1,Bamboo Serving Tray,HCF-TRA1,Woodcraft,1,780,780
+HC-4225,2026-03-10,Bilal Nair,bilal.nair38@example.com,4360,0.0,UPI,2,Warli Coasters,HCF-COA1,Art,3,360,1080
+HC-4225,2026-03-10,Bilal Nair,bilal.nair38@example.com,4360,0.0,UPI,3,Wooden Elephant,HCF-ELE1,Woodcraft,2,1250,2500
+HC-4226,2026-02-22,Vihaan Rao,vihaan.rao39@example.com,450,90.0,COD,1,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4227,2026-04-11,Dev Iyer,dev.iyer11@example.com,2790,0.0,COD,1,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4227,2026-04-11,Dev Iyer,dev.iyer11@example.com,2790,0.0,UPI,2,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4228,2026-08-04,Diya Nair,diya.nair95@example.com,1160,90.0,UPI,1,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4228,2026-08-04,Diya Nair,diya.nair95@example.com,1160,90.0,Card,2,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4229,2026-08-24,Gauri Bose,gauri.bose13@example.com,5980,0.0,COD,1,Warli Coasters,HCF-COA1,Art,3,360,1080
+HC-4229,2026-08-24,Gauri Bose,gauri.bose13@example.com,5980,0.0,COD,2,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4229,2026-08-24,Gauri Bose,gauri.bose13@example.com,5980,0.0,COD,3,Block Print Cushion,HCF-CUS1,Textile,3,450,1350
+HC-4229,2026-08-24,Gauri Bose,gauri.bose13@example.com,5980,0.0,UPI,4,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4230,2026-07-15,Asha Verma,asha.verma1@example.com,4700,0.0,UPI,1,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4230,2026-07-15,Asha Verma,asha.verma1@example.com,4700,0.0,Card,2,Macrame Wall Hanging,HCF-MAC1,Textile,2,1150,2300
+HC-4231,2026-08-22,Kabir Shetty,kabir.shetty62@example.com,2230,0.0,Card,1,Jute Tote Bag,HCF-JUT1,Textile,2,540,1080
+HC-4231,2026-08-22,Kabir Shetty,kabir.shetty62@example.com,2230,0.0,COD,2,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4232,2026-05-19,Arjun Menon,arjun.menon12@example.com,11170,0.0,COD,1,Warli Coasters,HCF-COA1,Art,2,360,720
+HC-4232,2026-05-19,Arjun Menon,arjun.menon12@example.com,11170,0.0,COD,2,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4232,2026-05-19,Arjun Menon,arjun.menon12@example.com,11170,0.0,UPI,3,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4232,2026-05-19,Arjun Menon,arjun.menon12@example.com,11170,0.0,UPI,4,Madhubani Painting,HCF-MAD1,Art,3,2400,7200
+HC-4233,2026-03-01,Kiara Menon,kiara.menon89@example.com,360,90.0,COD,1,Warli Coasters,HCF-COA1,Art,1,360,360
+HC-4234,2026-05-01,Nisha Verma,nisha.verma29@example.com,2070,0.0,COD,1,Brass Diya Set,HCF-DIY1,Metalcraft,3,690,2070
+HC-4235,2026-08-22,Sana Nair,sana.nair69@example.com,6670,0.0,UPI,1,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4235,2026-08-22,Sana Nair,sana.nair69@example.com,6670,0.0,UPI,2,Bamboo Serving Tray,HCF-TRA1,Woodcraft,1,780,780
+HC-4235,2026-08-22,Sana Nair,sana.nair69@example.com,6670,0.0,Card,3,Dhokra Figurine,HCF-DHO1,Metalcraft,3,1680,5040
+HC-4236,2026-02-22,Nitin Sharma,nitin.sharma24@example.com,1460,90.0,UPI,1,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4236,2026-02-22,Nitin Sharma,nitin.sharma24@example.com,1460,90.0,UPI,2,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4236,2026-02-22,Nitin Sharma,nitin.sharma24@example.com,1460,90.0,COD,3,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4237,2026-02-20,Rahul Shetty,rahul.shetty91@example.com,690,90.0,COD,1,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4238,2026-05-30,Asha Pillai,asha.pillai15@example.com,5100,0.0,UPI,1,Terracotta Vase,HCF-VAS1,Pottery,3,850,2550
+HC-4238,2026-05-30,Asha Pillai,asha.pillai15@example.com,5100,0.0,COD,2,Terracotta Vase,HCF-VAS1,Pottery,3,850,2550
+HC-4239,2026-06-11,Kiara Kulkarni,kiara.kulkarni19@example.com,6050,0.0,Card,1,Warli Coasters,HCF-COA1,Art,2,360,720
+HC-4239,2026-06-11,Kiara Kulkarni,kiara.kulkarni19@example.com,6050,0.0,UPI,2,Wooden Elephant,HCF-ELE1,Woodcraft,1,1250,1250
+HC-4239,2026-06-11,Kiara Kulkarni,kiara.kulkarni19@example.com,6050,0.0,UPI,3,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4239,2026-06-11,Kiara Kulkarni,kiara.kulkarni19@example.com,6050,0.0,COD,4,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4240,2026-07-14,Yash Reddy,yash.reddy18@example.com,690,90.0,COD,1,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4241,2026-07-17,Lakshmi Ansari,lakshmi.ansari4@example.com,6810,0.0,Card,1,Macrame Wall Hanging,HCF-MAC1,Textile,3,1150,3450
+HC-4241,2026-07-17,Lakshmi Ansari,lakshmi.ansari4@example.com,6810,0.0,Card,2,Dhokra Figurine,HCF-DHO1,Metalcraft,2,1680,3360
+HC-4242,2026-03-27,Sneha Shetty,sneha.shetty82@example.com,6040,0.0,Card,1,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4242,2026-03-27,Sneha Shetty,sneha.shetty82@example.com,6040,0.0,Card,2,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4242,2026-03-27,Sneha Shetty,sneha.shetty82@example.com,6040,0.0,UPI,3,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4242,2026-03-27,Sneha Shetty,sneha.shetty82@example.com,6040,0.0,Card,4,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4243,2026-05-25,Ritu Chavan,ritu.chavan34@example.com,2070,0.0,COD,1,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4243,2026-05-25,Ritu Chavan,ritu.chavan34@example.com,2070,0.0,COD,2,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4244,2026-07-06,Vikram Chavan,vikram.chavan37@example.com,6990,0.0,Card,1,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4244,2026-07-06,Vikram Chavan,vikram.chavan37@example.com,6990,0.0,Card,2,Block Print Cushion,HCF-CUS1,Textile,2,450,900
+HC-4244,2026-07-06,Vikram Chavan,vikram.chavan37@example.com,6990,0.0,Card,3,Brass Diya Set,HCF-DIY1,Metalcraft,3,690,2070
+HC-4244,2026-07-06,Vikram Chavan,vikram.chavan37@example.com,6990,0.0,Card,4,Jute Tote Bag,HCF-JUT1,Textile,3,540,1620
+HC-4245,2026-03-30,Vihaan Reddy,vihaan.reddy92@example.com,3120,0.0,Card,1,Jute Tote Bag,HCF-JUT1,Textile,2,540,1080
+HC-4245,2026-03-30,Vihaan Reddy,vihaan.reddy92@example.com,3120,0.0,Card,2,Warli Coasters,HCF-COA1,Art,1,360,360
+HC-4245,2026-03-30,Vihaan Reddy,vihaan.reddy92@example.com,3120,0.0,COD,3,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4246,2026-05-15,Sana Joshi,sana.joshi52@example.com,9600,0.0,COD,1,Madhubani Painting,HCF-MAD1,Art,3,2400,7200
+HC-4246,2026-05-15,Sana Joshi,sana.joshi52@example.com,9600,0.0,COD,2,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4247,2026-04-11,Sana Das,sana.das72@example.com,1150,90.0,COD,1,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4248,2026-07-03,Faizan Reddy,faizan.reddy22@example.com,2740,0.0,Card,1,Block Print Cushion,HCF-CUS1,Textile,2,450,900
+HC-4248,2026-07-03,Faizan Reddy,faizan.reddy22@example.com,2740,0.0,Card,2,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4248,2026-07-03,Faizan Reddy,faizan.reddy22@example.com,2740,0.0,Card,3,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4249,2026-05-28,Anaya Das,anaya.das74@example.com,900,90.0,COD,1,Block Print Cushion,HCF-CUS1,Textile,2,450,900
+HC-4250,2026-06-26,Pooja Nair,pooja.nair99@example.com,3480,0.0,Card,1,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4250,2026-06-26,Pooja Nair,pooja.nair99@example.com,3480,0.0,UPI,2,Warli Coasters,HCF-COA1,Art,3,360,1080
+HC-4251,2026-08-30,Nisha Mehta,nisha.mehta11@example.com,9200,0.0,UPI,1,Wooden Elephant,HCF-ELE1,Woodcraft,3,1250,3750
+HC-4251,2026-08-30,Nisha Mehta,nisha.mehta11@example.com,9200,0.0,UPI,2,Jute Tote Bag,HCF-JUT1,Textile,2,540,1080
+HC-4251,2026-08-30,Nisha Mehta,nisha.mehta11@example.com,9200,0.0,COD,3,Macrame Wall Hanging,HCF-MAC1,Textile,2,1150,2300
+HC-4251,2026-08-30,Nisha Mehta,nisha.mehta11@example.com,9200,0.0,COD,4,Brass Diya Set,HCF-DIY1,Metalcraft,3,690,2070
+HC-4252,2026-06-04,Kiara Nair,kiara.nair95@example.com,3450,0.0,UPI,1,Macrame Wall Hanging,HCF-MAC1,Textile,3,1150,3450
+HC-4253,2026-06-03,Arjun Das,arjun.das99@example.com,1250,90.0,COD,1,Wooden Elephant,HCF-ELE1,Woodcraft,1,1250,1250
+HC-4254,2026-05-28,Kiara Bose,kiara.bose26@example.com,1150,90.0,Card,1,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4255,2026-02-14,Yash Ansari,yash.ansari38@example.com,2130,0.0,COD,1,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4255,2026-02-14,Yash Ansari,yash.ansari38@example.com,2130,0.0,Card,2,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4256,2026-06-09,Zoya Khan,zoya.khan12@example.com,6690,0.0,COD,1,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4256,2026-06-09,Zoya Khan,zoya.khan12@example.com,6690,0.0,Card,2,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4256,2026-06-09,Zoya Khan,zoya.khan12@example.com,6690,0.0,Card,3,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4256,2026-06-09,Zoya Khan,zoya.khan12@example.com,6690,0.0,Card,4,Block Print Cushion,HCF-CUS1,Textile,3,450,1350
+HC-4257,2026-08-15,Dev Khan,dev.khan48@example.com,1380,90.0,UPI,1,Brass Diya Set,HCF-DIY1,Metalcraft,2,690,1380
+HC-4258,2026-04-29,Dev Reddy,dev.reddy22@example.com,2160,0.0,UPI,1,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4258,2026-04-29,Dev Reddy,dev.reddy22@example.com,2160,0.0,COD,2,Warli Coasters,HCF-COA1,Art,3,360,1080
+HC-4258,2026-04-29,Dev Reddy,dev.reddy22@example.com,2160,0.0,UPI,3,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4259,2026-08-08,Isha Joshi,isha.joshi87@example.com,5030,0.0,Card,1,Jute Tote Bag,HCF-JUT1,Textile,3,540,1620
+HC-4259,2026-08-08,Isha Joshi,isha.joshi87@example.com,5030,0.0,UPI,2,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4259,2026-08-08,Isha Joshi,isha.joshi87@example.com,5030,0.0,COD,3,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4259,2026-08-08,Isha Joshi,isha.joshi87@example.com,5030,0.0,Card,4,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4260,2026-05-17,Arjun Singh,arjun.singh62@example.com,1070,90.0,COD,1,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4260,2026-05-17,Arjun Singh,arjun.singh62@example.com,1070,90.0,COD,2,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4261,2026-06-24,Nitin Shetty,nitin.shetty97@example.com,2390,0.0,COD,1,Clay Pot Set,HCF-POT1,Pottery,2,620,1240
+HC-4261,2026-06-24,Nitin Shetty,nitin.shetty97@example.com,2390,0.0,UPI,2,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4262,2026-08-05,Karan Patel,karan.patel33@example.com,360,90.0,UPI,1,Warli Coasters,HCF-COA1,Art,1,360,360
+HC-4263,2026-08-21,Dev Gupta,dev.gupta15@example.com,1390,90.0,UPI,1,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4263,2026-08-21,Dev Gupta,dev.gupta15@example.com,1390,90.0,COD,2,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4264,2026-08-03,Zoya Verma,zoya.verma10@example.com,1870,90.0,UPI,1,Warli Coasters,HCF-COA1,Art,2,360,720
+HC-4264,2026-08-03,Zoya Verma,zoya.verma10@example.com,1870,90.0,UPI,2,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4265,2026-06-22,Karan Pillai,karan.pillai52@example.com,2010,0.0,Card,1,Bamboo Serving Tray,HCF-TRA1,Woodcraft,2,780,1560
+HC-4265,2026-06-22,Karan Pillai,karan.pillai52@example.com,2010,0.0,UPI,2,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4266,2026-05-23,Asha Sharma,asha.sharma59@example.com,1250,90.0,Card,1,Wooden Elephant,HCF-ELE1,Woodcraft,1,1250,1250
+HC-4267,2026-03-23,Sneha Joshi,sneha.joshi12@example.com,3900,0.0,UPI,1,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4267,2026-03-23,Sneha Joshi,sneha.joshi12@example.com,3900,0.0,UPI,2,Dhokra Figurine,HCF-DHO1,Metalcraft,2,1680,3360
+HC-4268,2026-02-28,Isha Shetty,isha.shetty13@example.com,1700,90.0,Card,1,Terracotta Vase,HCF-VAS1,Pottery,2,850,1700
+HC-4269,2026-03-16,Asha Menon,asha.menon12@example.com,6650,0.0,UPI,1,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4269,2026-03-16,Asha Menon,asha.menon12@example.com,6650,0.0,UPI,2,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4269,2026-03-16,Asha Menon,asha.menon12@example.com,6650,0.0,Card,3,Madhubani Painting,HCF-MAD1,Art,2,2400,4800
+HC-4269,2026-03-16,Asha Menon,asha.menon12@example.com,6650,0.0,UPI,4,Beaded Necklace,HCF-NEC1,Jewellery,2,390,780
+HC-4270,2026-02-14,Rohan Khan,rohan.khan40@example.com,930,90.0,UPI,1,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4270,2026-02-14,Rohan Khan,rohan.khan40@example.com,930,90.0,COD,2,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4271,2026-07-24,Pooja Reddy,pooja.reddy95@example.com,6900,0.0,Card,1,Clay Pot Set,HCF-POT1,Pottery,3,620,1860
+HC-4271,2026-07-24,Pooja Reddy,pooja.reddy95@example.com,6900,0.0,UPI,2,Dhokra Figurine,HCF-DHO1,Metalcraft,3,1680,5040
+HC-4272,2026-03-17,Sneha Pillai,sneha.pillai57@example.com,360,90.0,UPI,1,Warli Coasters,HCF-COA1,Art,1,360,360
+HC-4273,2026-09-08,Sneha Rao,sneha.rao57@example.com,7290,0.0,COD,1,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4273,2026-09-08,Sneha Rao,sneha.rao57@example.com,7290,0.0,COD,2,Terracotta Vase,HCF-VAS1,Pottery,3,850,2550
+HC-4273,2026-09-08,Sneha Rao,sneha.rao57@example.com,7290,0.0,UPI,3,Wooden Elephant,HCF-ELE1,Woodcraft,2,1250,2500
+HC-4273,2026-09-08,Sneha Rao,sneha.rao57@example.com,7290,0.0,COD,4,Terracotta Vase,HCF-VAS1,Pottery,2,850,1700
+HC-4274,2026-08-04,Aarav Patel,aarav.patel68@example.com,850,90.0,Card,1,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4275,2026-06-06,Omkar Menon,omkar.menon61@example.com,450,90.0,Card,1,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4276,2026-04-06,Pooja Ansari,pooja.ansari84@example.com,2940,0.0,Card,1,Clay Pot Set,HCF-POT1,Pottery,3,620,1860
+HC-4276,2026-04-06,Pooja Ansari,pooja.ansari84@example.com,2940,0.0,COD,2,Warli Coasters,HCF-COA1,Art,3,360,1080
+HC-4277,2026-05-18,Sana Nair,sana.nair86@example.com,4620,0.0,UPI,1,Block Print Cushion,HCF-CUS1,Textile,2,450,900
+HC-4277,2026-05-18,Sana Nair,sana.nair86@example.com,4620,0.0,COD,2,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4277,2026-05-18,Sana Nair,sana.nair86@example.com,4620,0.0,UPI,3,Bamboo Serving Tray,HCF-TRA1,Woodcraft,1,780,780
+HC-4277,2026-05-18,Sana Nair,sana.nair86@example.com,4620,0.0,UPI,4,Terracotta Vase,HCF-VAS1,Pottery,3,850,2550
+HC-4278,2026-09-03,Arjun Ansari,arjun.ansari8@example.com,3300,0.0,COD,1,Warli Coasters,HCF-COA1,Art,1,360,360
+HC-4278,2026-09-03,Arjun Ansari,arjun.ansari8@example.com,3300,0.0,UPI,2,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4278,2026-09-03,Arjun Ansari,arjun.ansari8@example.com,3300,0.0,Card,3,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4279,2026-04-03,Vihaan Gupta,vihaan.gupta99@example.com,7620,0.0,UPI,1,Bamboo Serving Tray,HCF-TRA1,Woodcraft,1,780,780
+HC-4279,2026-04-03,Vihaan Gupta,vihaan.gupta99@example.com,7620,0.0,Card,2,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4279,2026-04-03,Vihaan Gupta,vihaan.gupta99@example.com,7620,0.0,UPI,3,Wooden Elephant,HCF-ELE1,Woodcraft,3,1250,3750
+HC-4279,2026-04-03,Vihaan Gupta,vihaan.gupta99@example.com,7620,0.0,COD,4,Terracotta Vase,HCF-VAS1,Pottery,3,850,2550
+HC-4280,2026-08-08,Dev Sharma,dev.sharma99@example.com,3720,0.0,Card,1,Dhokra Figurine,HCF-DHO1,Metalcraft,2,1680,3360
+HC-4280,2026-08-08,Dev Sharma,dev.sharma99@example.com,3720,0.0,COD,2,Warli Coasters,HCF-COA1,Art,1,360,360
+HC-4281,2026-04-22,Nitin Bose,nitin.bose73@example.com,4900,0.0,COD,1,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4281,2026-04-22,Nitin Bose,nitin.bose73@example.com,4900,0.0,Card,2,Wooden Elephant,HCF-ELE1,Woodcraft,2,1250,2500
+HC-4282,2026-06-10,Rohan Chavan,rohan.chavan63@example.com,2050,0.0,UPI,1,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4282,2026-06-10,Rohan Chavan,rohan.chavan63@example.com,2050,0.0,COD,2,Block Print Cushion,HCF-CUS1,Textile,2,450,900
+HC-4283,2026-07-17,Gauri Sharma,gauri.sharma62@example.com,8660,0.0,UPI,1,Madhubani Painting,HCF-MAD1,Art,2,2400,4800
+HC-4283,2026-07-17,Gauri Sharma,gauri.sharma62@example.com,8660,0.0,COD,2,Bamboo Serving Tray,HCF-TRA1,Woodcraft,2,780,1560
+HC-4283,2026-07-17,Gauri Sharma,gauri.sharma62@example.com,8660,0.0,UPI,3,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4283,2026-07-17,Gauri Sharma,gauri.sharma62@example.com,8660,0.0,Card,4,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4284,2026-03-10,Kiara Iyer,kiara.iyer36@example.com,3520,0.0,UPI,1,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4284,2026-03-10,Kiara Iyer,kiara.iyer36@example.com,3520,0.0,Card,2,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4284,2026-03-10,Kiara Iyer,kiara.iyer36@example.com,3520,0.0,UPI,3,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4285,2026-06-28,Isha Verma,isha.verma58@example.com,2460,0.0,Card,1,Bamboo Serving Tray,HCF-TRA1,Woodcraft,2,780,1560
+HC-4285,2026-06-28,Isha Verma,isha.verma58@example.com,2460,0.0,Card,2,Block Print Cushion,HCF-CUS1,Textile,2,450,900
+HC-4286,2026-05-27,Gauri Iyer,gauri.iyer99@example.com,750,90.0,COD,1,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4286,2026-05-27,Gauri Iyer,gauri.iyer99@example.com,750,90.0,UPI,2,Warli Coasters,HCF-COA1,Art,1,360,360
+HC-4287,2026-05-25,Asha Shetty,asha.shetty83@example.com,540,90.0,UPI,1,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4288,2026-04-28,Dev Joshi,dev.joshi71@example.com,4080,0.0,Card,1,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4288,2026-04-28,Dev Joshi,dev.joshi71@example.com,4080,0.0,Card,2,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4289,2026-04-06,Vikram Reddy,vikram.reddy30@example.com,2340,0.0,UPI,1,Beaded Necklace,HCF-NEC1,Jewellery,3,390,1170
+HC-4289,2026-04-06,Vikram Reddy,vikram.reddy30@example.com,2340,0.0,UPI,2,Beaded Necklace,HCF-NEC1,Jewellery,3,390,1170
+HC-4290,2026-04-26,Imran Mehta,imran.mehta25@example.com,720,90.0,Card,1,Warli Coasters,HCF-COA1,Art,2,360,720
+HC-4291,2026-07-26,Isha Patel,isha.patel67@example.com,2040,0.0,UPI,1,Warli Coasters,HCF-COA1,Art,1,360,360
+HC-4291,2026-07-26,Isha Patel,isha.patel67@example.com,2040,0.0,Card,2,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4292,2026-05-17,Sneha Khan,sneha.khan1@example.com,690,90.0,Card,1,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4293,2026-07-07,Lakshmi Nair,lakshmi.nair14@example.com,7130,0.0,COD,1,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4293,2026-07-07,Lakshmi Nair,lakshmi.nair14@example.com,7130,0.0,UPI,2,Wooden Elephant,HCF-ELE1,Woodcraft,3,1250,3750
+HC-4293,2026-07-07,Lakshmi Nair,lakshmi.nair14@example.com,7130,0.0,UPI,3,Terracotta Vase,HCF-VAS1,Pottery,2,850,1700
+HC-4294,2026-02-18,Faizan Patel,faizan.patel11@example.com,7650,0.0,Card,1,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4294,2026-02-18,Faizan Patel,faizan.patel11@example.com,7650,0.0,UPI,2,Madhubani Painting,HCF-MAD1,Art,3,2400,7200
+HC-4295,2026-07-06,Sneha Nair,sneha.nair97@example.com,4370,0.0,UPI,1,Wooden Elephant,HCF-ELE1,Woodcraft,3,1250,3750
+HC-4295,2026-07-06,Sneha Nair,sneha.nair97@example.com,4370,0.0,COD,2,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4296,2026-03-03,Bilal Pillai,bilal.pillai77@example.com,810,90.0,UPI,1,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4296,2026-03-03,Bilal Pillai,bilal.pillai77@example.com,810,90.0,Card,2,Warli Coasters,HCF-COA1,Art,1,360,360
+HC-4297,2026-04-09,Zoya Joshi,zoya.joshi53@example.com,3550,0.0,COD,1,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4297,2026-04-09,Zoya Joshi,zoya.joshi53@example.com,3550,0.0,UPI,2,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4298,2026-09-06,Karan Chavan,karan.chavan18@example.com,1350,90.0,COD,1,Block Print Cushion,HCF-CUS1,Textile,3,450,1350
+HC-4299,2026-06-18,Sneha Rao,sneha.rao53@example.com,2190,0.0,COD,1,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4299,2026-06-18,Sneha Rao,sneha.rao53@example.com,2190,0.0,UPI,2,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4299,2026-06-18,Sneha Rao,sneha.rao53@example.com,2190,0.0,UPI,3,Warli Coasters,HCF-COA1,Art,2,360,720
+HC-4300,2026-03-06,Vikram Mehta,vikram.mehta95@example.com,2730,0.0,COD,1,Bamboo Serving Tray,HCF-TRA1,Woodcraft,2,780,1560
+HC-4300,2026-03-06,Vikram Mehta,vikram.mehta95@example.com,2730,0.0,UPI,2,Beaded Necklace,HCF-NEC1,Jewellery,3,390,1170
+HC-4301,2026-06-24,Imran Chavan,imran.chavan84@example.com,1860,90.0,COD,1,Clay Pot Set,HCF-POT1,Pottery,3,620,1860
+HC-4302,2026-02-20,Pooja Reddy,pooja.reddy78@example.com,12590,0.0,UPI,1,Madhubani Painting,HCF-MAD1,Art,3,2400,7200
+HC-4302,2026-02-20,Pooja Reddy,pooja.reddy78@example.com,12590,0.0,UPI,2,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4302,2026-02-20,Pooja Reddy,pooja.reddy78@example.com,12590,0.0,Card,3,Wooden Elephant,HCF-ELE1,Woodcraft,3,1250,3750
+HC-4302,2026-02-20,Pooja Reddy,pooja.reddy78@example.com,12590,0.0,COD,4,Wooden Elephant,HCF-ELE1,Woodcraft,1,1250,1250
+HC-4303,2026-08-25,Ritu Gupta,ritu.gupta71@example.com,8810,0.0,Card,1,Brass Diya Set,HCF-DIY1,Metalcraft,3,690,2070
+HC-4303,2026-08-25,Ritu Gupta,ritu.gupta71@example.com,8810,0.0,Card,2,Dhokra Figurine,HCF-DHO1,Metalcraft,3,1680,5040
+HC-4303,2026-08-25,Ritu Gupta,ritu.gupta71@example.com,8810,0.0,UPI,3,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4303,2026-08-25,Ritu Gupta,ritu.gupta71@example.com,8810,0.0,COD,4,Wooden Elephant,HCF-ELE1,Woodcraft,1,1250,1250
+HC-4304,2026-06-30,Diya Rao,diya.rao98@example.com,4390,0.0,Card,1,Block Print Cushion,HCF-CUS1,Textile,2,450,900
+HC-4304,2026-06-30,Diya Rao,diya.rao98@example.com,4390,0.0,UPI,2,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4304,2026-06-30,Diya Rao,diya.rao98@example.com,4390,0.0,COD,3,Bamboo Serving Tray,HCF-TRA1,Woodcraft,3,780,2340
+HC-4305,2026-07-03,Vikram Patel,vikram.patel13@example.com,540,90.0,COD,1,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4306,2026-08-20,Aarav Nair,aarav.nair57@example.com,7200,0.0,UPI,1,Madhubani Painting,HCF-MAD1,Art,3,2400,7200
+HC-4307,2026-03-01,Faizan Ansari,faizan.ansari4@example.com,690,90.0,UPI,1,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4308,2026-05-20,Lakshmi Joshi,lakshmi.joshi20@example.com,1170,90.0,Card,1,Beaded Necklace,HCF-NEC1,Jewellery,3,390,1170
+HC-4309,2026-02-24,Omkar Singh,omkar.singh50@example.com,5750,0.0,UPI,1,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4309,2026-02-24,Omkar Singh,omkar.singh50@example.com,5750,0.0,Card,2,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4309,2026-02-24,Omkar Singh,omkar.singh50@example.com,5750,0.0,Card,3,Dhokra Figurine,HCF-DHO1,Metalcraft,2,1680,3360
+HC-4309,2026-02-24,Omkar Singh,omkar.singh50@example.com,5750,0.0,Card,4,Brass Diya Set,HCF-DIY1,Metalcraft,2,690,1380
+HC-4310,2026-02-13,Kabir Bose,kabir.bose90@example.com,1680,90.0,Card,1,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4311,2026-08-06,Nitin Iyer,nitin.iyer8@example.com,5290,0.0,Card,1,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4311,2026-08-06,Nitin Iyer,nitin.iyer8@example.com,5290,0.0,Card,2,Macrame Wall Hanging,HCF-MAC1,Textile,3,1150,3450
+HC-4311,2026-08-06,Nitin Iyer,nitin.iyer8@example.com,5290,0.0,COD,3,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4312,2026-06-25,Rahul Joshi,rahul.joshi95@example.com,4480,0.0,UPI,1,Bamboo Serving Tray,HCF-TRA1,Woodcraft,1,780,780
+HC-4312,2026-06-25,Rahul Joshi,rahul.joshi95@example.com,4480,0.0,Card,2,Terracotta Vase,HCF-VAS1,Pottery,3,850,2550
+HC-4312,2026-06-25,Rahul Joshi,rahul.joshi95@example.com,4480,0.0,COD,3,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4313,2026-08-22,Sana Iyer,sana.iyer2@example.com,2760,0.0,COD,1,Wooden Elephant,HCF-ELE1,Woodcraft,1,1250,1250
+HC-4313,2026-08-22,Sana Iyer,sana.iyer2@example.com,2760,0.0,COD,2,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4313,2026-08-22,Sana Iyer,sana.iyer2@example.com,2760,0.0,Card,3,Warli Coasters,HCF-COA1,Art,1,360,360
+HC-4314,2026-02-12,Aarav Singh,aarav.singh7@example.com,1140,90.0,UPI,1,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4314,2026-02-12,Aarav Singh,aarav.singh7@example.com,1140,90.0,COD,2,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4315,2026-05-06,Anaya Gupta,anaya.gupta98@example.com,1780,90.0,COD,1,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4315,2026-05-06,Anaya Gupta,anaya.gupta98@example.com,1780,90.0,Card,2,Clay Pot Set,HCF-POT1,Pottery,2,620,1240
+HC-4316,2026-02-20,Pooja Mehta,pooja.mehta30@example.com,1150,90.0,UPI,1,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4317,2026-04-05,Vihaan Das,vihaan.das26@example.com,1080,90.0,COD,1,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4317,2026-04-05,Vihaan Das,vihaan.das26@example.com,1080,90.0,COD,2,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4318,2026-04-19,Sneha Reddy,sneha.reddy35@example.com,6900,0.0,COD,1,Terracotta Vase,HCF-VAS1,Pottery,3,850,2550
+HC-4318,2026-04-19,Sneha Reddy,sneha.reddy35@example.com,6900,0.0,COD,2,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4318,2026-04-19,Sneha Reddy,sneha.reddy35@example.com,6900,0.0,COD,3,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4318,2026-04-19,Sneha Reddy,sneha.reddy35@example.com,6900,0.0,UPI,4,Dhokra Figurine,HCF-DHO1,Metalcraft,2,1680,3360
+HC-4319,2026-09-07,Sneha Shetty,sneha.shetty99@example.com,1170,90.0,UPI,1,Beaded Necklace,HCF-NEC1,Jewellery,3,390,1170
+HC-4320,2026-03-02,Nitin Patel,nitin.patel15@example.com,7530,0.0,Card,1,Wooden Elephant,HCF-ELE1,Woodcraft,2,1250,2500
+HC-4320,2026-03-02,Nitin Patel,nitin.patel15@example.com,7530,0.0,UPI,2,Terracotta Vase,HCF-VAS1,Pottery,3,850,2550
+HC-4320,2026-03-02,Nitin Patel,nitin.patel15@example.com,7530,0.0,Card,3,Beaded Necklace,HCF-NEC1,Jewellery,2,390,780
+HC-4320,2026-03-02,Nitin Patel,nitin.patel15@example.com,7530,0.0,UPI,4,Terracotta Vase,HCF-VAS1,Pottery,2,850,1700
+HC-4321,2026-04-30,Arjun Khan,arjun.khan31@example.com,1230,90.0,Card,1,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4321,2026-04-30,Arjun Khan,arjun.khan31@example.com,1230,90.0,COD,2,Bamboo Serving Tray,HCF-TRA1,Woodcraft,1,780,780
+HC-4322,2026-05-22,Anaya Chavan,anaya.chavan42@example.com,3750,0.0,Card,1,Wooden Elephant,HCF-ELE1,Woodcraft,3,1250,3750
+HC-4323,2026-03-08,Arjun Reddy,arjun.reddy32@example.com,4470,0.0,UPI,1,Brass Diya Set,HCF-DIY1,Metalcraft,2,690,1380
+HC-4323,2026-03-08,Arjun Reddy,arjun.reddy32@example.com,4470,0.0,Card,2,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4323,2026-03-08,Arjun Reddy,arjun.reddy32@example.com,4470,0.0,UPI,3,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4324,2026-06-19,Karan Bose,karan.bose64@example.com,1240,90.0,Card,1,Clay Pot Set,HCF-POT1,Pottery,2,620,1240
+HC-4325,2026-06-18,Lakshmi Ansari,lakshmi.ansari73@example.com,5640,0.0,UPI,1,Brass Diya Set,HCF-DIY1,Metalcraft,3,690,2070
+HC-4325,2026-06-18,Lakshmi Ansari,lakshmi.ansari73@example.com,5640,0.0,Card,2,Beaded Necklace,HCF-NEC1,Jewellery,3,390,1170
+HC-4325,2026-06-18,Lakshmi Ansari,lakshmi.ansari73@example.com,5640,0.0,UPI,3,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4326,2026-08-07,Bilal Bose,bilal.bose60@example.com,1170,90.0,Card,1,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4326,2026-08-07,Bilal Bose,bilal.bose60@example.com,1170,90.0,Card,2,Bamboo Serving Tray,HCF-TRA1,Woodcraft,1,780,780
+HC-4327,2026-08-29,Karan Das,karan.das73@example.com,2010,0.0,UPI,1,Jute Tote Bag,HCF-JUT1,Textile,3,540,1620
+HC-4327,2026-08-29,Karan Das,karan.das73@example.com,2010,0.0,Card,2,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4328,2026-06-23,Isha Pillai,isha.pillai55@example.com,3930,0.0,Card,1,Macrame Wall Hanging,HCF-MAC1,Textile,2,1150,2300
+HC-4328,2026-06-23,Isha Pillai,isha.pillai55@example.com,3930,0.0,Card,2,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4328,2026-06-23,Isha Pillai,isha.pillai55@example.com,3930,0.0,UPI,3,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4328,2026-06-23,Isha Pillai,isha.pillai55@example.com,3930,0.0,COD,4,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4329,2026-02-25,Zoya Singh,zoya.singh97@example.com,1680,90.0,COD,1,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4330,2026-08-28,Aarav Reddy,aarav.reddy29@example.com,1250,90.0,Card,1,Wooden Elephant,HCF-ELE1,Woodcraft,1,1250,1250
+HC-4331,2026-08-07,Omkar Patel,omkar.patel88@example.com,540,90.0,COD,1,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4332,2026-07-18,Faizan Nair,faizan.nair22@example.com,2400,0.0,COD,1,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4333,2026-05-30,Zoya Pillai,zoya.pillai30@example.com,6290,0.0,Card,1,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4333,2026-05-30,Zoya Pillai,zoya.pillai30@example.com,6290,0.0,COD,2,Clay Pot Set,HCF-POT1,Pottery,2,620,1240
+HC-4333,2026-05-30,Zoya Pillai,zoya.pillai30@example.com,6290,0.0,UPI,3,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4333,2026-05-30,Zoya Pillai,zoya.pillai30@example.com,6290,0.0,UPI,4,Macrame Wall Hanging,HCF-MAC1,Textile,3,1150,3450
+HC-4334,2026-07-02,Bilal Pillai,bilal.pillai96@example.com,540,90.0,UPI,1,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4335,2026-03-05,Bilal Ansari,bilal.ansari48@example.com,1680,90.0,Card,1,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4336,2026-08-09,Karan Shetty,karan.shetty29@example.com,4680,0.0,COD,1,Bamboo Serving Tray,HCF-TRA1,Woodcraft,2,780,1560
+HC-4336,2026-08-09,Karan Shetty,karan.shetty29@example.com,4680,0.0,Card,2,Wooden Elephant,HCF-ELE1,Woodcraft,2,1250,2500
+HC-4336,2026-08-09,Karan Shetty,karan.shetty29@example.com,4680,0.0,Card,3,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4337,2026-05-13,Sneha Joshi,sneha.joshi71@example.com,620,90.0,UPI,1,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4338,2026-02-16,Rohan Verma,rohan.verma25@example.com,390,90.0,UPI,1,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4339,2026-02-25,Rohan Verma,rohan.verma14@example.com,620,90.0,UPI,1,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4340,2026-05-24,Pooja Joshi,pooja.joshi87@example.com,1150,90.0,Card,1,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4341,2026-07-18,Vihaan Reddy,vihaan.reddy68@example.com,2960,0.0,COD,1,Bamboo Serving Tray,HCF-TRA1,Woodcraft,3,780,2340
+HC-4341,2026-07-18,Vihaan Reddy,vihaan.reddy68@example.com,2960,0.0,UPI,2,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4342,2026-04-26,Rahul Singh,rahul.singh70@example.com,720,90.0,COD,1,Warli Coasters,HCF-COA1,Art,2,360,720
+HC-4343,2026-03-02,Sana Das,sana.das16@example.com,4800,0.0,Card,1,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4343,2026-03-02,Sana Das,sana.das16@example.com,4800,0.0,Card,2,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4343,2026-03-02,Sana Das,sana.das16@example.com,4800,0.0,Card,3,Wooden Elephant,HCF-ELE1,Woodcraft,1,1250,1250
+HC-4344,2026-06-19,Meera Ansari,meera.ansari10@example.com,850,90.0,COD,1,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4345,2026-05-18,Yash Menon,yash.menon83@example.com,5040,0.0,COD,1,Dhokra Figurine,HCF-DHO1,Metalcraft,3,1680,5040
+HC-4346,2026-04-30,Nisha Joshi,nisha.joshi38@example.com,2250,0.0,UPI,1,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4346,2026-04-30,Nisha Joshi,nisha.joshi38@example.com,2250,0.0,Card,2,Bamboo Serving Tray,HCF-TRA1,Woodcraft,2,780,1560
+HC-4347,2026-04-28,Arjun Das,arjun.das69@example.com,1680,90.0,Card,1,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4348,2026-06-20,Ritu Verma,ritu.verma32@example.com,4560,0.0,Card,1,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4348,2026-06-20,Ritu Verma,ritu.verma32@example.com,4560,0.0,UPI,2,Warli Coasters,HCF-COA1,Art,1,360,360
+HC-4348,2026-06-20,Ritu Verma,ritu.verma32@example.com,4560,0.0,COD,3,Wooden Elephant,HCF-ELE1,Woodcraft,3,1250,3750
+HC-4349,2026-05-14,Pooja Reddy,pooja.reddy75@example.com,450,90.0,COD,1,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4350,2026-08-18,Karan Bose,karan.bose66@example.com,3750,0.0,UPI,1,Wooden Elephant,HCF-ELE1,Woodcraft,3,1250,3750
+HC-4351,2026-05-27,Kiara Singh,kiara.singh74@example.com,2250,0.0,UPI,1,Clay Pot Set,HCF-POT1,Pottery,3,620,1860
+HC-4351,2026-05-27,Kiara Singh,kiara.singh74@example.com,2250,0.0,UPI,2,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4352,2026-09-07,Arjun Reddy,arjun.reddy28@example.com,2230,0.0,Card,1,Jute Tote Bag,HCF-JUT1,Textile,2,540,1080
+HC-4352,2026-09-07,Arjun Reddy,arjun.reddy28@example.com,2230,0.0,UPI,2,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4353,2026-07-17,Dev Pillai,dev.pillai12@example.com,4510,0.0,COD,1,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4353,2026-07-17,Dev Pillai,dev.pillai12@example.com,4510,0.0,UPI,2,Wooden Elephant,HCF-ELE1,Woodcraft,2,1250,2500
+HC-4353,2026-07-17,Dev Pillai,dev.pillai12@example.com,4510,0.0,Card,3,Beaded Necklace,HCF-NEC1,Jewellery,3,390,1170
+HC-4353,2026-07-17,Dev Pillai,dev.pillai12@example.com,4510,0.0,UPI,4,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4354,2026-08-22,Diya Reddy,diya.reddy32@example.com,2530,0.0,Card,1,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4354,2026-08-22,Diya Reddy,diya.reddy32@example.com,2530,0.0,COD,2,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4355,2026-06-05,Gauri Patel,gauri.patel23@example.com,540,90.0,UPI,1,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4356,2026-06-21,Tara Mehta,tara.mehta26@example.com,12540,0.0,UPI,1,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4356,2026-06-21,Tara Mehta,tara.mehta26@example.com,12540,0.0,Card,2,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4356,2026-06-21,Tara Mehta,tara.mehta26@example.com,12540,0.0,COD,3,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4356,2026-06-21,Tara Mehta,tara.mehta26@example.com,12540,0.0,Card,4,Madhubani Painting,HCF-MAD1,Art,3,2400,7200
+HC-4357,2026-04-15,Ritu Bose,ritu.bose85@example.com,1930,90.0,COD,1,Jute Tote Bag,HCF-JUT1,Textile,2,540,1080
+HC-4357,2026-04-15,Ritu Bose,ritu.bose85@example.com,1930,90.0,COD,2,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4358,2026-05-11,Sana Verma,sana.verma51@example.com,2400,0.0,Card,1,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4359,2026-09-05,Asha Nair,asha.nair57@example.com,13560,0.0,Card,1,Macrame Wall Hanging,HCF-MAC1,Textile,3,1150,3450
+HC-4359,2026-09-05,Asha Nair,asha.nair57@example.com,13560,0.0,UPI,2,Warli Coasters,HCF-COA1,Art,1,360,360
+HC-4359,2026-09-05,Asha Nair,asha.nair57@example.com,13560,0.0,UPI,3,Terracotta Vase,HCF-VAS1,Pottery,3,850,2550
+HC-4359,2026-09-05,Asha Nair,asha.nair57@example.com,13560,0.0,COD,4,Madhubani Painting,HCF-MAD1,Art,3,2400,7200
+HC-4360,2026-05-13,Zoya Iyer,zoya.iyer1@example.com,10270,0.0,COD,1,Dhokra Figurine,HCF-DHO1,Metalcraft,3,1680,5040
+HC-4360,2026-05-13,Zoya Iyer,zoya.iyer1@example.com,10270,0.0,Card,2,Wooden Elephant,HCF-ELE1,Woodcraft,1,1250,1250
+HC-4360,2026-05-13,Zoya Iyer,zoya.iyer1@example.com,10270,0.0,Card,3,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4360,2026-05-13,Zoya Iyer,zoya.iyer1@example.com,10270,0.0,Card,4,Macrame Wall Hanging,HCF-MAC1,Textile,2,1150,2300
+HC-4361,2026-09-08,Anaya Joshi,anaya.joshi6@example.com,1900,90.0,Card,1,Warli Coasters,HCF-COA1,Art,1,360,360
+HC-4361,2026-09-08,Anaya Joshi,anaya.joshi6@example.com,1900,90.0,COD,2,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4361,2026-09-08,Anaya Joshi,anaya.joshi6@example.com,1900,90.0,Card,3,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4362,2026-05-17,Ritu Reddy,ritu.reddy60@example.com,5190,0.0,Card,1,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4362,2026-05-17,Ritu Reddy,ritu.reddy60@example.com,5190,0.0,Card,2,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4362,2026-05-17,Ritu Reddy,ritu.reddy60@example.com,5190,0.0,Card,3,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4363,2026-03-01,Ritu Verma,ritu.verma40@example.com,1740,90.0,UPI,1,Block Print Cushion,HCF-CUS1,Textile,3,450,1350
+HC-4363,2026-03-01,Ritu Verma,ritu.verma40@example.com,1740,90.0,UPI,2,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4364,2026-04-23,Anaya Gupta,anaya.gupta64@example.com,3450,0.0,COD,1,Macrame Wall Hanging,HCF-MAC1,Textile,3,1150,3450
+HC-4365,2026-05-04,Rahul Iyer,rahul.iyer22@example.com,2550,0.0,Card,1,Terracotta Vase,HCF-VAS1,Pottery,3,850,2550
+HC-4366,2026-03-02,Yash Pillai,yash.pillai58@example.com,2390,0.0,UPI,1,Warli Coasters,HCF-COA1,Art,1,360,360
+HC-4366,2026-03-02,Yash Pillai,yash.pillai58@example.com,2390,0.0,Card,2,Wooden Elephant,HCF-ELE1,Woodcraft,1,1250,1250
+HC-4366,2026-03-02,Yash Pillai,yash.pillai58@example.com,2390,0.0,UPI,3,Bamboo Serving Tray,HCF-TRA1,Woodcraft,1,780,780
+HC-4367,2026-02-20,Kiara Gupta,kiara.gupta47@example.com,390,90.0,Card,1,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4368,2026-04-02,Sana Ansari,sana.ansari34@example.com,1600,90.0,Card,1,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4368,2026-04-02,Sana Ansari,sana.ansari34@example.com,1600,90.0,Card,2,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4369,2026-08-10,Vihaan Singh,vihaan.singh85@example.com,2760,0.0,Card,1,Block Print Cushion,HCF-CUS1,Textile,2,450,900
+HC-4369,2026-08-10,Vihaan Singh,vihaan.singh85@example.com,2760,0.0,Card,2,Clay Pot Set,HCF-POT1,Pottery,3,620,1860
+HC-4370,2026-03-18,Nitin Reddy,nitin.reddy60@example.com,1250,90.0,UPI,1,Wooden Elephant,HCF-ELE1,Woodcraft,1,1250,1250
+HC-4371,2026-04-20,Vihaan Verma,vihaan.verma7@example.com,3750,0.0,UPI,1,Wooden Elephant,HCF-ELE1,Woodcraft,3,1250,3750
+HC-4372,2026-03-17,Bilal Reddy,bilal.reddy72@example.com,4310,0.0,COD,1,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4372,2026-03-17,Bilal Reddy,bilal.reddy72@example.com,4310,0.0,Card,2,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4372,2026-03-17,Bilal Reddy,bilal.reddy72@example.com,4310,0.0,UPI,3,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4372,2026-03-17,Bilal Reddy,bilal.reddy72@example.com,4310,0.0,COD,4,Jute Tote Bag,HCF-JUT1,Textile,3,540,1620
+HC-4373,2026-09-08,Tara Pillai,tara.pillai84@example.com,1400,90.0,COD,1,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4373,2026-09-08,Tara Pillai,tara.pillai84@example.com,1400,90.0,COD,2,Beaded Necklace,HCF-NEC1,Jewellery,2,390,780
+HC-4374,2026-03-10,Nisha Chavan,nisha.chavan92@example.com,3440,0.0,Card,1,Bamboo Serving Tray,HCF-TRA1,Woodcraft,1,780,780
+HC-4374,2026-03-10,Nisha Chavan,nisha.chavan92@example.com,3440,0.0,UPI,2,Warli Coasters,HCF-COA1,Art,1,360,360
+HC-4374,2026-03-10,Nisha Chavan,nisha.chavan92@example.com,3440,0.0,Card,3,Macrame Wall Hanging,HCF-MAC1,Textile,2,1150,2300
+HC-4375,2026-05-17,Anaya Nair,anaya.nair58@example.com,1860,90.0,Card,1,Clay Pot Set,HCF-POT1,Pottery,3,620,1860
+HC-4376,2026-05-05,Gauri Menon,gauri.menon39@example.com,2400,0.0,COD,1,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4377,2026-04-26,Nisha Chavan,nisha.chavan76@example.com,6640,0.0,Card,1,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4377,2026-04-26,Nisha Chavan,nisha.chavan76@example.com,6640,0.0,COD,2,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4377,2026-04-26,Nisha Chavan,nisha.chavan76@example.com,6640,0.0,UPI,3,Madhubani Painting,HCF-MAD1,Art,2,2400,4800
+HC-4378,2026-04-20,Sana Gupta,sana.gupta30@example.com,1830,90.0,Card,1,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4378,2026-04-20,Sana Gupta,sana.gupta30@example.com,1830,90.0,COD,2,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4378,2026-04-20,Sana Gupta,sana.gupta30@example.com,1830,90.0,Card,3,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4379,2026-02-11,Dev Kulkarni,dev.kulkarni87@example.com,2340,0.0,Card,1,Bamboo Serving Tray,HCF-TRA1,Woodcraft,1,780,780
+HC-4379,2026-02-11,Dev Kulkarni,dev.kulkarni87@example.com,2340,0.0,COD,2,Bamboo Serving Tray,HCF-TRA1,Woodcraft,2,780,1560
+HC-4380,2026-02-27,Nitin Bose,nitin.bose91@example.com,840,90.0,UPI,1,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4380,2026-02-27,Nitin Bose,nitin.bose91@example.com,840,90.0,Card,2,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4381,2026-02-17,Rohan Chavan,rohan.chavan67@example.com,10200,0.0,COD,1,Block Print Cushion,HCF-CUS1,Textile,2,450,900
+HC-4381,2026-02-17,Rohan Chavan,rohan.chavan67@example.com,10200,0.0,COD,2,Wooden Elephant,HCF-ELE1,Woodcraft,1,1250,1250
+HC-4381,2026-02-17,Rohan Chavan,rohan.chavan67@example.com,10200,0.0,COD,3,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4381,2026-02-17,Rohan Chavan,rohan.chavan67@example.com,10200,0.0,Card,4,Madhubani Painting,HCF-MAD1,Art,3,2400,7200
+HC-4382,2026-06-12,Aarav Gupta,aarav.gupta42@example.com,1860,90.0,UPI,1,Bamboo Serving Tray,HCF-TRA1,Woodcraft,1,780,780
+HC-4382,2026-06-12,Aarav Gupta,aarav.gupta42@example.com,1860,90.0,COD,2,Warli Coasters,HCF-COA1,Art,3,360,1080
+HC-4383,2026-05-25,Omkar Khan,omkar.khan13@example.com,4740,0.0,UPI,1,Dhokra Figurine,HCF-DHO1,Metalcraft,2,1680,3360
+HC-4383,2026-05-25,Omkar Khan,omkar.khan13@example.com,4740,0.0,UPI,2,Brass Diya Set,HCF-DIY1,Metalcraft,2,690,1380
+HC-4384,2026-06-18,Sana Gupta,sana.gupta68@example.com,3730,0.0,Card,1,Clay Pot Set,HCF-POT1,Pottery,3,620,1860
+HC-4384,2026-06-18,Sana Gupta,sana.gupta68@example.com,3730,0.0,UPI,2,Wooden Elephant,HCF-ELE1,Woodcraft,1,1250,1250
+HC-4384,2026-06-18,Sana Gupta,sana.gupta68@example.com,3730,0.0,Card,3,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4385,2026-03-14,Vihaan Singh,vihaan.singh98@example.com,8540,0.0,COD,1,Warli Coasters,HCF-COA1,Art,2,360,720
+HC-4385,2026-03-14,Vihaan Singh,vihaan.singh98@example.com,8540,0.0,UPI,2,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4385,2026-03-14,Vihaan Singh,vihaan.singh98@example.com,8540,0.0,UPI,3,Madhubani Painting,HCF-MAD1,Art,3,2400,7200
+HC-4386,2026-03-26,Vikram Sharma,vikram.sharma92@example.com,390,90.0,UPI,1,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4387,2026-02-27,Sana Verma,sana.verma35@example.com,8190,0.0,Card,1,Bamboo Serving Tray,HCF-TRA1,Woodcraft,3,780,2340
+HC-4387,2026-02-27,Sana Verma,sana.verma35@example.com,8190,0.0,Card,2,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4387,2026-02-27,Sana Verma,sana.verma35@example.com,8190,0.0,COD,3,Madhubani Painting,HCF-MAD1,Art,2,2400,4800
+HC-4387,2026-02-27,Sana Verma,sana.verma35@example.com,8190,0.0,Card,4,Warli Coasters,HCF-COA1,Art,1,360,360
+HC-4388,2026-08-11,Karan Ansari,karan.ansari25@example.com,690,90.0,Card,1,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4389,2026-07-03,Yash Joshi,yash.joshi19@example.com,850,90.0,UPI,1,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4390,2026-07-02,Dev Gupta,dev.gupta45@example.com,4420,0.0,COD,1,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4390,2026-07-02,Dev Gupta,dev.gupta45@example.com,4420,0.0,UPI,2,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4390,2026-07-02,Dev Gupta,dev.gupta45@example.com,4420,0.0,Card,3,Bamboo Serving Tray,HCF-TRA1,Woodcraft,1,780,780
+HC-4390,2026-07-02,Dev Gupta,dev.gupta45@example.com,4420,0.0,UPI,4,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4391,2026-05-13,Bilal Shetty,bilal.shetty14@example.com,6460,0.0,Card,1,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4391,2026-05-13,Bilal Shetty,bilal.shetty14@example.com,6460,0.0,Card,2,Terracotta Vase,HCF-VAS1,Pottery,3,850,2550
+HC-4391,2026-05-13,Bilal Shetty,bilal.shetty14@example.com,6460,0.0,UPI,3,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4391,2026-05-13,Bilal Shetty,bilal.shetty14@example.com,6460,0.0,Card,4,Brass Diya Set,HCF-DIY1,Metalcraft,2,690,1380
+HC-4392,2026-06-18,Dev Khan,dev.khan31@example.com,3350,0.0,Card,1,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4392,2026-06-18,Dev Khan,dev.khan31@example.com,3350,0.0,Card,2,Wooden Elephant,HCF-ELE1,Woodcraft,2,1250,2500
+HC-4393,2026-04-07,Zoya Chavan,zoya.chavan48@example.com,2640,0.0,Card,1,Clay Pot Set,HCF-POT1,Pottery,3,620,1860
+HC-4393,2026-04-07,Zoya Chavan,zoya.chavan48@example.com,2640,0.0,Card,2,Bamboo Serving Tray,HCF-TRA1,Woodcraft,1,780,780
+HC-4394,2026-06-17,Rohan Shetty,rohan.shetty83@example.com,5000,0.0,COD,1,Wooden Elephant,HCF-ELE1,Woodcraft,3,1250,3750
+HC-4394,2026-06-17,Rohan Shetty,rohan.shetty83@example.com,5000,0.0,Card,2,Wooden Elephant,HCF-ELE1,Woodcraft,1,1250,1250
+HC-4395,2026-06-21,Gauri Joshi,gauri.joshi40@example.com,2070,0.0,COD,1,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4395,2026-06-21,Gauri Joshi,gauri.joshi40@example.com,2070,0.0,COD,2,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4396,2026-04-17,Karan Patel,karan.patel17@example.com,2040,0.0,Card,1,Warli Coasters,HCF-COA1,Art,1,360,360
+HC-4396,2026-04-17,Karan Patel,karan.patel17@example.com,2040,0.0,COD,2,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4397,2026-04-06,Tara Gupta,tara.gupta12@example.com,7740,0.0,UPI,1,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4397,2026-04-06,Tara Gupta,tara.gupta12@example.com,7740,0.0,COD,2,Madhubani Painting,HCF-MAD1,Art,3,2400,7200
+HC-4398,2026-03-02,Tara Chavan,tara.chavan77@example.com,620,90.0,COD,1,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4399,2026-05-13,Karan Joshi,karan.joshi7@example.com,5510,0.0,UPI,1,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4399,2026-05-13,Karan Joshi,karan.joshi7@example.com,5510,0.0,COD,2,Wooden Elephant,HCF-ELE1,Woodcraft,1,1250,1250
+HC-4399,2026-05-13,Karan Joshi,karan.joshi7@example.com,5510,0.0,UPI,3,Clay Pot Set,HCF-POT1,Pottery,3,620,1860
+HC-4400,2026-03-28,Kiara Das,kiara.das72@example.com,1620,90.0,COD,1,Jute Tote Bag,HCF-JUT1,Textile,3,540,1620
+HC-4401,2026-07-07,Ritu Khan,ritu.khan5@example.com,2130,0.0,Card,1,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4401,2026-07-07,Ritu Khan,ritu.khan5@example.com,2130,0.0,UPI,2,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4402,2026-05-01,Dev Nair,dev.nair47@example.com,3430,0.0,COD,1,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4402,2026-05-01,Dev Nair,dev.nair47@example.com,3430,0.0,UPI,2,Wooden Elephant,HCF-ELE1,Woodcraft,2,1250,2500
+HC-4402,2026-05-01,Dev Nair,dev.nair47@example.com,3430,0.0,Card,3,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4403,2026-04-09,Dev Rao,dev.rao61@example.com,6420,0.0,UPI,1,Madhubani Painting,HCF-MAD1,Art,2,2400,4800
+HC-4403,2026-04-09,Dev Rao,dev.rao61@example.com,6420,0.0,COD,2,Jute Tote Bag,HCF-JUT1,Textile,3,540,1620
+HC-4404,2026-07-09,Aarav Iyer,aarav.iyer61@example.com,690,90.0,Card,1,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4405,2026-03-14,Meera Ansari,meera.ansari75@example.com,1560,90.0,COD,1,Bamboo Serving Tray,HCF-TRA1,Woodcraft,2,780,1560
+HC-4406,2026-04-21,Pooja Bose,pooja.bose13@example.com,3330,0.0,COD,1,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4406,2026-04-21,Pooja Bose,pooja.bose13@example.com,3330,0.0,COD,2,Jute Tote Bag,HCF-JUT1,Textile,2,540,1080
+HC-4406,2026-04-21,Pooja Bose,pooja.bose13@example.com,3330,0.0,COD,3,Clay Pot Set,HCF-POT1,Pottery,3,620,1860
+HC-4407,2026-07-31,Zoya Nair,zoya.nair3@example.com,7200,0.0,Card,1,Madhubani Painting,HCF-MAD1,Art,3,2400,7200
+HC-4408,2026-07-23,Yash Verma,yash.verma56@example.com,3860,0.0,UPI,1,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4408,2026-07-23,Yash Verma,yash.verma56@example.com,3860,0.0,COD,2,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4408,2026-07-23,Yash Verma,yash.verma56@example.com,3860,0.0,UPI,3,Beaded Necklace,HCF-NEC1,Jewellery,3,390,1170
+HC-4408,2026-07-23,Yash Verma,yash.verma56@example.com,3860,0.0,COD,4,Terracotta Vase,HCF-VAS1,Pottery,2,850,1700
+HC-4409,2026-02-22,Dev Joshi,dev.joshi22@example.com,2640,0.0,UPI,1,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4409,2026-02-22,Dev Joshi,dev.joshi22@example.com,2640,0.0,Card,2,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4409,2026-02-22,Dev Joshi,dev.joshi22@example.com,2640,0.0,UPI,3,Wooden Elephant,HCF-ELE1,Woodcraft,1,1250,1250
+HC-4410,2026-03-25,Anaya Khan,anaya.khan9@example.com,4200,0.0,Card,1,Wooden Elephant,HCF-ELE1,Woodcraft,3,1250,3750
+HC-4410,2026-03-25,Anaya Khan,anaya.khan9@example.com,4200,0.0,COD,2,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4411,2026-08-24,Vikram Pillai,vikram.pillai6@example.com,1530,90.0,COD,1,Warli Coasters,HCF-COA1,Art,2,360,720
+HC-4411,2026-08-24,Vikram Pillai,vikram.pillai6@example.com,1530,90.0,UPI,2,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4411,2026-08-24,Vikram Pillai,vikram.pillai6@example.com,1530,90.0,COD,3,Warli Coasters,HCF-COA1,Art,1,360,360
+HC-4412,2026-07-19,Nisha Khan,nisha.khan45@example.com,1300,90.0,UPI,1,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4412,2026-07-19,Nisha Khan,nisha.khan45@example.com,1300,90.0,COD,2,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4413,2026-03-12,Pooja Kulkarni,pooja.kulkarni85@example.com,2340,0.0,Card,1,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4413,2026-03-12,Pooja Kulkarni,pooja.kulkarni85@example.com,2340,0.0,Card,2,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4413,2026-03-12,Pooja Kulkarni,pooja.kulkarni85@example.com,2340,0.0,UPI,3,Block Print Cushion,HCF-CUS1,Textile,3,450,1350
+HC-4414,2026-05-07,Bilal Ansari,bilal.ansari10@example.com,7470,0.0,UPI,1,Macrame Wall Hanging,HCF-MAC1,Textile,3,1150,3450
+HC-4414,2026-05-07,Bilal Ansari,bilal.ansari10@example.com,7470,0.0,COD,2,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4414,2026-05-07,Bilal Ansari,bilal.ansari10@example.com,7470,0.0,UPI,3,Terracotta Vase,HCF-VAS1,Pottery,3,850,2550
+HC-4414,2026-05-07,Bilal Ansari,bilal.ansari10@example.com,7470,0.0,Card,4,Warli Coasters,HCF-COA1,Art,3,360,1080
+HC-4415,2026-05-30,Kabir Das,kabir.das35@example.com,6560,0.0,Card,1,Macrame Wall Hanging,HCF-MAC1,Textile,2,1150,2300
+HC-4415,2026-05-30,Kabir Das,kabir.das35@example.com,6560,0.0,COD,2,Clay Pot Set,HCF-POT1,Pottery,3,620,1860
+HC-4415,2026-05-30,Kabir Das,kabir.das35@example.com,6560,0.0,COD,3,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4415,2026-05-30,Kabir Das,kabir.das35@example.com,6560,0.0,Card,4,Wooden Elephant,HCF-ELE1,Woodcraft,1,1250,1250
+HC-4416,2026-04-19,Faizan Reddy,faizan.reddy5@example.com,3610,0.0,Card,1,Warli Coasters,HCF-COA1,Art,3,360,1080
+HC-4416,2026-04-19,Faizan Reddy,faizan.reddy5@example.com,3610,0.0,Card,2,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4416,2026-04-19,Faizan Reddy,faizan.reddy5@example.com,3610,0.0,UPI,3,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4417,2026-08-05,Aarav Sharma,aarav.sharma96@example.com,2500,0.0,UPI,1,Wooden Elephant,HCF-ELE1,Woodcraft,2,1250,2500
+HC-4418,2026-02-22,Rohan Reddy,rohan.reddy46@example.com,1170,90.0,Card,1,Beaded Necklace,HCF-NEC1,Jewellery,3,390,1170
+HC-4419,2026-03-04,Zoya Shetty,zoya.shetty12@example.com,3110,0.0,COD,1,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4419,2026-03-04,Zoya Shetty,zoya.shetty12@example.com,3110,0.0,Card,2,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4419,2026-03-04,Zoya Shetty,zoya.shetty12@example.com,3110,0.0,COD,3,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4419,2026-03-04,Zoya Shetty,zoya.shetty12@example.com,3110,0.0,UPI,4,Warli Coasters,HCF-COA1,Art,1,360,360
+HC-4420,2026-04-09,Faizan Gupta,faizan.gupta18@example.com,2160,0.0,Card,1,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4420,2026-04-09,Faizan Gupta,faizan.gupta18@example.com,2160,0.0,UPI,2,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4420,2026-04-09,Faizan Gupta,faizan.gupta18@example.com,2160,0.0,COD,3,Bamboo Serving Tray,HCF-TRA1,Woodcraft,1,780,780
+HC-4421,2026-04-13,Omkar Joshi,omkar.joshi14@example.com,1150,90.0,Card,1,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4422,2026-08-25,Sana Menon,sana.menon7@example.com,1050,90.0,UPI,1,Warli Coasters,HCF-COA1,Art,1,360,360
+HC-4422,2026-08-25,Sana Menon,sana.menon7@example.com,1050,90.0,UPI,2,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4423,2026-04-20,Pooja Joshi,pooja.joshi78@example.com,2500,0.0,Card,1,Wooden Elephant,HCF-ELE1,Woodcraft,2,1250,2500
+HC-4424,2026-06-16,Anaya Reddy,anaya.reddy55@example.com,1570,90.0,Card,1,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4424,2026-06-16,Anaya Reddy,anaya.reddy55@example.com,1570,90.0,COD,2,Warli Coasters,HCF-COA1,Art,2,360,720
+HC-4425,2026-07-14,Pooja Nair,pooja.nair91@example.com,4800,0.0,COD,1,Madhubani Painting,HCF-MAD1,Art,2,2400,4800
+HC-4426,2026-08-13,Aarav Singh,aarav.singh68@example.com,4330,0.0,UPI,1,Bamboo Serving Tray,HCF-TRA1,Woodcraft,1,780,780
+HC-4426,2026-08-13,Aarav Singh,aarav.singh68@example.com,4330,0.0,COD,2,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4426,2026-08-13,Aarav Singh,aarav.singh68@example.com,4330,0.0,UPI,3,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4427,2026-04-28,Kiara Kulkarni,kiara.kulkarni70@example.com,2340,0.0,UPI,1,Bamboo Serving Tray,HCF-TRA1,Woodcraft,3,780,2340
+HC-4428,2026-06-11,Diya Bose,diya.bose50@example.com,1620,90.0,Card,1,Jute Tote Bag,HCF-JUT1,Textile,3,540,1620
+HC-4429,2026-07-24,Gauri Khan,gauri.khan33@example.com,1630,90.0,Card,1,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4429,2026-07-24,Gauri Khan,gauri.khan33@example.com,1630,90.0,COD,2,Bamboo Serving Tray,HCF-TRA1,Woodcraft,1,780,780
+HC-4430,2026-06-24,Lakshmi Reddy,lakshmi.reddy11@example.com,6120,0.0,COD,1,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4430,2026-06-24,Lakshmi Reddy,lakshmi.reddy11@example.com,6120,0.0,UPI,2,Warli Coasters,HCF-COA1,Art,1,360,360
+HC-4430,2026-06-24,Lakshmi Reddy,lakshmi.reddy11@example.com,6120,0.0,Card,3,Dhokra Figurine,HCF-DHO1,Metalcraft,2,1680,3360
+HC-4431,2026-07-02,Asha Gupta,asha.gupta77@example.com,850,90.0,Card,1,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4432,2026-03-14,Faizan Nair,faizan.nair89@example.com,1080,90.0,UPI,1,Warli Coasters,HCF-COA1,Art,3,360,1080
+HC-4433,2026-06-11,Lakshmi Joshi,lakshmi.joshi30@example.com,1680,90.0,COD,1,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4434,2026-03-25,Vikram Ansari,vikram.ansari38@example.com,1230,90.0,Card,1,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4434,2026-03-25,Vikram Ansari,vikram.ansari38@example.com,1230,90.0,COD,2,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4435,2026-07-09,Karan Chavan,karan.chavan38@example.com,7500,0.0,UPI,1,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4435,2026-07-09,Karan Chavan,karan.chavan38@example.com,7500,0.0,Card,2,Wooden Elephant,HCF-ELE1,Woodcraft,3,1250,3750
+HC-4435,2026-07-09,Karan Chavan,karan.chavan38@example.com,7500,0.0,Card,3,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4435,2026-07-09,Karan Chavan,karan.chavan38@example.com,7500,0.0,COD,4,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4436,2026-03-26,Lakshmi Patel,lakshmi.patel61@example.com,360,90.0,UPI,1,Warli Coasters,HCF-COA1,Art,1,360,360
+HC-4437,2026-03-31,Vihaan Singh,vihaan.singh28@example.com,5970,0.0,UPI,1,Macrame Wall Hanging,HCF-MAC1,Textile,3,1150,3450
+HC-4437,2026-03-31,Vihaan Singh,vihaan.singh28@example.com,5970,0.0,UPI,2,Beaded Necklace,HCF-NEC1,Jewellery,3,390,1170
+HC-4437,2026-03-31,Vihaan Singh,vihaan.singh28@example.com,5970,0.0,Card,3,Block Print Cushion,HCF-CUS1,Textile,2,450,900
+HC-4437,2026-03-31,Vihaan Singh,vihaan.singh28@example.com,5970,0.0,COD,4,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4438,2026-03-09,Lakshmi Patel,lakshmi.patel94@example.com,3360,0.0,Card,1,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4438,2026-03-09,Lakshmi Patel,lakshmi.patel94@example.com,3360,0.0,UPI,2,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4439,2026-02-21,Rahul Kulkarni,rahul.kulkarni53@example.com,2080,0.0,Card,1,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4439,2026-02-21,Rahul Kulkarni,rahul.kulkarni53@example.com,2080,0.0,Card,2,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4439,2026-02-21,Rahul Kulkarni,rahul.kulkarni53@example.com,2080,0.0,Card,3,Bamboo Serving Tray,HCF-TRA1,Woodcraft,1,780,780
+HC-4440,2026-08-01,Sana Shetty,sana.shetty82@example.com,1930,90.0,Card,1,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4440,2026-08-01,Sana Shetty,sana.shetty82@example.com,1930,90.0,Card,2,Warli Coasters,HCF-COA1,Art,3,360,1080
+HC-4441,2026-07-12,Gauri Bose,gauri.bose5@example.com,3450,0.0,UPI,1,Macrame Wall Hanging,HCF-MAC1,Textile,3,1150,3450
+HC-4442,2026-09-03,Tara Reddy,tara.reddy58@example.com,3250,0.0,UPI,1,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4442,2026-09-03,Tara Reddy,tara.reddy58@example.com,3250,0.0,Card,2,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4443,2026-08-25,Faizan Mehta,faizan.mehta8@example.com,1160,90.0,UPI,1,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4443,2026-08-25,Faizan Mehta,faizan.mehta8@example.com,1160,90.0,COD,2,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4444,2026-05-12,Lakshmi Verma,lakshmi.verma21@example.com,4800,0.0,UPI,1,Clay Pot Set,HCF-POT1,Pottery,3,620,1860
+HC-4444,2026-05-12,Lakshmi Verma,lakshmi.verma21@example.com,4800,0.0,UPI,2,Brass Diya Set,HCF-DIY1,Metalcraft,2,690,1380
+HC-4444,2026-05-12,Lakshmi Verma,lakshmi.verma21@example.com,4800,0.0,Card,3,Bamboo Serving Tray,HCF-TRA1,Woodcraft,2,780,1560
+HC-4445,2026-08-10,Ritu Sharma,ritu.sharma55@example.com,6970,0.0,Card,1,Terracotta Vase,HCF-VAS1,Pottery,2,850,1700
+HC-4445,2026-08-10,Ritu Sharma,ritu.sharma55@example.com,6970,0.0,COD,2,Bamboo Serving Tray,HCF-TRA1,Woodcraft,3,780,2340
+HC-4445,2026-08-10,Ritu Sharma,ritu.sharma55@example.com,6970,0.0,Card,3,Wooden Elephant,HCF-ELE1,Woodcraft,1,1250,1250
+HC-4445,2026-08-10,Ritu Sharma,ritu.sharma55@example.com,6970,0.0,Card,4,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4446,2026-04-26,Omkar Gupta,omkar.gupta16@example.com,1240,90.0,Card,1,Clay Pot Set,HCF-POT1,Pottery,2,620,1240
+HC-4447,2026-08-18,Kiara Singh,kiara.singh14@example.com,1600,90.0,COD,1,Warli Coasters,HCF-COA1,Art,1,360,360
+HC-4447,2026-08-18,Kiara Singh,kiara.singh14@example.com,1600,90.0,Card,2,Clay Pot Set,HCF-POT1,Pottery,2,620,1240
+HC-4448,2026-08-04,Pooja Rao,pooja.rao18@example.com,1840,90.0,COD,1,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4448,2026-08-04,Pooja Rao,pooja.rao18@example.com,1840,90.0,Card,2,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4449,2026-08-28,Aarav Chavan,aarav.chavan51@example.com,3240,0.0,COD,1,Jute Tote Bag,HCF-JUT1,Textile,3,540,1620
+HC-4449,2026-08-28,Aarav Chavan,aarav.chavan51@example.com,3240,0.0,COD,2,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4449,2026-08-28,Aarav Chavan,aarav.chavan51@example.com,3240,0.0,Card,3,Beaded Necklace,HCF-NEC1,Jewellery,3,390,1170
+HC-4450,2026-06-30,Rohan Gupta,rohan.gupta22@example.com,8490,0.0,Card,1,Wooden Elephant,HCF-ELE1,Woodcraft,3,1250,3750
+HC-4450,2026-06-30,Rohan Gupta,rohan.gupta22@example.com,8490,0.0,UPI,2,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4450,2026-06-30,Rohan Gupta,rohan.gupta22@example.com,8490,0.0,COD,3,Wooden Elephant,HCF-ELE1,Woodcraft,3,1250,3750
+HC-4450,2026-06-30,Rohan Gupta,rohan.gupta22@example.com,8490,0.0,Card,4,Block Print Cushion,HCF-CUS1,Textile,1,450,450
+HC-4451,2026-02-11,Diya Das,diya.das50@example.com,750,90.0,Card,1,Beaded Necklace,HCF-NEC1,Jewellery,1,390,390
+HC-4451,2026-02-11,Diya Das,diya.das50@example.com,750,90.0,Card,2,Warli Coasters,HCF-COA1,Art,1,360,360
+HC-4452,2026-05-23,Meera Joshi,meera.joshi96@example.com,3320,0.0,Card,1,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4452,2026-05-23,Meera Joshi,meera.joshi96@example.com,3320,0.0,UPI,2,Macrame Wall Hanging,HCF-MAC1,Textile,1,1150,1150
+HC-4452,2026-05-23,Meera Joshi,meera.joshi96@example.com,3320,0.0,Card,3,Terracotta Vase,HCF-VAS1,Pottery,1,850,850
+HC-4452,2026-05-23,Meera Joshi,meera.joshi96@example.com,3320,0.0,COD,4,Bamboo Serving Tray,HCF-TRA1,Woodcraft,1,780,780
+HC-4453,2026-08-17,Kiara Bose,kiara.bose68@example.com,1160,90.0,Card,1,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4453,2026-08-17,Kiara Bose,kiara.bose68@example.com,1160,90.0,UPI,2,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4454,2026-06-24,Asha Nair,asha.nair10@example.com,1160,90.0,UPI,1,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4454,2026-06-24,Asha Nair,asha.nair10@example.com,1160,90.0,UPI,2,Jute Tote Bag,HCF-JUT1,Textile,1,540,540
+HC-4455,2026-04-08,Diya Reddy,diya.reddy3@example.com,2300,0.0,UPI,1,Macrame Wall Hanging,HCF-MAC1,Textile,2,1150,2300
+HC-4456,2026-05-26,Lakshmi Pillai,lakshmi.pillai26@example.com,6240,0.0,COD,1,Brass Diya Set,HCF-DIY1,Metalcraft,3,690,2070
+HC-4456,2026-05-26,Lakshmi Pillai,lakshmi.pillai26@example.com,6240,0.0,UPI,2,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4456,2026-05-26,Lakshmi Pillai,lakshmi.pillai26@example.com,6240,0.0,Card,3,Warli Coasters,HCF-COA1,Art,3,360,1080
+HC-4456,2026-05-26,Lakshmi Pillai,lakshmi.pillai26@example.com,6240,0.0,COD,4,Brass Diya Set,HCF-DIY1,Metalcraft,1,690,690
+HC-4457,2026-03-03,Karan Reddy,karan.reddy18@example.com,2400,0.0,COD,1,Madhubani Painting,HCF-MAD1,Art,1,2400,2400
+HC-4458,2026-05-15,Arjun Iyer,arjun.iyer63@example.com,2300,0.0,Card,1,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4458,2026-05-15,Arjun Iyer,arjun.iyer63@example.com,2300,0.0,COD,2,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680
+HC-4459,2026-05-26,Zoya Patel,zoya.patel12@example.com,4070,0.0,UPI,1,Clay Pot Set,HCF-POT1,Pottery,1,620,620
+HC-4459,2026-05-26,Zoya Patel,zoya.patel12@example.com,4070,0.0,COD,2,Macrame Wall Hanging,HCF-MAC1,Textile,3,1150,3450
+HC-4460,2026-03-15,Karan Iyer,karan.iyer56@example.com,1680,90.0,UPI,1,Dhokra Figurine,HCF-DHO1,Metalcraft,1,1680,1680

@@ -1,0 +1,650 @@
+batch_id,production_date,product,material,quantity_used,unit,output_units,wastage_units,operator,batch_status
+BT-0001,2026-03-02,Idli Batter 1kg,Rice,9.97,kg,60,1,Lakshmi,Completed
+BT-0001,2026-03-02,Idli Batter 1kg,Urad dal,4.65,ltr,60,1,Lakshmi,Rework
+BT-0001,2026-03-02,Idli Batter 1kg,Salt,8.63,kg,60,1,Ritu,Completed
+BT-0002,2026-03-04,Besan Laddu 500g,Besan,15.9,g,80,3,Ritu,Rework
+BT-0002,2026-03-04,Besan Laddu 500g,Ghee,10.04,ltr,80,3,Asha,Completed
+BT-0002,2026-03-04,Besan Laddu 500g,Sugar,9.71,ltr,80,3,Lakshmi,Rework
+BT-0002,2026-03-04,Besan Laddu 500g,Cardamom,3.46,ltr,80,3,Lakshmi,Completed
+BT-0003,2026-03-04,Mango Pickle 500g,Raw mango,2.91,g,80,3,Lakshmi,Completed
+BT-0003,2026-03-04,Mango Pickle 500g,Mustard oil,17.75,g,80,3,Lakshmi,Completed
+BT-0003,2026-03-04,Mango Pickle 500g,Spice mix,15.99,ltr,80,3,Lakshmi,Rework
+BT-0003,2026-03-04,Mango Pickle 500g,Salt,5.99,kg,80,3,Asha,Completed
+BT-0004,2026-03-04,Idli Batter 1kg,Rice,0.93,g,40,0,Ritu,Completed
+BT-0004,2026-03-04,Idli Batter 1kg,Urad dal,14.89,kg,40,0,Asha,Completed
+BT-0004,2026-03-04,Idli Batter 1kg,Salt,11.38,kg,40,0,Lakshmi,Completed
+BT-0005,2026-03-06,Mango Pickle 500g,Raw mango,8.71,g,100,3,Asha,Completed
+BT-0005,2026-03-06,Mango Pickle 500g,Mustard oil,4.48,ltr,100,3,Lakshmi,Completed
+BT-0005,2026-03-06,Mango Pickle 500g,Spice mix,1.21,g,100,3,Ritu,Completed
+BT-0005,2026-03-06,Mango Pickle 500g,Salt,1.23,kg,100,3,Lakshmi,Completed
+BT-0006,2026-03-06,Chakli 250g,Rice flour,10.51,ltr,100,0,Asha,Completed
+BT-0006,2026-03-06,Chakli 250g,Besan,1.41,ltr,100,0,Lakshmi,Completed
+BT-0006,2026-03-06,Chakli 250g,Oil,14.61,ltr,100,0,Ritu,Completed
+BT-0006,2026-03-06,Chakli 250g,Spice mix,7.37,kg,100,0,Ritu,Rework
+BT-0007,2026-03-08,Idli Batter 1kg,Rice,6.03,g,40,0,Ritu,Rework
+BT-0007,2026-03-08,Idli Batter 1kg,Urad dal,6.86,ltr,40,0,Asha,Completed
+BT-0007,2026-03-08,Idli Batter 1kg,Salt,10.12,g,40,0,Ritu,Completed
+BT-0008,2026-03-08,Mango Pickle 500g,Raw mango,1.02,ltr,80,0,Lakshmi,Completed
+BT-0008,2026-03-08,Mango Pickle 500g,Mustard oil,14.63,kg,80,0,Lakshmi,Rework
+BT-0008,2026-03-08,Mango Pickle 500g,Spice mix,8.63,kg,80,0,Lakshmi,Rework
+BT-0008,2026-03-08,Mango Pickle 500g,Salt,1.67,kg,80,0,Ritu,Completed
+BT-0009,2026-03-08,Chakli 250g,Rice flour,2.41,kg,60,1,Ritu,Rework
+BT-0009,2026-03-08,Chakli 250g,Besan,13.22,ltr,60,1,Ritu,Completed
+BT-0009,2026-03-08,Chakli 250g,Oil,11.69,g,60,1,Ritu,Rework
+BT-0009,2026-03-08,Chakli 250g,Spice mix,0.89,g,60,1,Ritu,Completed
+BT-0010,2026-03-10,Besan Laddu 500g,Besan,3.08,g,50,0,Lakshmi,Completed
+BT-0010,2026-03-10,Besan Laddu 500g,Ghee,8.59,g,50,0,Ritu,Completed
+BT-0010,2026-03-10,Besan Laddu 500g,Sugar,6.24,ltr,50,0,Ritu,Completed
+BT-0010,2026-03-10,Besan Laddu 500g,Cardamom,3.31,kg,50,0,Ritu,Rework
+BT-0011,2026-03-10,Mango Pickle 500g,Raw mango,8.16,kg,40,0,Asha,Completed
+BT-0011,2026-03-10,Mango Pickle 500g,Mustard oil,8.06,kg,40,0,Ritu,Rework
+BT-0011,2026-03-10,Mango Pickle 500g,Spice mix,5.34,g,40,0,Asha,Completed
+BT-0011,2026-03-10,Mango Pickle 500g,Salt,8.66,g,40,0,Lakshmi,Completed
+BT-0012,2026-03-12,Chakli 250g,Rice flour,16.93,kg,100,1,Ritu,Completed
+BT-0012,2026-03-12,Chakli 250g,Besan,2.68,kg,100,1,Asha,Rework
+BT-0012,2026-03-12,Chakli 250g,Oil,7.16,kg,100,1,Ritu,Rework
+BT-0012,2026-03-12,Chakli 250g,Spice mix,1.95,kg,100,1,Ritu,Rework
+BT-0013,2026-03-12,Pure Ghee 500ml,Butter,7.3,g,40,0,Lakshmi,Completed
+BT-0013,2026-03-12,Pure Ghee 500ml,Fuel,7.91,ltr,40,0,Lakshmi,Completed
+BT-0014,2026-03-14,Pure Ghee 500ml,Butter,4.62,ltr,40,0,Ritu,Completed
+BT-0014,2026-03-14,Pure Ghee 500ml,Fuel,3.67,kg,40,0,Lakshmi,Rework
+BT-0015,2026-03-14,Chakli 250g,Rice flour,14.77,kg,50,5,Asha,Completed
+BT-0015,2026-03-14,Chakli 250g,Besan,9.38,g,50,5,Asha,Completed
+BT-0015,2026-03-14,Chakli 250g,Oil,4.71,kg,50,5,Ritu,Completed
+BT-0015,2026-03-14,Chakli 250g,Spice mix,11.0,ltr,50,5,Lakshmi,Completed
+BT-0016,2026-03-14,Mango Pickle 500g,Raw mango,1.82,g,60,0,Lakshmi,Completed
+BT-0016,2026-03-14,Mango Pickle 500g,Mustard oil,8.68,ltr,60,0,Ritu,Completed
+BT-0016,2026-03-14,Mango Pickle 500g,Spice mix,3.56,kg,60,0,Asha,Completed
+BT-0016,2026-03-14,Mango Pickle 500g,Salt,10.92,g,60,0,Asha,Rework
+BT-0017,2026-03-16,Dry Fruit Chikki,Jaggery,4.68,g,40,3,Ritu,Completed
+BT-0017,2026-03-16,Dry Fruit Chikki,Cashew,12.1,kg,40,3,Asha,Rework
+BT-0017,2026-03-16,Dry Fruit Chikki,Almond,7.9,ltr,40,3,Ritu,Completed
+BT-0017,2026-03-16,Dry Fruit Chikki,Ghee,1.16,ltr,40,3,Asha,Rework
+BT-0018,2026-03-18,Besan Laddu 500g,Besan,11.97,ltr,50,0,Ritu,Completed
+BT-0018,2026-03-18,Besan Laddu 500g,Ghee,6.32,kg,50,0,Ritu,Completed
+BT-0018,2026-03-18,Besan Laddu 500g,Sugar,1.11,ltr,50,0,Asha,Completed
+BT-0018,2026-03-18,Besan Laddu 500g,Cardamom,15.86,kg,50,0,Asha,Rework
+BT-0019,2026-03-18,Dry Fruit Chikki,Jaggery,2.57,kg,40,1,Asha,Completed
+BT-0019,2026-03-18,Dry Fruit Chikki,Cashew,6.69,kg,40,1,Lakshmi,Rework
+BT-0019,2026-03-18,Dry Fruit Chikki,Almond,15.6,g,40,1,Lakshmi,Rework
+BT-0019,2026-03-18,Dry Fruit Chikki,Ghee,2.62,ltr,40,1,Lakshmi,Completed
+BT-0020,2026-03-18,Chakli 250g,Rice flour,13.21,kg,50,5,Ritu,Completed
+BT-0020,2026-03-18,Chakli 250g,Besan,6.5,kg,50,5,Asha,Completed
+BT-0020,2026-03-18,Chakli 250g,Oil,15.43,ltr,50,5,Ritu,Completed
+BT-0020,2026-03-18,Chakli 250g,Spice mix,2.79,ltr,50,5,Asha,Completed
+BT-0021,2026-03-20,Pure Ghee 500ml,Butter,3.43,kg,100,1,Lakshmi,Completed
+BT-0021,2026-03-20,Pure Ghee 500ml,Fuel,10.21,ltr,100,1,Ritu,Completed
+BT-0022,2026-03-20,Mango Pickle 500g,Raw mango,10.77,ltr,100,0,Asha,Rework
+BT-0022,2026-03-20,Mango Pickle 500g,Mustard oil,14.75,g,100,0,Lakshmi,Completed
+BT-0022,2026-03-20,Mango Pickle 500g,Spice mix,13.69,kg,100,0,Ritu,Completed
+BT-0022,2026-03-20,Mango Pickle 500g,Salt,17.66,g,100,0,Lakshmi,Completed
+BT-0023,2026-03-22,Idli Batter 1kg,Rice,3.11,ltr,100,3,Ritu,Rework
+BT-0023,2026-03-22,Idli Batter 1kg,Urad dal,14.55,kg,100,3,Lakshmi,Completed
+BT-0023,2026-03-22,Idli Batter 1kg,Salt,10.92,kg,100,3,Asha,Completed
+BT-0024,2026-03-24,Besan Laddu 500g,Besan,3.02,kg,60,0,Lakshmi,Rework
+BT-0024,2026-03-24,Besan Laddu 500g,Ghee,9.29,ltr,60,0,Lakshmi,Completed
+BT-0024,2026-03-24,Besan Laddu 500g,Sugar,12.71,ltr,60,0,Asha,Completed
+BT-0024,2026-03-24,Besan Laddu 500g,Cardamom,7.21,ltr,60,0,Asha,Completed
+BT-0025,2026-03-26,Chakli 250g,Rice flour,9.46,g,40,2,Lakshmi,Rework
+BT-0025,2026-03-26,Chakli 250g,Besan,16.21,kg,40,2,Lakshmi,Completed
+BT-0025,2026-03-26,Chakli 250g,Oil,2.72,ltr,40,2,Asha,Rework
+BT-0025,2026-03-26,Chakli 250g,Spice mix,6.91,g,40,2,Asha,Completed
+BT-0026,2026-03-26,Pure Ghee 500ml,Butter,1.47,g,40,3,Lakshmi,Completed
+BT-0026,2026-03-26,Pure Ghee 500ml,Fuel,16.02,kg,40,3,Ritu,Completed
+BT-0027,2026-03-26,Mango Pickle 500g,Raw mango,14.11,kg,80,0,Lakshmi,Completed
+BT-0027,2026-03-26,Mango Pickle 500g,Mustard oil,17.85,kg,80,0,Asha,Rework
+BT-0027,2026-03-26,Mango Pickle 500g,Spice mix,1.71,g,80,0,Asha,Completed
+BT-0027,2026-03-26,Mango Pickle 500g,Salt,13.95,ltr,80,0,Asha,Completed
+BT-0028,2026-03-28,Chakli 250g,Rice flour,12.42,kg,40,2,Ritu,Rework
+BT-0028,2026-03-28,Chakli 250g,Besan,14.94,g,40,2,Asha,Completed
+BT-0028,2026-03-28,Chakli 250g,Oil,2.05,g,40,2,Ritu,Completed
+BT-0028,2026-03-28,Chakli 250g,Spice mix,4.02,kg,40,2,Lakshmi,Rework
+BT-0029,2026-03-28,Besan Laddu 500g,Besan,3.69,ltr,100,1,Ritu,Completed
+BT-0029,2026-03-28,Besan Laddu 500g,Ghee,4.3,kg,100,1,Ritu,Completed
+BT-0029,2026-03-28,Besan Laddu 500g,Sugar,4.91,kg,100,1,Asha,Completed
+BT-0029,2026-03-28,Besan Laddu 500g,Cardamom,9.13,ltr,100,1,Asha,Completed
+BT-0030,2026-03-28,Idli Batter 1kg,Rice,4.34,g,80,5,Ritu,Completed
+BT-0030,2026-03-28,Idli Batter 1kg,Urad dal,10.87,ltr,80,5,Ritu,Rework
+BT-0030,2026-03-28,Idli Batter 1kg,Salt,2.86,g,80,5,Ritu,Completed
+BT-0031,2026-03-30,Besan Laddu 500g,Besan,16.3,ltr,60,3,Lakshmi,Completed
+BT-0031,2026-03-30,Besan Laddu 500g,Ghee,17.71,ltr,60,3,Lakshmi,Completed
+BT-0031,2026-03-30,Besan Laddu 500g,Sugar,10.45,kg,60,3,Asha,Completed
+BT-0031,2026-03-30,Besan Laddu 500g,Cardamom,4.66,g,60,3,Ritu,Completed
+BT-0032,2026-03-30,Mango Pickle 500g,Raw mango,4.1,g,100,0,Ritu,Completed
+BT-0032,2026-03-30,Mango Pickle 500g,Mustard oil,10.5,kg,100,0,Asha,Completed
+BT-0032,2026-03-30,Mango Pickle 500g,Spice mix,11.18,kg,100,0,Lakshmi,Completed
+BT-0032,2026-03-30,Mango Pickle 500g,Salt,4.63,ltr,100,0,Asha,Completed
+BT-0033,2026-04-01,Dry Fruit Chikki,Jaggery,10.11,ltr,40,1,Asha,Completed
+BT-0033,2026-04-01,Dry Fruit Chikki,Cashew,6.25,g,40,1,Ritu,Completed
+BT-0033,2026-04-01,Dry Fruit Chikki,Almond,14.69,kg,40,1,Asha,Completed
+BT-0033,2026-04-01,Dry Fruit Chikki,Ghee,14.11,g,40,1,Lakshmi,Completed
+BT-0034,2026-04-01,Idli Batter 1kg,Rice,15.74,kg,80,3,Lakshmi,Completed
+BT-0034,2026-04-01,Idli Batter 1kg,Urad dal,8.91,g,80,3,Asha,Completed
+BT-0034,2026-04-01,Idli Batter 1kg,Salt,5.42,g,80,3,Lakshmi,Rework
+BT-0035,2026-04-03,Dry Fruit Chikki,Jaggery,11.87,g,60,5,Lakshmi,Completed
+BT-0035,2026-04-03,Dry Fruit Chikki,Cashew,11.4,kg,60,5,Ritu,Completed
+BT-0035,2026-04-03,Dry Fruit Chikki,Almond,4.12,g,60,5,Asha,Completed
+BT-0035,2026-04-03,Dry Fruit Chikki,Ghee,5.49,ltr,60,5,Asha,Rework
+BT-0036,2026-04-03,Besan Laddu 500g,Besan,10.93,ltr,80,0,Lakshmi,Completed
+BT-0036,2026-04-03,Besan Laddu 500g,Ghee,16.84,ltr,80,0,Ritu,Completed
+BT-0036,2026-04-03,Besan Laddu 500g,Sugar,2.46,kg,80,0,Lakshmi,Rework
+BT-0036,2026-04-03,Besan Laddu 500g,Cardamom,15.07,kg,80,0,Lakshmi,Completed
+BT-0037,2026-04-05,Dry Fruit Chikki,Jaggery,1.87,ltr,80,5,Lakshmi,Completed
+BT-0037,2026-04-05,Dry Fruit Chikki,Cashew,14.24,g,80,5,Lakshmi,Completed
+BT-0037,2026-04-05,Dry Fruit Chikki,Almond,12.25,kg,80,5,Asha,Completed
+BT-0037,2026-04-05,Dry Fruit Chikki,Ghee,13.33,ltr,80,5,Asha,Completed
+BT-0038,2026-04-05,Pure Ghee 500ml,Butter,6.09,kg,80,2,Ritu,Completed
+BT-0038,2026-04-05,Pure Ghee 500ml,Fuel,2.65,ltr,80,2,Lakshmi,Rework
+BT-0039,2026-04-07,Idli Batter 1kg,Rice,13.73,kg,100,0,Ritu,Completed
+BT-0039,2026-04-07,Idli Batter 1kg,Urad dal,12.86,g,100,0,Lakshmi,Rework
+BT-0039,2026-04-07,Idli Batter 1kg,Salt,4.87,kg,100,0,Ritu,Completed
+BT-0040,2026-04-09,Mango Pickle 500g,Raw mango,3.11,g,60,0,Ritu,Completed
+BT-0040,2026-04-09,Mango Pickle 500g,Mustard oil,13.15,ltr,60,0,Asha,Rework
+BT-0040,2026-04-09,Mango Pickle 500g,Spice mix,16.74,g,60,0,Ritu,Completed
+BT-0040,2026-04-09,Mango Pickle 500g,Salt,15.99,ltr,60,0,Lakshmi,Rework
+BT-0041,2026-04-09,Pure Ghee 500ml,Butter,16.68,kg,80,3,Ritu,Completed
+BT-0041,2026-04-09,Pure Ghee 500ml,Fuel,3.59,ltr,80,3,Lakshmi,Completed
+BT-0042,2026-04-11,Chakli 250g,Rice flour,4.97,ltr,100,3,Asha,Completed
+BT-0042,2026-04-11,Chakli 250g,Besan,5.42,ltr,100,3,Lakshmi,Rework
+BT-0042,2026-04-11,Chakli 250g,Oil,14.36,kg,100,3,Asha,Completed
+BT-0042,2026-04-11,Chakli 250g,Spice mix,12.94,ltr,100,3,Lakshmi,Completed
+BT-0043,2026-04-11,Idli Batter 1kg,Rice,13.64,ltr,60,5,Ritu,Rework
+BT-0043,2026-04-11,Idli Batter 1kg,Urad dal,6.6,g,60,5,Asha,Completed
+BT-0043,2026-04-11,Idli Batter 1kg,Salt,12.51,kg,60,5,Ritu,Completed
+BT-0044,2026-04-13,Idli Batter 1kg,Rice,16.2,ltr,40,5,Lakshmi,Completed
+BT-0044,2026-04-13,Idli Batter 1kg,Urad dal,9.8,kg,40,5,Ritu,Completed
+BT-0044,2026-04-13,Idli Batter 1kg,Salt,2.86,kg,40,5,Lakshmi,Completed
+BT-0045,2026-04-13,Besan Laddu 500g,Besan,8.37,g,60,0,Asha,Completed
+BT-0045,2026-04-13,Besan Laddu 500g,Ghee,1.39,ltr,60,0,Lakshmi,Completed
+BT-0045,2026-04-13,Besan Laddu 500g,Sugar,17.2,g,60,0,Asha,Completed
+BT-0045,2026-04-13,Besan Laddu 500g,Cardamom,3.59,g,60,0,Lakshmi,Completed
+BT-0046,2026-04-15,Mango Pickle 500g,Raw mango,14.63,kg,80,0,Ritu,Completed
+BT-0046,2026-04-15,Mango Pickle 500g,Mustard oil,3.89,kg,80,0,Asha,Completed
+BT-0046,2026-04-15,Mango Pickle 500g,Spice mix,15.83,g,80,0,Lakshmi,Completed
+BT-0046,2026-04-15,Mango Pickle 500g,Salt,16.54,ltr,80,0,Ritu,Rework
+BT-0047,2026-04-15,Dry Fruit Chikki,Jaggery,8.21,g,50,3,Lakshmi,Completed
+BT-0047,2026-04-15,Dry Fruit Chikki,Cashew,9.71,g,50,3,Asha,Completed
+BT-0047,2026-04-15,Dry Fruit Chikki,Almond,7.76,g,50,3,Asha,Completed
+BT-0047,2026-04-15,Dry Fruit Chikki,Ghee,13.99,g,50,3,Ritu,Rework
+BT-0048,2026-04-17,Mango Pickle 500g,Raw mango,11.87,kg,50,5,Lakshmi,Completed
+BT-0048,2026-04-17,Mango Pickle 500g,Mustard oil,14.53,kg,50,5,Ritu,Rework
+BT-0048,2026-04-17,Mango Pickle 500g,Spice mix,14.3,g,50,5,Asha,Completed
+BT-0048,2026-04-17,Mango Pickle 500g,Salt,3.16,g,50,5,Lakshmi,Completed
+BT-0049,2026-04-17,Pure Ghee 500ml,Butter,13.12,kg,80,5,Lakshmi,Completed
+BT-0049,2026-04-17,Pure Ghee 500ml,Fuel,13.33,kg,80,5,Ritu,Completed
+BT-0050,2026-04-19,Pure Ghee 500ml,Butter,9.49,kg,50,0,Asha,Completed
+BT-0050,2026-04-19,Pure Ghee 500ml,Fuel,1.92,g,50,0,Ritu,Completed
+BT-0051,2026-04-19,Besan Laddu 500g,Besan,16.84,kg,50,1,Asha,Completed
+BT-0051,2026-04-19,Besan Laddu 500g,Ghee,5.16,kg,50,1,Ritu,Completed
+BT-0051,2026-04-19,Besan Laddu 500g,Sugar,12.11,kg,50,1,Asha,Completed
+BT-0051,2026-04-19,Besan Laddu 500g,Cardamom,10.38,g,50,1,Ritu,Completed
+BT-0052,2026-04-21,Chakli 250g,Rice flour,1.84,ltr,100,0,Ritu,Completed
+BT-0052,2026-04-21,Chakli 250g,Besan,13.39,kg,100,0,Asha,Rework
+BT-0052,2026-04-21,Chakli 250g,Oil,5.5,ltr,100,0,Ritu,Completed
+BT-0052,2026-04-21,Chakli 250g,Spice mix,4.49,kg,100,0,Lakshmi,Rework
+BT-0053,2026-04-21,Pure Ghee 500ml,Butter,1.9,kg,40,3,Asha,Completed
+BT-0053,2026-04-21,Pure Ghee 500ml,Fuel,2.85,kg,40,3,Ritu,Completed
+BT-0054,2026-04-23,Dry Fruit Chikki,Jaggery,9.82,g,80,5,Lakshmi,Completed
+BT-0054,2026-04-23,Dry Fruit Chikki,Cashew,14.21,kg,80,5,Asha,Completed
+BT-0054,2026-04-23,Dry Fruit Chikki,Almond,17.45,ltr,80,5,Lakshmi,Completed
+BT-0054,2026-04-23,Dry Fruit Chikki,Ghee,11.72,kg,80,5,Lakshmi,Completed
+BT-0055,2026-04-23,Chakli 250g,Rice flour,3.56,g,50,5,Lakshmi,Completed
+BT-0055,2026-04-23,Chakli 250g,Besan,12.46,g,50,5,Ritu,Completed
+BT-0055,2026-04-23,Chakli 250g,Oil,2.13,g,50,5,Ritu,Completed
+BT-0055,2026-04-23,Chakli 250g,Spice mix,17.68,kg,50,5,Asha,Completed
+BT-0056,2026-04-25,Idli Batter 1kg,Rice,7.12,kg,80,0,Lakshmi,Completed
+BT-0056,2026-04-25,Idli Batter 1kg,Urad dal,6.68,g,80,0,Lakshmi,Rework
+BT-0056,2026-04-25,Idli Batter 1kg,Salt,11.81,ltr,80,0,Lakshmi,Rework
+BT-0057,2026-04-25,Chakli 250g,Rice flour,16.59,kg,80,0,Lakshmi,Rework
+BT-0057,2026-04-25,Chakli 250g,Besan,7.49,g,80,0,Asha,Completed
+BT-0057,2026-04-25,Chakli 250g,Oil,8.37,g,80,0,Asha,Completed
+BT-0057,2026-04-25,Chakli 250g,Spice mix,14.16,g,80,0,Lakshmi,Rework
+BT-0058,2026-04-27,Besan Laddu 500g,Besan,11.56,g,100,0,Ritu,Rework
+BT-0058,2026-04-27,Besan Laddu 500g,Ghee,11.71,kg,100,0,Asha,Rework
+BT-0058,2026-04-27,Besan Laddu 500g,Sugar,16.59,g,100,0,Ritu,Completed
+BT-0058,2026-04-27,Besan Laddu 500g,Cardamom,8.25,ltr,100,0,Asha,Completed
+BT-0059,2026-04-29,Idli Batter 1kg,Rice,13.72,ltr,40,5,Lakshmi,Completed
+BT-0059,2026-04-29,Idli Batter 1kg,Urad dal,14.86,g,40,5,Asha,Completed
+BT-0059,2026-04-29,Idli Batter 1kg,Salt,15.03,kg,40,5,Ritu,Completed
+BT-0060,2026-05-01,Besan Laddu 500g,Besan,17.11,kg,50,0,Lakshmi,Rework
+BT-0060,2026-05-01,Besan Laddu 500g,Ghee,4.6,g,50,0,Ritu,Completed
+BT-0060,2026-05-01,Besan Laddu 500g,Sugar,14.63,kg,50,0,Asha,Completed
+BT-0060,2026-05-01,Besan Laddu 500g,Cardamom,15.07,kg,50,0,Ritu,Completed
+BT-0061,2026-05-03,Chakli 250g,Rice flour,16.72,ltr,80,2,Ritu,Rework
+BT-0061,2026-05-03,Chakli 250g,Besan,13.94,kg,80,2,Ritu,Completed
+BT-0061,2026-05-03,Chakli 250g,Oil,16.24,kg,80,2,Asha,Completed
+BT-0061,2026-05-03,Chakli 250g,Spice mix,4.41,kg,80,2,Lakshmi,Completed
+BT-0062,2026-05-03,Mango Pickle 500g,Raw mango,3.86,kg,40,2,Asha,Completed
+BT-0062,2026-05-03,Mango Pickle 500g,Mustard oil,1.48,ltr,40,2,Ritu,Rework
+BT-0062,2026-05-03,Mango Pickle 500g,Spice mix,6.08,ltr,40,2,Lakshmi,Completed
+BT-0062,2026-05-03,Mango Pickle 500g,Salt,5.45,ltr,40,2,Asha,Completed
+BT-0063,2026-05-05,Besan Laddu 500g,Besan,9.81,g,50,5,Lakshmi,Rework
+BT-0063,2026-05-05,Besan Laddu 500g,Ghee,6.52,ltr,50,5,Ritu,Completed
+BT-0063,2026-05-05,Besan Laddu 500g,Sugar,3.48,kg,50,5,Asha,Completed
+BT-0063,2026-05-05,Besan Laddu 500g,Cardamom,7.3,g,50,5,Lakshmi,Completed
+BT-0064,2026-05-07,Mango Pickle 500g,Raw mango,10.68,kg,40,1,Asha,Rework
+BT-0064,2026-05-07,Mango Pickle 500g,Mustard oil,15.06,kg,40,1,Asha,Completed
+BT-0064,2026-05-07,Mango Pickle 500g,Spice mix,5.35,g,40,1,Ritu,Completed
+BT-0064,2026-05-07,Mango Pickle 500g,Salt,15.9,kg,40,1,Ritu,Completed
+BT-0065,2026-05-07,Pure Ghee 500ml,Butter,17.53,g,80,3,Ritu,Completed
+BT-0065,2026-05-07,Pure Ghee 500ml,Fuel,10.15,ltr,80,3,Lakshmi,Completed
+BT-0066,2026-05-09,Pure Ghee 500ml,Butter,16.21,g,50,3,Lakshmi,Completed
+BT-0066,2026-05-09,Pure Ghee 500ml,Fuel,12.2,g,50,3,Lakshmi,Completed
+BT-0067,2026-05-09,Besan Laddu 500g,Besan,11.53,ltr,100,2,Asha,Completed
+BT-0067,2026-05-09,Besan Laddu 500g,Ghee,4.62,g,100,2,Asha,Rework
+BT-0067,2026-05-09,Besan Laddu 500g,Sugar,7.08,ltr,100,2,Asha,Completed
+BT-0067,2026-05-09,Besan Laddu 500g,Cardamom,0.55,kg,100,2,Asha,Completed
+BT-0068,2026-05-11,Besan Laddu 500g,Besan,6.87,g,80,0,Asha,Completed
+BT-0068,2026-05-11,Besan Laddu 500g,Ghee,9.0,g,80,0,Ritu,Completed
+BT-0068,2026-05-11,Besan Laddu 500g,Sugar,9.69,kg,80,0,Lakshmi,Completed
+BT-0068,2026-05-11,Besan Laddu 500g,Cardamom,6.71,kg,80,0,Asha,Completed
+BT-0069,2026-05-11,Pure Ghee 500ml,Butter,4.83,kg,40,3,Ritu,Completed
+BT-0069,2026-05-11,Pure Ghee 500ml,Fuel,6.02,ltr,40,3,Lakshmi,Completed
+BT-0070,2026-05-13,Dry Fruit Chikki,Jaggery,14.84,kg,60,0,Ritu,Rework
+BT-0070,2026-05-13,Dry Fruit Chikki,Cashew,17.51,g,60,0,Ritu,Completed
+BT-0070,2026-05-13,Dry Fruit Chikki,Almond,14.07,ltr,60,0,Lakshmi,Completed
+BT-0070,2026-05-13,Dry Fruit Chikki,Ghee,7.15,g,60,0,Ritu,Rework
+BT-0071,2026-05-13,Pure Ghee 500ml,Butter,4.87,g,80,0,Asha,Rework
+BT-0071,2026-05-13,Pure Ghee 500ml,Fuel,4.1,ltr,80,0,Ritu,Completed
+BT-0072,2026-05-15,Dry Fruit Chikki,Jaggery,4.05,kg,100,0,Asha,Completed
+BT-0072,2026-05-15,Dry Fruit Chikki,Cashew,4.3,kg,100,0,Lakshmi,Rework
+BT-0072,2026-05-15,Dry Fruit Chikki,Almond,7.9,kg,100,0,Ritu,Completed
+BT-0072,2026-05-15,Dry Fruit Chikki,Ghee,5.31,g,100,0,Ritu,Completed
+BT-0073,2026-05-15,Pure Ghee 500ml,Butter,17.39,kg,60,0,Lakshmi,Completed
+BT-0073,2026-05-15,Pure Ghee 500ml,Fuel,11.43,kg,60,0,Ritu,Completed
+BT-0074,2026-05-17,Idli Batter 1kg,Rice,16.32,g,60,0,Ritu,Completed
+BT-0074,2026-05-17,Idli Batter 1kg,Urad dal,11.89,g,60,0,Asha,Completed
+BT-0074,2026-05-17,Idli Batter 1kg,Salt,15.06,ltr,60,0,Asha,Completed
+BT-0075,2026-05-17,Pure Ghee 500ml,Butter,14.73,g,100,0,Ritu,Completed
+BT-0075,2026-05-17,Pure Ghee 500ml,Fuel,8.62,g,100,0,Lakshmi,Completed
+BT-0076,2026-05-19,Chakli 250g,Rice flour,3.8,kg,80,2,Lakshmi,Completed
+BT-0076,2026-05-19,Chakli 250g,Besan,11.28,ltr,80,2,Lakshmi,Completed
+BT-0076,2026-05-19,Chakli 250g,Oil,15.73,kg,80,2,Asha,Completed
+BT-0076,2026-05-19,Chakli 250g,Spice mix,17.53,kg,80,2,Lakshmi,Completed
+BT-0077,2026-05-19,Mango Pickle 500g,Raw mango,8.5,kg,100,0,Lakshmi,Completed
+BT-0077,2026-05-19,Mango Pickle 500g,Mustard oil,1.71,g,100,0,Asha,Completed
+BT-0077,2026-05-19,Mango Pickle 500g,Spice mix,4.72,ltr,100,0,Lakshmi,Completed
+BT-0077,2026-05-19,Mango Pickle 500g,Salt,10.4,ltr,100,0,Asha,Completed
+BT-0078,2026-05-21,Mango Pickle 500g,Raw mango,13.38,g,80,0,Ritu,Completed
+BT-0078,2026-05-21,Mango Pickle 500g,Mustard oil,2.72,kg,80,0,Lakshmi,Completed
+BT-0078,2026-05-21,Mango Pickle 500g,Spice mix,6.59,ltr,80,0,Lakshmi,Rework
+BT-0078,2026-05-21,Mango Pickle 500g,Salt,16.35,kg,80,0,Asha,Completed
+BT-0079,2026-05-23,Pure Ghee 500ml,Butter,0.68,g,100,5,Asha,Completed
+BT-0079,2026-05-23,Pure Ghee 500ml,Fuel,12.35,g,100,5,Asha,Completed
+BT-0080,2026-05-25,Mango Pickle 500g,Raw mango,7.35,g,80,0,Ritu,Completed
+BT-0080,2026-05-25,Mango Pickle 500g,Mustard oil,16.95,ltr,80,0,Asha,Completed
+BT-0080,2026-05-25,Mango Pickle 500g,Spice mix,4.1,ltr,80,0,Asha,Completed
+BT-0080,2026-05-25,Mango Pickle 500g,Salt,3.08,kg,80,0,Ritu,Completed
+BT-0081,2026-05-25,Dry Fruit Chikki,Jaggery,5.43,ltr,50,1,Asha,Rework
+BT-0081,2026-05-25,Dry Fruit Chikki,Cashew,3.44,kg,50,1,Lakshmi,Completed
+BT-0081,2026-05-25,Dry Fruit Chikki,Almond,9.85,ltr,50,1,Asha,Completed
+BT-0081,2026-05-25,Dry Fruit Chikki,Ghee,9.73,g,50,1,Asha,Completed
+BT-0082,2026-05-27,Pure Ghee 500ml,Butter,12.67,g,60,0,Asha,Completed
+BT-0082,2026-05-27,Pure Ghee 500ml,Fuel,5.38,ltr,60,0,Asha,Completed
+BT-0083,2026-05-27,Dry Fruit Chikki,Jaggery,9.24,g,100,1,Ritu,Completed
+BT-0083,2026-05-27,Dry Fruit Chikki,Cashew,8.42,kg,100,1,Asha,Completed
+BT-0083,2026-05-27,Dry Fruit Chikki,Almond,5.66,kg,100,1,Asha,Completed
+BT-0083,2026-05-27,Dry Fruit Chikki,Ghee,16.94,ltr,100,1,Lakshmi,Completed
+BT-0084,2026-05-27,Mango Pickle 500g,Raw mango,12.79,g,60,1,Ritu,Rework
+BT-0084,2026-05-27,Mango Pickle 500g,Mustard oil,10.39,g,60,1,Lakshmi,Rework
+BT-0084,2026-05-27,Mango Pickle 500g,Spice mix,13.16,ltr,60,1,Asha,Completed
+BT-0084,2026-05-27,Mango Pickle 500g,Salt,7.05,ltr,60,1,Lakshmi,Completed
+BT-0085,2026-05-29,Chakli 250g,Rice flour,14.37,g,50,0,Asha,Rework
+BT-0085,2026-05-29,Chakli 250g,Besan,2.0,kg,50,0,Asha,Completed
+BT-0085,2026-05-29,Chakli 250g,Oil,7.33,ltr,50,0,Asha,Completed
+BT-0085,2026-05-29,Chakli 250g,Spice mix,5.61,ltr,50,0,Lakshmi,Completed
+BT-0086,2026-05-29,Idli Batter 1kg,Rice,14.0,ltr,40,5,Lakshmi,Completed
+BT-0086,2026-05-29,Idli Batter 1kg,Urad dal,1.9,g,40,5,Ritu,Completed
+BT-0086,2026-05-29,Idli Batter 1kg,Salt,14.64,g,40,5,Asha,Completed
+BT-0087,2026-05-29,Besan Laddu 500g,Besan,10.49,g,100,3,Lakshmi,Completed
+BT-0087,2026-05-29,Besan Laddu 500g,Ghee,9.86,g,100,3,Lakshmi,Completed
+BT-0087,2026-05-29,Besan Laddu 500g,Sugar,12.64,g,100,3,Ritu,Rework
+BT-0087,2026-05-29,Besan Laddu 500g,Cardamom,11.5,ltr,100,3,Ritu,Completed
+BT-0088,2026-05-31,Dry Fruit Chikki,Jaggery,5.43,ltr,80,2,Lakshmi,Completed
+BT-0088,2026-05-31,Dry Fruit Chikki,Cashew,8.32,ltr,80,2,Ritu,Completed
+BT-0088,2026-05-31,Dry Fruit Chikki,Almond,8.76,kg,80,2,Lakshmi,Completed
+BT-0088,2026-05-31,Dry Fruit Chikki,Ghee,5.13,kg,80,2,Asha,Completed
+BT-0089,2026-05-31,Chakli 250g,Rice flour,15.61,g,50,0,Ritu,Completed
+BT-0089,2026-05-31,Chakli 250g,Besan,8.72,ltr,50,0,Asha,Completed
+BT-0089,2026-05-31,Chakli 250g,Oil,13.7,kg,50,0,Asha,Completed
+BT-0089,2026-05-31,Chakli 250g,Spice mix,13.53,ltr,50,0,Lakshmi,Completed
+BT-0090,2026-06-02,Pure Ghee 500ml,Butter,11.68,ltr,40,5,Asha,Completed
+BT-0090,2026-06-02,Pure Ghee 500ml,Fuel,2.54,g,40,5,Asha,Completed
+BT-0091,2026-06-02,Chakli 250g,Rice flour,3.62,g,40,0,Asha,Completed
+BT-0091,2026-06-02,Chakli 250g,Besan,1.51,ltr,40,0,Lakshmi,Rework
+BT-0091,2026-06-02,Chakli 250g,Oil,17.9,kg,40,0,Asha,Completed
+BT-0091,2026-06-02,Chakli 250g,Spice mix,17.18,kg,40,0,Asha,Rework
+BT-0092,2026-06-04,Dry Fruit Chikki,Jaggery,14.83,g,40,5,Lakshmi,Rework
+BT-0092,2026-06-04,Dry Fruit Chikki,Cashew,10.89,g,40,5,Asha,Completed
+BT-0092,2026-06-04,Dry Fruit Chikki,Almond,7.17,g,40,5,Ritu,Completed
+BT-0092,2026-06-04,Dry Fruit Chikki,Ghee,14.39,g,40,5,Lakshmi,Completed
+BT-0093,2026-06-06,Besan Laddu 500g,Besan,4.89,kg,60,5,Asha,Completed
+BT-0093,2026-06-06,Besan Laddu 500g,Ghee,7.74,g,60,5,Ritu,Completed
+BT-0093,2026-06-06,Besan Laddu 500g,Sugar,17.68,kg,60,5,Lakshmi,Completed
+BT-0093,2026-06-06,Besan Laddu 500g,Cardamom,9.89,ltr,60,5,Ritu,Completed
+BT-0094,2026-06-06,Dry Fruit Chikki,Jaggery,11.21,ltr,80,1,Lakshmi,Completed
+BT-0094,2026-06-06,Dry Fruit Chikki,Cashew,12.21,ltr,80,1,Ritu,Completed
+BT-0094,2026-06-06,Dry Fruit Chikki,Almond,7.22,ltr,80,1,Lakshmi,Completed
+BT-0094,2026-06-06,Dry Fruit Chikki,Ghee,3.73,ltr,80,1,Asha,Rework
+BT-0095,2026-06-08,Mango Pickle 500g,Raw mango,15.25,g,80,1,Lakshmi,Rework
+BT-0095,2026-06-08,Mango Pickle 500g,Mustard oil,10.01,g,80,1,Lakshmi,Completed
+BT-0095,2026-06-08,Mango Pickle 500g,Spice mix,12.45,g,80,1,Ritu,Rework
+BT-0095,2026-06-08,Mango Pickle 500g,Salt,1.91,g,80,1,Lakshmi,Rework
+BT-0096,2026-06-10,Mango Pickle 500g,Raw mango,12.81,ltr,100,0,Ritu,Completed
+BT-0096,2026-06-10,Mango Pickle 500g,Mustard oil,8.76,ltr,100,0,Lakshmi,Completed
+BT-0096,2026-06-10,Mango Pickle 500g,Spice mix,0.98,kg,100,0,Lakshmi,Completed
+BT-0096,2026-06-10,Mango Pickle 500g,Salt,2.06,ltr,100,0,Asha,Completed
+BT-0097,2026-06-12,Chakli 250g,Rice flour,12.85,ltr,50,0,Lakshmi,Rework
+BT-0097,2026-06-12,Chakli 250g,Besan,6.22,kg,50,0,Lakshmi,Completed
+BT-0097,2026-06-12,Chakli 250g,Oil,4.99,ltr,50,0,Lakshmi,Rework
+BT-0097,2026-06-12,Chakli 250g,Spice mix,15.55,ltr,50,0,Lakshmi,Completed
+BT-0098,2026-06-12,Dry Fruit Chikki,Jaggery,11.72,g,40,1,Asha,Rework
+BT-0098,2026-06-12,Dry Fruit Chikki,Cashew,8.26,ltr,40,1,Lakshmi,Completed
+BT-0098,2026-06-12,Dry Fruit Chikki,Almond,2.65,ltr,40,1,Ritu,Rework
+BT-0098,2026-06-12,Dry Fruit Chikki,Ghee,11.89,g,40,1,Lakshmi,Rework
+BT-0099,2026-06-14,Mango Pickle 500g,Raw mango,3.89,g,40,0,Ritu,Completed
+BT-0099,2026-06-14,Mango Pickle 500g,Mustard oil,5.52,g,40,0,Asha,Rework
+BT-0099,2026-06-14,Mango Pickle 500g,Spice mix,9.17,g,40,0,Lakshmi,Completed
+BT-0099,2026-06-14,Mango Pickle 500g,Salt,4.02,ltr,40,0,Asha,Completed
+BT-0100,2026-06-14,Idli Batter 1kg,Rice,17.83,ltr,40,0,Lakshmi,Completed
+BT-0100,2026-06-14,Idli Batter 1kg,Urad dal,11.0,g,40,0,Lakshmi,Completed
+BT-0100,2026-06-14,Idli Batter 1kg,Salt,15.38,ltr,40,0,Lakshmi,Completed
+BT-0101,2026-06-16,Pure Ghee 500ml,Butter,12.51,ltr,80,1,Ritu,Completed
+BT-0101,2026-06-16,Pure Ghee 500ml,Fuel,13.58,ltr,80,1,Lakshmi,Completed
+BT-0102,2026-06-16,Besan Laddu 500g,Besan,17.14,g,80,0,Asha,Completed
+BT-0102,2026-06-16,Besan Laddu 500g,Ghee,9.72,ltr,80,0,Asha,Completed
+BT-0102,2026-06-16,Besan Laddu 500g,Sugar,3.32,ltr,80,0,Asha,Completed
+BT-0102,2026-06-16,Besan Laddu 500g,Cardamom,0.79,ltr,80,0,Ritu,Completed
+BT-0103,2026-06-18,Mango Pickle 500g,Raw mango,9.21,kg,50,1,Ritu,Completed
+BT-0103,2026-06-18,Mango Pickle 500g,Mustard oil,8.76,ltr,50,1,Ritu,Rework
+BT-0103,2026-06-18,Mango Pickle 500g,Spice mix,12.11,ltr,50,1,Lakshmi,Completed
+BT-0103,2026-06-18,Mango Pickle 500g,Salt,6.19,ltr,50,1,Asha,Completed
+BT-0104,2026-06-18,Dry Fruit Chikki,Jaggery,1.79,kg,80,2,Ritu,Completed
+BT-0104,2026-06-18,Dry Fruit Chikki,Cashew,11.6,ltr,80,2,Ritu,Completed
+BT-0104,2026-06-18,Dry Fruit Chikki,Almond,1.52,ltr,80,2,Asha,Completed
+BT-0104,2026-06-18,Dry Fruit Chikki,Ghee,2.78,ltr,80,2,Asha,Completed
+BT-0105,2026-06-20,Besan Laddu 500g,Besan,12.8,kg,80,0,Lakshmi,Completed
+BT-0105,2026-06-20,Besan Laddu 500g,Ghee,4.46,kg,80,0,Ritu,Completed
+BT-0105,2026-06-20,Besan Laddu 500g,Sugar,5.22,kg,80,0,Lakshmi,Completed
+BT-0105,2026-06-20,Besan Laddu 500g,Cardamom,12.51,g,80,0,Ritu,Rework
+BT-0106,2026-06-20,Mango Pickle 500g,Raw mango,5.35,g,50,0,Asha,Completed
+BT-0106,2026-06-20,Mango Pickle 500g,Mustard oil,16.96,ltr,50,0,Lakshmi,Rework
+BT-0106,2026-06-20,Mango Pickle 500g,Spice mix,5.46,kg,50,0,Asha,Completed
+BT-0106,2026-06-20,Mango Pickle 500g,Salt,16.71,g,50,0,Asha,Completed
+BT-0107,2026-06-20,Idli Batter 1kg,Rice,6.17,g,40,2,Asha,Rework
+BT-0107,2026-06-20,Idli Batter 1kg,Urad dal,1.96,ltr,40,2,Asha,Completed
+BT-0107,2026-06-20,Idli Batter 1kg,Salt,2.25,g,40,2,Ritu,Rework
+BT-0108,2026-06-22,Dry Fruit Chikki,Jaggery,3.3,kg,80,2,Ritu,Completed
+BT-0108,2026-06-22,Dry Fruit Chikki,Cashew,11.84,kg,80,2,Lakshmi,Rework
+BT-0108,2026-06-22,Dry Fruit Chikki,Almond,9.78,kg,80,2,Asha,Completed
+BT-0108,2026-06-22,Dry Fruit Chikki,Ghee,11.72,ltr,80,2,Asha,Completed
+BT-0109,2026-06-22,Pure Ghee 500ml,Butter,7.04,kg,80,1,Lakshmi,Completed
+BT-0109,2026-06-22,Pure Ghee 500ml,Fuel,1.97,g,80,1,Lakshmi,Completed
+BT-0110,2026-06-22,Idli Batter 1kg,Rice,5.35,g,80,3,Ritu,Completed
+BT-0110,2026-06-22,Idli Batter 1kg,Urad dal,9.65,g,80,3,Lakshmi,Rework
+BT-0110,2026-06-22,Idli Batter 1kg,Salt,15.2,ltr,80,3,Lakshmi,Completed
+BT-0111,2026-06-24,Idli Batter 1kg,Rice,6.23,g,60,0,Asha,Completed
+BT-0111,2026-06-24,Idli Batter 1kg,Urad dal,0.6,ltr,60,0,Asha,Completed
+BT-0111,2026-06-24,Idli Batter 1kg,Salt,16.59,g,60,0,Lakshmi,Completed
+BT-0112,2026-06-26,Idli Batter 1kg,Rice,11.99,g,50,0,Asha,Completed
+BT-0112,2026-06-26,Idli Batter 1kg,Urad dal,12.71,g,50,0,Lakshmi,Rework
+BT-0112,2026-06-26,Idli Batter 1kg,Salt,2.7,ltr,50,0,Ritu,Rework
+BT-0113,2026-06-26,Besan Laddu 500g,Besan,17.92,g,80,2,Lakshmi,Completed
+BT-0113,2026-06-26,Besan Laddu 500g,Ghee,15.44,g,80,2,Ritu,Rework
+BT-0113,2026-06-26,Besan Laddu 500g,Sugar,17.71,kg,80,2,Asha,Completed
+BT-0113,2026-06-26,Besan Laddu 500g,Cardamom,5.36,kg,80,2,Ritu,Completed
+BT-0114,2026-06-28,Besan Laddu 500g,Besan,13.59,ltr,40,3,Lakshmi,Completed
+BT-0114,2026-06-28,Besan Laddu 500g,Ghee,5.14,kg,40,3,Asha,Completed
+BT-0114,2026-06-28,Besan Laddu 500g,Sugar,8.93,kg,40,3,Lakshmi,Rework
+BT-0114,2026-06-28,Besan Laddu 500g,Cardamom,13.54,g,40,3,Asha,Completed
+BT-0115,2026-06-28,Dry Fruit Chikki,Jaggery,13.23,g,50,0,Asha,Completed
+BT-0115,2026-06-28,Dry Fruit Chikki,Cashew,1.24,kg,50,0,Lakshmi,Completed
+BT-0115,2026-06-28,Dry Fruit Chikki,Almond,12.97,ltr,50,0,Lakshmi,Rework
+BT-0115,2026-06-28,Dry Fruit Chikki,Ghee,2.92,kg,50,0,Lakshmi,Completed
+BT-0116,2026-06-30,Mango Pickle 500g,Raw mango,11.57,ltr,80,3,Ritu,Completed
+BT-0116,2026-06-30,Mango Pickle 500g,Mustard oil,1.79,g,80,3,Lakshmi,Rework
+BT-0116,2026-06-30,Mango Pickle 500g,Spice mix,3.96,kg,80,3,Asha,Rework
+BT-0116,2026-06-30,Mango Pickle 500g,Salt,8.2,g,80,3,Asha,Completed
+BT-0117,2026-06-30,Pure Ghee 500ml,Butter,1.71,ltr,50,1,Ritu,Completed
+BT-0117,2026-06-30,Pure Ghee 500ml,Fuel,5.8,ltr,50,1,Ritu,Completed
+BT-0118,2026-07-02,Idli Batter 1kg,Rice,2.85,g,50,2,Lakshmi,Completed
+BT-0118,2026-07-02,Idli Batter 1kg,Urad dal,3.52,ltr,50,2,Ritu,Completed
+BT-0118,2026-07-02,Idli Batter 1kg,Salt,14.36,kg,50,2,Lakshmi,Completed
+BT-0119,2026-07-02,Chakli 250g,Rice flour,13.08,kg,60,0,Asha,Completed
+BT-0119,2026-07-02,Chakli 250g,Besan,11.27,kg,60,0,Asha,Completed
+BT-0119,2026-07-02,Chakli 250g,Oil,5.43,kg,60,0,Asha,Completed
+BT-0119,2026-07-02,Chakli 250g,Spice mix,15.24,ltr,60,0,Asha,Completed
+BT-0120,2026-07-04,Chakli 250g,Rice flour,5.52,g,50,0,Lakshmi,Completed
+BT-0120,2026-07-04,Chakli 250g,Besan,14.93,kg,50,0,Ritu,Rework
+BT-0120,2026-07-04,Chakli 250g,Oil,6.75,kg,50,0,Ritu,Completed
+BT-0120,2026-07-04,Chakli 250g,Spice mix,9.98,g,50,0,Asha,Completed
+BT-0121,2026-07-04,Besan Laddu 500g,Besan,16.6,ltr,60,3,Asha,Completed
+BT-0121,2026-07-04,Besan Laddu 500g,Ghee,0.66,ltr,60,3,Lakshmi,Completed
+BT-0121,2026-07-04,Besan Laddu 500g,Sugar,2.27,g,60,3,Asha,Completed
+BT-0121,2026-07-04,Besan Laddu 500g,Cardamom,7.48,kg,60,3,Asha,Completed
+BT-0122,2026-07-06,Dry Fruit Chikki,Jaggery,1.39,ltr,40,2,Asha,Completed
+BT-0122,2026-07-06,Dry Fruit Chikki,Cashew,0.51,kg,40,2,Asha,Completed
+BT-0122,2026-07-06,Dry Fruit Chikki,Almond,2.73,g,40,2,Asha,Completed
+BT-0122,2026-07-06,Dry Fruit Chikki,Ghee,10.98,ltr,40,2,Asha,Completed
+BT-0123,2026-07-06,Besan Laddu 500g,Besan,4.56,kg,40,3,Ritu,Rework
+BT-0123,2026-07-06,Besan Laddu 500g,Ghee,12.87,kg,40,3,Lakshmi,Completed
+BT-0123,2026-07-06,Besan Laddu 500g,Sugar,1.68,ltr,40,3,Ritu,Completed
+BT-0123,2026-07-06,Besan Laddu 500g,Cardamom,6.16,g,40,3,Asha,Rework
+BT-0124,2026-07-08,Pure Ghee 500ml,Butter,9.35,kg,50,3,Ritu,Completed
+BT-0124,2026-07-08,Pure Ghee 500ml,Fuel,14.96,ltr,50,3,Lakshmi,Completed
+BT-0125,2026-07-08,Mango Pickle 500g,Raw mango,12.03,kg,60,0,Lakshmi,Rework
+BT-0125,2026-07-08,Mango Pickle 500g,Mustard oil,5.33,kg,60,0,Asha,Completed
+BT-0125,2026-07-08,Mango Pickle 500g,Spice mix,3.85,g,60,0,Ritu,Completed
+BT-0125,2026-07-08,Mango Pickle 500g,Salt,1.93,ltr,60,0,Ritu,Rework
+BT-0126,2026-07-08,Dry Fruit Chikki,Jaggery,3.58,kg,80,0,Lakshmi,Completed
+BT-0126,2026-07-08,Dry Fruit Chikki,Cashew,11.17,ltr,80,0,Lakshmi,Completed
+BT-0126,2026-07-08,Dry Fruit Chikki,Almond,2.84,ltr,80,0,Lakshmi,Rework
+BT-0126,2026-07-08,Dry Fruit Chikki,Ghee,12.51,kg,80,0,Ritu,Rework
+BT-0127,2026-07-10,Dry Fruit Chikki,Jaggery,2.39,kg,80,1,Ritu,Completed
+BT-0127,2026-07-10,Dry Fruit Chikki,Cashew,15.68,g,80,1,Lakshmi,Completed
+BT-0127,2026-07-10,Dry Fruit Chikki,Almond,1.64,ltr,80,1,Lakshmi,Rework
+BT-0127,2026-07-10,Dry Fruit Chikki,Ghee,15.03,g,80,1,Lakshmi,Rework
+BT-0128,2026-07-12,Chakli 250g,Rice flour,11.94,ltr,50,2,Lakshmi,Completed
+BT-0128,2026-07-12,Chakli 250g,Besan,6.93,kg,50,2,Ritu,Completed
+BT-0128,2026-07-12,Chakli 250g,Oil,16.11,g,50,2,Ritu,Completed
+BT-0128,2026-07-12,Chakli 250g,Spice mix,9.77,ltr,50,2,Ritu,Completed
+BT-0129,2026-07-12,Dry Fruit Chikki,Jaggery,7.5,ltr,100,0,Lakshmi,Rework
+BT-0129,2026-07-12,Dry Fruit Chikki,Cashew,12.58,kg,100,0,Asha,Completed
+BT-0129,2026-07-12,Dry Fruit Chikki,Almond,5.66,g,100,0,Asha,Completed
+BT-0129,2026-07-12,Dry Fruit Chikki,Ghee,8.64,g,100,0,Asha,Completed
+BT-0130,2026-07-14,Besan Laddu 500g,Besan,0.92,kg,40,0,Lakshmi,Rework
+BT-0130,2026-07-14,Besan Laddu 500g,Ghee,3.1,ltr,40,0,Lakshmi,Rework
+BT-0130,2026-07-14,Besan Laddu 500g,Sugar,10.89,ltr,40,0,Asha,Rework
+BT-0130,2026-07-14,Besan Laddu 500g,Cardamom,10.56,kg,40,0,Asha,Rework
+BT-0131,2026-07-14,Idli Batter 1kg,Rice,12.87,kg,80,0,Asha,Completed
+BT-0131,2026-07-14,Idli Batter 1kg,Urad dal,14.05,kg,80,0,Ritu,Completed
+BT-0131,2026-07-14,Idli Batter 1kg,Salt,7.06,ltr,80,0,Ritu,Completed
+BT-0132,2026-07-14,Pure Ghee 500ml,Butter,6.14,g,50,1,Asha,Completed
+BT-0132,2026-07-14,Pure Ghee 500ml,Fuel,16.62,ltr,50,1,Asha,Completed
+BT-0133,2026-07-16,Idli Batter 1kg,Rice,2.19,ltr,50,2,Asha,Completed
+BT-0133,2026-07-16,Idli Batter 1kg,Urad dal,3.89,kg,50,2,Lakshmi,Completed
+BT-0133,2026-07-16,Idli Batter 1kg,Salt,10.37,ltr,50,2,Asha,Rework
+BT-0134,2026-07-16,Pure Ghee 500ml,Butter,3.61,g,80,1,Ritu,Completed
+BT-0134,2026-07-16,Pure Ghee 500ml,Fuel,11.2,kg,80,1,Lakshmi,Completed
+BT-0135,2026-07-18,Mango Pickle 500g,Raw mango,12.24,ltr,40,0,Asha,Rework
+BT-0135,2026-07-18,Mango Pickle 500g,Mustard oil,3.64,kg,40,0,Ritu,Completed
+BT-0135,2026-07-18,Mango Pickle 500g,Spice mix,9.96,g,40,0,Ritu,Rework
+BT-0135,2026-07-18,Mango Pickle 500g,Salt,8.95,kg,40,0,Asha,Rework
+BT-0136,2026-07-20,Chakli 250g,Rice flour,14.35,g,40,0,Asha,Completed
+BT-0136,2026-07-20,Chakli 250g,Besan,15.1,g,40,0,Ritu,Completed
+BT-0136,2026-07-20,Chakli 250g,Oil,0.51,ltr,40,0,Asha,Rework
+BT-0136,2026-07-20,Chakli 250g,Spice mix,6.07,kg,40,0,Ritu,Completed
+BT-0137,2026-07-20,Dry Fruit Chikki,Jaggery,10.85,ltr,40,0,Lakshmi,Completed
+BT-0137,2026-07-20,Dry Fruit Chikki,Cashew,2.07,ltr,40,0,Asha,Completed
+BT-0137,2026-07-20,Dry Fruit Chikki,Almond,15.63,ltr,40,0,Ritu,Completed
+BT-0137,2026-07-20,Dry Fruit Chikki,Ghee,9.06,kg,40,0,Asha,Completed
+BT-0138,2026-07-22,Dry Fruit Chikki,Jaggery,5.38,g,100,2,Lakshmi,Rework
+BT-0138,2026-07-22,Dry Fruit Chikki,Cashew,2.45,g,100,2,Lakshmi,Completed
+BT-0138,2026-07-22,Dry Fruit Chikki,Almond,4.28,g,100,2,Asha,Completed
+BT-0138,2026-07-22,Dry Fruit Chikki,Ghee,10.48,g,100,2,Asha,Completed
+BT-0139,2026-07-24,Chakli 250g,Rice flour,11.29,kg,80,3,Asha,Completed
+BT-0139,2026-07-24,Chakli 250g,Besan,8.16,kg,80,3,Asha,Completed
+BT-0139,2026-07-24,Chakli 250g,Oil,12.76,kg,80,3,Ritu,Completed
+BT-0139,2026-07-24,Chakli 250g,Spice mix,3.27,kg,80,3,Ritu,Completed
+BT-0140,2026-07-24,Idli Batter 1kg,Rice,13.13,ltr,50,3,Asha,Completed
+BT-0140,2026-07-24,Idli Batter 1kg,Urad dal,1.07,kg,50,3,Asha,Rework
+BT-0140,2026-07-24,Idli Batter 1kg,Salt,3.57,ltr,50,3,Asha,Completed
+BT-0141,2026-07-26,Besan Laddu 500g,Besan,16.58,ltr,60,2,Asha,Rework
+BT-0141,2026-07-26,Besan Laddu 500g,Ghee,14.77,kg,60,2,Asha,Rework
+BT-0141,2026-07-26,Besan Laddu 500g,Sugar,9.33,g,60,2,Ritu,Completed
+BT-0141,2026-07-26,Besan Laddu 500g,Cardamom,8.64,g,60,2,Ritu,Completed
+BT-0142,2026-07-26,Pure Ghee 500ml,Butter,16.05,g,50,2,Ritu,Completed
+BT-0142,2026-07-26,Pure Ghee 500ml,Fuel,4.12,g,50,2,Asha,Completed
+BT-0143,2026-07-28,Mango Pickle 500g,Raw mango,13.7,ltr,80,3,Ritu,Completed
+BT-0143,2026-07-28,Mango Pickle 500g,Mustard oil,4.17,g,80,3,Lakshmi,Completed
+BT-0143,2026-07-28,Mango Pickle 500g,Spice mix,11.46,g,80,3,Asha,Rework
+BT-0143,2026-07-28,Mango Pickle 500g,Salt,16.29,ltr,80,3,Lakshmi,Rework
+BT-0144,2026-07-28,Besan Laddu 500g,Besan,0.74,kg,60,2,Asha,Completed
+BT-0144,2026-07-28,Besan Laddu 500g,Ghee,3.26,kg,60,2,Lakshmi,Completed
+BT-0144,2026-07-28,Besan Laddu 500g,Sugar,8.84,g,60,2,Asha,Completed
+BT-0144,2026-07-28,Besan Laddu 500g,Cardamom,15.32,g,60,2,Asha,Completed
+BT-0145,2026-07-28,Dry Fruit Chikki,Jaggery,7.57,kg,100,0,Asha,Completed
+BT-0145,2026-07-28,Dry Fruit Chikki,Cashew,10.61,ltr,100,0,Asha,Rework
+BT-0145,2026-07-28,Dry Fruit Chikki,Almond,4.92,g,100,0,Asha,Completed
+BT-0145,2026-07-28,Dry Fruit Chikki,Ghee,7.69,ltr,100,0,Ritu,Completed
+BT-0146,2026-07-30,Idli Batter 1kg,Rice,17.8,ltr,100,2,Asha,Rework
+BT-0146,2026-07-30,Idli Batter 1kg,Urad dal,11.97,kg,100,2,Lakshmi,Rework
+BT-0146,2026-07-30,Idli Batter 1kg,Salt,16.99,g,100,2,Ritu,Completed
+BT-0147,2026-07-30,Pure Ghee 500ml,Butter,11.23,g,60,0,Ritu,Completed
+BT-0147,2026-07-30,Pure Ghee 500ml,Fuel,4.48,kg,60,0,Asha,Completed
+BT-0148,2026-08-01,Idli Batter 1kg,Rice,8.78,g,60,5,Lakshmi,Completed
+BT-0148,2026-08-01,Idli Batter 1kg,Urad dal,5.74,ltr,60,5,Asha,Completed
+BT-0148,2026-08-01,Idli Batter 1kg,Salt,4.65,g,60,5,Ritu,Rework
+BT-0149,2026-08-03,Besan Laddu 500g,Besan,5.6,g,100,2,Ritu,Rework
+BT-0149,2026-08-03,Besan Laddu 500g,Ghee,1.14,ltr,100,2,Lakshmi,Completed
+BT-0149,2026-08-03,Besan Laddu 500g,Sugar,11.31,g,100,2,Ritu,Completed
+BT-0149,2026-08-03,Besan Laddu 500g,Cardamom,8.88,ltr,100,2,Lakshmi,Completed
+BT-0150,2026-08-05,Dry Fruit Chikki,Jaggery,14.43,ltr,60,5,Asha,Completed
+BT-0150,2026-08-05,Dry Fruit Chikki,Cashew,6.75,g,60,5,Lakshmi,Completed
+BT-0150,2026-08-05,Dry Fruit Chikki,Almond,12.13,kg,60,5,Lakshmi,Completed
+BT-0150,2026-08-05,Dry Fruit Chikki,Ghee,6.8,g,60,5,Asha,Completed
+BT-0151,2026-08-07,Mango Pickle 500g,Raw mango,13.78,kg,50,0,Lakshmi,Completed
+BT-0151,2026-08-07,Mango Pickle 500g,Mustard oil,11.46,g,50,0,Lakshmi,Completed
+BT-0151,2026-08-07,Mango Pickle 500g,Spice mix,2.59,g,50,0,Asha,Completed
+BT-0151,2026-08-07,Mango Pickle 500g,Salt,4.73,g,50,0,Ritu,Completed
+BT-0152,2026-08-09,Idli Batter 1kg,Rice,13.94,kg,60,3,Lakshmi,Completed
+BT-0152,2026-08-09,Idli Batter 1kg,Urad dal,9.59,ltr,60,3,Ritu,Completed
+BT-0152,2026-08-09,Idli Batter 1kg,Salt,15.48,g,60,3,Ritu,Completed
+BT-0153,2026-08-11,Dry Fruit Chikki,Jaggery,10.13,kg,50,0,Lakshmi,Completed
+BT-0153,2026-08-11,Dry Fruit Chikki,Cashew,11.86,ltr,50,0,Lakshmi,Completed
+BT-0153,2026-08-11,Dry Fruit Chikki,Almond,16.77,kg,50,0,Asha,Completed
+BT-0153,2026-08-11,Dry Fruit Chikki,Ghee,14.49,g,50,0,Ritu,Completed
+BT-0154,2026-08-13,Idli Batter 1kg,Rice,10.07,g,60,0,Ritu,Completed
+BT-0154,2026-08-13,Idli Batter 1kg,Urad dal,17.63,kg,60,0,Ritu,Completed
+BT-0154,2026-08-13,Idli Batter 1kg,Salt,12.38,g,60,0,Lakshmi,Completed
+BT-0155,2026-08-15,Dry Fruit Chikki,Jaggery,1.1,g,100,2,Lakshmi,Completed
+BT-0155,2026-08-15,Dry Fruit Chikki,Cashew,9.66,kg,100,2,Asha,Completed
+BT-0155,2026-08-15,Dry Fruit Chikki,Almond,4.25,ltr,100,2,Asha,Completed
+BT-0155,2026-08-15,Dry Fruit Chikki,Ghee,7.09,g,100,2,Ritu,Rework
+BT-0156,2026-08-15,Mango Pickle 500g,Raw mango,14.92,g,50,0,Asha,Completed
+BT-0156,2026-08-15,Mango Pickle 500g,Mustard oil,1.82,ltr,50,0,Lakshmi,Completed
+BT-0156,2026-08-15,Mango Pickle 500g,Spice mix,11.11,ltr,50,0,Ritu,Completed
+BT-0156,2026-08-15,Mango Pickle 500g,Salt,12.22,kg,50,0,Asha,Completed
+BT-0157,2026-08-17,Pure Ghee 500ml,Butter,1.79,ltr,60,5,Lakshmi,Completed
+BT-0157,2026-08-17,Pure Ghee 500ml,Fuel,9.63,kg,60,5,Ritu,Rework
+BT-0158,2026-08-17,Idli Batter 1kg,Rice,4.82,ltr,80,3,Lakshmi,Completed
+BT-0158,2026-08-17,Idli Batter 1kg,Urad dal,4.92,g,80,3,Ritu,Completed
+BT-0158,2026-08-17,Idli Batter 1kg,Salt,13.1,g,80,3,Asha,Completed
+BT-0159,2026-08-17,Dry Fruit Chikki,Jaggery,9.14,kg,100,0,Lakshmi,Completed
+BT-0159,2026-08-17,Dry Fruit Chikki,Cashew,6.19,kg,100,0,Lakshmi,Completed
+BT-0159,2026-08-17,Dry Fruit Chikki,Almond,4.72,kg,100,0,Asha,Completed
+BT-0159,2026-08-17,Dry Fruit Chikki,Ghee,3.99,g,100,0,Lakshmi,Completed
+BT-0160,2026-08-19,Chakli 250g,Rice flour,8.19,ltr,50,2,Lakshmi,Completed
+BT-0160,2026-08-19,Chakli 250g,Besan,11.61,kg,50,2,Asha,Completed
+BT-0160,2026-08-19,Chakli 250g,Oil,6.14,kg,50,2,Asha,Completed
+BT-0160,2026-08-19,Chakli 250g,Spice mix,10.82,kg,50,2,Ritu,Completed
+BT-0161,2026-08-19,Dry Fruit Chikki,Jaggery,17.04,kg,50,5,Lakshmi,Completed
+BT-0161,2026-08-19,Dry Fruit Chikki,Cashew,2.49,kg,50,5,Asha,Completed
+BT-0161,2026-08-19,Dry Fruit Chikki,Almond,6.74,kg,50,5,Ritu,Completed
+BT-0161,2026-08-19,Dry Fruit Chikki,Ghee,14.12,g,50,5,Asha,Completed
+BT-0162,2026-08-21,Chakli 250g,Rice flour,10.37,ltr,60,2,Asha,Completed
+BT-0162,2026-08-21,Chakli 250g,Besan,3.35,kg,60,2,Lakshmi,Completed
+BT-0162,2026-08-21,Chakli 250g,Oil,12.58,g,60,2,Ritu,Completed
+BT-0162,2026-08-21,Chakli 250g,Spice mix,14.76,kg,60,2,Asha,Completed
+BT-0163,2026-08-23,Mango Pickle 500g,Raw mango,11.38,g,40,5,Ritu,Completed
+BT-0163,2026-08-23,Mango Pickle 500g,Mustard oil,2.3,g,40,5,Lakshmi,Completed
+BT-0163,2026-08-23,Mango Pickle 500g,Spice mix,9.41,ltr,40,5,Lakshmi,Completed
+BT-0163,2026-08-23,Mango Pickle 500g,Salt,17.51,kg,40,5,Ritu,Completed
+BT-0164,2026-08-25,Idli Batter 1kg,Rice,9.09,g,100,0,Lakshmi,Rework
+BT-0164,2026-08-25,Idli Batter 1kg,Urad dal,6.4,g,100,0,Lakshmi,Completed
+BT-0164,2026-08-25,Idli Batter 1kg,Salt,4.5,ltr,100,0,Lakshmi,Completed
+BT-0165,2026-08-25,Dry Fruit Chikki,Jaggery,10.91,ltr,80,1,Lakshmi,Completed
+BT-0165,2026-08-25,Dry Fruit Chikki,Cashew,15.07,kg,80,1,Ritu,Completed
+BT-0165,2026-08-25,Dry Fruit Chikki,Almond,4.26,ltr,80,1,Lakshmi,Completed
+BT-0165,2026-08-25,Dry Fruit Chikki,Ghee,11.85,kg,80,1,Lakshmi,Completed
+BT-0166,2026-08-27,Mango Pickle 500g,Raw mango,8.87,kg,60,2,Ritu,Completed
+BT-0166,2026-08-27,Mango Pickle 500g,Mustard oil,13.77,g,60,2,Asha,Completed
+BT-0166,2026-08-27,Mango Pickle 500g,Spice mix,5.37,kg,60,2,Asha,Completed
+BT-0166,2026-08-27,Mango Pickle 500g,Salt,14.21,g,60,2,Asha,Rework
+BT-0167,2026-08-27,Dry Fruit Chikki,Jaggery,1.95,g,60,3,Ritu,Completed
+BT-0167,2026-08-27,Dry Fruit Chikki,Cashew,14.11,ltr,60,3,Lakshmi,Completed
+BT-0167,2026-08-27,Dry Fruit Chikki,Almond,4.18,kg,60,3,Ritu,Completed
+BT-0167,2026-08-27,Dry Fruit Chikki,Ghee,0.72,ltr,60,3,Asha,Completed
+BT-0168,2026-08-29,Besan Laddu 500g,Besan,4.04,ltr,60,1,Lakshmi,Rework
+BT-0168,2026-08-29,Besan Laddu 500g,Ghee,1.41,kg,60,1,Asha,Completed
+BT-0168,2026-08-29,Besan Laddu 500g,Sugar,15.51,g,60,1,Asha,Completed
+BT-0168,2026-08-29,Besan Laddu 500g,Cardamom,6.54,kg,60,1,Asha,Rework
+BT-0169,2026-08-31,Besan Laddu 500g,Besan,3.04,g,80,2,Ritu,Completed
+BT-0169,2026-08-31,Besan Laddu 500g,Ghee,6.78,ltr,80,2,Lakshmi,Completed
+BT-0169,2026-08-31,Besan Laddu 500g,Sugar,7.22,ltr,80,2,Asha,Completed
+BT-0169,2026-08-31,Besan Laddu 500g,Cardamom,2.48,kg,80,2,Asha,Rework
+BT-0170,2026-08-31,Mango Pickle 500g,Raw mango,7.65,g,40,0,Ritu,Rework
+BT-0170,2026-08-31,Mango Pickle 500g,Mustard oil,10.11,kg,40,0,Asha,Completed
+BT-0170,2026-08-31,Mango Pickle 500g,Spice mix,17.78,kg,40,0,Ritu,Completed
+BT-0170,2026-08-31,Mango Pickle 500g,Salt,12.52,kg,40,0,Asha,Completed
+BT-0171,2026-08-31,Chakli 250g,Rice flour,5.87,kg,100,0,Lakshmi,Completed
+BT-0171,2026-08-31,Chakli 250g,Besan,7.44,kg,100,0,Asha,Completed
+BT-0171,2026-08-31,Chakli 250g,Oil,17.17,ltr,100,0,Ritu,Completed
+BT-0171,2026-08-31,Chakli 250g,Spice mix,10.43,kg,100,0,Asha,Completed
+BT-0172,2026-09-02,Chakli 250g,Rice flour,1.98,kg,40,0,Asha,Completed
+BT-0172,2026-09-02,Chakli 250g,Besan,7.05,g,40,0,Ritu,Completed
+BT-0172,2026-09-02,Chakli 250g,Oil,2.56,g,40,0,Asha,Completed
+BT-0172,2026-09-02,Chakli 250g,Spice mix,10.99,ltr,40,0,Lakshmi,Completed
+BT-0173,2026-09-02,Dry Fruit Chikki,Jaggery,12.52,ltr,40,5,Lakshmi,Completed
+BT-0173,2026-09-02,Dry Fruit Chikki,Cashew,9.47,kg,40,5,Asha,Rework
+BT-0173,2026-09-02,Dry Fruit Chikki,Almond,7.31,ltr,40,5,Ritu,Completed
+BT-0173,2026-09-02,Dry Fruit Chikki,Ghee,3.66,g,40,5,Ritu,Completed
+BT-0174,2026-09-02,Mango Pickle 500g,Raw mango,3.64,ltr,100,3,Ritu,Rework
+BT-0174,2026-09-02,Mango Pickle 500g,Mustard oil,11.31,kg,100,3,Ritu,Completed
+BT-0174,2026-09-02,Mango Pickle 500g,Spice mix,0.69,kg,100,3,Asha,Completed
+BT-0174,2026-09-02,Mango Pickle 500g,Salt,10.35,g,100,3,Ritu,Rework
+BT-0175,2026-09-04,Besan Laddu 500g,Besan,6.25,kg,100,3,Ritu,Completed
+BT-0175,2026-09-04,Besan Laddu 500g,Ghee,9.14,g,100,3,Lakshmi,Completed
+BT-0175,2026-09-04,Besan Laddu 500g,Sugar,17.81,ltr,100,3,Asha,Completed
+BT-0175,2026-09-04,Besan Laddu 500g,Cardamom,16.97,ltr,100,3,Asha,Completed
+BT-0176,2026-09-04,Dry Fruit Chikki,Jaggery,16.14,kg,60,1,Ritu,Completed
+BT-0176,2026-09-04,Dry Fruit Chikki,Cashew,13.7,g,60,1,Lakshmi,Completed
+BT-0176,2026-09-04,Dry Fruit Chikki,Almond,17.79,ltr,60,1,Lakshmi,Rework
+BT-0176,2026-09-04,Dry Fruit Chikki,Ghee,17.9,g,60,1,Asha,Completed
+BT-0177,2026-09-06,Besan Laddu 500g,Besan,7.94,kg,100,5,Asha,Completed
+BT-0177,2026-09-06,Besan Laddu 500g,Ghee,8.7,kg,100,5,Asha,Completed
+BT-0177,2026-09-06,Besan Laddu 500g,Sugar,8.99,kg,100,5,Asha,Completed
+BT-0177,2026-09-06,Besan Laddu 500g,Cardamom,14.84,kg,100,5,Asha,Completed
+BT-0178,2026-09-06,Chakli 250g,Rice flour,17.47,kg,100,1,Lakshmi,Rework
+BT-0178,2026-09-06,Chakli 250g,Besan,10.4,ltr,100,1,Ritu,Completed
+BT-0178,2026-09-06,Chakli 250g,Oil,13.8,g,100,1,Asha,Completed
+BT-0178,2026-09-06,Chakli 250g,Spice mix,1.39,ltr,100,1,Ritu,Completed
+BT-0179,2026-09-06,Idli Batter 1kg,Rice,1.69,g,50,1,Lakshmi,Completed
+BT-0179,2026-09-06,Idli Batter 1kg,Urad dal,8.28,g,50,1,Ritu,Completed
+BT-0179,2026-09-06,Idli Batter 1kg,Salt,17.86,ltr,50,1,Asha,Rework
+BT-0180,2026-09-08,Idli Batter 1kg,Rice,7.12,kg,60,0,Asha,Rework
+BT-0180,2026-09-08,Idli Batter 1kg,Urad dal,17.08,g,60,0,Ritu,Completed
+BT-0180,2026-09-08,Idli Batter 1kg,Salt,11.13,g,60,0,Ritu,Completed
+BT-0181,2026-09-10,Pure Ghee 500ml,Butter,17.21,g,60,5,Ritu,Rework
+BT-0181,2026-09-10,Pure Ghee 500ml,Fuel,17.13,ltr,60,5,Asha,Rework
+BT-0182,2026-09-10,Chakli 250g,Rice flour,14.0,ltr,40,3,Ritu,Completed
+BT-0182,2026-09-10,Chakli 250g,Besan,4.49,g,40,3,Lakshmi,Completed
+BT-0182,2026-09-10,Chakli 250g,Oil,13.64,kg,40,3,Ritu,Completed
+BT-0182,2026-09-10,Chakli 250g,Spice mix,2.78,g,40,3,Asha,Completed
+BT-0183,2026-09-12,Idli Batter 1kg,Rice,14.53,g,100,3,Asha,Completed
+BT-0183,2026-09-12,Idli Batter 1kg,Urad dal,5.64,g,100,3,Lakshmi,Completed
+BT-0183,2026-09-12,Idli Batter 1kg,Salt,8.66,g,100,3,Lakshmi,Completed
+BT-0184,2026-09-12,Chakli 250g,Rice flour,2.58,kg,50,1,Ritu,Completed
+BT-0184,2026-09-12,Chakli 250g,Besan,9.59,kg,50,1,Asha,Completed
+BT-0184,2026-09-12,Chakli 250g,Oil,4.41,ltr,50,1,Ritu,Rework
+BT-0184,2026-09-12,Chakli 250g,Spice mix,4.58,ltr,50,1,Ritu,Completed

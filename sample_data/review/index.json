@@ -1,0 +1,293 @@
+{
+  "generated_by": "scripts/make_review_datasets.py",
+  "seed": 20261103,
+  "datasets": [
+    {
+      "id": "R01",
+      "folder": "R01_bakery_clean_sales",
+      "business_type": "bakery",
+      "kind": "sales",
+      "files": [
+        "bakery_sales.csv"
+      ],
+      "rows": 900,
+      "what_it_tests": "a clean sales file that already carries a cost column, so margin needs no guessing",
+      "app_should": "ask few or no clarifying questions, and report profit and margin as well as revenue"
+    },
+    {
+      "id": "R02",
+      "folder": "R02_salon_sales_no_cost",
+      "business_type": "salon",
+      "kind": "sales",
+      "files": [
+        "salon_services.csv"
+      ],
+      "rows": 820,
+      "what_it_tests": "a clean sales file with no cost column anywhere",
+      "app_should": "report revenue and never invent a profit or margin figure; it may say cost data is missing"
+    },
+    {
+      "id": "R03",
+      "folder": "R03_kirana_sales_defects",
+      "business_type": "kirana store",
+      "kind": "sales",
+      "files": [
+        "kirana_sales_messy.csv"
+      ],
+      "rows": 980,
+      "what_it_tests": "duplicates, blanks that mean none, placeholder values (-1, N/A, unknown, -), outliers, a constant column, four date formats, text amounts, currency symbols and negative returns",
+      "app_should": "log every cleaning action, drop the 40 exact duplicates, read the text amounts, treat -1 and the placeholder words as missing, keep the negative returns as returns, and flag the constant column"
+    },
+    {
+      "id": "R04",
+      "folder": "R04_electronics_wide",
+      "business_type": "electronics seller",
+      "kind": "sales",
+      "files": [
+        "electronics_wide.csv"
+      ],
+      "rows": 700,
+      "what_it_tests": "a wide file: 68 columns, of which about nine matter and the rest are noise, near-duplicates or empty",
+      "app_should": "find the few columns that matter (order_date, amount, category, quantity, cost_amount), say which columns are copies of each other, and not drown the report in noise"
+    },
+    {
+      "id": "R05",
+      "folder": "R05_home_food_narrow",
+      "business_type": "home-based food seller",
+      "kind": "sales",
+      "files": [
+        "home_food_sales.csv"
+      ],
+      "rows": 620,
+      "what_it_tests": "a narrow file: five columns and nothing else, no ids, no cost, no customer",
+      "app_should": "still produce a useful report from five columns, and not claim findings the columns cannot support (no customer, no margin, no order id)"
+    },
+    {
+      "id": "R06",
+      "folder": "R06_handicrafts_order_lines",
+      "business_type": "handicrafts seller",
+      "kind": "orders",
+      "files": [
+        "handicraft_order_lines.csv"
+      ],
+      "rows": 1000,
+      "what_it_tests": "long format: one row per order line, order ids repeating, and the order-level amount repeated on every line of that order",
+      "app_should": "count orders by distinct order_id and not add order_amount up once per line — the naive sum is far too high"
+    },
+    {
+      "id": "R07",
+      "folder": "R07_boutique_ambiguous",
+      "business_type": "clothing boutique",
+      "kind": "sales",
+      "files": [
+        "boutique_bills.csv"
+      ],
+      "rows": 700,
+      "what_it_tests": "four ambiguities that each change a headline number: an unresolvable day/month order, two columns that could both be revenue, a status column mixing cancelled/returned/refunded, and zeros that could be none or missing",
+      "app_should": "ask clarifying questions here rather than pick a reading silently; whichever reading it takes, the figure must match this file's reading for it"
+    },
+    {
+      "id": "R08",
+      "folder": "R08_kirana_register_totals_row",
+      "business_type": "kirana store",
+      "kind": "sales",
+      "files": [
+        "kirana_register.xlsx"
+      ],
+      "rows": 522,
+      "what_it_tests": "three notes above the table, a merged group header row above the real header, a blank row, and a TOTAL row at the bottom",
+      "app_should": "find the real header row, drop the TOTAL row from the data, and never count the total as one more bill"
+    },
+    {
+      "id": "R09",
+      "folder": "R09_electronics_returns",
+      "business_type": "electronics seller",
+      "kind": "returns",
+      "files": [
+        "electronics_returns.csv"
+      ],
+      "rows": 840,
+      "what_it_tests": "a status column with five states and a reason column that is deliberately blank for delivered orders",
+      "app_should": "treat the blank reasons as 'not applicable' rather than missing data, and report net revenue after refunds alongside gross"
+    },
+    {
+      "id": "R10",
+      "folder": "R10_kirana_inventory",
+      "business_type": "kirana store",
+      "kind": "inventory",
+      "files": [
+        "kirana_inventory.csv"
+      ],
+      "rows": 420,
+      "what_it_tests": "stock levels with no money column at all: quantities, reorder levels, restock dates and damage",
+      "app_should": "recognise this is stock and not sales, report what is below its reorder level and what is damaged, and never report revenue"
+    },
+    {
+      "id": "R11",
+      "folder": "R11_bakery_purchases",
+      "business_type": "bakery",
+      "kind": "purchases",
+      "files": [
+        "bakery_purchases.csv"
+      ],
+      "rows": 700,
+      "what_it_tests": "money flowing out, not in: supplier purchases with unit cost and payment status",
+      "app_should": "call this spending, not revenue, and report what is still unpaid by supplier"
+    },
+    {
+      "id": "R12",
+      "folder": "R12_salon_expenses",
+      "business_type": "salon",
+      "kind": "expenses",
+      "files": [
+        "salon_expenses.csv"
+      ],
+      "rows": 900,
+      "what_it_tests": "the same expense category spelled several ways (case, abbreviations, a typo, a trailing space), so the raw grouping is wrong",
+      "app_should": "group the spellings together before ranking, and say it did; the raw top 3 and the tidied top 3 are different"
+    },
+    {
+      "id": "R13",
+      "folder": "R13_boutique_staff",
+      "business_type": "clothing boutique",
+      "kind": "staff",
+      "files": [
+        "boutique_staff.csv"
+      ],
+      "rows": 60,
+      "what_it_tests": "personal-looking columns (name, phone, e-mail, date of birth, emergency contact) next to real measures (pay, attendance, hours)",
+      "app_should": "treat phone, e-mail, date of birth and the emergency number as identifiers, never as numbers to average or chart, and keep names out of the AI's view"
+    },
+    {
+      "id": "R14",
+      "folder": "R14_home_food_production",
+      "business_type": "home-based food seller",
+      "kind": "production",
+      "files": [
+        "food_production_batches.csv"
+      ],
+      "rows": 649,
+      "what_it_tests": "production batches: several material rows per batch, with the batch-level output and wastage repeated on each of those rows",
+      "app_should": "count batches by distinct batch_id and not add output_units up once per material row"
+    },
+    {
+      "id": "R15",
+      "folder": "R15_handicrafts_customers",
+      "business_type": "handicrafts seller",
+      "kind": "customers",
+      "files": [
+        "handicraft_grahak.csv"
+      ],
+      "rows": 500,
+      "what_it_tests": "column names in transliterated Hindi, phone numbers that must stay text, and a lifetime-spend column that is not per-order revenue",
+      "app_should": "work out what each Hindi-named column means from its values, not its name, and not treat 'Kul rashi' (lifetime spend) as this period's sales"
+    },
+    {
+      "id": "R16",
+      "folder": "R16_marketplace_payout",
+      "business_type": "electronics seller",
+      "kind": "payout",
+      "files": [
+        "marketplace_settlement.csv"
+      ],
+      "rows": 900,
+      "what_it_tests": "a settlement statement where the money received is not the sale amount: four fee columns, GST on the fees, and negative adjustments",
+      "app_should": "report net payout and sale amount as different things, and not quietly treat sale_amount as what the seller received"
+    },
+    {
+      "id": "R17",
+      "folder": "R17_marketing_delivery",
+      "business_type": "clothing boutique",
+      "kind": "marketing",
+      "files": [
+        "marketing_delivery.csv"
+      ],
+      "rows": 720,
+      "what_it_tests": "two different subjects in one file: daily ad spend by channel, and delivery performance",
+      "app_should": "keep spend, clicks, orders and delivery failures apart as separate measures, and not call ad spend revenue"
+    },
+    {
+      "id": "M01",
+      "folder": "M01_bakery_orders_customers",
+      "business_type": "bakery",
+      "kind": "connected (2 files)",
+      "files": [
+        "orders.csv",
+        "customers.csv"
+      ],
+      "rows": 1120,
+      "what_it_tests": "two files that join on customer_id, with a handful of orders pointing at customers who are not in the customer file",
+      "app_should": "find the customer_id link by itself, say how many orders have no matching customer, and not silently drop them from the revenue total"
+    },
+    {
+      "id": "M02",
+      "folder": "M02_boutique_three_files",
+      "business_type": "clothing boutique",
+      "kind": "connected (3 files)",
+      "files": [
+        "orders.csv",
+        "customers.csv",
+        "products.csv"
+      ],
+      "rows": 1154,
+      "what_it_tests": "three files, orphan ids on both links, and one customer_id that appears twice in the customer file so a careless join inflates the row count",
+      "app_should": "join on the right keys, report the orphans, and notice that the repeated customer_id makes the joined table longer than the order table"
+    },
+    {
+      "id": "M03",
+      "folder": "M03_kirana_five_files",
+      "business_type": "kirana store",
+      "kind": "connected (5 files, one unrelated)",
+      "files": [
+        "orders.csv",
+        "order_lines.csv",
+        "items.csv",
+        "customers.csv",
+        "electricity_bills.csv"
+      ],
+      "rows": 2069,
+      "what_it_tests": "five files where four form a chain (orders -> order_lines -> items, orders -> customers) and the fifth, the electricity bill, joins to nothing",
+      "app_should": "link the four that connect, say plainly that the electricity bill shares no key with the rest, and not force a join"
+    },
+    {
+      "id": "M04",
+      "folder": "M04_handicrafts_two_platforms",
+      "business_type": "handicrafts seller",
+      "kind": "connected (2 files, same business)",
+      "files": [
+        "platform_craftbazaar.csv",
+        "platform_shopline.csv"
+      ],
+      "rows": 960,
+      "what_it_tests": "the same shop's sales from two platforms: different column names, different date formats, amounts as text on one side and numbers on the other, and no shared id",
+      "app_should": "see that the two files are the same kind of thing and can be stacked, match the columns across them, and give one combined total without inventing a join key"
+    },
+    {
+      "id": "M05",
+      "folder": "M05_bakery_sales_and_costs",
+      "business_type": "bakery",
+      "kind": "connected (2 files, margin)",
+      "files": [
+        "sales.csv",
+        "product_costs.csv"
+      ],
+      "rows": 891,
+      "what_it_tests": "margin that is only possible by joining: the sales file has no cost, the cost file has no sales, and one sold item has no cost row",
+      "app_should": "join on item_code to compute margin, and say that one item's margin is unknown instead of treating its cost as zero"
+    },
+    {
+      "id": "M06",
+      "folder": "M06_kirana_purchases_inventory_sales",
+      "business_type": "kirana store",
+      "kind": "connected (3 files, one business)",
+      "files": [
+        "purchases.csv",
+        "inventory.csv",
+        "sales.csv"
+      ],
+      "rows": 1532,
+      "what_it_tests": "the three sides of one shop joined on item_code: what was bought, what is in stock, and what was sold, with one item sold that neither of the other two files knows",
+      "app_should": "link all three on item_code, compare bought against sold per item, and name the item code that appears only in sales"
+    }
+  ]
+}

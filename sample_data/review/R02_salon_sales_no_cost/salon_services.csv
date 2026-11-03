@@ -1,0 +1,821 @@
+invoice_no,service_date,service_code,service,service_group,stylist,client_type,duration_min,amount,discount,payment_mode,branch
+SAL-0001,2026-02-07,SAL-MAN1,Manicure,Nails,Nikhil,Repeat,45,450,0,Cash,Aundh
+SAL-0002,2026-03-22,SAL-KER1,Keratin Treatment,Hair,Ramesh,New,30,4400,100,Cash,Kothrud
+SAL-0003,2026-06-20,SAL-COL1,Global Hair Colour,Hair,Sunita,Member,120,2200,0,Card,Aundh
+SAL-0004,2026-05-05,SAL-FAC1,Gold Facial,Skin,Gopal,Repeat,90,1450,0,UPI,Aundh
+SAL-0005,2026-05-04,SAL-HRC1,Haircut,Hair,Gopal,Repeat,90,300,50,Card,Aundh
+SAL-0006,2026-02-23,SAL-PED1,Pedicure,Nails,Sunita,New,15,550,100,UPI,Kothrud
+SAL-0007,2026-07-13,SAL-MAS1,Head Massage,Hair,Gopal,Member,15,400,0,Cash,Kothrud
+SAL-0008,2026-04-21,SAL-COL1,Global Hair Colour,Hair,Gopal,Member,45,2150,50,UPI,Kothrud
+SAL-0009,2026-03-07,SAL-MAN1,Manicure,Nails,Gopal,Repeat,90,450,0,Cash,Aundh
+SAL-0010,2026-07-12,SAL-FAC1,Gold Facial,Skin,Nikhil,Member,30,1250,200,Card,Aundh
+SAL-0011,2026-06-09,SAL-COL1,Global Hair Colour,Hair,Farida,Repeat,90,2000,200,Card,Kothrud
+SAL-0012,2026-09-14,SAL-KER1,Keratin Treatment,Hair,Nikhil,Repeat,90,4300,200,UPI,Kothrud
+SAL-0013,2026-05-25,SAL-BRD1,Bridal Makeup,Bridal,Sunita,Repeat,30,8500,0,Card,Aundh
+SAL-0014,2026-05-20,SAL-HRC1,Haircut,Hair,Gopal,Repeat,60,350,0,UPI,Kothrud
+SAL-0015,2026-02-20,SAL-WAX1,Full Arm Waxing,Grooming,Sunita,Member,30,500,50,UPI,Aundh
+SAL-0016,2026-05-23,SAL-FAC1,Gold Facial,Skin,Gopal,Repeat,15,1450,0,Cash,Aundh
+SAL-0017,2026-06-06,SAL-SPA1,Hair Spa,Hair,Gopal,Repeat,15,1200,0,UPI,Kothrud
+SAL-0018,2026-05-04,SAL-MAS1,Head Massage,Hair,Sunita,Member,120,300,100,Card,Aundh
+SAL-0019,2026-08-11,SAL-HRC1,Haircut,Hair,Nikhil,Repeat,60,150,200,Card,Kothrud
+SAL-0020,2026-04-27,SAL-MAS1,Head Massage,Hair,Ramesh,Repeat,45,200,200,Cash,Kothrud
+SAL-0021,2026-04-03,SAL-THR1,Eyebrow Threading,Grooming,Ramesh,Repeat,120,60,0,Card,Aundh
+SAL-0022,2026-09-02,SAL-FAC1,Gold Facial,Skin,Ramesh,Repeat,30,1450,0,Card,Kothrud
+SAL-0023,2026-03-28,SAL-MAS1,Head Massage,Hair,Ramesh,Member,60,400,0,UPI,Aundh
+SAL-0024,2026-07-01,SAL-PRT1,Party Makeup,Bridal,Nikhil,Repeat,90,2800,0,Card,Aundh
+SAL-0025,2026-04-29,SAL-SPA1,Hair Spa,Hair,Ramesh,Member,120,1200,0,Card,Kothrud
+SAL-0026,2026-05-07,SAL-FAC1,Gold Facial,Skin,Farida,Repeat,45,1250,200,UPI,Kothrud
+SAL-0027,2026-06-18,SAL-THR1,Eyebrow Threading,Grooming,Nikhil,Repeat,15,10,50,UPI,Aundh
+SAL-0028,2026-02-17,SAL-PRT1,Party Makeup,Bridal,Nikhil,Repeat,30,2600,200,Cash,Kothrud
+SAL-0029,2026-08-07,SAL-BRD1,Bridal Makeup,Bridal,Ramesh,New,30,8500,0,Cash,Aundh
+SAL-0030,2026-03-29,SAL-HRC1,Haircut,Hair,Nikhil,Repeat,15,350,0,Cash,Kothrud
+SAL-0031,2026-09-22,SAL-FAC1,Gold Facial,Skin,Farida,Member,15,1450,0,Cash,Aundh
+SAL-0032,2026-02-27,SAL-THR1,Eyebrow Threading,Grooming,Nikhil,Repeat,60,60,0,UPI,Kothrud
+SAL-0033,2026-08-18,SAL-PED1,Pedicure,Nails,Farida,Repeat,90,650,0,Card,Kothrud
+SAL-0034,2026-08-22,SAL-FAC1,Gold Facial,Skin,Farida,Repeat,90,1450,0,Cash,Aundh
+SAL-0035,2026-03-01,SAL-KER1,Keratin Treatment,Hair,Ramesh,Repeat,15,4500,0,UPI,Aundh
+SAL-0036,2026-05-06,SAL-MAS1,Head Massage,Hair,Sunita,Repeat,120,400,0,UPI,Kothrud
+SAL-0037,2026-02-27,SAL-HRC1,Haircut,Hair,Farida,New,90,350,0,Card,Kothrud
+SAL-0038,2026-06-14,SAL-PED1,Pedicure,Nails,Gopal,Repeat,30,550,100,Card,Kothrud
+SAL-0039,2026-09-28,SAL-MAS1,Head Massage,Hair,Gopal,New,120,300,100,UPI,Kothrud
+SAL-0040,2026-02-23,SAL-KER1,Keratin Treatment,Hair,Nikhil,New,30,4500,0,Cash,Aundh
+SAL-0041,2026-03-01,SAL-FAC1,Gold Facial,Skin,Sunita,Repeat,120,1450,0,Cash,Aundh
+SAL-0042,2026-02-07,SAL-COL1,Global Hair Colour,Hair,Gopal,Repeat,60,2000,200,UPI,Kothrud
+SAL-0043,2026-09-28,SAL-MAN1,Manicure,Nails,Nikhil,Repeat,90,250,200,Card,Aundh
+SAL-0044,2026-05-20,SAL-KER1,Keratin Treatment,Hair,Farida,Repeat,30,4300,200,Cash,Kothrud
+SAL-0045,2026-07-07,SAL-COL1,Global Hair Colour,Hair,Nikhil,Repeat,60,2100,100,UPI,Kothrud
+SAL-0046,2026-08-23,SAL-KER1,Keratin Treatment,Hair,Sunita,Member,120,4500,0,Cash,Kothrud
+SAL-0047,2026-04-07,SAL-KER1,Keratin Treatment,Hair,Farida,Repeat,15,4300,200,UPI,Aundh
+SAL-0048,2026-08-29,SAL-SPA1,Hair Spa,Hair,Ramesh,Member,30,1200,0,UPI,Kothrud
+SAL-0049,2026-06-15,SAL-FAC1,Gold Facial,Skin,Farida,Repeat,15,1450,0,UPI,Aundh
+SAL-0050,2026-02-21,SAL-PED1,Pedicure,Nails,Farida,Member,45,600,50,UPI,Aundh
+SAL-0051,2026-06-20,SAL-MAN1,Manicure,Nails,Farida,Repeat,60,350,100,UPI,Aundh
+SAL-0052,2026-07-26,SAL-MAS1,Head Massage,Hair,Sunita,Member,60,350,50,UPI,Kothrud
+SAL-0053,2026-04-17,SAL-THR1,Eyebrow Threading,Grooming,Nikhil,Repeat,45,60,0,UPI,Aundh
+SAL-0054,2026-07-27,SAL-HRC1,Haircut,Hair,Nikhil,Repeat,90,350,0,UPI,Aundh
+SAL-0055,2026-08-27,SAL-PED1,Pedicure,Nails,Gopal,Repeat,15,650,0,UPI,Kothrud
+SAL-0056,2026-05-24,SAL-KER1,Keratin Treatment,Hair,Nikhil,New,30,4300,200,UPI,Kothrud
+SAL-0057,2026-05-02,SAL-BRD1,Bridal Makeup,Bridal,Nikhil,Repeat,120,8400,100,UPI,Aundh
+SAL-0058,2026-03-13,SAL-THR1,Eyebrow Threading,Grooming,Nikhil,Repeat,60,60,0,UPI,Aundh
+SAL-0059,2026-06-26,SAL-MAS1,Head Massage,Hair,Farida,New,15,400,0,Cash,Kothrud
+SAL-0060,2026-03-09,SAL-MAS1,Head Massage,Hair,Farida,Repeat,30,300,100,UPI,Kothrud
+SAL-0061,2026-08-07,SAL-PED1,Pedicure,Nails,Farida,Repeat,45,650,0,UPI,Kothrud
+SAL-0062,2026-09-14,SAL-COL1,Global Hair Colour,Hair,Ramesh,Repeat,120,2200,0,UPI,Aundh
+SAL-0063,2026-06-21,SAL-COL1,Global Hair Colour,Hair,Ramesh,Repeat,60,2100,100,Cash,Kothrud
+SAL-0064,2026-07-04,SAL-FAC1,Gold Facial,Skin,Nikhil,Repeat,120,1450,0,UPI,Kothrud
+SAL-0065,2026-09-10,SAL-WAX1,Full Arm Waxing,Grooming,Ramesh,Member,30,550,0,Card,Kothrud
+SAL-0066,2026-07-08,SAL-MAS1,Head Massage,Hair,Ramesh,Member,30,400,0,UPI,Kothrud
+SAL-0067,2026-03-11,SAL-MAS1,Head Massage,Hair,Sunita,Member,90,400,0,Card,Kothrud
+SAL-0068,2026-05-18,SAL-PED1,Pedicure,Nails,Nikhil,Repeat,120,600,50,UPI,Kothrud
+SAL-0069,2026-05-04,SAL-MAS1,Head Massage,Hair,Ramesh,New,90,400,0,Card,Kothrud
+SAL-0070,2026-03-08,SAL-FAC1,Gold Facial,Skin,Nikhil,New,15,1350,100,Card,Kothrud
+SAL-0071,2026-05-27,SAL-FAC1,Gold Facial,Skin,Sunita,Member,45,1450,0,Card,Kothrud
+SAL-0072,2026-08-08,SAL-HRC1,Haircut,Hair,Gopal,Repeat,120,350,0,UPI,Aundh
+SAL-0073,2026-02-03,SAL-PED1,Pedicure,Nails,Nikhil,New,45,550,100,Cash,Kothrud
+SAL-0074,2026-04-26,SAL-MAS1,Head Massage,Hair,Farida,Repeat,120,400,0,UPI,Aundh
+SAL-0075,2026-08-03,SAL-THR1,Eyebrow Threading,Grooming,Farida,Member,30,10,50,UPI,Kothrud
+SAL-0076,2026-02-16,SAL-KER1,Keratin Treatment,Hair,Gopal,Repeat,60,4400,100,Card,Kothrud
+SAL-0077,2026-03-23,SAL-COL1,Global Hair Colour,Hair,Nikhil,Repeat,60,2000,200,UPI,Kothrud
+SAL-0078,2026-06-10,SAL-FAC1,Gold Facial,Skin,Farida,Repeat,90,1450,0,Cash,Kothrud
+SAL-0079,2026-06-28,SAL-MAS1,Head Massage,Hair,Nikhil,Repeat,120,400,0,Card,Kothrud
+SAL-0080,2026-03-03,SAL-COL1,Global Hair Colour,Hair,Nikhil,New,15,2150,50,Card,Aundh
+SAL-0081,2026-09-12,SAL-SPA1,Hair Spa,Hair,Nikhil,Repeat,30,1200,0,UPI,Aundh
+SAL-0082,2026-08-05,SAL-SPA1,Hair Spa,Hair,Gopal,Repeat,90,1200,0,Card,Kothrud
+SAL-0083,2026-03-02,SAL-KER1,Keratin Treatment,Hair,Nikhil,Repeat,120,4500,0,UPI,Kothrud
+SAL-0084,2026-09-22,SAL-WAX1,Full Arm Waxing,Grooming,Sunita,Repeat,15,550,0,Card,Kothrud
+SAL-0085,2026-06-21,SAL-PRT1,Party Makeup,Bridal,Ramesh,New,120,2800,0,Card,Aundh
+SAL-0086,2026-04-14,SAL-MAN1,Manicure,Nails,Farida,Member,120,450,0,Card,Kothrud
+SAL-0087,2026-07-13,SAL-THR1,Eyebrow Threading,Grooming,Gopal,Member,120,60,0,Card,Aundh
+SAL-0088,2026-08-09,SAL-THR1,Eyebrow Threading,Grooming,Ramesh,New,120,60,0,Card,Kothrud
+SAL-0089,2026-02-03,SAL-BRD1,Bridal Makeup,Bridal,Gopal,Repeat,30,8300,200,UPI,Aundh
+SAL-0090,2026-03-26,SAL-PRT1,Party Makeup,Bridal,Gopal,Repeat,60,2700,100,Card,Aundh
+SAL-0091,2026-08-01,SAL-HRC1,Haircut,Hair,Nikhil,New,15,350,0,UPI,Aundh
+SAL-0092,2026-03-23,SAL-THR1,Eyebrow Threading,Grooming,Sunita,New,30,60,0,UPI,Aundh
+SAL-0093,2026-05-05,SAL-FAC1,Gold Facial,Skin,Ramesh,Repeat,30,1450,0,UPI,Kothrud
+SAL-0094,2026-09-25,SAL-SPA1,Hair Spa,Hair,Sunita,Repeat,60,1200,0,Cash,Aundh
+SAL-0095,2026-06-20,SAL-PRT1,Party Makeup,Bridal,Ramesh,Repeat,60,2800,0,UPI,Kothrud
+SAL-0096,2026-04-04,SAL-SPA1,Hair Spa,Hair,Gopal,Repeat,15,1000,200,UPI,Aundh
+SAL-0097,2026-02-02,SAL-KER1,Keratin Treatment,Hair,Ramesh,New,120,4400,100,Cash,Aundh
+SAL-0098,2026-05-03,SAL-PRT1,Party Makeup,Bridal,Gopal,Repeat,120,2800,0,Cash,Kothrud
+SAL-0099,2026-08-15,SAL-KER1,Keratin Treatment,Hair,Sunita,Repeat,15,4450,50,UPI,Kothrud
+SAL-0100,2026-02-04,SAL-PED1,Pedicure,Nails,Farida,Repeat,90,650,0,UPI,Aundh
+SAL-0101,2026-06-12,SAL-THR1,Eyebrow Threading,Grooming,Nikhil,Repeat,30,-140,200,UPI,Kothrud
+SAL-0102,2026-06-18,SAL-COL1,Global Hair Colour,Hair,Gopal,Repeat,90,2150,50,UPI,Aundh
+SAL-0103,2026-05-06,SAL-PED1,Pedicure,Nails,Nikhil,Repeat,60,650,0,Cash,Aundh
+SAL-0104,2026-03-25,SAL-MAS1,Head Massage,Hair,Nikhil,Repeat,45,200,200,Cash,Kothrud
+SAL-0105,2026-03-29,SAL-BRD1,Bridal Makeup,Bridal,Gopal,Repeat,30,8500,0,UPI,Aundh
+SAL-0106,2026-02-14,SAL-BRD1,Bridal Makeup,Bridal,Nikhil,Repeat,120,8500,0,UPI,Aundh
+SAL-0107,2026-05-14,SAL-THR1,Eyebrow Threading,Grooming,Sunita,New,30,60,0,UPI,Kothrud
+SAL-0108,2026-08-23,SAL-COL1,Global Hair Colour,Hair,Sunita,New,45,2150,50,UPI,Aundh
+SAL-0109,2026-02-21,SAL-HRC1,Haircut,Hair,Sunita,Repeat,120,350,0,Cash,Aundh
+SAL-0110,2026-03-31,SAL-HRC1,Haircut,Hair,Ramesh,Member,60,350,0,UPI,Kothrud
+SAL-0111,2026-05-25,SAL-PED1,Pedicure,Nails,Sunita,Repeat,120,450,200,UPI,Aundh
+SAL-0112,2026-04-20,SAL-MAN1,Manicure,Nails,Sunita,New,60,450,0,UPI,Aundh
+SAL-0113,2026-04-29,SAL-THR1,Eyebrow Threading,Grooming,Nikhil,Repeat,60,10,50,Card,Kothrud
+SAL-0114,2026-07-06,SAL-PED1,Pedicure,Nails,Ramesh,New,15,650,0,UPI,Kothrud
+SAL-0115,2026-09-24,SAL-KER1,Keratin Treatment,Hair,Ramesh,Repeat,30,4400,100,Card,Kothrud
+SAL-0116,2026-06-15,SAL-HRC1,Haircut,Hair,Nikhil,Repeat,30,350,0,UPI,Kothrud
+SAL-0117,2026-04-27,SAL-PED1,Pedicure,Nails,Nikhil,Repeat,60,650,0,UPI,Aundh
+SAL-0118,2026-04-08,SAL-PED1,Pedicure,Nails,Sunita,Repeat,90,600,50,UPI,Aundh
+SAL-0119,2026-06-04,SAL-SPA1,Hair Spa,Hair,Nikhil,Repeat,15,1150,50,Cash,Kothrud
+SAL-0120,2026-06-12,SAL-SPA1,Hair Spa,Hair,Sunita,Repeat,45,1200,0,UPI,Kothrud
+SAL-0121,2026-05-23,SAL-PED1,Pedicure,Nails,Nikhil,Repeat,60,600,50,Cash,Kothrud
+SAL-0122,2026-09-16,SAL-HRC1,Haircut,Hair,Ramesh,New,90,150,200,Cash,Kothrud
+SAL-0123,2026-08-08,SAL-WAX1,Full Arm Waxing,Grooming,Gopal,Member,15,550,0,Cash,Kothrud
+SAL-0124,2026-05-11,SAL-COL1,Global Hair Colour,Hair,Farida,Repeat,15,2000,200,UPI,Kothrud
+SAL-0125,2026-06-04,SAL-MAS1,Head Massage,Hair,Gopal,Repeat,120,400,0,Cash,Aundh
+SAL-0126,2026-02-01,SAL-SPA1,Hair Spa,Hair,Gopal,Repeat,45,1200,0,UPI,Kothrud
+SAL-0127,2026-03-02,SAL-KER1,Keratin Treatment,Hair,Gopal,Repeat,45,4300,200,Cash,Kothrud
+SAL-0128,2026-09-07,SAL-MAN1,Manicure,Nails,Sunita,New,120,450,0,UPI,Aundh
+SAL-0129,2026-05-23,SAL-WAX1,Full Arm Waxing,Grooming,Nikhil,Repeat,30,550,0,Card,Kothrud
+SAL-0130,2026-06-18,SAL-FAC1,Gold Facial,Skin,Farida,Repeat,30,1250,200,Card,Aundh
+SAL-0131,2026-05-23,SAL-FAC1,Gold Facial,Skin,Gopal,Repeat,60,1400,50,UPI,Kothrud
+SAL-0132,2026-08-31,SAL-KER1,Keratin Treatment,Hair,Nikhil,Member,30,4500,0,Card,Kothrud
+SAL-0133,2026-07-01,SAL-MAS1,Head Massage,Hair,Sunita,Repeat,15,400,0,Card,Kothrud
+SAL-0134,2026-04-30,SAL-KER1,Keratin Treatment,Hair,Gopal,Member,45,4500,0,UPI,Aundh
+SAL-0135,2026-07-30,SAL-FAC1,Gold Facial,Skin,Nikhil,Repeat,60,1350,100,UPI,Aundh
+SAL-0136,2026-07-06,SAL-PRT1,Party Makeup,Bridal,Gopal,Repeat,120,2600,200,Cash,Aundh
+SAL-0137,2026-03-16,SAL-SPA1,Hair Spa,Hair,Nikhil,Member,45,1100,100,UPI,Aundh
+SAL-0138,2026-07-29,SAL-BRD1,Bridal Makeup,Bridal,Sunita,New,90,8500,0,UPI,Aundh
+SAL-0139,2026-07-17,SAL-KER1,Keratin Treatment,Hair,Nikhil,Repeat,30,4450,50,Card,Kothrud
+SAL-0140,2026-06-16,SAL-MAS1,Head Massage,Hair,Sunita,Repeat,15,400,0,Cash,Kothrud
+SAL-0141,2026-09-09,SAL-HRC1,Haircut,Hair,Nikhil,Repeat,15,350,0,Cash,Aundh
+SAL-0142,2026-07-25,SAL-COL1,Global Hair Colour,Hair,Ramesh,Member,30,2150,50,Cash,Aundh
+SAL-0143,2026-03-01,SAL-PRT1,Party Makeup,Bridal,Farida,Repeat,60,2600,200,Card,Aundh
+SAL-0144,2026-03-07,SAL-BRD1,Bridal Makeup,Bridal,Farida,Repeat,120,8450,50,UPI,Kothrud
+SAL-0145,2026-02-06,SAL-BRD1,Bridal Makeup,Bridal,Farida,Repeat,45,8500,0,Card,Kothrud
+SAL-0146,2026-06-08,SAL-THR1,Eyebrow Threading,Grooming,Gopal,Repeat,30,60,0,Cash,Aundh
+SAL-0147,2026-07-12,SAL-KER1,Keratin Treatment,Hair,Ramesh,Repeat,30,4300,200,Cash,Kothrud
+SAL-0148,2026-06-18,SAL-FAC1,Gold Facial,Skin,Sunita,New,15,1450,0,Card,Kothrud
+SAL-0149,2026-04-06,SAL-MAN1,Manicure,Nails,Ramesh,Repeat,60,450,0,Card,Kothrud
+SAL-0150,2026-04-28,SAL-MAN1,Manicure,Nails,Gopal,Member,45,450,0,UPI,Kothrud
+SAL-0151,2026-09-19,SAL-THR1,Eyebrow Threading,Grooming,Nikhil,Repeat,60,-140,200,UPI,Kothrud
+SAL-0152,2026-05-01,SAL-WAX1,Full Arm Waxing,Grooming,Gopal,Repeat,60,550,0,UPI,Aundh
+SAL-0153,2026-05-17,SAL-MAN1,Manicure,Nails,Sunita,Repeat,120,450,0,Card,Aundh
+SAL-0154,2026-04-06,SAL-FAC1,Gold Facial,Skin,Sunita,New,30,1450,0,Card,Aundh
+SAL-0155,2026-04-01,SAL-HRC1,Haircut,Hair,Nikhil,Repeat,30,350,0,UPI,Kothrud
+SAL-0156,2026-06-22,SAL-MAN1,Manicure,Nails,Gopal,New,120,450,0,Card,Aundh
+SAL-0157,2026-07-26,SAL-FAC1,Gold Facial,Skin,Farida,Member,120,1450,0,UPI,Kothrud
+SAL-0158,2026-02-06,SAL-SPA1,Hair Spa,Hair,Ramesh,Repeat,15,1000,200,UPI,Aundh
+SAL-0159,2026-08-19,SAL-MAS1,Head Massage,Hair,Nikhil,Repeat,120,400,0,Cash,Aundh
+SAL-0160,2026-06-10,SAL-WAX1,Full Arm Waxing,Grooming,Farida,New,90,450,100,UPI,Kothrud
+SAL-0161,2026-03-20,SAL-WAX1,Full Arm Waxing,Grooming,Sunita,Repeat,120,550,0,UPI,Aundh
+SAL-0162,2026-02-26,SAL-FAC1,Gold Facial,Skin,Ramesh,New,15,1450,0,UPI,Aundh
+SAL-0163,2026-08-05,SAL-KER1,Keratin Treatment,Hair,Farida,Repeat,60,4400,100,Cash,Aundh
+SAL-0164,2026-06-16,SAL-PRT1,Party Makeup,Bridal,Ramesh,Repeat,30,2750,50,Card,Aundh
+SAL-0165,2026-05-28,SAL-SPA1,Hair Spa,Hair,Sunita,Repeat,90,1200,0,UPI,Aundh
+SAL-0166,2026-05-23,SAL-KER1,Keratin Treatment,Hair,Farida,Member,90,4400,100,UPI,Aundh
+SAL-0167,2026-09-20,SAL-PED1,Pedicure,Nails,Sunita,Repeat,90,650,0,Card,Aundh
+SAL-0168,2026-03-27,SAL-COL1,Global Hair Colour,Hair,Nikhil,Repeat,30,2200,0,UPI,Kothrud
+SAL-0169,2026-04-02,SAL-COL1,Global Hair Colour,Hair,Ramesh,Member,90,2200,0,Cash,Kothrud
+SAL-0170,2026-06-22,SAL-HRC1,Haircut,Hair,Ramesh,Repeat,30,150,200,UPI,Aundh
+SAL-0171,2026-04-11,SAL-MAN1,Manicure,Nails,Gopal,Repeat,45,450,0,Card,Kothrud
+SAL-0172,2026-04-13,SAL-COL1,Global Hair Colour,Hair,Gopal,Member,120,2200,0,Card,Kothrud
+SAL-0173,2026-04-21,SAL-BRD1,Bridal Makeup,Bridal,Farida,Repeat,30,8500,0,UPI,Aundh
+SAL-0174,2026-03-05,SAL-KER1,Keratin Treatment,Hair,Ramesh,Repeat,60,4400,100,Cash,Aundh
+SAL-0175,2026-03-11,SAL-MAS1,Head Massage,Hair,Ramesh,Repeat,15,350,50,Cash,Kothrud
+SAL-0176,2026-04-13,SAL-PED1,Pedicure,Nails,Ramesh,New,45,550,100,Cash,Kothrud
+SAL-0177,2026-06-01,SAL-PED1,Pedicure,Nails,Ramesh,Repeat,45,650,0,Cash,Kothrud
+SAL-0178,2026-02-16,SAL-HRC1,Haircut,Hair,Sunita,Repeat,90,300,50,Cash,Aundh
+SAL-0179,2026-03-08,SAL-COL1,Global Hair Colour,Hair,Gopal,New,30,2100,100,Cash,Kothrud
+SAL-0180,2026-07-18,SAL-KER1,Keratin Treatment,Hair,Ramesh,Repeat,45,4500,0,UPI,Aundh
+SAL-0181,2026-09-16,SAL-PRT1,Party Makeup,Bridal,Farida,New,60,2800,0,UPI,Aundh
+SAL-0182,2026-05-02,SAL-BRD1,Bridal Makeup,Bridal,Sunita,New,30,8400,100,UPI,Aundh
+SAL-0183,2026-05-19,SAL-MAS1,Head Massage,Hair,Nikhil,Repeat,45,400,0,Card,Aundh
+SAL-0184,2026-02-07,SAL-FAC1,Gold Facial,Skin,Nikhil,New,30,1450,0,Card,Kothrud
+SAL-0185,2026-05-24,SAL-PRT1,Party Makeup,Bridal,Gopal,Repeat,90,2600,200,Card,Aundh
+SAL-0186,2026-08-01,SAL-PED1,Pedicure,Nails,Farida,New,15,600,50,Card,Kothrud
+SAL-0187,2026-02-13,SAL-MAN1,Manicure,Nails,Ramesh,Repeat,60,450,0,Cash,Kothrud
+SAL-0188,2026-06-25,SAL-PED1,Pedicure,Nails,Nikhil,Member,120,600,50,Cash,Aundh
+SAL-0189,2026-06-04,SAL-WAX1,Full Arm Waxing,Grooming,Nikhil,Repeat,30,550,0,Cash,Kothrud
+SAL-0190,2026-04-14,SAL-MAS1,Head Massage,Hair,Ramesh,New,120,350,50,Cash,Kothrud
+SAL-0191,2026-04-03,SAL-BRD1,Bridal Makeup,Bridal,Sunita,Repeat,30,8500,0,Cash,Aundh
+SAL-0192,2026-07-24,SAL-HRC1,Haircut,Hair,Nikhil,New,120,250,100,UPI,Aundh
+SAL-0193,2026-05-30,SAL-FAC1,Gold Facial,Skin,Nikhil,New,120,1450,0,Card,Kothrud
+SAL-0194,2026-03-14,SAL-COL1,Global Hair Colour,Hair,Nikhil,Repeat,45,2000,200,Cash,Kothrud
+SAL-0195,2026-08-30,SAL-WAX1,Full Arm Waxing,Grooming,Ramesh,Repeat,90,550,0,Cash,Kothrud
+SAL-0196,2026-03-02,SAL-BRD1,Bridal Makeup,Bridal,Ramesh,New,30,8500,0,UPI,Kothrud
+SAL-0197,2026-07-11,SAL-WAX1,Full Arm Waxing,Grooming,Farida,Member,15,500,50,UPI,Kothrud
+SAL-0198,2026-08-10,SAL-KER1,Keratin Treatment,Hair,Ramesh,Repeat,45,4300,200,UPI,Aundh
+SAL-0199,2026-02-07,SAL-FAC1,Gold Facial,Skin,Gopal,Repeat,15,1450,0,UPI,Aundh
+SAL-0200,2026-07-21,SAL-COL1,Global Hair Colour,Hair,Gopal,Repeat,120,2200,0,UPI,Kothrud
+SAL-0201,2026-04-08,SAL-THR1,Eyebrow Threading,Grooming,Farida,Repeat,30,-140,200,UPI,Kothrud
+SAL-0202,2026-04-30,SAL-PED1,Pedicure,Nails,Gopal,Member,15,550,100,Cash,Aundh
+SAL-0203,2026-09-05,SAL-PRT1,Party Makeup,Bridal,Ramesh,Repeat,90,2800,0,UPI,Aundh
+SAL-0204,2026-06-08,SAL-WAX1,Full Arm Waxing,Grooming,Sunita,Member,45,500,50,Card,Kothrud
+SAL-0205,2026-06-27,SAL-WAX1,Full Arm Waxing,Grooming,Ramesh,New,30,350,200,Card,Aundh
+SAL-0206,2026-07-04,SAL-THR1,Eyebrow Threading,Grooming,Gopal,Repeat,45,-140,200,Cash,Aundh
+SAL-0207,2026-07-29,SAL-PED1,Pedicure,Nails,Farida,Member,45,650,0,Cash,Aundh
+SAL-0208,2026-02-14,SAL-WAX1,Full Arm Waxing,Grooming,Gopal,Member,120,550,0,UPI,Kothrud
+SAL-0209,2026-07-21,SAL-MAS1,Head Massage,Hair,Gopal,Member,120,400,0,UPI,Kothrud
+SAL-0210,2026-07-10,SAL-KER1,Keratin Treatment,Hair,Sunita,Repeat,30,4500,0,UPI,Aundh
+SAL-0211,2026-06-04,SAL-BRD1,Bridal Makeup,Bridal,Gopal,Repeat,15,8450,50,Cash,Kothrud
+SAL-0212,2026-05-31,SAL-MAN1,Manicure,Nails,Farida,Repeat,120,450,0,Card,Aundh
+SAL-0213,2026-05-19,SAL-THR1,Eyebrow Threading,Grooming,Farida,Member,120,10,50,Card,Kothrud
+SAL-0214,2026-06-20,SAL-MAN1,Manicure,Nails,Sunita,Repeat,15,250,200,UPI,Aundh
+SAL-0215,2026-04-15,SAL-KER1,Keratin Treatment,Hair,Sunita,Repeat,30,4500,0,UPI,Kothrud
+SAL-0216,2026-05-22,SAL-FAC1,Gold Facial,Skin,Ramesh,Repeat,120,1350,100,Card,Aundh
+SAL-0217,2026-03-16,SAL-THR1,Eyebrow Threading,Grooming,Farida,Member,15,-40,100,UPI,Aundh
+SAL-0218,2026-09-24,SAL-PED1,Pedicure,Nails,Sunita,Repeat,45,650,0,Cash,Kothrud
+SAL-0219,2026-04-19,SAL-THR1,Eyebrow Threading,Grooming,Ramesh,Repeat,90,60,0,Cash,Aundh
+SAL-0220,2026-06-11,SAL-WAX1,Full Arm Waxing,Grooming,Sunita,Member,90,550,0,UPI,Aundh
+SAL-0221,2026-03-22,SAL-MAN1,Manicure,Nails,Ramesh,Repeat,45,450,0,Cash,Kothrud
+SAL-0222,2026-02-03,SAL-COL1,Global Hair Colour,Hair,Gopal,Repeat,45,2200,0,Card,Kothrud
+SAL-0223,2026-02-07,SAL-SPA1,Hair Spa,Hair,Farida,Repeat,30,1150,50,Cash,Aundh
+SAL-0224,2026-02-20,SAL-THR1,Eyebrow Threading,Grooming,Ramesh,New,30,-140,200,Card,Kothrud
+SAL-0225,2026-07-04,SAL-BRD1,Bridal Makeup,Bridal,Ramesh,New,30,8500,0,UPI,Kothrud
+SAL-0226,2026-08-26,SAL-PED1,Pedicure,Nails,Ramesh,Member,60,650,0,UPI,Aundh
+SAL-0227,2026-03-06,SAL-PRT1,Party Makeup,Bridal,Ramesh,Repeat,45,2600,200,UPI,Kothrud
+SAL-0228,2026-06-01,SAL-HRC1,Haircut,Hair,Sunita,Repeat,30,150,200,Cash,Aundh
+SAL-0229,2026-03-23,SAL-BRD1,Bridal Makeup,Bridal,Ramesh,New,90,8500,0,Cash,Aundh
+SAL-0230,2026-04-22,SAL-MAN1,Manicure,Nails,Ramesh,Member,45,450,0,Cash,Aundh
+SAL-0231,2026-04-18,SAL-SPA1,Hair Spa,Hair,Sunita,Repeat,90,1200,0,UPI,Kothrud
+SAL-0232,2026-04-27,SAL-SPA1,Hair Spa,Hair,Ramesh,Repeat,120,1200,0,Card,Kothrud
+SAL-0233,2026-02-11,SAL-HRC1,Haircut,Hair,Gopal,Repeat,120,350,0,Cash,Aundh
+SAL-0234,2026-03-09,SAL-SPA1,Hair Spa,Hair,Ramesh,New,60,1100,100,UPI,Aundh
+SAL-0235,2026-05-15,SAL-COL1,Global Hair Colour,Hair,Farida,Repeat,15,2100,100,UPI,Kothrud
+SAL-0236,2026-06-01,SAL-MAN1,Manicure,Nails,Sunita,New,45,450,0,Card,Aundh
+SAL-0237,2026-09-01,SAL-COL1,Global Hair Colour,Hair,Nikhil,Repeat,45,2000,200,UPI,Aundh
+SAL-0238,2026-02-25,SAL-WAX1,Full Arm Waxing,Grooming,Farida,Repeat,120,550,0,UPI,Kothrud
+SAL-0239,2026-02-19,SAL-COL1,Global Hair Colour,Hair,Nikhil,Member,90,2000,200,Cash,Aundh
+SAL-0240,2026-07-28,SAL-THR1,Eyebrow Threading,Grooming,Gopal,New,60,10,50,Card,Aundh
+SAL-0241,2026-06-08,SAL-PRT1,Party Makeup,Bridal,Farida,Repeat,15,2800,0,UPI,Kothrud
+SAL-0242,2026-09-12,SAL-THR1,Eyebrow Threading,Grooming,Farida,Repeat,15,60,0,UPI,Kothrud
+SAL-0243,2026-06-19,SAL-MAS1,Head Massage,Hair,Farida,Repeat,15,400,0,Card,Kothrud
+SAL-0244,2026-08-22,SAL-PED1,Pedicure,Nails,Nikhil,New,90,600,50,UPI,Kothrud
+SAL-0245,2026-08-03,SAL-FAC1,Gold Facial,Skin,Nikhil,Repeat,30,1450,0,Card,Kothrud
+SAL-0246,2026-04-20,SAL-KER1,Keratin Treatment,Hair,Nikhil,Repeat,15,4500,0,UPI,Kothrud
+SAL-0247,2026-09-10,SAL-WAX1,Full Arm Waxing,Grooming,Sunita,Repeat,60,550,0,UPI,Kothrud
+SAL-0248,2026-08-11,SAL-BRD1,Bridal Makeup,Bridal,Gopal,New,60,8500,0,Card,Aundh
+SAL-0249,2026-05-15,SAL-PED1,Pedicure,Nails,Gopal,Repeat,90,650,0,UPI,Aundh
+SAL-0250,2026-03-25,SAL-PED1,Pedicure,Nails,Gopal,Member,120,650,0,Cash,Aundh
+SAL-0251,2026-08-13,SAL-PRT1,Party Makeup,Bridal,Gopal,New,45,2800,0,UPI,Kothrud
+SAL-0252,2026-03-01,SAL-KER1,Keratin Treatment,Hair,Gopal,Repeat,30,4300,200,UPI,Aundh
+SAL-0253,2026-06-09,SAL-BRD1,Bridal Makeup,Bridal,Gopal,Repeat,30,8500,0,Cash,Kothrud
+SAL-0254,2026-03-11,SAL-KER1,Keratin Treatment,Hair,Gopal,Repeat,90,4500,0,UPI,Aundh
+SAL-0255,2026-06-07,SAL-HRC1,Haircut,Hair,Nikhil,Repeat,45,350,0,UPI,Kothrud
+SAL-0256,2026-02-14,SAL-MAS1,Head Massage,Hair,Farida,Repeat,120,200,200,Card,Kothrud
+SAL-0257,2026-03-31,SAL-PED1,Pedicure,Nails,Sunita,Repeat,45,550,100,UPI,Kothrud
+SAL-0258,2026-05-16,SAL-HRC1,Haircut,Hair,Sunita,New,90,350,0,Card,Aundh
+SAL-0259,2026-02-14,SAL-KER1,Keratin Treatment,Hair,Sunita,Repeat,30,4300,200,Cash,Kothrud
+SAL-0260,2026-02-17,SAL-COL1,Global Hair Colour,Hair,Sunita,Repeat,120,2200,0,Cash,Aundh
+SAL-0261,2026-06-19,SAL-FAC1,Gold Facial,Skin,Sunita,Repeat,45,1450,0,UPI,Kothrud
+SAL-0262,2026-03-29,SAL-COL1,Global Hair Colour,Hair,Nikhil,Member,15,2100,100,UPI,Aundh
+SAL-0263,2026-03-06,SAL-THR1,Eyebrow Threading,Grooming,Nikhil,Member,120,-140,200,UPI,Kothrud
+SAL-0264,2026-02-17,SAL-THR1,Eyebrow Threading,Grooming,Ramesh,New,90,-140,200,Cash,Aundh
+SAL-0265,2026-03-15,SAL-BRD1,Bridal Makeup,Bridal,Nikhil,Member,120,8300,200,Card,Kothrud
+SAL-0266,2026-02-12,SAL-WAX1,Full Arm Waxing,Grooming,Sunita,Repeat,120,500,50,UPI,Kothrud
+SAL-0267,2026-09-03,SAL-SPA1,Hair Spa,Hair,Sunita,Repeat,45,1100,100,Cash,Kothrud
+SAL-0268,2026-05-21,SAL-WAX1,Full Arm Waxing,Grooming,Nikhil,Member,120,450,100,UPI,Aundh
+SAL-0269,2026-04-12,SAL-COL1,Global Hair Colour,Hair,Nikhil,Repeat,60,2200,0,UPI,Kothrud
+SAL-0270,2026-05-21,SAL-MAN1,Manicure,Nails,Gopal,Repeat,30,350,100,Cash,Kothrud
+SAL-0271,2026-03-31,SAL-WAX1,Full Arm Waxing,Grooming,Sunita,Member,30,550,0,Card,Kothrud
+SAL-0272,2026-03-09,SAL-COL1,Global Hair Colour,Hair,Sunita,Repeat,60,2200,0,UPI,Aundh
+SAL-0273,2026-03-10,SAL-MAS1,Head Massage,Hair,Gopal,Repeat,45,400,0,UPI,Aundh
+SAL-0274,2026-07-06,SAL-THR1,Eyebrow Threading,Grooming,Sunita,Member,15,60,0,UPI,Kothrud
+SAL-0275,2026-02-20,SAL-FAC1,Gold Facial,Skin,Farida,New,90,1450,0,UPI,Aundh
+SAL-0276,2026-02-09,SAL-SPA1,Hair Spa,Hair,Ramesh,Member,60,1150,50,Card,Kothrud
+SAL-0277,2026-09-16,SAL-MAS1,Head Massage,Hair,Farida,Repeat,60,300,100,Card,Aundh
+SAL-0278,2026-09-07,SAL-SPA1,Hair Spa,Hair,Nikhil,Repeat,15,1000,200,Cash,Aundh
+SAL-0279,2026-05-28,SAL-KER1,Keratin Treatment,Hair,Farida,Repeat,45,4400,100,Card,Aundh
+SAL-0280,2026-03-08,SAL-HRC1,Haircut,Hair,Gopal,Repeat,60,300,50,Card,Kothrud
+SAL-0281,2026-07-20,SAL-COL1,Global Hair Colour,Hair,Ramesh,Repeat,15,2100,100,Cash,Aundh
+SAL-0282,2026-03-03,SAL-HRC1,Haircut,Hair,Ramesh,New,120,350,0,UPI,Kothrud
+SAL-0283,2026-03-03,SAL-SPA1,Hair Spa,Hair,Nikhil,Repeat,30,1100,100,UPI,Aundh
+SAL-0284,2026-05-11,SAL-MAS1,Head Massage,Hair,Farida,Member,15,400,0,Card,Kothrud
+SAL-0285,2026-09-11,SAL-WAX1,Full Arm Waxing,Grooming,Nikhil,Repeat,60,350,200,UPI,Kothrud
+SAL-0286,2026-04-27,SAL-PRT1,Party Makeup,Bridal,Ramesh,Member,45,2600,200,UPI,Aundh
+SAL-0287,2026-09-23,SAL-THR1,Eyebrow Threading,Grooming,Nikhil,Member,60,-140,200,UPI,Aundh
+SAL-0288,2026-07-14,SAL-KER1,Keratin Treatment,Hair,Farida,New,30,4500,0,Card,Aundh
+SAL-0289,2026-09-16,SAL-WAX1,Full Arm Waxing,Grooming,Farida,New,45,550,0,UPI,Kothrud
+SAL-0290,2026-02-16,SAL-MAN1,Manicure,Nails,Gopal,Member,90,450,0,UPI,Kothrud
+SAL-0291,2026-08-30,SAL-BRD1,Bridal Makeup,Bridal,Ramesh,Repeat,90,8450,50,Cash,Aundh
+SAL-0292,2026-03-08,SAL-MAN1,Manicure,Nails,Gopal,New,45,350,100,UPI,Kothrud
+SAL-0293,2026-07-25,SAL-PRT1,Party Makeup,Bridal,Gopal,New,120,2700,100,Cash,Aundh
+SAL-0294,2026-04-16,SAL-THR1,Eyebrow Threading,Grooming,Farida,New,120,60,0,UPI,Aundh
+SAL-0295,2026-05-26,SAL-PRT1,Party Makeup,Bridal,Gopal,New,15,2800,0,UPI,Aundh
+SAL-0296,2026-06-23,SAL-SPA1,Hair Spa,Hair,Farida,Repeat,90,1200,0,Cash,Aundh
+SAL-0297,2026-05-24,SAL-PRT1,Party Makeup,Bridal,Sunita,Member,15,2800,0,Cash,Aundh
+SAL-0298,2026-05-04,SAL-WAX1,Full Arm Waxing,Grooming,Nikhil,Repeat,90,550,0,UPI,Kothrud
+SAL-0299,2026-02-23,SAL-WAX1,Full Arm Waxing,Grooming,Nikhil,Repeat,60,350,200,Cash,Aundh
+SAL-0300,2026-07-16,SAL-BRD1,Bridal Makeup,Bridal,Farida,New,15,8500,0,Cash,Aundh
+SAL-0301,2026-03-13,SAL-COL1,Global Hair Colour,Hair,Gopal,Repeat,15,2200,0,UPI,Aundh
+SAL-0302,2026-05-25,SAL-WAX1,Full Arm Waxing,Grooming,Sunita,Repeat,45,450,100,Cash,Aundh
+SAL-0303,2026-08-13,SAL-BRD1,Bridal Makeup,Bridal,Farida,Member,120,8450,50,UPI,Kothrud
+SAL-0304,2026-09-06,SAL-PED1,Pedicure,Nails,Farida,New,30,650,0,Cash,Kothrud
+SAL-0305,2026-03-31,SAL-PRT1,Party Makeup,Bridal,Farida,Repeat,30,2600,200,Card,Aundh
+SAL-0306,2026-09-08,SAL-COL1,Global Hair Colour,Hair,Ramesh,Repeat,15,2150,50,Card,Aundh
+SAL-0307,2026-07-22,SAL-MAN1,Manicure,Nails,Sunita,Member,90,350,100,UPI,Kothrud
+SAL-0308,2026-03-23,SAL-MAS1,Head Massage,Hair,Ramesh,Repeat,60,300,100,UPI,Kothrud
+SAL-0309,2026-08-18,SAL-SPA1,Hair Spa,Hair,Ramesh,Repeat,90,1200,0,UPI,Kothrud
+SAL-0310,2026-04-14,SAL-BRD1,Bridal Makeup,Bridal,Farida,Member,60,8500,0,Card,Kothrud
+SAL-0311,2026-07-01,SAL-SPA1,Hair Spa,Hair,Nikhil,Repeat,120,1200,0,Card,Aundh
+SAL-0312,2026-07-15,SAL-COL1,Global Hair Colour,Hair,Gopal,Member,30,2150,50,UPI,Kothrud
+SAL-0313,2026-07-10,SAL-WAX1,Full Arm Waxing,Grooming,Sunita,New,90,550,0,UPI,Aundh
+SAL-0314,2026-02-08,SAL-PRT1,Party Makeup,Bridal,Sunita,New,45,2800,0,Card,Kothrud
+SAL-0315,2026-07-03,SAL-THR1,Eyebrow Threading,Grooming,Ramesh,Member,30,10,50,UPI,Aundh
+SAL-0316,2026-09-06,SAL-SPA1,Hair Spa,Hair,Gopal,Repeat,15,1000,200,Cash,Aundh
+SAL-0317,2026-04-09,SAL-PED1,Pedicure,Nails,Ramesh,Repeat,120,600,50,Card,Kothrud
+SAL-0318,2026-08-16,SAL-PRT1,Party Makeup,Bridal,Ramesh,New,15,2800,0,UPI,Kothrud
+SAL-0319,2026-09-09,SAL-PRT1,Party Makeup,Bridal,Ramesh,Repeat,30,2800,0,UPI,Aundh
+SAL-0320,2026-09-12,SAL-PED1,Pedicure,Nails,Farida,Repeat,15,600,50,UPI,Aundh
+SAL-0321,2026-06-18,SAL-WAX1,Full Arm Waxing,Grooming,Gopal,Repeat,15,450,100,UPI,Kothrud
+SAL-0322,2026-03-08,SAL-THR1,Eyebrow Threading,Grooming,Sunita,Repeat,120,60,0,Card,Kothrud
+SAL-0323,2026-04-23,SAL-SPA1,Hair Spa,Hair,Farida,Repeat,120,1000,200,UPI,Aundh
+SAL-0324,2026-02-16,SAL-PRT1,Party Makeup,Bridal,Nikhil,Member,30,2700,100,UPI,Kothrud
+SAL-0325,2026-06-20,SAL-MAN1,Manicure,Nails,Ramesh,Member,45,250,200,Cash,Kothrud
+SAL-0326,2026-04-19,SAL-WAX1,Full Arm Waxing,Grooming,Sunita,Member,30,450,100,UPI,Aundh
+SAL-0327,2026-06-23,SAL-HRC1,Haircut,Hair,Ramesh,New,30,300,50,Cash,Kothrud
+SAL-0328,2026-03-14,SAL-FAC1,Gold Facial,Skin,Gopal,Member,30,1350,100,Card,Kothrud
+SAL-0329,2026-03-29,SAL-BRD1,Bridal Makeup,Bridal,Ramesh,Repeat,45,8500,0,UPI,Aundh
+SAL-0330,2026-03-10,SAL-COL1,Global Hair Colour,Hair,Gopal,New,60,2150,50,Card,Aundh
+SAL-0331,2026-05-24,SAL-SPA1,Hair Spa,Hair,Farida,New,30,1200,0,Card,Aundh
+SAL-0332,2026-04-30,SAL-MAS1,Head Massage,Hair,Nikhil,Repeat,30,400,0,Card,Aundh
+SAL-0333,2026-03-27,SAL-MAN1,Manicure,Nails,Ramesh,Repeat,45,450,0,UPI,Kothrud
+SAL-0334,2026-04-03,SAL-MAN1,Manicure,Nails,Gopal,New,45,450,0,Cash,Kothrud
+SAL-0335,2026-07-25,SAL-FAC1,Gold Facial,Skin,Ramesh,Repeat,15,1400,50,Cash,Kothrud
+SAL-0336,2026-07-11,SAL-MAN1,Manicure,Nails,Ramesh,Repeat,90,450,0,UPI,Kothrud
+SAL-0337,2026-05-15,SAL-MAN1,Manicure,Nails,Farida,Repeat,60,450,0,Card,Kothrud
+SAL-0338,2026-05-12,SAL-PRT1,Party Makeup,Bridal,Sunita,Repeat,120,2800,0,Card,Aundh
+SAL-0339,2026-09-13,SAL-SPA1,Hair Spa,Hair,Sunita,New,120,1200,0,UPI,Kothrud
+SAL-0340,2026-07-16,SAL-WAX1,Full Arm Waxing,Grooming,Nikhil,Member,15,450,100,Card,Aundh
+SAL-0341,2026-08-29,SAL-THR1,Eyebrow Threading,Grooming,Nikhil,Repeat,120,10,50,UPI,Kothrud
+SAL-0342,2026-09-24,SAL-KER1,Keratin Treatment,Hair,Ramesh,Member,30,4450,50,Card,Kothrud
+SAL-0343,2026-03-28,SAL-THR1,Eyebrow Threading,Grooming,Nikhil,Repeat,120,-140,200,UPI,Aundh
+SAL-0344,2026-07-25,SAL-PRT1,Party Makeup,Bridal,Ramesh,Member,45,2600,200,UPI,Aundh
+SAL-0345,2026-06-30,SAL-HRC1,Haircut,Hair,Gopal,New,60,250,100,Card,Aundh
+SAL-0346,2026-08-08,SAL-WAX1,Full Arm Waxing,Grooming,Ramesh,New,60,550,0,Card,Aundh
+SAL-0347,2026-09-10,SAL-THR1,Eyebrow Threading,Grooming,Farida,Repeat,15,-140,200,UPI,Kothrud
+SAL-0348,2026-04-02,SAL-HRC1,Haircut,Hair,Farida,Member,45,350,0,UPI,Kothrud
+SAL-0349,2026-07-29,SAL-SPA1,Hair Spa,Hair,Ramesh,New,45,1200,0,UPI,Aundh
+SAL-0350,2026-06-05,SAL-MAS1,Head Massage,Hair,Ramesh,Repeat,90,400,0,UPI,Aundh
+SAL-0351,2026-02-09,SAL-SPA1,Hair Spa,Hair,Sunita,Member,60,1200,0,Card,Aundh
+SAL-0352,2026-08-27,SAL-MAN1,Manicure,Nails,Nikhil,Member,120,350,100,UPI,Kothrud
+SAL-0353,2026-09-08,SAL-MAS1,Head Massage,Hair,Ramesh,Repeat,15,200,200,UPI,Aundh
+SAL-0354,2026-08-24,SAL-PED1,Pedicure,Nails,Gopal,Repeat,60,450,200,Card,Aundh
+SAL-0355,2026-02-25,SAL-MAN1,Manicure,Nails,Sunita,Repeat,15,450,0,Card,Aundh
+SAL-0356,2026-07-01,SAL-WAX1,Full Arm Waxing,Grooming,Ramesh,Repeat,60,350,200,UPI,Kothrud
+SAL-0357,2026-06-11,SAL-PED1,Pedicure,Nails,Nikhil,Repeat,15,650,0,UPI,Kothrud
+SAL-0358,2026-05-31,SAL-PED1,Pedicure,Nails,Sunita,Repeat,60,450,200,Cash,Aundh
+SAL-0359,2026-09-21,SAL-HRC1,Haircut,Hair,Nikhil,New,30,250,100,UPI,Kothrud
+SAL-0360,2026-03-19,SAL-FAC1,Gold Facial,Skin,Farida,Repeat,120,1400,50,UPI,Aundh
+SAL-0361,2026-04-20,SAL-COL1,Global Hair Colour,Hair,Gopal,Repeat,30,2000,200,UPI,Kothrud
+SAL-0362,2026-04-01,SAL-MAS1,Head Massage,Hair,Gopal,New,45,350,50,UPI,Aundh
+SAL-0363,2026-08-15,SAL-MAS1,Head Massage,Hair,Farida,Repeat,30,350,50,UPI,Kothrud
+SAL-0364,2026-05-02,SAL-SPA1,Hair Spa,Hair,Gopal,Repeat,120,1150,50,Cash,Aundh
+SAL-0365,2026-02-23,SAL-MAN1,Manicure,Nails,Farida,Member,90,250,200,Cash,Kothrud
+SAL-0366,2026-08-30,SAL-FAC1,Gold Facial,Skin,Nikhil,Repeat,90,1350,100,Card,Kothrud
+SAL-0367,2026-05-15,SAL-BRD1,Bridal Makeup,Bridal,Ramesh,New,30,8500,0,Cash,Aundh
+SAL-0368,2026-08-21,SAL-THR1,Eyebrow Threading,Grooming,Sunita,New,30,60,0,UPI,Kothrud
+SAL-0369,2026-04-27,SAL-BRD1,Bridal Makeup,Bridal,Sunita,Repeat,15,8400,100,Cash,Aundh
+SAL-0370,2026-03-25,SAL-WAX1,Full Arm Waxing,Grooming,Nikhil,Member,120,550,0,UPI,Aundh
+SAL-0371,2026-02-12,SAL-MAS1,Head Massage,Hair,Gopal,Member,60,400,0,Card,Kothrud
+SAL-0372,2026-09-17,SAL-HRC1,Haircut,Hair,Ramesh,Repeat,90,150,200,UPI,Aundh
+SAL-0373,2026-08-03,SAL-MAN1,Manicure,Nails,Farida,New,45,250,200,UPI,Kothrud
+SAL-0374,2026-03-29,SAL-MAN1,Manicure,Nails,Sunita,Repeat,60,450,0,UPI,Aundh
+SAL-0375,2026-08-12,SAL-WAX1,Full Arm Waxing,Grooming,Sunita,Repeat,30,550,0,Cash,Aundh
+SAL-0376,2026-02-13,SAL-KER1,Keratin Treatment,Hair,Nikhil,Repeat,120,4450,50,UPI,Kothrud
+SAL-0377,2026-06-07,SAL-FAC1,Gold Facial,Skin,Gopal,Repeat,15,1400,50,UPI,Kothrud
+SAL-0378,2026-09-11,SAL-WAX1,Full Arm Waxing,Grooming,Sunita,New,30,350,200,Cash,Kothrud
+SAL-0379,2026-09-09,SAL-COL1,Global Hair Colour,Hair,Nikhil,New,120,2200,0,UPI,Aundh
+SAL-0380,2026-06-08,SAL-COL1,Global Hair Colour,Hair,Sunita,Repeat,15,2200,0,Cash,Kothrud
+SAL-0381,2026-03-01,SAL-HRC1,Haircut,Hair,Sunita,Repeat,15,150,200,UPI,Aundh
+SAL-0382,2026-07-29,SAL-WAX1,Full Arm Waxing,Grooming,Gopal,Repeat,120,500,50,UPI,Aundh
+SAL-0383,2026-05-04,SAL-SPA1,Hair Spa,Hair,Farida,New,30,1200,0,Card,Kothrud
+SAL-0384,2026-07-29,SAL-MAN1,Manicure,Nails,Ramesh,Repeat,30,450,0,UPI,Aundh
+SAL-0385,2026-04-04,SAL-KER1,Keratin Treatment,Hair,Sunita,Member,90,4500,0,UPI,Kothrud
+SAL-0386,2026-08-09,SAL-COL1,Global Hair Colour,Hair,Gopal,Member,15,2150,50,Cash,Kothrud
+SAL-0387,2026-08-27,SAL-MAS1,Head Massage,Hair,Farida,Repeat,90,400,0,Cash,Kothrud
+SAL-0388,2026-02-11,SAL-PED1,Pedicure,Nails,Nikhil,Repeat,120,650,0,UPI,Aundh
+SAL-0389,2026-07-10,SAL-MAS1,Head Massage,Hair,Nikhil,Member,90,300,100,UPI,Aundh
+SAL-0390,2026-05-07,SAL-MAS1,Head Massage,Hair,Gopal,Member,15,400,0,UPI,Aundh
+SAL-0391,2026-04-24,SAL-COL1,Global Hair Colour,Hair,Ramesh,Repeat,15,2150,50,UPI,Aundh
+SAL-0392,2026-09-17,SAL-MAN1,Manicure,Nails,Nikhil,Repeat,15,450,0,UPI,Kothrud
+SAL-0393,2026-03-26,SAL-COL1,Global Hair Colour,Hair,Farida,Repeat,90,2200,0,Cash,Kothrud
+SAL-0394,2026-03-16,SAL-PED1,Pedicure,Nails,Gopal,Repeat,15,650,0,UPI,Aundh
+SAL-0395,2026-04-04,SAL-SPA1,Hair Spa,Hair,Ramesh,Repeat,120,1000,200,UPI,Kothrud
+SAL-0396,2026-07-04,SAL-KER1,Keratin Treatment,Hair,Farida,Member,120,4300,200,Card,Aundh
+SAL-0397,2026-09-03,SAL-MAS1,Head Massage,Hair,Sunita,Repeat,15,200,200,Card,Kothrud
+SAL-0398,2026-08-06,SAL-SPA1,Hair Spa,Hair,Sunita,Repeat,90,1150,50,UPI,Kothrud
+SAL-0399,2026-05-18,SAL-MAS1,Head Massage,Hair,Sunita,Repeat,45,400,0,Cash,Kothrud
+SAL-0400,2026-09-16,SAL-HRC1,Haircut,Hair,Gopal,Member,90,350,0,Card,Kothrud
+SAL-0401,2026-03-20,SAL-HRC1,Haircut,Hair,Farida,New,120,350,0,Cash,Kothrud
+SAL-0402,2026-05-19,SAL-PRT1,Party Makeup,Bridal,Sunita,New,15,2700,100,UPI,Kothrud
+SAL-0403,2026-03-27,SAL-COL1,Global Hair Colour,Hair,Sunita,Repeat,30,2200,0,Cash,Aundh
+SAL-0404,2026-04-24,SAL-COL1,Global Hair Colour,Hair,Sunita,Member,15,2200,0,Cash,Aundh
+SAL-0405,2026-08-31,SAL-BRD1,Bridal Makeup,Bridal,Gopal,Member,60,8450,50,Card,Aundh
+SAL-0406,2026-09-23,SAL-WAX1,Full Arm Waxing,Grooming,Nikhil,Repeat,15,550,0,Cash,Kothrud
+SAL-0407,2026-04-23,SAL-HRC1,Haircut,Hair,Nikhil,Repeat,120,150,200,UPI,Kothrud
+SAL-0408,2026-07-28,SAL-MAS1,Head Massage,Hair,Gopal,Repeat,90,400,0,UPI,Kothrud
+SAL-0409,2026-08-15,SAL-COL1,Global Hair Colour,Hair,Ramesh,Member,120,2200,0,UPI,Aundh
+SAL-0410,2026-04-03,SAL-KER1,Keratin Treatment,Hair,Ramesh,Member,45,4300,200,UPI,Aundh
+SAL-0411,2026-09-15,SAL-THR1,Eyebrow Threading,Grooming,Ramesh,New,45,60,0,Cash,Kothrud
+SAL-0412,2026-07-31,SAL-THR1,Eyebrow Threading,Grooming,Sunita,Repeat,120,-140,200,Cash,Kothrud
+SAL-0413,2026-06-10,SAL-MAS1,Head Massage,Hair,Gopal,Repeat,30,200,200,UPI,Kothrud
+SAL-0414,2026-03-01,SAL-BRD1,Bridal Makeup,Bridal,Ramesh,Member,15,8400,100,UPI,Kothrud
+SAL-0415,2026-07-13,SAL-MAS1,Head Massage,Hair,Ramesh,Repeat,30,400,0,Cash,Aundh
+SAL-0416,2026-05-13,SAL-THR1,Eyebrow Threading,Grooming,Gopal,Repeat,30,-140,200,UPI,Kothrud
+SAL-0417,2026-06-06,SAL-PRT1,Party Makeup,Bridal,Farida,Repeat,120,2800,0,UPI,Kothrud
+SAL-0418,2026-04-26,SAL-HRC1,Haircut,Hair,Sunita,New,15,250,100,UPI,Kothrud
+SAL-0419,2026-06-28,SAL-PRT1,Party Makeup,Bridal,Farida,Repeat,45,2800,0,Cash,Aundh
+SAL-0420,2026-03-04,SAL-KER1,Keratin Treatment,Hair,Ramesh,Repeat,45,4300,200,Card,Kothrud
+SAL-0421,2026-04-20,SAL-THR1,Eyebrow Threading,Grooming,Sunita,Repeat,45,60,0,Cash,Aundh
+SAL-0422,2026-07-27,SAL-PED1,Pedicure,Nails,Farida,New,90,450,200,Card,Aundh
+SAL-0423,2026-06-12,SAL-KER1,Keratin Treatment,Hair,Nikhil,Member,45,4450,50,Cash,Aundh
+SAL-0424,2026-02-07,SAL-FAC1,Gold Facial,Skin,Nikhil,Repeat,90,1400,50,UPI,Kothrud
+SAL-0425,2026-02-06,SAL-BRD1,Bridal Makeup,Bridal,Gopal,Repeat,30,8500,0,Card,Aundh
+SAL-0426,2026-09-24,SAL-KER1,Keratin Treatment,Hair,Gopal,Repeat,90,4300,200,UPI,Aundh
+SAL-0427,2026-06-04,SAL-MAS1,Head Massage,Hair,Farida,Repeat,90,400,0,UPI,Aundh
+SAL-0428,2026-04-21,SAL-THR1,Eyebrow Threading,Grooming,Farida,New,45,60,0,UPI,Kothrud
+SAL-0429,2026-03-07,SAL-WAX1,Full Arm Waxing,Grooming,Nikhil,Member,60,500,50,UPI,Kothrud
+SAL-0430,2026-07-28,SAL-THR1,Eyebrow Threading,Grooming,Gopal,Repeat,30,60,0,Card,Aundh
+SAL-0431,2026-07-23,SAL-FAC1,Gold Facial,Skin,Farida,Member,90,1450,0,UPI,Aundh
+SAL-0432,2026-09-18,SAL-MAN1,Manicure,Nails,Nikhil,Repeat,60,450,0,Card,Kothrud
+SAL-0433,2026-08-10,SAL-MAN1,Manicure,Nails,Farida,Repeat,60,450,0,Card,Aundh
+SAL-0434,2026-06-04,SAL-KER1,Keratin Treatment,Hair,Farida,Repeat,90,4300,200,Card,Aundh
+SAL-0435,2026-09-29,SAL-WAX1,Full Arm Waxing,Grooming,Nikhil,Repeat,120,550,0,Cash,Kothrud
+SAL-0436,2026-08-16,SAL-MAN1,Manicure,Nails,Sunita,Repeat,15,450,0,UPI,Aundh
+SAL-0437,2026-09-09,SAL-FAC1,Gold Facial,Skin,Nikhil,Repeat,15,1400,50,UPI,Aundh
+SAL-0438,2026-03-16,SAL-BRD1,Bridal Makeup,Bridal,Ramesh,Member,60,8500,0,Cash,Aundh
+SAL-0439,2026-08-07,SAL-WAX1,Full Arm Waxing,Grooming,Gopal,New,15,450,100,UPI,Aundh
+SAL-0440,2026-09-13,SAL-KER1,Keratin Treatment,Hair,Ramesh,Member,90,4300,200,UPI,Kothrud
+SAL-0441,2026-03-23,SAL-FAC1,Gold Facial,Skin,Gopal,Member,45,1400,50,UPI,Aundh
+SAL-0442,2026-02-04,SAL-THR1,Eyebrow Threading,Grooming,Nikhil,New,45,10,50,UPI,Kothrud
+SAL-0443,2026-03-29,SAL-WAX1,Full Arm Waxing,Grooming,Sunita,Repeat,60,550,0,UPI,Kothrud
+SAL-0444,2026-07-12,SAL-THR1,Eyebrow Threading,Grooming,Nikhil,Member,60,60,0,Cash,Aundh
+SAL-0445,2026-04-20,SAL-SPA1,Hair Spa,Hair,Ramesh,Repeat,30,1150,50,UPI,Aundh
+SAL-0446,2026-09-16,SAL-MAN1,Manicure,Nails,Ramesh,Repeat,45,350,100,UPI,Kothrud
+SAL-0447,2026-08-06,SAL-KER1,Keratin Treatment,Hair,Nikhil,Repeat,120,4450,50,UPI,Kothrud
+SAL-0448,2026-03-31,SAL-BRD1,Bridal Makeup,Bridal,Sunita,Repeat,60,8500,0,Card,Kothrud
+SAL-0449,2026-05-17,SAL-HRC1,Haircut,Hair,Ramesh,Repeat,45,300,50,Cash,Kothrud
+SAL-0450,2026-06-27,SAL-WAX1,Full Arm Waxing,Grooming,Sunita,Repeat,60,450,100,UPI,Kothrud
+SAL-0451,2026-05-16,SAL-HRC1,Haircut,Hair,Farida,Member,90,150,200,Cash,Kothrud
+SAL-0452,2026-09-09,SAL-FAC1,Gold Facial,Skin,Gopal,Repeat,45,1350,100,UPI,Aundh
+SAL-0453,2026-09-01,SAL-HRC1,Haircut,Hair,Sunita,New,45,150,200,Cash,Kothrud
+SAL-0454,2026-03-29,SAL-PED1,Pedicure,Nails,Ramesh,Member,90,450,200,Card,Kothrud
+SAL-0455,2026-09-25,SAL-PRT1,Party Makeup,Bridal,Nikhil,Member,90,2700,100,UPI,Kothrud
+SAL-0456,2026-02-17,SAL-WAX1,Full Arm Waxing,Grooming,Gopal,Repeat,60,500,50,Card,Aundh
+SAL-0457,2026-03-02,SAL-FAC1,Gold Facial,Skin,Ramesh,Repeat,60,1400,50,Card,Aundh
+SAL-0458,2026-05-15,SAL-PED1,Pedicure,Nails,Nikhil,New,120,550,100,UPI,Aundh
+SAL-0459,2026-08-17,SAL-PRT1,Party Makeup,Bridal,Sunita,Repeat,30,2800,0,Cash,Kothrud
+SAL-0460,2026-07-08,SAL-SPA1,Hair Spa,Hair,Ramesh,Repeat,15,1200,0,UPI,Kothrud
+SAL-0461,2026-07-15,SAL-SPA1,Hair Spa,Hair,Farida,Member,45,1100,100,Card,Kothrud
+SAL-0462,2026-03-12,SAL-HRC1,Haircut,Hair,Ramesh,Member,60,300,50,Cash,Aundh
+SAL-0463,2026-06-12,SAL-MAS1,Head Massage,Hair,Ramesh,Member,60,400,0,Card,Aundh
+SAL-0464,2026-06-19,SAL-SPA1,Hair Spa,Hair,Gopal,Repeat,15,1100,100,UPI,Kothrud
+SAL-0465,2026-07-13,SAL-HRC1,Haircut,Hair,Gopal,Repeat,90,150,200,UPI,Kothrud
+SAL-0466,2026-07-19,SAL-PED1,Pedicure,Nails,Nikhil,Repeat,30,650,0,Cash,Kothrud
+SAL-0467,2026-06-21,SAL-WAX1,Full Arm Waxing,Grooming,Ramesh,Repeat,90,550,0,Card,Kothrud
+SAL-0468,2026-07-05,SAL-PRT1,Party Makeup,Bridal,Ramesh,New,15,2800,0,UPI,Aundh
+SAL-0469,2026-05-02,SAL-FAC1,Gold Facial,Skin,Gopal,Repeat,60,1450,0,Cash,Aundh
+SAL-0470,2026-03-07,SAL-HRC1,Haircut,Hair,Sunita,Repeat,120,350,0,UPI,Aundh
+SAL-0471,2026-08-20,SAL-KER1,Keratin Treatment,Hair,Nikhil,New,120,4500,0,UPI,Kothrud
+SAL-0472,2026-07-10,SAL-KER1,Keratin Treatment,Hair,Nikhil,Repeat,90,4500,0,UPI,Kothrud
+SAL-0473,2026-07-05,SAL-MAS1,Head Massage,Hair,Gopal,Member,15,200,200,Card,Aundh
+SAL-0474,2026-09-14,SAL-MAN1,Manicure,Nails,Nikhil,Member,30,400,50,Card,Aundh
+SAL-0475,2026-06-06,SAL-FAC1,Gold Facial,Skin,Farida,New,15,1450,0,UPI,Kothrud
+SAL-0476,2026-07-22,SAL-MAN1,Manicure,Nails,Sunita,Member,120,450,0,UPI,Aundh
+SAL-0477,2026-04-17,SAL-MAS1,Head Massage,Hair,Gopal,Member,30,400,0,Cash,Kothrud
+SAL-0478,2026-06-25,SAL-WAX1,Full Arm Waxing,Grooming,Nikhil,New,60,550,0,Card,Kothrud
+SAL-0479,2026-05-24,SAL-SPA1,Hair Spa,Hair,Ramesh,New,60,1100,100,Cash,Kothrud
+SAL-0480,2026-04-23,SAL-WAX1,Full Arm Waxing,Grooming,Ramesh,Member,90,550,0,Cash,Kothrud
+SAL-0481,2026-09-01,SAL-THR1,Eyebrow Threading,Grooming,Sunita,Repeat,60,10,50,Card,Aundh
+SAL-0482,2026-06-07,SAL-MAN1,Manicure,Nails,Gopal,Repeat,60,400,50,UPI,Aundh
+SAL-0483,2026-03-07,SAL-HRC1,Haircut,Hair,Nikhil,Repeat,60,150,200,UPI,Aundh
+SAL-0484,2026-02-24,SAL-MAN1,Manicure,Nails,Nikhil,Repeat,15,250,200,Card,Aundh
+SAL-0485,2026-06-17,SAL-WAX1,Full Arm Waxing,Grooming,Farida,Repeat,15,550,0,UPI,Kothrud
+SAL-0486,2026-07-24,SAL-KER1,Keratin Treatment,Hair,Farida,Repeat,45,4450,50,Card,Kothrud
+SAL-0487,2026-03-27,SAL-PRT1,Party Makeup,Bridal,Farida,Repeat,60,2700,100,UPI,Aundh
+SAL-0488,2026-03-16,SAL-COL1,Global Hair Colour,Hair,Nikhil,Member,45,2200,0,Card,Kothrud
+SAL-0489,2026-02-14,SAL-PRT1,Party Makeup,Bridal,Ramesh,Repeat,15,2700,100,UPI,Kothrud
+SAL-0490,2026-09-29,SAL-PRT1,Party Makeup,Bridal,Ramesh,Member,30,2800,0,Card,Aundh
+SAL-0491,2026-07-29,SAL-BRD1,Bridal Makeup,Bridal,Nikhil,New,15,8400,100,UPI,Aundh
+SAL-0492,2026-05-15,SAL-SPA1,Hair Spa,Hair,Ramesh,Repeat,90,1000,200,Cash,Aundh
+SAL-0493,2026-07-02,SAL-MAN1,Manicure,Nails,Farida,New,120,450,0,UPI,Aundh
+SAL-0494,2026-08-08,SAL-COL1,Global Hair Colour,Hair,Gopal,Repeat,15,2200,0,UPI,Kothrud
+SAL-0495,2026-09-03,SAL-WAX1,Full Arm Waxing,Grooming,Gopal,New,45,550,0,Cash,Kothrud
+SAL-0496,2026-08-15,SAL-PED1,Pedicure,Nails,Gopal,Repeat,120,600,50,Card,Kothrud
+SAL-0497,2026-05-17,SAL-MAN1,Manicure,Nails,Nikhil,Member,120,350,100,UPI,Kothrud
+SAL-0498,2026-02-25,SAL-KER1,Keratin Treatment,Hair,Gopal,Repeat,30,4450,50,UPI,Kothrud
+SAL-0499,2026-03-26,SAL-MAN1,Manicure,Nails,Nikhil,New,120,350,100,Card,Aundh
+SAL-0500,2026-08-20,SAL-FAC1,Gold Facial,Skin,Ramesh,Repeat,15,1250,200,Card,Kothrud
+SAL-0501,2026-03-29,SAL-PED1,Pedicure,Nails,Gopal,New,30,600,50,UPI,Aundh
+SAL-0502,2026-03-30,SAL-PED1,Pedicure,Nails,Gopal,Repeat,60,650,0,Card,Aundh
+SAL-0503,2026-09-09,SAL-KER1,Keratin Treatment,Hair,Nikhil,Member,45,4400,100,Card,Aundh
+SAL-0504,2026-07-01,SAL-THR1,Eyebrow Threading,Grooming,Sunita,Repeat,60,60,0,UPI,Aundh
+SAL-0505,2026-06-23,SAL-THR1,Eyebrow Threading,Grooming,Farida,Repeat,15,60,0,Cash,Aundh
+SAL-0506,2026-06-15,SAL-WAX1,Full Arm Waxing,Grooming,Sunita,Repeat,120,550,0,UPI,Aundh
+SAL-0507,2026-08-16,SAL-BRD1,Bridal Makeup,Bridal,Nikhil,Repeat,60,8500,0,Card,Kothrud
+SAL-0508,2026-02-27,SAL-BRD1,Bridal Makeup,Bridal,Gopal,Repeat,45,8450,50,Card,Kothrud
+SAL-0509,2026-05-20,SAL-MAS1,Head Massage,Hair,Gopal,Repeat,60,400,0,Cash,Kothrud
+SAL-0510,2026-09-01,SAL-PRT1,Party Makeup,Bridal,Ramesh,New,30,2800,0,UPI,Kothrud
+SAL-0511,2026-06-30,SAL-HRC1,Haircut,Hair,Ramesh,Member,15,350,0,UPI,Aundh
+SAL-0512,2026-07-11,SAL-BRD1,Bridal Makeup,Bridal,Ramesh,Repeat,120,8400,100,Card,Aundh
+SAL-0513,2026-07-23,SAL-WAX1,Full Arm Waxing,Grooming,Farida,New,120,550,0,UPI,Aundh
+SAL-0514,2026-06-08,SAL-WAX1,Full Arm Waxing,Grooming,Nikhil,New,90,550,0,Card,Kothrud
+SAL-0515,2026-06-30,SAL-MAS1,Head Massage,Hair,Ramesh,Member,45,400,0,UPI,Aundh
+SAL-0516,2026-02-27,SAL-PRT1,Party Makeup,Bridal,Ramesh,Repeat,30,2800,0,Cash,Aundh
+SAL-0517,2026-04-02,SAL-HRC1,Haircut,Hair,Nikhil,Repeat,60,350,0,UPI,Aundh
+SAL-0518,2026-09-09,SAL-WAX1,Full Arm Waxing,Grooming,Farida,Member,15,550,0,UPI,Kothrud
+SAL-0519,2026-06-08,SAL-MAN1,Manicure,Nails,Nikhil,Member,120,450,0,Cash,Aundh
+SAL-0520,2026-08-29,SAL-COL1,Global Hair Colour,Hair,Sunita,Member,45,2200,0,Cash,Kothrud
+SAL-0521,2026-09-28,SAL-SPA1,Hair Spa,Hair,Sunita,Member,60,1100,100,Card,Kothrud
+SAL-0522,2026-04-16,SAL-FAC1,Gold Facial,Skin,Gopal,Repeat,15,1350,100,Card,Kothrud
+SAL-0523,2026-02-20,SAL-FAC1,Gold Facial,Skin,Ramesh,Member,30,1450,0,Card,Kothrud
+SAL-0524,2026-06-04,SAL-PED1,Pedicure,Nails,Gopal,New,15,600,50,Cash,Aundh
+SAL-0525,2026-08-15,SAL-BRD1,Bridal Makeup,Bridal,Nikhil,Repeat,30,8500,0,UPI,Kothrud
+SAL-0526,2026-07-18,SAL-MAS1,Head Massage,Hair,Ramesh,Member,120,300,100,UPI,Aundh
+SAL-0527,2026-04-23,SAL-THR1,Eyebrow Threading,Grooming,Sunita,Member,60,60,0,UPI,Aundh
+SAL-0528,2026-09-29,SAL-THR1,Eyebrow Threading,Grooming,Gopal,Repeat,15,60,0,Card,Kothrud
+SAL-0529,2026-06-16,SAL-WAX1,Full Arm Waxing,Grooming,Gopal,Member,120,350,200,UPI,Aundh
+SAL-0530,2026-09-14,SAL-MAN1,Manicure,Nails,Gopal,Repeat,90,450,0,Card,Aundh
+SAL-0531,2026-08-17,SAL-SPA1,Hair Spa,Hair,Ramesh,Member,120,1150,50,Card,Aundh
+SAL-0532,2026-09-07,SAL-COL1,Global Hair Colour,Hair,Gopal,New,120,2000,200,Card,Kothrud
+SAL-0533,2026-05-18,SAL-PRT1,Party Makeup,Bridal,Nikhil,Repeat,15,2800,0,Card,Aundh
+SAL-0534,2026-07-14,SAL-THR1,Eyebrow Threading,Grooming,Ramesh,Member,120,-140,200,Card,Aundh
+SAL-0535,2026-09-11,SAL-COL1,Global Hair Colour,Hair,Ramesh,New,45,2200,0,Card,Kothrud
+SAL-0536,2026-03-26,SAL-KER1,Keratin Treatment,Hair,Farida,Member,90,4500,0,Card,Aundh
+SAL-0537,2026-09-16,SAL-WAX1,Full Arm Waxing,Grooming,Sunita,Member,15,350,200,UPI,Aundh
+SAL-0538,2026-09-18,SAL-THR1,Eyebrow Threading,Grooming,Farida,New,120,-140,200,Cash,Aundh
+SAL-0539,2026-08-04,SAL-WAX1,Full Arm Waxing,Grooming,Nikhil,New,30,550,0,UPI,Aundh
+SAL-0540,2026-05-09,SAL-THR1,Eyebrow Threading,Grooming,Sunita,Repeat,30,-140,200,UPI,Aundh
+SAL-0541,2026-03-13,SAL-SPA1,Hair Spa,Hair,Nikhil,Repeat,15,1100,100,UPI,Aundh
+SAL-0542,2026-04-04,SAL-KER1,Keratin Treatment,Hair,Farida,Repeat,90,4400,100,UPI,Kothrud
+SAL-0543,2026-05-21,SAL-PED1,Pedicure,Nails,Sunita,Repeat,45,450,200,Card,Kothrud
+SAL-0544,2026-05-13,SAL-WAX1,Full Arm Waxing,Grooming,Sunita,New,30,350,200,Card,Aundh
+SAL-0545,2026-06-18,SAL-MAS1,Head Massage,Hair,Ramesh,Repeat,30,400,0,UPI,Aundh
+SAL-0546,2026-04-27,SAL-SPA1,Hair Spa,Hair,Gopal,Repeat,120,1100,100,Cash,Aundh
+SAL-0547,2026-09-27,SAL-KER1,Keratin Treatment,Hair,Sunita,Member,15,4500,0,Card,Kothrud
+SAL-0548,2026-08-22,SAL-FAC1,Gold Facial,Skin,Ramesh,New,60,1350,100,UPI,Kothrud
+SAL-0549,2026-06-07,SAL-HRC1,Haircut,Hair,Gopal,Repeat,15,350,0,Cash,Kothrud
+SAL-0550,2026-06-22,SAL-FAC1,Gold Facial,Skin,Farida,Repeat,90,1450,0,UPI,Aundh
+SAL-0551,2026-09-04,SAL-WAX1,Full Arm Waxing,Grooming,Sunita,Repeat,60,550,0,UPI,Aundh
+SAL-0552,2026-06-12,SAL-HRC1,Haircut,Hair,Sunita,New,60,350,0,Card,Kothrud
+SAL-0553,2026-08-13,SAL-PRT1,Party Makeup,Bridal,Ramesh,New,60,2800,0,UPI,Kothrud
+SAL-0554,2026-06-13,SAL-KER1,Keratin Treatment,Hair,Ramesh,New,60,4400,100,UPI,Aundh
+SAL-0555,2026-08-20,SAL-KER1,Keratin Treatment,Hair,Farida,Repeat,60,4450,50,Card,Kothrud
+SAL-0556,2026-07-20,SAL-BRD1,Bridal Makeup,Bridal,Nikhil,Member,60,8500,0,Card,Aundh
+SAL-0557,2026-05-05,SAL-BRD1,Bridal Makeup,Bridal,Gopal,New,45,8500,0,UPI,Aundh
+SAL-0558,2026-09-21,SAL-COL1,Global Hair Colour,Hair,Gopal,Repeat,30,2200,0,UPI,Aundh
+SAL-0559,2026-08-04,SAL-COL1,Global Hair Colour,Hair,Ramesh,New,120,2000,200,UPI,Aundh
+SAL-0560,2026-08-07,SAL-MAN1,Manicure,Nails,Sunita,Repeat,60,450,0,Card,Kothrud
+SAL-0561,2026-07-31,SAL-WAX1,Full Arm Waxing,Grooming,Gopal,Member,60,550,0,UPI,Kothrud
+SAL-0562,2026-04-07,SAL-THR1,Eyebrow Threading,Grooming,Farida,Repeat,45,60,0,Cash,Aundh
+SAL-0563,2026-04-29,SAL-THR1,Eyebrow Threading,Grooming,Farida,Repeat,120,60,0,Cash,Aundh
+SAL-0564,2026-09-29,SAL-BRD1,Bridal Makeup,Bridal,Sunita,Repeat,90,8300,200,Card,Aundh
+SAL-0565,2026-02-20,SAL-FAC1,Gold Facial,Skin,Ramesh,Repeat,60,1400,50,Cash,Kothrud
+SAL-0566,2026-08-02,SAL-WAX1,Full Arm Waxing,Grooming,Ramesh,Repeat,45,350,200,UPI,Kothrud
+SAL-0567,2026-08-01,SAL-HRC1,Haircut,Hair,Nikhil,Member,30,150,200,UPI,Kothrud
+SAL-0568,2026-02-03,SAL-KER1,Keratin Treatment,Hair,Farida,New,30,4500,0,UPI,Aundh
+SAL-0569,2026-05-30,SAL-PED1,Pedicure,Nails,Gopal,Repeat,30,600,50,UPI,Aundh
+SAL-0570,2026-07-16,SAL-BRD1,Bridal Makeup,Bridal,Farida,Repeat,90,8500,0,UPI,Aundh
+SAL-0571,2026-08-04,SAL-BRD1,Bridal Makeup,Bridal,Sunita,Repeat,30,8400,100,Cash,Aundh
+SAL-0572,2026-06-26,SAL-MAN1,Manicure,Nails,Ramesh,Repeat,60,450,0,UPI,Kothrud
+SAL-0573,2026-04-29,SAL-MAS1,Head Massage,Hair,Nikhil,Repeat,15,400,0,UPI,Aundh
+SAL-0574,2026-02-10,SAL-SPA1,Hair Spa,Hair,Farida,Repeat,30,1000,200,Card,Kothrud
+SAL-0575,2026-04-08,SAL-BRD1,Bridal Makeup,Bridal,Nikhil,Repeat,30,8500,0,Cash,Aundh
+SAL-0576,2026-03-26,SAL-KER1,Keratin Treatment,Hair,Farida,Member,90,4450,50,UPI,Kothrud
+SAL-0577,2026-02-27,SAL-KER1,Keratin Treatment,Hair,Ramesh,New,30,4300,200,UPI,Kothrud
+SAL-0578,2026-02-14,SAL-SPA1,Hair Spa,Hair,Ramesh,Repeat,120,1100,100,Card,Aundh
+SAL-0579,2026-09-21,SAL-MAS1,Head Massage,Hair,Ramesh,Member,90,400,0,Cash,Kothrud
+SAL-0580,2026-07-28,SAL-PED1,Pedicure,Nails,Sunita,New,60,650,0,Card,Aundh
+SAL-0581,2026-07-20,SAL-BRD1,Bridal Makeup,Bridal,Ramesh,Member,30,8500,0,UPI,Aundh
+SAL-0582,2026-05-22,SAL-COL1,Global Hair Colour,Hair,Ramesh,Repeat,90,2000,200,UPI,Aundh
+SAL-0583,2026-02-13,SAL-WAX1,Full Arm Waxing,Grooming,Sunita,Repeat,90,550,0,UPI,Kothrud
+SAL-0584,2026-09-25,SAL-KER1,Keratin Treatment,Hair,Farida,Member,120,4500,0,Cash,Kothrud
+SAL-0585,2026-03-31,SAL-WAX1,Full Arm Waxing,Grooming,Gopal,Repeat,15,500,50,Card,Aundh
+SAL-0586,2026-09-25,SAL-HRC1,Haircut,Hair,Ramesh,Member,120,300,50,UPI,Kothrud
+SAL-0587,2026-08-19,SAL-BRD1,Bridal Makeup,Bridal,Farida,Repeat,60,8450,50,Cash,Kothrud
+SAL-0588,2026-06-15,SAL-WAX1,Full Arm Waxing,Grooming,Nikhil,Repeat,60,550,0,Card,Aundh
+SAL-0589,2026-03-15,SAL-BRD1,Bridal Makeup,Bridal,Sunita,Repeat,30,8500,0,Card,Aundh
+SAL-0590,2026-08-10,SAL-MAS1,Head Massage,Hair,Sunita,New,120,200,200,UPI,Aundh
+SAL-0591,2026-08-18,SAL-FAC1,Gold Facial,Skin,Ramesh,Repeat,15,1450,0,Cash,Kothrud
+SAL-0592,2026-06-29,SAL-MAS1,Head Massage,Hair,Sunita,New,30,400,0,Card,Kothrud
+SAL-0593,2026-04-15,SAL-SPA1,Hair Spa,Hair,Gopal,Repeat,15,1200,0,UPI,Kothrud
+SAL-0594,2026-05-13,SAL-KER1,Keratin Treatment,Hair,Gopal,Member,60,4450,50,UPI,Aundh
+SAL-0595,2026-09-25,SAL-PED1,Pedicure,Nails,Ramesh,Repeat,120,550,100,UPI,Kothrud
+SAL-0596,2026-09-14,SAL-COL1,Global Hair Colour,Hair,Nikhil,New,45,2150,50,UPI,Kothrud
+SAL-0597,2026-03-03,SAL-WAX1,Full Arm Waxing,Grooming,Ramesh,New,60,550,0,Card,Kothrud
+SAL-0598,2026-03-27,SAL-KER1,Keratin Treatment,Hair,Ramesh,Repeat,120,4500,0,UPI,Kothrud
+SAL-0599,2026-09-08,SAL-FAC1,Gold Facial,Skin,Farida,Repeat,60,1350,100,UPI,Kothrud
+SAL-0600,2026-04-21,SAL-BRD1,Bridal Makeup,Bridal,Farida,New,90,8450,50,UPI,Aundh
+SAL-0601,2026-04-29,SAL-COL1,Global Hair Colour,Hair,Sunita,Repeat,90,2200,0,UPI,Kothrud
+SAL-0602,2026-09-13,SAL-THR1,Eyebrow Threading,Grooming,Ramesh,Repeat,120,60,0,UPI,Kothrud
+SAL-0603,2026-07-02,SAL-COL1,Global Hair Colour,Hair,Sunita,Repeat,120,2200,0,UPI,Aundh
+SAL-0604,2026-05-12,SAL-HRC1,Haircut,Hair,Farida,Repeat,120,350,0,Cash,Kothrud
+SAL-0605,2026-08-23,SAL-KER1,Keratin Treatment,Hair,Nikhil,Repeat,45,4450,50,UPI,Kothrud
+SAL-0606,2026-04-10,SAL-FAC1,Gold Facial,Skin,Sunita,Repeat,30,1450,0,Card,Aundh
+SAL-0607,2026-06-07,SAL-MAN1,Manicure,Nails,Farida,New,45,450,0,UPI,Kothrud
+SAL-0608,2026-03-07,SAL-MAN1,Manicure,Nails,Nikhil,Repeat,30,250,200,UPI,Kothrud
+SAL-0609,2026-04-05,SAL-FAC1,Gold Facial,Skin,Farida,Member,30,1250,200,Cash,Aundh
+SAL-0610,2026-05-20,SAL-PRT1,Party Makeup,Bridal,Farida,Repeat,30,2800,0,Cash,Aundh
+SAL-0611,2026-06-19,SAL-MAS1,Head Massage,Hair,Ramesh,Member,45,400,0,UPI,Kothrud
+SAL-0612,2026-06-03,SAL-COL1,Global Hair Colour,Hair,Gopal,Member,120,2150,50,Card,Aundh
+SAL-0613,2026-08-10,SAL-MAS1,Head Massage,Hair,Nikhil,New,120,400,0,UPI,Kothrud
+SAL-0614,2026-08-30,SAL-HRC1,Haircut,Hair,Nikhil,Repeat,120,150,200,UPI,Kothrud
+SAL-0615,2026-07-10,SAL-WAX1,Full Arm Waxing,Grooming,Gopal,Repeat,30,550,0,UPI,Aundh
+SAL-0616,2026-09-06,SAL-MAN1,Manicure,Nails,Ramesh,Repeat,30,250,200,UPI,Kothrud
+SAL-0617,2026-09-09,SAL-SPA1,Hair Spa,Hair,Nikhil,Repeat,45,1100,100,UPI,Kothrud
+SAL-0618,2026-03-23,SAL-SPA1,Hair Spa,Hair,Gopal,Repeat,90,1150,50,Card,Kothrud
+SAL-0619,2026-07-27,SAL-HRC1,Haircut,Hair,Farida,Repeat,90,350,0,UPI,Aundh
+SAL-0620,2026-08-02,SAL-SPA1,Hair Spa,Hair,Nikhil,Repeat,60,1100,100,Cash,Kothrud
+SAL-0621,2026-04-05,SAL-PRT1,Party Makeup,Bridal,Farida,Repeat,90,2800,0,Cash,Aundh
+SAL-0622,2026-07-23,SAL-COL1,Global Hair Colour,Hair,Farida,Repeat,30,2150,50,UPI,Aundh
+SAL-0623,2026-04-11,SAL-THR1,Eyebrow Threading,Grooming,Nikhil,Repeat,30,-140,200,Card,Kothrud
+SAL-0624,2026-02-08,SAL-PRT1,Party Makeup,Bridal,Gopal,Repeat,15,2750,50,UPI,Aundh
+SAL-0625,2026-08-26,SAL-WAX1,Full Arm Waxing,Grooming,Farida,Repeat,120,500,50,Cash,Kothrud
+SAL-0626,2026-04-15,SAL-MAN1,Manicure,Nails,Sunita,Member,90,450,0,Card,Aundh
+SAL-0627,2026-07-03,SAL-WAX1,Full Arm Waxing,Grooming,Farida,Repeat,30,550,0,Card,Kothrud
+SAL-0628,2026-09-15,SAL-SPA1,Hair Spa,Hair,Nikhil,New,45,1200,0,UPI,Aundh
+SAL-0629,2026-03-19,SAL-FAC1,Gold Facial,Skin,Farida,Repeat,60,1350,100,Card,Kothrud
+SAL-0630,2026-08-04,SAL-WAX1,Full Arm Waxing,Grooming,Gopal,Repeat,90,550,0,Cash,Aundh
+SAL-0631,2026-05-02,SAL-WAX1,Full Arm Waxing,Grooming,Ramesh,Member,60,550,0,Card,Kothrud
+SAL-0632,2026-06-26,SAL-PRT1,Party Makeup,Bridal,Ramesh,Repeat,15,2600,200,Cash,Aundh
+SAL-0633,2026-05-25,SAL-COL1,Global Hair Colour,Hair,Gopal,Member,30,2150,50,UPI,Aundh
+SAL-0634,2026-03-21,SAL-PRT1,Party Makeup,Bridal,Sunita,Repeat,60,2600,200,Cash,Aundh
+SAL-0635,2026-04-30,SAL-WAX1,Full Arm Waxing,Grooming,Nikhil,New,45,550,0,Cash,Kothrud
+SAL-0636,2026-06-21,SAL-THR1,Eyebrow Threading,Grooming,Sunita,Repeat,30,-140,200,Cash,Aundh
+SAL-0637,2026-09-09,SAL-WAX1,Full Arm Waxing,Grooming,Farida,Repeat,45,350,200,UPI,Aundh
+SAL-0638,2026-04-04,SAL-PRT1,Party Makeup,Bridal,Nikhil,Member,45,2700,100,Cash,Aundh
+SAL-0639,2026-03-16,SAL-SPA1,Hair Spa,Hair,Gopal,Repeat,120,1100,100,UPI,Kothrud
+SAL-0640,2026-04-18,SAL-COL1,Global Hair Colour,Hair,Nikhil,Repeat,60,2100,100,UPI,Aundh
+SAL-0641,2026-04-16,SAL-BRD1,Bridal Makeup,Bridal,Gopal,Repeat,15,8450,50,Card,Kothrud
+SAL-0642,2026-04-15,SAL-MAS1,Head Massage,Hair,Ramesh,Repeat,30,400,0,UPI,Kothrud
+SAL-0643,2026-04-21,SAL-KER1,Keratin Treatment,Hair,Sunita,Repeat,120,4300,200,Card,Kothrud
+SAL-0644,2026-06-08,SAL-KER1,Keratin Treatment,Hair,Sunita,Repeat,45,4300,200,UPI,Kothrud
+SAL-0645,2026-07-07,SAL-PRT1,Party Makeup,Bridal,Farida,New,120,2800,0,Cash,Kothrud
+SAL-0646,2026-06-24,SAL-PRT1,Party Makeup,Bridal,Farida,Repeat,15,2600,200,Card,Aundh
+SAL-0647,2026-04-27,SAL-MAN1,Manicure,Nails,Gopal,New,90,450,0,Card,Aundh
+SAL-0648,2026-09-27,SAL-COL1,Global Hair Colour,Hair,Farida,Repeat,30,2200,0,Cash,Aundh
+SAL-0649,2026-04-20,SAL-BRD1,Bridal Makeup,Bridal,Farida,New,30,8500,0,UPI,Kothrud
+SAL-0650,2026-07-13,SAL-WAX1,Full Arm Waxing,Grooming,Gopal,Member,30,350,200,UPI,Kothrud
+SAL-0651,2026-09-02,SAL-COL1,Global Hair Colour,Hair,Nikhil,New,120,2000,200,UPI,Aundh
+SAL-0652,2026-07-14,SAL-BRD1,Bridal Makeup,Bridal,Sunita,New,60,8300,200,Card,Aundh
+SAL-0653,2026-05-02,SAL-FAC1,Gold Facial,Skin,Ramesh,Repeat,90,1400,50,Cash,Kothrud
+SAL-0654,2026-06-10,SAL-HRC1,Haircut,Hair,Nikhil,Repeat,120,350,0,Card,Aundh
+SAL-0655,2026-09-10,SAL-THR1,Eyebrow Threading,Grooming,Sunita,New,90,60,0,Card,Aundh
+SAL-0656,2026-03-27,SAL-HRC1,Haircut,Hair,Ramesh,Repeat,30,350,0,UPI,Aundh
+SAL-0657,2026-08-20,SAL-PED1,Pedicure,Nails,Nikhil,Repeat,120,650,0,UPI,Aundh
+SAL-0658,2026-06-17,SAL-WAX1,Full Arm Waxing,Grooming,Sunita,New,90,550,0,UPI,Kothrud
+SAL-0659,2026-05-05,SAL-FAC1,Gold Facial,Skin,Ramesh,Member,60,1350,100,Card,Aundh
+SAL-0660,2026-02-25,SAL-PED1,Pedicure,Nails,Ramesh,New,60,650,0,UPI,Kothrud
+SAL-0661,2026-05-24,SAL-COL1,Global Hair Colour,Hair,Ramesh,Repeat,15,2200,0,UPI,Aundh
+SAL-0662,2026-04-07,SAL-FAC1,Gold Facial,Skin,Ramesh,New,90,1450,0,Cash,Kothrud
+SAL-0663,2026-03-03,SAL-MAS1,Head Massage,Hair,Ramesh,New,45,400,0,Cash,Kothrud
+SAL-0664,2026-08-27,SAL-PRT1,Party Makeup,Bridal,Sunita,Repeat,60,2800,0,UPI,Aundh
+SAL-0665,2026-08-13,SAL-KER1,Keratin Treatment,Hair,Ramesh,Repeat,45,4500,0,Cash,Kothrud
+SAL-0666,2026-07-30,SAL-HRC1,Haircut,Hair,Farida,New,45,250,100,Card,Kothrud
+SAL-0667,2026-05-24,SAL-MAN1,Manicure,Nails,Nikhil,Member,120,450,0,Cash,Aundh
+SAL-0668,2026-04-11,SAL-THR1,Eyebrow Threading,Grooming,Sunita,New,15,-140,200,UPI,Kothrud
+SAL-0669,2026-08-07,SAL-KER1,Keratin Treatment,Hair,Farida,Repeat,15,4400,100,Card,Kothrud
+SAL-0670,2026-06-04,SAL-PED1,Pedicure,Nails,Gopal,Member,30,650,0,Cash,Kothrud
+SAL-0671,2026-09-20,SAL-PED1,Pedicure,Nails,Nikhil,Member,45,450,200,UPI,Aundh
+SAL-0672,2026-08-14,SAL-PRT1,Party Makeup,Bridal,Nikhil,Repeat,15,2800,0,Card,Kothrud
+SAL-0673,2026-07-01,SAL-WAX1,Full Arm Waxing,Grooming,Nikhil,New,45,550,0,UPI,Aundh
+SAL-0674,2026-07-17,SAL-FAC1,Gold Facial,Skin,Gopal,Member,45,1250,200,Cash,Aundh
+SAL-0675,2026-08-17,SAL-FAC1,Gold Facial,Skin,Nikhil,Member,60,1450,0,Cash,Kothrud
+SAL-0676,2026-03-08,SAL-MAS1,Head Massage,Hair,Nikhil,New,30,400,0,Cash,Aundh
+SAL-0677,2026-09-06,SAL-FAC1,Gold Facial,Skin,Farida,New,45,1450,0,Cash,Aundh
+SAL-0678,2026-02-06,SAL-MAS1,Head Massage,Hair,Sunita,New,30,400,0,Card,Aundh
+SAL-0679,2026-07-07,SAL-WAX1,Full Arm Waxing,Grooming,Nikhil,Repeat,15,550,0,Card,Kothrud
+SAL-0680,2026-03-30,SAL-MAS1,Head Massage,Hair,Nikhil,New,45,400,0,Card,Kothrud
+SAL-0681,2026-04-05,SAL-BRD1,Bridal Makeup,Bridal,Gopal,Repeat,45,8500,0,UPI,Aundh
+SAL-0682,2026-09-14,SAL-KER1,Keratin Treatment,Hair,Nikhil,Repeat,15,4500,0,Card,Kothrud
+SAL-0683,2026-07-25,SAL-COL1,Global Hair Colour,Hair,Gopal,Repeat,30,2100,100,UPI,Kothrud
+SAL-0684,2026-07-07,SAL-PED1,Pedicure,Nails,Ramesh,Repeat,120,650,0,Cash,Aundh
+SAL-0685,2026-03-02,SAL-PRT1,Party Makeup,Bridal,Ramesh,Repeat,15,2600,200,UPI,Aundh
+SAL-0686,2026-03-03,SAL-THR1,Eyebrow Threading,Grooming,Sunita,Repeat,90,60,0,Card,Kothrud
+SAL-0687,2026-02-09,SAL-PRT1,Party Makeup,Bridal,Farida,Repeat,120,2800,0,Cash,Kothrud
+SAL-0688,2026-06-03,SAL-SPA1,Hair Spa,Hair,Gopal,Repeat,90,1100,100,UPI,Aundh
+SAL-0689,2026-02-24,SAL-WAX1,Full Arm Waxing,Grooming,Nikhil,Repeat,30,500,50,Card,Aundh
+SAL-0690,2026-04-18,SAL-COL1,Global Hair Colour,Hair,Ramesh,Member,45,2200,0,Cash,Aundh
+SAL-0691,2026-02-13,SAL-COL1,Global Hair Colour,Hair,Ramesh,Repeat,30,2100,100,UPI,Aundh
+SAL-0692,2026-07-14,SAL-MAS1,Head Massage,Hair,Gopal,Repeat,30,200,200,UPI,Kothrud
+SAL-0693,2026-03-02,SAL-PED1,Pedicure,Nails,Nikhil,Member,60,450,200,UPI,Aundh
+SAL-0694,2026-08-02,SAL-MAN1,Manicure,Nails,Farida,Repeat,45,450,0,Card,Aundh
+SAL-0695,2026-05-05,SAL-HRC1,Haircut,Hair,Nikhil,New,120,300,50,Cash,Kothrud
+SAL-0696,2026-07-08,SAL-PRT1,Party Makeup,Bridal,Nikhil,Repeat,15,2800,0,Cash,Kothrud
+SAL-0697,2026-05-05,SAL-COL1,Global Hair Colour,Hair,Nikhil,New,90,2200,0,Card,Aundh
+SAL-0698,2026-05-23,SAL-WAX1,Full Arm Waxing,Grooming,Farida,Repeat,45,450,100,UPI,Kothrud
+SAL-0699,2026-09-01,SAL-PED1,Pedicure,Nails,Gopal,Repeat,60,600,50,UPI,Kothrud
+SAL-0700,2026-06-21,SAL-PED1,Pedicure,Nails,Farida,Repeat,60,450,200,UPI,Aundh
+SAL-0701,2026-04-08,SAL-THR1,Eyebrow Threading,Grooming,Farida,New,60,-140,200,Cash,Kothrud
+SAL-0702,2026-04-17,SAL-FAC1,Gold Facial,Skin,Sunita,Repeat,120,1350,100,UPI,Aundh
+SAL-0703,2026-03-18,SAL-PED1,Pedicure,Nails,Gopal,Member,120,550,100,UPI,Kothrud
+SAL-0704,2026-04-14,SAL-COL1,Global Hair Colour,Hair,Sunita,Member,15,2100,100,Cash,Aundh
+SAL-0705,2026-08-29,SAL-PRT1,Party Makeup,Bridal,Gopal,Member,30,2600,200,UPI,Aundh
+SAL-0706,2026-04-24,SAL-COL1,Global Hair Colour,Hair,Nikhil,Repeat,15,2150,50,UPI,Aundh
+SAL-0707,2026-07-29,SAL-MAN1,Manicure,Nails,Nikhil,Member,120,450,0,Cash,Aundh
+SAL-0708,2026-09-17,SAL-WAX1,Full Arm Waxing,Grooming,Ramesh,Repeat,120,550,0,UPI,Aundh
+SAL-0709,2026-05-28,SAL-KER1,Keratin Treatment,Hair,Ramesh,Member,120,4500,0,Cash,Aundh
+SAL-0710,2026-06-19,SAL-BRD1,Bridal Makeup,Bridal,Ramesh,Repeat,60,8400,100,UPI,Aundh
+SAL-0711,2026-08-03,SAL-BRD1,Bridal Makeup,Bridal,Ramesh,Repeat,45,8500,0,UPI,Kothrud
+SAL-0712,2026-03-17,SAL-FAC1,Gold Facial,Skin,Nikhil,New,30,1400,50,Cash,Aundh
+SAL-0713,2026-09-21,SAL-PRT1,Party Makeup,Bridal,Farida,Member,90,2800,0,UPI,Kothrud
+SAL-0714,2026-09-29,SAL-WAX1,Full Arm Waxing,Grooming,Sunita,Member,120,550,0,Cash,Kothrud
+SAL-0715,2026-03-13,SAL-HRC1,Haircut,Hair,Nikhil,Repeat,90,350,0,Cash,Aundh
+SAL-0716,2026-02-23,SAL-PRT1,Party Makeup,Bridal,Sunita,Repeat,90,2600,200,Cash,Kothrud
+SAL-0717,2026-02-21,SAL-PRT1,Party Makeup,Bridal,Sunita,Repeat,60,2600,200,Card,Aundh
+SAL-0718,2026-09-13,SAL-FAC1,Gold Facial,Skin,Farida,New,90,1400,50,Card,Kothrud
+SAL-0719,2026-05-23,SAL-BRD1,Bridal Makeup,Bridal,Sunita,New,45,8500,0,Card,Kothrud
+SAL-0720,2026-06-18,SAL-MAN1,Manicure,Nails,Farida,Repeat,30,450,0,Cash,Kothrud
+SAL-0721,2026-02-15,SAL-HRC1,Haircut,Hair,Sunita,Repeat,45,350,0,Card,Kothrud
+SAL-0722,2026-06-15,SAL-PRT1,Party Makeup,Bridal,Gopal,Repeat,90,2800,0,UPI,Aundh
+SAL-0723,2026-06-24,SAL-BRD1,Bridal Makeup,Bridal,Farida,Repeat,120,8500,0,UPI,Aundh
+SAL-0724,2026-02-08,SAL-MAN1,Manicure,Nails,Farida,Member,60,450,0,UPI,Aundh
+SAL-0725,2026-08-28,SAL-COL1,Global Hair Colour,Hair,Ramesh,Repeat,45,2200,0,Card,Aundh
+SAL-0726,2026-05-20,SAL-MAS1,Head Massage,Hair,Ramesh,Repeat,90,350,50,Card,Aundh
+SAL-0727,2026-05-16,SAL-SPA1,Hair Spa,Hair,Farida,Repeat,60,1200,0,UPI,Kothrud
+SAL-0728,2026-08-28,SAL-MAN1,Manicure,Nails,Nikhil,Repeat,120,450,0,UPI,Kothrud
+SAL-0729,2026-02-26,SAL-KER1,Keratin Treatment,Hair,Gopal,Repeat,15,4300,200,UPI,Aundh
+SAL-0730,2026-03-18,SAL-HRC1,Haircut,Hair,Sunita,Member,30,250,100,UPI,Aundh
+SAL-0731,2026-09-10,SAL-WAX1,Full Arm Waxing,Grooming,Ramesh,Member,90,550,0,UPI,Kothrud
+SAL-0732,2026-06-11,SAL-MAS1,Head Massage,Hair,Sunita,Repeat,120,300,100,Cash,Aundh
+SAL-0733,2026-09-21,SAL-WAX1,Full Arm Waxing,Grooming,Nikhil,Repeat,15,550,0,Cash,Kothrud
+SAL-0734,2026-07-31,SAL-KER1,Keratin Treatment,Hair,Nikhil,Repeat,60,4500,0,UPI,Kothrud
+SAL-0735,2026-08-03,SAL-COL1,Global Hair Colour,Hair,Farida,New,120,2200,0,Cash,Aundh
+SAL-0736,2026-07-15,SAL-PED1,Pedicure,Nails,Nikhil,Repeat,30,650,0,UPI,Kothrud
+SAL-0737,2026-08-14,SAL-MAS1,Head Massage,Hair,Farida,Repeat,45,200,200,Cash,Aundh
+SAL-0738,2026-02-25,SAL-HRC1,Haircut,Hair,Sunita,New,120,150,200,Card,Aundh
+SAL-0739,2026-08-29,SAL-FAC1,Gold Facial,Skin,Gopal,Repeat,15,1450,0,Cash,Kothrud
+SAL-0740,2026-05-30,SAL-THR1,Eyebrow Threading,Grooming,Gopal,Repeat,45,60,0,UPI,Aundh
+SAL-0741,2026-03-17,SAL-THR1,Eyebrow Threading,Grooming,Gopal,New,15,60,0,Cash,Kothrud
+SAL-0742,2026-09-07,SAL-COL1,Global Hair Colour,Hair,Nikhil,Repeat,15,2100,100,Cash,Kothrud
+SAL-0743,2026-08-02,SAL-MAN1,Manicure,Nails,Farida,Member,30,450,0,Cash,Aundh
+SAL-0744,2026-09-04,SAL-COL1,Global Hair Colour,Hair,Nikhil,Repeat,60,2150,50,UPI,Aundh
+SAL-0745,2026-04-15,SAL-MAN1,Manicure,Nails,Sunita,Member,30,400,50,Cash,Kothrud
+SAL-0746,2026-02-21,SAL-SPA1,Hair Spa,Hair,Farida,New,15,1100,100,Cash,Kothrud
+SAL-0747,2026-05-26,SAL-SPA1,Hair Spa,Hair,Gopal,Repeat,90,1200,0,Cash,Kothrud
+SAL-0748,2026-02-14,SAL-MAN1,Manicure,Nails,Farida,New,120,450,0,UPI,Kothrud
+SAL-0749,2026-09-11,SAL-HRC1,Haircut,Hair,Sunita,New,45,350,0,Card,Kothrud
+SAL-0750,2026-06-19,SAL-WAX1,Full Arm Waxing,Grooming,Gopal,Member,30,350,200,UPI,Aundh
+SAL-0751,2026-05-26,SAL-THR1,Eyebrow Threading,Grooming,Ramesh,Repeat,15,10,50,UPI,Kothrud
+SAL-0752,2026-03-06,SAL-SPA1,Hair Spa,Hair,Nikhil,New,30,1150,50,Cash,Aundh
+SAL-0753,2026-03-13,SAL-WAX1,Full Arm Waxing,Grooming,Gopal,Repeat,90,550,0,UPI,Kothrud
+SAL-0754,2026-08-03,SAL-BRD1,Bridal Makeup,Bridal,Nikhil,Repeat,15,8500,0,UPI,Kothrud
+SAL-0755,2026-05-03,SAL-THR1,Eyebrow Threading,Grooming,Nikhil,Repeat,30,-40,100,UPI,Kothrud
+SAL-0756,2026-04-29,SAL-PRT1,Party Makeup,Bridal,Ramesh,New,90,2800,0,UPI,Kothrud
+SAL-0757,2026-02-15,SAL-HRC1,Haircut,Hair,Ramesh,Member,90,350,0,UPI,Aundh
+SAL-0758,2026-06-02,SAL-PRT1,Party Makeup,Bridal,Gopal,Member,90,2700,100,UPI,Aundh
+SAL-0759,2026-03-01,SAL-COL1,Global Hair Colour,Hair,Ramesh,Member,120,2200,0,Cash,Aundh
+SAL-0760,2026-03-17,SAL-SPA1,Hair Spa,Hair,Farida,Repeat,15,1200,0,UPI,Kothrud
+SAL-0761,2026-05-05,SAL-KER1,Keratin Treatment,Hair,Sunita,Repeat,45,4300,200,UPI,Aundh
+SAL-0762,2026-05-13,SAL-SPA1,Hair Spa,Hair,Farida,Repeat,30,1200,0,Cash,Kothrud
+SAL-0763,2026-03-10,SAL-KER1,Keratin Treatment,Hair,Sunita,Repeat,30,4500,0,Cash,Aundh
+SAL-0764,2026-08-24,SAL-BRD1,Bridal Makeup,Bridal,Sunita,Member,120,8500,0,Card,Aundh
+SAL-0765,2026-04-05,SAL-PED1,Pedicure,Nails,Sunita,New,60,550,100,UPI,Aundh
+SAL-0766,2026-06-18,SAL-MAS1,Head Massage,Hair,Farida,New,120,300,100,Card,Kothrud
+SAL-0767,2026-08-24,SAL-COL1,Global Hair Colour,Hair,Nikhil,New,30,2000,200,Card,Kothrud
+SAL-0768,2026-02-26,SAL-PRT1,Party Makeup,Bridal,Gopal,Member,60,2600,200,Card,Aundh
+SAL-0769,2026-07-05,SAL-COL1,Global Hair Colour,Hair,Gopal,Repeat,60,2000,200,Cash,Aundh
+SAL-0770,2026-05-19,SAL-THR1,Eyebrow Threading,Grooming,Gopal,Repeat,90,-140,200,UPI,Kothrud
+SAL-0771,2026-04-12,SAL-FAC1,Gold Facial,Skin,Farida,New,90,1400,50,UPI,Kothrud
+SAL-0772,2026-08-30,SAL-FAC1,Gold Facial,Skin,Nikhil,Repeat,45,1400,50,Cash,Aundh
+SAL-0773,2026-07-24,SAL-MAN1,Manicure,Nails,Nikhil,Member,45,450,0,Cash,Kothrud
+SAL-0774,2026-09-29,SAL-SPA1,Hair Spa,Hair,Ramesh,Member,60,1100,100,Card,Kothrud
+SAL-0775,2026-06-03,SAL-KER1,Keratin Treatment,Hair,Ramesh,Repeat,90,4500,0,UPI,Kothrud
+SAL-0776,2026-06-10,SAL-WAX1,Full Arm Waxing,Grooming,Gopal,Member,45,500,50,UPI,Aundh
+SAL-0777,2026-06-12,SAL-THR1,Eyebrow Threading,Grooming,Farida,Repeat,60,-40,100,Card,Kothrud
+SAL-0778,2026-06-20,SAL-PRT1,Party Makeup,Bridal,Ramesh,New,60,2800,0,UPI,Aundh
+SAL-0779,2026-02-17,SAL-WAX1,Full Arm Waxing,Grooming,Sunita,Member,120,550,0,UPI,Kothrud
+SAL-0780,2026-09-01,SAL-MAS1,Head Massage,Hair,Ramesh,Repeat,45,400,0,Cash,Aundh
+SAL-0781,2026-08-30,SAL-PED1,Pedicure,Nails,Nikhil,New,90,650,0,UPI,Aundh
+SAL-0782,2026-07-02,SAL-KER1,Keratin Treatment,Hair,Farida,Repeat,60,4400,100,UPI,Aundh
+SAL-0783,2026-04-15,SAL-MAN1,Manicure,Nails,Nikhil,Repeat,60,450,0,Cash,Kothrud
+SAL-0784,2026-04-13,SAL-FAC1,Gold Facial,Skin,Ramesh,Repeat,90,1450,0,UPI,Aundh
+SAL-0785,2026-02-28,SAL-WAX1,Full Arm Waxing,Grooming,Farida,Member,15,550,0,Cash,Kothrud
+SAL-0786,2026-09-01,SAL-FAC1,Gold Facial,Skin,Gopal,Repeat,90,1450,0,UPI,Kothrud
+SAL-0787,2026-09-10,SAL-HRC1,Haircut,Hair,Ramesh,Member,45,150,200,Cash,Kothrud
+SAL-0788,2026-03-14,SAL-COL1,Global Hair Colour,Hair,Nikhil,New,120,2150,50,Card,Kothrud
+SAL-0789,2026-02-08,SAL-MAN1,Manicure,Nails,Nikhil,Repeat,60,400,50,UPI,Kothrud
+SAL-0790,2026-08-05,SAL-MAN1,Manicure,Nails,Nikhil,Repeat,60,350,100,UPI,Kothrud
+SAL-0791,2026-05-11,SAL-COL1,Global Hair Colour,Hair,Farida,Member,90,2200,0,UPI,Aundh
+SAL-0792,2026-03-19,SAL-MAS1,Head Massage,Hair,Farida,Repeat,15,350,50,UPI,Aundh
+SAL-0793,2026-04-08,SAL-PED1,Pedicure,Nails,Gopal,Member,120,650,0,UPI,Kothrud
+SAL-0794,2026-09-26,SAL-WAX1,Full Arm Waxing,Grooming,Nikhil,Member,120,450,100,UPI,Kothrud
+SAL-0795,2026-07-01,SAL-KER1,Keratin Treatment,Hair,Ramesh,Member,60,4300,200,Cash,Kothrud
+SAL-0796,2026-06-17,SAL-COL1,Global Hair Colour,Hair,Gopal,New,120,2100,100,UPI,Aundh
+SAL-0797,2026-05-08,SAL-SPA1,Hair Spa,Hair,Sunita,Repeat,45,1200,0,Cash,Kothrud
+SAL-0798,2026-02-24,SAL-KER1,Keratin Treatment,Hair,Ramesh,Repeat,120,4400,100,UPI,Aundh
+SAL-0799,2026-09-21,SAL-PED1,Pedicure,Nails,Gopal,Repeat,120,450,200,Card,Aundh
+SAL-0800,2026-04-15,SAL-BRD1,Bridal Makeup,Bridal,Farida,Member,90,8500,0,UPI,Aundh
+SAL-0801,2026-02-15,SAL-MAN1,Manicure,Nails,Gopal,Repeat,45,450,0,Card,Kothrud
+SAL-0802,2026-08-26,SAL-COL1,Global Hair Colour,Hair,Nikhil,Repeat,120,2150,50,Cash,Aundh
+SAL-0803,2026-04-15,SAL-HRC1,Haircut,Hair,Sunita,New,30,350,0,Card,Aundh
+SAL-0804,2026-04-18,SAL-COL1,Global Hair Colour,Hair,Ramesh,Repeat,45,2200,0,Cash,Kothrud
+SAL-0805,2026-04-18,SAL-FAC1,Gold Facial,Skin,Gopal,Repeat,45,1450,0,UPI,Kothrud
+SAL-0806,2026-04-04,SAL-KER1,Keratin Treatment,Hair,Farida,Repeat,45,4300,200,UPI,Kothrud
+SAL-0807,2026-06-10,SAL-COL1,Global Hair Colour,Hair,Ramesh,Repeat,30,2200,0,Card,Kothrud
+SAL-0808,2026-06-11,SAL-SPA1,Hair Spa,Hair,Sunita,Repeat,15,1100,100,UPI,Kothrud
+SAL-0809,2026-06-17,SAL-COL1,Global Hair Colour,Hair,Farida,Repeat,120,2200,0,UPI,Kothrud
+SAL-0810,2026-07-26,SAL-SPA1,Hair Spa,Hair,Farida,Repeat,15,1200,0,UPI,Aundh
+SAL-0811,2026-02-24,SAL-COL1,Global Hair Colour,Hair,Gopal,Repeat,90,2200,0,Cash,Kothrud
+SAL-0812,2026-05-14,SAL-HRC1,Haircut,Hair,Nikhil,Repeat,90,350,0,Card,Aundh
+SAL-0813,2026-08-02,SAL-WAX1,Full Arm Waxing,Grooming,Farida,Member,15,550,0,Cash,Aundh
+SAL-0814,2026-02-21,SAL-COL1,Global Hair Colour,Hair,Farida,Repeat,30,2200,0,Card,Aundh
+SAL-0815,2026-05-30,SAL-KER1,Keratin Treatment,Hair,Nikhil,Repeat,60,4400,100,UPI,Aundh
+SAL-0816,2026-06-28,SAL-COL1,Global Hair Colour,Hair,Gopal,Repeat,120,2000,200,Card,Aundh
+SAL-0817,2026-06-11,SAL-SPA1,Hair Spa,Hair,Gopal,Repeat,30,1200,0,UPI,Aundh
+SAL-0818,2026-02-06,SAL-PED1,Pedicure,Nails,Gopal,New,60,650,0,UPI,Kothrud
+SAL-0819,2026-06-12,SAL-PED1,Pedicure,Nails,Sunita,Repeat,30,650,0,UPI,Aundh
+SAL-0820,2026-03-29,SAL-MAS1,Head Massage,Hair,Ramesh,Member,30,400,0,Cash,Kothrud

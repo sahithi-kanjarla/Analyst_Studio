@@ -1,0 +1,133 @@
+{
+  "id": "R02",
+  "business_type": "salon",
+  "kind": "sales",
+  "what_it_tests": "a clean sales file with no cost column anywhere",
+  "app_should": "report revenue and never invent a profit or margin figure; it may say cost data is missing",
+  "generated_by": "scripts/make_review_datasets.py",
+  "seed": 20261103,
+  "files": {
+    "salon_services.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "clean, but no cost or purchase-price column exists",
+      "rows": 820,
+      "columns": 12,
+      "column_names": [
+        "invoice_no",
+        "service_date",
+        "service_code",
+        "service",
+        "service_group",
+        "stylist",
+        "client_type",
+        "duration_min",
+        "amount",
+        "discount",
+        "payment_mode",
+        "branch"
+      ],
+      "missing_per_column": {
+        "invoice_no": 0,
+        "service_date": 0,
+        "service_code": 0,
+        "service": 0,
+        "service_group": 0,
+        "stylist": 0,
+        "client_type": 0,
+        "duration_min": 0,
+        "amount": 0,
+        "discount": 0,
+        "payment_mode": 0,
+        "branch": 0
+      },
+      "exact_duplicate_rows": 0
+    }
+  },
+  "cleaning_applied": [],
+  "answers": {
+    "row_count": {
+      "salon_services.csv": 820
+    },
+    "main_total": {
+      "file": "salon_services.csv",
+      "column": "amount",
+      "means": "revenue after discount",
+      "value": 1472990.0,
+      "rows_counted": 820,
+      "mean": 1796.33
+    },
+    "top_3_main_category": {
+      "file": "salon_services.csv",
+      "group_by": "service_group",
+      "ranked_by": "amount",
+      "items": [
+        {
+          "name": "Bridal",
+          "total": 649050.0
+        },
+        {
+          "name": "Hair",
+          "total": 621700.0
+        },
+        {
+          "name": "Skin",
+          "total": 94050.0
+        }
+      ]
+    },
+    "top_3_stylists_by_amount": {
+      "file": "salon_services.csv",
+      "group_by": "stylist",
+      "ranked_by": "amount",
+      "items": [
+        {
+          "name": "Ramesh",
+          "total": 354950.0
+        },
+        {
+          "name": "Farida",
+          "total": 301790.0
+        },
+        {
+          "name": "Nikhil",
+          "total": 284350.0
+        }
+      ]
+    },
+    "distinct_key_counts": {
+      "salon_services.csv.invoice_no": 820,
+      "salon_services.csv.service_code": 12,
+      "salon_services.csv.stylist": 5
+    },
+    "total_discount": {
+      "file": "salon_services.csv",
+      "column": "discount",
+      "means": "discount given",
+      "value": 47200.0
+    },
+    "duplicates": {
+      "salon_services.csv": {
+        "exact_duplicate_rows": 0
+      }
+    },
+    "missing_values_per_column": {
+      "salon_services.csv": {
+        "invoice_no": 0,
+        "service_date": 0,
+        "service_code": 0,
+        "service": 0,
+        "service_group": 0,
+        "stylist": 0,
+        "client_type": 0,
+        "duration_min": 0,
+        "amount": 0,
+        "discount": 0,
+        "payment_mode": 0,
+        "branch": 0
+      }
+    },
+    "cost_columns_present": [],
+    "profit_is_computable": false
+  }
+}

@@ -1,0 +1,186 @@
+{
+  "id": "R07",
+  "business_type": "clothing boutique",
+  "kind": "sales",
+  "what_it_tests": "four ambiguities that each change a headline number: an unresolvable day/month order, two columns that could both be revenue, a status column mixing cancelled/returned/refunded, and zeros that could be none or missing",
+  "app_should": "ask clarifying questions here rather than pick a reading silently; whichever reading it takes, the figure must match this file's reading for it",
+  "generated_by": "scripts/make_review_datasets.py",
+  "seed": 20261103,
+  "files": {
+    "boutique_bills.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "bill_date has day and month both between 1 and 12 on every row; net_received is 0 on 47 rows",
+      "rows": 700,
+      "columns": 12,
+      "column_names": [
+        "bill_no",
+        "bill_date",
+        "item",
+        "item_code",
+        "category",
+        "qty",
+        "revenue",
+        "net_received",
+        "discount_amount",
+        "status",
+        "sales_girl",
+        "note"
+      ],
+      "missing_per_column": {
+        "bill_no": 0,
+        "bill_date": 0,
+        "item": 0,
+        "item_code": 0,
+        "category": 0,
+        "qty": 0,
+        "revenue": 0,
+        "net_received": 0,
+        "discount_amount": 0,
+        "status": 0,
+        "sales_girl": 0,
+        "note": 700
+      },
+      "exact_duplicate_rows": 0
+    }
+  },
+  "cleaning_applied": [],
+  "answers": {
+    "row_count": {
+      "boutique_bills.csv": 700
+    },
+    "main_total": {
+      "file": "boutique_bills.csv",
+      "column": "revenue",
+      "means": "the gross revenue reading (one of two defensible readings - see ambiguities)",
+      "value": 1414059.0,
+      "rows_counted": 700,
+      "mean": 2020.08
+    },
+    "top_3_main_category": {
+      "file": "boutique_bills.csv",
+      "group_by": "category",
+      "ranked_by": "revenue",
+      "items": [
+        {
+          "name": "Ethnic",
+          "total": 916919.0
+        },
+        {
+          "name": "Sarees",
+          "total": 185080.0
+        },
+        {
+          "name": "Bottoms",
+          "total": 140280.0
+        }
+      ]
+    },
+    "distinct_key_counts": {
+      "boutique_bills.csv.bill_no": 700,
+      "boutique_bills.csv.item_code": 12,
+      "boutique_bills.csv.status": 5
+    },
+    "net_received_total": {
+      "file": "boutique_bills.csv",
+      "column": "net_received",
+      "means": "the net reading of revenue",
+      "value": 1200573.71
+    },
+    "total_discount": {
+      "file": "boutique_bills.csv",
+      "column": "discount_amount",
+      "means": "discount given",
+      "value": 84563.7
+    },
+    "duplicates": {
+      "boutique_bills.csv": {
+        "exact_duplicate_rows": 0
+      }
+    },
+    "missing_values_per_column": {
+      "boutique_bills.csv": {
+        "bill_no": 0,
+        "bill_date": 0,
+        "item": 0,
+        "item_code": 0,
+        "category": 0,
+        "qty": 0,
+        "revenue": 0,
+        "net_received": 0,
+        "discount_amount": 0,
+        "status": 0,
+        "sales_girl": 0,
+        "note": 700
+      }
+    },
+    "status_counts": {
+      "Completed": 513,
+      "Returned": 52,
+      "Refunded": 52,
+      "Cancelled": 51,
+      "Partially Refunded": 32
+    },
+    "rows_with_zero_net_received": 47
+  },
+  "ambiguities": [
+    {
+      "question": "Is bill_date day/month or month/day? Every value has both parts between 1 and 12, so the file cannot say.",
+      "readings": [
+        {
+          "reading": "day first (dd/mm/yyyy)",
+          "busiest_month": "2026-01",
+          "busiest_month_revenue": 158925.0
+        },
+        {
+          "reading": "month first (mm/dd/yyyy)",
+          "busiest_month": "2026-04",
+          "busiest_month_revenue": 159041.0
+        }
+      ]
+    },
+    {
+      "question": "Which column is revenue: revenue (before discount and fee) or net_received (after)?",
+      "readings": [
+        {
+          "reading": "revenue",
+          "total": 1414059.0
+        },
+        {
+          "reading": "net_received",
+          "total": 1200573.71
+        }
+      ]
+    },
+    {
+      "question": "Should Cancelled, Returned, Refunded and Partially Refunded bills count towards sales?",
+      "readings": [
+        {
+          "reading": "count every row",
+          "total_revenue": 1414059.0,
+          "rows": 700
+        },
+        {
+          "reading": "count only Completed",
+          "total_revenue": 1101538.0,
+          "rows": 513
+        }
+      ]
+    },
+    {
+      "question": "Do the zeros in net_received mean nothing was received, or that the field was left blank?",
+      "readings": [
+        {
+          "reading": "zero means nothing was received",
+          "mean_net_received": 1715.11,
+          "rows_counted": 700
+        },
+        {
+          "reading": "zero means missing, so leave those rows out",
+          "mean_net_received": 1838.55,
+          "rows_counted": 653
+        }
+      ]
+    }
+  ]
+}

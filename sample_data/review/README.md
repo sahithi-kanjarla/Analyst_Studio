@@ -1,0 +1,43 @@
+# Review pack (synthetic)
+
+Built by `scripts/make_review_datasets.py` (deterministic, seeded 20261103). No AI, no network, no real
+personal data: every name, phone number and e-mail address is made up. Each dataset is its own folder,
+holds under 3,000 rows, and carries an `expected.json` with figures computed by pandas.
+
+These are for a **real-AI review**: upload one dataset's files, let the run finish, then check the
+report against `expected.json`. The `app_should` line in each file is the one thing that dataset is
+there to test.
+
+`expected.json` holds, per dataset: how to read each file (`reader`, `options`), its row and column
+counts, missing values per column and exact duplicate count; then under `answers` the row count,
+the main total, the top 3 of the main category, distinct key counts, missing values per column,
+duplicates, and for connected sets the joined row counts and the unmatched ids. Where a file is
+dirty, `cleaning_applied` says exactly what cleaning the figures assume. Where a file is genuinely
+ambiguous (R07), `ambiguities` lists each reading and the number it gives, because there is no single
+right answer and the app is expected to ask.
+
+| id | business | files | rows | what it tests | the app should |
+|---|---|---|---|---|---|
+| **R01** | bakery | `bakery_sales.csv` | 900 | a clean sales file that already carries a cost column, so margin needs no guessing | ask few or no clarifying questions, and report profit and margin as well as revenue |
+| **R02** | salon | `salon_services.csv` | 820 | a clean sales file with no cost column anywhere | report revenue and never invent a profit or margin figure; it may say cost data is missing |
+| **R03** | kirana store | `kirana_sales_messy.csv` | 980 | duplicates, blanks that mean none, placeholder values (-1, N/A, unknown, -), outliers, a constant column, four date formats, text amounts, currency symbols and negative returns | log every cleaning action, drop the 40 exact duplicates, read the text amounts, treat -1 and the placeholder words as missing, keep the negative returns as returns, and flag the constant column |
+| **R04** | electronics seller | `electronics_wide.csv` | 700 | a wide file: 68 columns, of which about nine matter and the rest are noise, near-duplicates or empty | find the few columns that matter (order_date, amount, category, quantity, cost_amount), say which columns are copies of each other, and not drown the report in noise |
+| **R05** | home-based food seller | `home_food_sales.csv` | 620 | a narrow file: five columns and nothing else, no ids, no cost, no customer | still produce a useful report from five columns, and not claim findings the columns cannot support (no customer, no margin, no order id) |
+| **R06** | handicrafts seller | `handicraft_order_lines.csv` | 1000 | long format: one row per order line, order ids repeating, and the order-level amount repeated on every line of that order | count orders by distinct order_id and not add order_amount up once per line — the naive sum is far too high |
+| **R07** | clothing boutique | `boutique_bills.csv` | 700 | four ambiguities that each change a headline number: an unresolvable day/month order, two columns that could both be revenue, a status column mixing cancelled/returned/refunded, and zeros that could be none or missing | ask clarifying questions here rather than pick a reading silently; whichever reading it takes, the figure must match this file's reading for it |
+| **R08** | kirana store | `kirana_register.xlsx` | 522 | three notes above the table, a merged group header row above the real header, a blank row, and a TOTAL row at the bottom | find the real header row, drop the TOTAL row from the data, and never count the total as one more bill |
+| **R09** | electronics seller | `electronics_returns.csv` | 840 | a status column with five states and a reason column that is deliberately blank for delivered orders | treat the blank reasons as 'not applicable' rather than missing data, and report net revenue after refunds alongside gross |
+| **R10** | kirana store | `kirana_inventory.csv` | 420 | stock levels with no money column at all: quantities, reorder levels, restock dates and damage | recognise this is stock and not sales, report what is below its reorder level and what is damaged, and never report revenue |
+| **R11** | bakery | `bakery_purchases.csv` | 700 | money flowing out, not in: supplier purchases with unit cost and payment status | call this spending, not revenue, and report what is still unpaid by supplier |
+| **R12** | salon | `salon_expenses.csv` | 900 | the same expense category spelled several ways (case, abbreviations, a typo, a trailing space), so the raw grouping is wrong | group the spellings together before ranking, and say it did; the raw top 3 and the tidied top 3 are different |
+| **R13** | clothing boutique | `boutique_staff.csv` | 60 | personal-looking columns (name, phone, e-mail, date of birth, emergency contact) next to real measures (pay, attendance, hours) | treat phone, e-mail, date of birth and the emergency number as identifiers, never as numbers to average or chart, and keep names out of the AI's view |
+| **R14** | home-based food seller | `food_production_batches.csv` | 649 | production batches: several material rows per batch, with the batch-level output and wastage repeated on each of those rows | count batches by distinct batch_id and not add output_units up once per material row |
+| **R15** | handicrafts seller | `handicraft_grahak.csv` | 500 | column names in transliterated Hindi, phone numbers that must stay text, and a lifetime-spend column that is not per-order revenue | work out what each Hindi-named column means from its values, not its name, and not treat 'Kul rashi' (lifetime spend) as this period's sales |
+| **R16** | electronics seller | `marketplace_settlement.csv` | 900 | a settlement statement where the money received is not the sale amount: four fee columns, GST on the fees, and negative adjustments | report net payout and sale amount as different things, and not quietly treat sale_amount as what the seller received |
+| **R17** | clothing boutique | `marketing_delivery.csv` | 720 | two different subjects in one file: daily ad spend by channel, and delivery performance | keep spend, clicks, orders and delivery failures apart as separate measures, and not call ad spend revenue |
+| **M01** | bakery | `orders.csv`, `customers.csv` | 1120 | two files that join on customer_id, with a handful of orders pointing at customers who are not in the customer file | find the customer_id link by itself, say how many orders have no matching customer, and not silently drop them from the revenue total |
+| **M02** | clothing boutique | `orders.csv`, `customers.csv`, `products.csv` | 1154 | three files, orphan ids on both links, and one customer_id that appears twice in the customer file so a careless join inflates the row count | join on the right keys, report the orphans, and notice that the repeated customer_id makes the joined table longer than the order table |
+| **M03** | kirana store | `orders.csv`, `order_lines.csv`, `items.csv`, `customers.csv`, `electricity_bills.csv` | 2069 | five files where four form a chain (orders -> order_lines -> items, orders -> customers) and the fifth, the electricity bill, joins to nothing | link the four that connect, say plainly that the electricity bill shares no key with the rest, and not force a join |
+| **M04** | handicrafts seller | `platform_craftbazaar.csv`, `platform_shopline.csv` | 960 | the same shop's sales from two platforms: different column names, different date formats, amounts as text on one side and numbers on the other, and no shared id | see that the two files are the same kind of thing and can be stacked, match the columns across them, and give one combined total without inventing a join key |
+| **M05** | bakery | `sales.csv`, `product_costs.csv` | 891 | margin that is only possible by joining: the sales file has no cost, the cost file has no sales, and one sold item has no cost row | join on item_code to compute margin, and say that one item's margin is unknown instead of treating its cost as zero |
+| **M06** | kirana store | `purchases.csv`, `inventory.csv`, `sales.csv` | 1532 | the three sides of one shop joined on item_code: what was bought, what is in stock, and what was sold, with one item sold that neither of the other two files knows | link all three on item_code, compare bought against sold per item, and name the item code that appears only in sales |

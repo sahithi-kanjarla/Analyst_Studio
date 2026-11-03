@@ -1,0 +1,621 @@
+date,item,quantity,amount,area
+2026-06-27,Garlic Chutney 200g,1,165,Aundh
+2026-05-28,Mango Pickle 500g,1,280,Kharadi
+2026-09-28,Chakli 250g,2,300,Kharadi
+2026-05-26,Methi Thepla Pack,1,130,Kothrud
+2026-04-14,Pure Ghee 500ml,3,1560,Shivaji Nagar
+2026-06-10,Mango Pickle 500g,1,280,Shivaji Nagar
+2026-08-24,Methi Thepla Pack,1,130,Hadapsar
+2026-05-25,Rice Murukku 250g,1,145,Hadapsar
+2026-07-19,Besan Laddu 500g,2,680,Hadapsar
+2026-05-17,Mango Pickle 500g,2,560,Viman Nagar
+2026-07-12,Idli Batter 1kg,1,85,Kharadi
+2026-04-15,Methi Thepla Pack,2,260,Aundh
+2026-06-27,Methi Thepla Pack,2,260,Kharadi
+2026-05-10,Garlic Chutney 200g,4,660,Kharadi
+2026-09-21,Methi Thepla Pack,2,260,Shivaji Nagar
+2026-05-21,Garlic Chutney 200g,1,165,Viman Nagar
+2026-09-08,Rice Murukku 250g,2,290,Baner
+2026-04-17,Tomato Chutney 300g,1,190,Hadapsar
+2026-07-15,Rice Murukku 250g,2,290,Kothrud
+2026-04-24,Urad Papad 200g,2,190,Hadapsar
+2026-04-11,Mango Pickle 500g,2,560,Aundh
+2026-09-11,Dry Fruit Chikki,2,520,Kharadi
+2026-09-26,Rice Murukku 250g,4,580,Hadapsar
+2026-05-14,Besan Laddu 500g,2,680,Kothrud
+2026-08-01,Tomato Chutney 300g,1,190,Kothrud
+2026-05-16,Masala Powder 100g,1,120,Warje
+2026-06-24,Tomato Chutney 300g,1,190,Kharadi
+2026-09-24,Urad Papad 200g,4,380,Viman Nagar
+2026-09-24,Masala Powder 100g,2,240,Kharadi
+2026-04-07,Methi Thepla Pack,3,390,Shivaji Nagar
+2026-08-23,Idli Batter 1kg,4,340,Warje
+2026-06-29,Pure Ghee 500ml,4,2080,Baner
+2026-05-08,Pure Ghee 500ml,1,520,Kharadi
+2026-09-05,Urad Papad 200g,4,380,Kharadi
+2026-07-31,Idli Batter 1kg,4,340,Kothrud
+2026-08-22,Masala Powder 100g,2,240,Baner
+2026-06-05,Rice Murukku 250g,2,290,Hadapsar
+2026-08-17,Rice Murukku 250g,2,290,Shivaji Nagar
+2026-04-06,Garlic Chutney 200g,4,660,Aundh
+2026-05-29,Dry Fruit Chikki,4,1040,Baner
+2026-08-30,Dry Fruit Chikki,1,260,Hadapsar
+2026-05-02,Tomato Chutney 300g,1,190,Kharadi
+2026-07-17,Idli Batter 1kg,3,255,Kharadi
+2026-09-22,Tomato Chutney 300g,1,190,Warje
+2026-08-07,Dry Fruit Chikki,2,520,Hadapsar
+2026-05-15,Masala Powder 100g,2,240,Kharadi
+2026-06-20,Tomato Chutney 300g,3,570,Shivaji Nagar
+2026-06-22,Besan Laddu 500g,2,680,Baner
+2026-04-27,Methi Thepla Pack,2,260,Kharadi
+2026-05-01,Masala Powder 100g,4,480,Shivaji Nagar
+2026-05-14,Rice Murukku 250g,1,145,Hadapsar
+2026-07-27,Besan Laddu 500g,3,1020,Warje
+2026-05-31,Methi Thepla Pack,2,260,Aundh
+2026-09-24,Mango Pickle 500g,1,280,Baner
+2026-08-16,Mango Pickle 500g,1,280,Shivaji Nagar
+2026-05-18,Mango Pickle 500g,1,280,Kharadi
+2026-04-03,Idli Batter 1kg,1,85,Baner
+2026-06-15,Methi Thepla Pack,2,260,Aundh
+2026-07-07,Idli Batter 1kg,4,340,Baner
+2026-05-04,Tomato Chutney 300g,1,190,Shivaji Nagar
+2026-08-27,Tomato Chutney 300g,4,760,Shivaji Nagar
+2026-09-11,Dry Fruit Chikki,4,1040,Aundh
+2026-08-26,Masala Powder 100g,1,120,Shivaji Nagar
+2026-05-04,Methi Thepla Pack,1,130,Kothrud
+2026-06-10,Dry Fruit Chikki,2,520,Kothrud
+2026-05-01,Pure Ghee 500ml,2,1040,Aundh
+2026-05-14,Dry Fruit Chikki,3,780,Kharadi
+2026-05-18,Mango Pickle 500g,1,280,Warje
+2026-08-15,Dry Fruit Chikki,2,520,Baner
+2026-07-22,Rice Murukku 250g,1,145,Aundh
+2026-06-17,Mango Pickle 500g,1,280,Baner
+2026-08-09,Mango Pickle 500g,1,280,Baner
+2026-08-24,Urad Papad 200g,3,285,Shivaji Nagar
+2026-09-24,Garlic Chutney 200g,4,660,Warje
+2026-07-15,Methi Thepla Pack,1,130,Viman Nagar
+2026-09-02,Tomato Chutney 300g,1,190,Kothrud
+2026-05-16,Urad Papad 200g,3,285,Hadapsar
+2026-09-15,Rice Murukku 250g,2,290,Kothrud
+2026-08-01,Besan Laddu 500g,1,340,Baner
+2026-05-13,Pure Ghee 500ml,2,1040,Kothrud
+2026-05-05,Methi Thepla Pack,4,520,Aundh
+2026-05-14,Idli Batter 1kg,3,255,Aundh
+2026-08-01,Masala Powder 100g,1,120,Shivaji Nagar
+2026-06-18,Idli Batter 1kg,2,170,Warje
+2026-08-25,Dry Fruit Chikki,2,520,Baner
+2026-06-21,Urad Papad 200g,2,190,Aundh
+2026-08-27,Idli Batter 1kg,1,85,Shivaji Nagar
+2026-09-14,Urad Papad 200g,1,95,Baner
+2026-06-01,Dry Fruit Chikki,4,1040,Aundh
+2026-06-15,Pure Ghee 500ml,2,1040,Kothrud
+2026-04-24,Garlic Chutney 200g,1,165,Kharadi
+2026-08-05,Chakli 250g,4,600,Viman Nagar
+2026-07-13,Dry Fruit Chikki,3,780,Kothrud
+2026-06-30,Urad Papad 200g,2,190,Warje
+2026-06-15,Methi Thepla Pack,1,130,Aundh
+2026-04-03,Besan Laddu 500g,4,1360,Kharadi
+2026-04-12,Mango Pickle 500g,2,560,Viman Nagar
+2026-07-28,Mango Pickle 500g,3,840,Kothrud
+2026-05-19,Urad Papad 200g,1,95,Baner
+2026-04-16,Garlic Chutney 200g,4,660,Kothrud
+2026-07-03,Garlic Chutney 200g,2,330,Shivaji Nagar
+2026-04-22,Masala Powder 100g,4,480,Baner
+2026-07-15,Methi Thepla Pack,1,130,Viman Nagar
+2026-08-13,Methi Thepla Pack,4,520,Baner
+2026-06-02,Besan Laddu 500g,2,680,Kharadi
+2026-06-22,Idli Batter 1kg,2,170,Kharadi
+2026-05-29,Rice Murukku 250g,3,435,Baner
+2026-06-11,Masala Powder 100g,3,360,Baner
+2026-07-14,Rice Murukku 250g,3,435,Kothrud
+2026-05-16,Idli Batter 1kg,2,170,Viman Nagar
+2026-05-02,Methi Thepla Pack,2,260,Viman Nagar
+2026-05-28,Methi Thepla Pack,1,130,Baner
+2026-07-30,Tomato Chutney 300g,4,760,Kothrud
+2026-05-16,Garlic Chutney 200g,2,330,Baner
+2026-07-11,Rice Murukku 250g,2,290,Kothrud
+2026-05-17,Rice Murukku 250g,4,580,Warje
+2026-06-23,Dry Fruit Chikki,4,1040,Hadapsar
+2026-06-04,Mango Pickle 500g,1,280,Viman Nagar
+2026-09-03,Tomato Chutney 300g,1,190,Kothrud
+2026-06-30,Dry Fruit Chikki,3,780,Aundh
+2026-04-01,Besan Laddu 500g,2,680,Warje
+2026-09-03,Urad Papad 200g,2,190,Hadapsar
+2026-07-15,Besan Laddu 500g,3,1020,Aundh
+2026-06-14,Pure Ghee 500ml,2,1040,Kharadi
+2026-08-27,Dry Fruit Chikki,4,1040,Hadapsar
+2026-04-05,Urad Papad 200g,1,95,Kothrud
+2026-09-04,Masala Powder 100g,2,240,Hadapsar
+2026-09-10,Besan Laddu 500g,3,1020,Aundh
+2026-08-19,Chakli 250g,1,150,Kothrud
+2026-05-24,Masala Powder 100g,4,480,Viman Nagar
+2026-07-31,Idli Batter 1kg,2,170,Shivaji Nagar
+2026-05-09,Urad Papad 200g,1,95,Shivaji Nagar
+2026-05-16,Urad Papad 200g,1,95,Warje
+2026-06-02,Chakli 250g,1,150,Viman Nagar
+2026-07-21,Methi Thepla Pack,3,390,Kharadi
+2026-09-21,Garlic Chutney 200g,4,660,Kothrud
+2026-08-05,Garlic Chutney 200g,3,495,Hadapsar
+2026-07-19,Urad Papad 200g,1,95,Warje
+2026-07-14,Urad Papad 200g,1,95,Warje
+2026-09-01,Rice Murukku 250g,4,580,Warje
+2026-04-06,Garlic Chutney 200g,4,660,Shivaji Nagar
+2026-07-18,Pure Ghee 500ml,4,2080,Aundh
+2026-07-16,Tomato Chutney 300g,3,570,Kharadi
+2026-04-09,Rice Murukku 250g,2,290,Baner
+2026-04-13,Masala Powder 100g,3,360,Viman Nagar
+2026-09-15,Urad Papad 200g,1,95,Kothrud
+2026-06-15,Garlic Chutney 200g,1,165,Shivaji Nagar
+2026-04-28,Dry Fruit Chikki,1,260,Warje
+2026-08-29,Chakli 250g,4,600,Baner
+2026-08-20,Tomato Chutney 300g,2,380,Kothrud
+2026-08-28,Idli Batter 1kg,2,170,Baner
+2026-05-29,Garlic Chutney 200g,4,660,Shivaji Nagar
+2026-07-16,Garlic Chutney 200g,3,495,Kothrud
+2026-04-12,Rice Murukku 250g,1,145,Shivaji Nagar
+2026-04-27,Masala Powder 100g,1,120,Warje
+2026-06-28,Mango Pickle 500g,1,280,Shivaji Nagar
+2026-05-17,Tomato Chutney 300g,4,760,Viman Nagar
+2026-07-01,Chakli 250g,3,450,Warje
+2026-04-26,Chakli 250g,1,150,Shivaji Nagar
+2026-05-04,Masala Powder 100g,4,480,Kharadi
+2026-08-19,Masala Powder 100g,1,120,Warje
+2026-04-29,Besan Laddu 500g,1,340,Kharadi
+2026-04-14,Besan Laddu 500g,2,680,Warje
+2026-07-18,Urad Papad 200g,2,190,Aundh
+2026-07-16,Garlic Chutney 200g,2,330,Shivaji Nagar
+2026-07-17,Rice Murukku 250g,1,145,Kharadi
+2026-04-07,Methi Thepla Pack,2,260,Aundh
+2026-06-30,Rice Murukku 250g,1,145,Baner
+2026-09-10,Mango Pickle 500g,4,1120,Viman Nagar
+2026-09-11,Mango Pickle 500g,1,280,Kothrud
+2026-08-12,Masala Powder 100g,2,240,Baner
+2026-07-28,Garlic Chutney 200g,1,165,Baner
+2026-08-18,Masala Powder 100g,3,360,Kothrud
+2026-08-19,Mango Pickle 500g,2,560,Viman Nagar
+2026-04-27,Urad Papad 200g,2,190,Viman Nagar
+2026-06-09,Tomato Chutney 300g,2,380,Hadapsar
+2026-05-05,Garlic Chutney 200g,2,330,Baner
+2026-06-26,Tomato Chutney 300g,2,380,Warje
+2026-07-06,Chakli 250g,1,150,Kharadi
+2026-09-05,Chakli 250g,4,600,Baner
+2026-07-19,Besan Laddu 500g,3,1020,Kharadi
+2026-05-29,Tomato Chutney 300g,1,190,Baner
+2026-08-19,Chakli 250g,1,150,Kothrud
+2026-08-05,Chakli 250g,4,600,Viman Nagar
+2026-07-26,Urad Papad 200g,2,190,Kharadi
+2026-06-21,Tomato Chutney 300g,4,760,Hadapsar
+2026-08-19,Idli Batter 1kg,1,85,Warje
+2026-04-09,Besan Laddu 500g,4,1360,Warje
+2026-08-20,Garlic Chutney 200g,2,330,Baner
+2026-05-31,Idli Batter 1kg,1,85,Warje
+2026-07-26,Besan Laddu 500g,1,340,Shivaji Nagar
+2026-06-26,Chakli 250g,4,600,Viman Nagar
+2026-08-01,Urad Papad 200g,4,380,Shivaji Nagar
+2026-06-07,Besan Laddu 500g,1,340,Warje
+2026-05-10,Urad Papad 200g,1,95,Kothrud
+2026-06-07,Chakli 250g,1,150,Shivaji Nagar
+2026-08-11,Besan Laddu 500g,3,1020,Shivaji Nagar
+2026-09-24,Idli Batter 1kg,1,85,Warje
+2026-04-04,Mango Pickle 500g,3,840,Warje
+2026-09-18,Tomato Chutney 300g,3,570,Baner
+2026-06-27,Masala Powder 100g,1,120,Warje
+2026-06-04,Rice Murukku 250g,1,145,Warje
+2026-08-05,Idli Batter 1kg,1,85,Hadapsar
+2026-09-17,Idli Batter 1kg,1,85,Viman Nagar
+2026-04-12,Pure Ghee 500ml,2,1040,Warje
+2026-04-12,Masala Powder 100g,2,240,Aundh
+2026-04-21,Methi Thepla Pack,4,520,Warje
+2026-06-15,Idli Batter 1kg,2,170,Baner
+2026-07-18,Besan Laddu 500g,2,680,Aundh
+2026-09-23,Dry Fruit Chikki,1,260,Kharadi
+2026-06-14,Idli Batter 1kg,3,255,Kothrud
+2026-06-03,Besan Laddu 500g,4,1360,Aundh
+2026-09-06,Chakli 250g,1,150,Viman Nagar
+2026-08-09,Besan Laddu 500g,1,340,Shivaji Nagar
+2026-09-07,Masala Powder 100g,1,120,Baner
+2026-07-13,Methi Thepla Pack,2,260,Kharadi
+2026-06-24,Urad Papad 200g,3,285,Kothrud
+2026-08-07,Methi Thepla Pack,1,130,Shivaji Nagar
+2026-07-27,Masala Powder 100g,3,360,Kharadi
+2026-06-24,Pure Ghee 500ml,2,1040,Shivaji Nagar
+2026-08-22,Pure Ghee 500ml,1,520,Kharadi
+2026-08-24,Tomato Chutney 300g,3,570,Hadapsar
+2026-04-08,Pure Ghee 500ml,4,2080,Kharadi
+2026-09-25,Urad Papad 200g,2,190,Aundh
+2026-07-26,Pure Ghee 500ml,2,1040,Baner
+2026-05-06,Urad Papad 200g,4,380,Aundh
+2026-04-14,Besan Laddu 500g,2,680,Shivaji Nagar
+2026-07-29,Methi Thepla Pack,1,130,Kothrud
+2026-07-01,Besan Laddu 500g,2,680,Warje
+2026-04-24,Masala Powder 100g,2,240,Aundh
+2026-05-15,Methi Thepla Pack,3,390,Shivaji Nagar
+2026-07-07,Pure Ghee 500ml,2,1040,Kothrud
+2026-05-04,Dry Fruit Chikki,1,260,Shivaji Nagar
+2026-06-17,Idli Batter 1kg,2,170,Shivaji Nagar
+2026-07-25,Masala Powder 100g,2,240,Warje
+2026-06-17,Mango Pickle 500g,1,280,Kharadi
+2026-08-29,Mango Pickle 500g,4,1120,Baner
+2026-06-19,Besan Laddu 500g,3,1020,Hadapsar
+2026-05-03,Idli Batter 1kg,2,170,Baner
+2026-07-26,Rice Murukku 250g,3,435,Shivaji Nagar
+2026-08-19,Pure Ghee 500ml,1,520,Baner
+2026-07-14,Rice Murukku 250g,3,435,Viman Nagar
+2026-06-16,Garlic Chutney 200g,4,660,Viman Nagar
+2026-08-23,Pure Ghee 500ml,2,1040,Hadapsar
+2026-09-24,Chakli 250g,2,300,Baner
+2026-05-08,Urad Papad 200g,1,95,Warje
+2026-07-17,Chakli 250g,3,450,Shivaji Nagar
+2026-04-13,Idli Batter 1kg,3,255,Shivaji Nagar
+2026-07-08,Rice Murukku 250g,2,290,Hadapsar
+2026-06-07,Rice Murukku 250g,2,290,Kothrud
+2026-06-06,Idli Batter 1kg,2,170,Warje
+2026-04-15,Tomato Chutney 300g,2,380,Baner
+2026-08-31,Rice Murukku 250g,1,145,Hadapsar
+2026-04-12,Urad Papad 200g,4,380,Hadapsar
+2026-09-07,Pure Ghee 500ml,1,520,Hadapsar
+2026-04-20,Besan Laddu 500g,4,1360,Hadapsar
+2026-04-03,Chakli 250g,1,150,Hadapsar
+2026-06-03,Idli Batter 1kg,1,85,Hadapsar
+2026-06-28,Tomato Chutney 300g,1,190,Aundh
+2026-07-25,Dry Fruit Chikki,3,780,Baner
+2026-04-11,Mango Pickle 500g,4,1120,Warje
+2026-07-09,Urad Papad 200g,1,95,Aundh
+2026-05-01,Dry Fruit Chikki,2,520,Kharadi
+2026-06-25,Urad Papad 200g,3,285,Shivaji Nagar
+2026-05-26,Urad Papad 200g,3,285,Hadapsar
+2026-04-20,Chakli 250g,4,600,Baner
+2026-05-08,Idli Batter 1kg,1,85,Viman Nagar
+2026-06-08,Rice Murukku 250g,3,435,Viman Nagar
+2026-07-25,Garlic Chutney 200g,2,330,Baner
+2026-04-11,Masala Powder 100g,1,120,Hadapsar
+2026-05-02,Urad Papad 200g,3,285,Viman Nagar
+2026-05-03,Tomato Chutney 300g,4,760,Baner
+2026-07-16,Garlic Chutney 200g,1,165,Viman Nagar
+2026-04-05,Mango Pickle 500g,1,280,Viman Nagar
+2026-05-19,Rice Murukku 250g,4,580,Aundh
+2026-06-20,Rice Murukku 250g,2,290,Warje
+2026-07-04,Rice Murukku 250g,3,435,Kothrud
+2026-04-05,Rice Murukku 250g,1,145,Hadapsar
+2026-07-13,Masala Powder 100g,4,480,Viman Nagar
+2026-04-29,Chakli 250g,4,600,Aundh
+2026-07-09,Idli Batter 1kg,4,340,Shivaji Nagar
+2026-05-14,Chakli 250g,1,150,Warje
+2026-07-21,Tomato Chutney 300g,4,760,Kharadi
+2026-08-28,Tomato Chutney 300g,2,380,Kothrud
+2026-06-14,Tomato Chutney 300g,4,760,Hadapsar
+2026-07-30,Chakli 250g,1,150,Aundh
+2026-05-29,Garlic Chutney 200g,1,165,Hadapsar
+2026-07-01,Pure Ghee 500ml,2,1040,Aundh
+2026-05-28,Besan Laddu 500g,2,680,Warje
+2026-09-07,Rice Murukku 250g,4,580,Hadapsar
+2026-04-12,Tomato Chutney 300g,2,380,Warje
+2026-08-06,Urad Papad 200g,4,380,Hadapsar
+2026-06-11,Rice Murukku 250g,1,145,Shivaji Nagar
+2026-08-08,Mango Pickle 500g,2,560,Aundh
+2026-04-14,Masala Powder 100g,1,120,Shivaji Nagar
+2026-08-27,Garlic Chutney 200g,2,330,Kothrud
+2026-09-02,Pure Ghee 500ml,3,1560,Viman Nagar
+2026-04-20,Idli Batter 1kg,2,170,Kothrud
+2026-05-24,Methi Thepla Pack,1,130,Hadapsar
+2026-08-12,Garlic Chutney 200g,1,165,Kharadi
+2026-05-22,Dry Fruit Chikki,4,1040,Hadapsar
+2026-09-21,Rice Murukku 250g,2,290,Kothrud
+2026-08-06,Idli Batter 1kg,1,85,Kharadi
+2026-06-30,Chakli 250g,2,300,Warje
+2026-04-12,Idli Batter 1kg,2,170,Aundh
+2026-07-11,Dry Fruit Chikki,3,780,Hadapsar
+2026-06-06,Garlic Chutney 200g,1,165,Aundh
+2026-05-09,Besan Laddu 500g,1,340,Aundh
+2026-05-08,Besan Laddu 500g,2,680,Kothrud
+2026-07-23,Dry Fruit Chikki,4,1040,Shivaji Nagar
+2026-05-17,Dry Fruit Chikki,1,260,Kothrud
+2026-07-16,Idli Batter 1kg,1,85,Shivaji Nagar
+2026-05-20,Masala Powder 100g,1,120,Warje
+2026-04-23,Pure Ghee 500ml,3,1560,Hadapsar
+2026-06-24,Idli Batter 1kg,2,170,Hadapsar
+2026-08-08,Rice Murukku 250g,3,435,Kharadi
+2026-04-06,Dry Fruit Chikki,4,1040,Kothrud
+2026-07-08,Methi Thepla Pack,1,130,Shivaji Nagar
+2026-07-19,Besan Laddu 500g,3,1020,Warje
+2026-08-31,Dry Fruit Chikki,4,1040,Aundh
+2026-09-08,Methi Thepla Pack,1,130,Viman Nagar
+2026-05-22,Besan Laddu 500g,1,340,Baner
+2026-05-28,Urad Papad 200g,3,285,Aundh
+2026-09-14,Urad Papad 200g,3,285,Shivaji Nagar
+2026-09-10,Urad Papad 200g,4,380,Shivaji Nagar
+2026-08-03,Idli Batter 1kg,2,170,Hadapsar
+2026-05-16,Idli Batter 1kg,1,85,Hadapsar
+2026-06-07,Tomato Chutney 300g,2,380,Hadapsar
+2026-06-11,Urad Papad 200g,2,190,Warje
+2026-09-09,Chakli 250g,1,150,Kharadi
+2026-06-17,Idli Batter 1kg,2,170,Hadapsar
+2026-05-09,Garlic Chutney 200g,2,330,Viman Nagar
+2026-06-29,Besan Laddu 500g,4,1360,Hadapsar
+2026-06-30,Idli Batter 1kg,1,85,Aundh
+2026-09-27,Tomato Chutney 300g,3,570,Warje
+2026-08-23,Masala Powder 100g,2,240,Aundh
+2026-07-29,Methi Thepla Pack,4,520,Aundh
+2026-04-10,Pure Ghee 500ml,1,520,Hadapsar
+2026-05-23,Tomato Chutney 300g,2,380,Viman Nagar
+2026-05-22,Besan Laddu 500g,3,1020,Aundh
+2026-06-01,Masala Powder 100g,1,120,Kothrud
+2026-04-25,Mango Pickle 500g,2,560,Viman Nagar
+2026-04-05,Mango Pickle 500g,3,840,Warje
+2026-09-24,Besan Laddu 500g,4,1360,Hadapsar
+2026-06-19,Besan Laddu 500g,1,340,Kothrud
+2026-04-20,Methi Thepla Pack,3,390,Warje
+2026-09-10,Tomato Chutney 300g,3,570,Viman Nagar
+2026-05-23,Garlic Chutney 200g,2,330,Hadapsar
+2026-05-24,Garlic Chutney 200g,2,330,Viman Nagar
+2026-06-09,Besan Laddu 500g,3,1020,Kothrud
+2026-04-21,Mango Pickle 500g,3,840,Warje
+2026-04-22,Idli Batter 1kg,3,255,Kharadi
+2026-08-09,Rice Murukku 250g,2,290,Warje
+2026-05-14,Dry Fruit Chikki,2,520,Viman Nagar
+2026-04-12,Garlic Chutney 200g,2,330,Kothrud
+2026-09-26,Urad Papad 200g,2,190,Baner
+2026-04-12,Idli Batter 1kg,3,255,Baner
+2026-09-05,Tomato Chutney 300g,2,380,Viman Nagar
+2026-07-09,Mango Pickle 500g,3,840,Warje
+2026-09-15,Rice Murukku 250g,2,290,Kothrud
+2026-05-04,Garlic Chutney 200g,1,165,Baner
+2026-04-18,Rice Murukku 250g,1,145,Shivaji Nagar
+2026-06-14,Masala Powder 100g,1,120,Viman Nagar
+2026-04-24,Mango Pickle 500g,1,280,Shivaji Nagar
+2026-06-14,Methi Thepla Pack,3,390,Warje
+2026-09-10,Tomato Chutney 300g,1,190,Warje
+2026-04-07,Tomato Chutney 300g,1,190,Shivaji Nagar
+2026-05-01,Garlic Chutney 200g,2,330,Hadapsar
+2026-07-10,Idli Batter 1kg,1,85,Aundh
+2026-04-15,Masala Powder 100g,2,240,Kothrud
+2026-04-19,Pure Ghee 500ml,4,2080,Shivaji Nagar
+2026-06-01,Garlic Chutney 200g,2,330,Viman Nagar
+2026-07-11,Mango Pickle 500g,2,560,Kharadi
+2026-06-18,Besan Laddu 500g,1,340,Kharadi
+2026-09-15,Garlic Chutney 200g,2,330,Warje
+2026-08-19,Besan Laddu 500g,2,680,Kothrud
+2026-04-15,Idli Batter 1kg,2,170,Kothrud
+2026-05-28,Dry Fruit Chikki,3,780,Shivaji Nagar
+2026-04-01,Dry Fruit Chikki,3,780,Hadapsar
+2026-06-18,Besan Laddu 500g,3,1020,Warje
+2026-08-05,Mango Pickle 500g,2,560,Hadapsar
+2026-09-15,Idli Batter 1kg,2,170,Hadapsar
+2026-06-01,Dry Fruit Chikki,1,260,Kothrud
+2026-04-28,Idli Batter 1kg,2,170,Shivaji Nagar
+2026-08-01,Mango Pickle 500g,3,840,Hadapsar
+2026-04-18,Besan Laddu 500g,4,1360,Hadapsar
+2026-05-11,Methi Thepla Pack,2,260,Warje
+2026-06-13,Chakli 250g,4,600,Hadapsar
+2026-07-05,Besan Laddu 500g,2,680,Viman Nagar
+2026-09-23,Urad Papad 200g,2,190,Hadapsar
+2026-06-22,Garlic Chutney 200g,3,495,Kharadi
+2026-08-18,Besan Laddu 500g,4,1360,Kharadi
+2026-09-18,Pure Ghee 500ml,1,520,Viman Nagar
+2026-06-22,Garlic Chutney 200g,2,330,Shivaji Nagar
+2026-08-03,Urad Papad 200g,3,285,Shivaji Nagar
+2026-07-21,Idli Batter 1kg,3,255,Kharadi
+2026-04-03,Rice Murukku 250g,1,145,Warje
+2026-08-10,Methi Thepla Pack,2,260,Shivaji Nagar
+2026-08-01,Masala Powder 100g,1,120,Kothrud
+2026-06-26,Methi Thepla Pack,2,260,Shivaji Nagar
+2026-07-25,Garlic Chutney 200g,2,330,Baner
+2026-07-01,Methi Thepla Pack,4,520,Kharadi
+2026-09-05,Tomato Chutney 300g,4,760,Shivaji Nagar
+2026-05-06,Besan Laddu 500g,4,1360,Kharadi
+2026-05-03,Methi Thepla Pack,3,390,Hadapsar
+2026-08-28,Rice Murukku 250g,3,435,Kharadi
+2026-05-22,Mango Pickle 500g,2,560,Kharadi
+2026-04-26,Rice Murukku 250g,2,290,Kothrud
+2026-04-14,Urad Papad 200g,2,190,Hadapsar
+2026-05-07,Mango Pickle 500g,2,560,Aundh
+2026-04-14,Besan Laddu 500g,2,680,Aundh
+2026-08-01,Chakli 250g,2,300,Shivaji Nagar
+2026-07-23,Dry Fruit Chikki,1,260,Warje
+2026-04-24,Mango Pickle 500g,4,1120,Warje
+2026-07-12,Mango Pickle 500g,1,280,Baner
+2026-09-24,Mango Pickle 500g,3,840,Kharadi
+2026-09-08,Masala Powder 100g,2,240,Warje
+2026-08-01,Tomato Chutney 300g,1,190,Viman Nagar
+2026-09-21,Garlic Chutney 200g,2,330,Kharadi
+2026-06-02,Masala Powder 100g,1,120,Hadapsar
+2026-04-19,Dry Fruit Chikki,2,520,Baner
+2026-06-19,Tomato Chutney 300g,1,190,Warje
+2026-08-31,Urad Papad 200g,1,95,Kothrud
+2026-08-27,Besan Laddu 500g,3,1020,Shivaji Nagar
+2026-07-17,Urad Papad 200g,4,380,Shivaji Nagar
+2026-05-05,Garlic Chutney 200g,3,495,Warje
+2026-08-14,Chakli 250g,4,600,Aundh
+2026-06-01,Chakli 250g,1,150,Warje
+2026-05-01,Rice Murukku 250g,3,435,Baner
+2026-08-05,Mango Pickle 500g,1,280,Kharadi
+2026-06-25,Tomato Chutney 300g,2,380,Viman Nagar
+2026-08-10,Rice Murukku 250g,1,145,Kothrud
+2026-09-08,Chakli 250g,1,150,Baner
+2026-06-24,Idli Batter 1kg,3,255,Shivaji Nagar
+2026-05-24,Chakli 250g,4,600,Baner
+2026-06-07,Tomato Chutney 300g,1,190,Viman Nagar
+2026-09-05,Masala Powder 100g,2,240,Baner
+2026-04-17,Garlic Chutney 200g,4,660,Warje
+2026-08-01,Methi Thepla Pack,2,260,Viman Nagar
+2026-08-21,Besan Laddu 500g,2,680,Viman Nagar
+2026-08-24,Urad Papad 200g,1,95,Kharadi
+2026-07-13,Methi Thepla Pack,2,260,Kharadi
+2026-06-29,Chakli 250g,3,450,Shivaji Nagar
+2026-05-06,Mango Pickle 500g,1,280,Aundh
+2026-07-31,Rice Murukku 250g,1,145,Shivaji Nagar
+2026-06-26,Tomato Chutney 300g,1,190,Aundh
+2026-06-11,Idli Batter 1kg,1,85,Aundh
+2026-09-12,Idli Batter 1kg,1,85,Warje
+2026-09-02,Tomato Chutney 300g,1,190,Viman Nagar
+2026-05-23,Besan Laddu 500g,1,340,Viman Nagar
+2026-05-05,Tomato Chutney 300g,3,570,Kothrud
+2026-08-28,Masala Powder 100g,4,480,Kothrud
+2026-08-09,Pure Ghee 500ml,1,520,Shivaji Nagar
+2026-09-21,Idli Batter 1kg,3,255,Hadapsar
+2026-04-22,Idli Batter 1kg,2,170,Kothrud
+2026-05-22,Chakli 250g,4,600,Warje
+2026-08-27,Masala Powder 100g,1,120,Warje
+2026-08-20,Tomato Chutney 300g,2,380,Kothrud
+2026-04-05,Pure Ghee 500ml,3,1560,Kothrud
+2026-07-29,Methi Thepla Pack,2,260,Aundh
+2026-07-05,Pure Ghee 500ml,2,1040,Warje
+2026-06-15,Dry Fruit Chikki,2,520,Kharadi
+2026-09-16,Tomato Chutney 300g,2,380,Aundh
+2026-06-16,Chakli 250g,1,150,Kothrud
+2026-05-24,Mango Pickle 500g,2,560,Warje
+2026-07-30,Urad Papad 200g,1,95,Warje
+2026-05-22,Urad Papad 200g,4,380,Baner
+2026-07-27,Pure Ghee 500ml,1,520,Baner
+2026-07-01,Chakli 250g,3,450,Baner
+2026-09-09,Chakli 250g,3,450,Viman Nagar
+2026-06-12,Mango Pickle 500g,4,1120,Kothrud
+2026-06-13,Dry Fruit Chikki,2,520,Kothrud
+2026-08-01,Tomato Chutney 300g,1,190,Baner
+2026-08-28,Masala Powder 100g,2,240,Kothrud
+2026-06-16,Dry Fruit Chikki,1,260,Baner
+2026-07-25,Chakli 250g,4,600,Kothrud
+2026-05-14,Besan Laddu 500g,3,1020,Warje
+2026-08-05,Dry Fruit Chikki,2,520,Aundh
+2026-08-06,Tomato Chutney 300g,2,380,Baner
+2026-05-04,Chakli 250g,1,150,Aundh
+2026-04-24,Urad Papad 200g,1,95,Viman Nagar
+2026-07-26,Garlic Chutney 200g,4,660,Warje
+2026-09-10,Chakli 250g,3,450,Kothrud
+2026-06-28,Besan Laddu 500g,1,340,Shivaji Nagar
+2026-05-09,Besan Laddu 500g,1,340,Hadapsar
+2026-06-20,Urad Papad 200g,3,285,Warje
+2026-06-19,Dry Fruit Chikki,3,780,Aundh
+2026-07-12,Urad Papad 200g,1,95,Aundh
+2026-04-25,Chakli 250g,3,450,Hadapsar
+2026-07-21,Dry Fruit Chikki,1,260,Hadapsar
+2026-09-04,Mango Pickle 500g,1,280,Kharadi
+2026-08-23,Methi Thepla Pack,4,520,Aundh
+2026-04-09,Rice Murukku 250g,2,290,Baner
+2026-07-28,Pure Ghee 500ml,2,1040,Warje
+2026-05-12,Garlic Chutney 200g,1,165,Kharadi
+2026-04-23,Pure Ghee 500ml,1,520,Viman Nagar
+2026-08-15,Mango Pickle 500g,4,1120,Kothrud
+2026-04-22,Dry Fruit Chikki,4,1040,Viman Nagar
+2026-08-25,Garlic Chutney 200g,4,660,Kharadi
+2026-06-19,Urad Papad 200g,2,190,Aundh
+2026-07-14,Masala Powder 100g,2,240,Viman Nagar
+2026-04-29,Mango Pickle 500g,3,840,Shivaji Nagar
+2026-06-24,Chakli 250g,2,300,Kothrud
+2026-08-08,Mango Pickle 500g,1,280,Kothrud
+2026-06-09,Pure Ghee 500ml,3,1560,Shivaji Nagar
+2026-04-02,Tomato Chutney 300g,2,380,Kharadi
+2026-09-23,Masala Powder 100g,4,480,Kharadi
+2026-06-21,Methi Thepla Pack,2,260,Kothrud
+2026-08-12,Garlic Chutney 200g,4,660,Viman Nagar
+2026-09-10,Rice Murukku 250g,1,145,Viman Nagar
+2026-06-11,Tomato Chutney 300g,3,570,Kothrud
+2026-04-30,Besan Laddu 500g,2,680,Kothrud
+2026-07-17,Idli Batter 1kg,4,340,Warje
+2026-09-15,Methi Thepla Pack,2,260,Shivaji Nagar
+2026-06-13,Garlic Chutney 200g,2,330,Kharadi
+2026-05-20,Idli Batter 1kg,2,170,Viman Nagar
+2026-04-10,Idli Batter 1kg,1,85,Hadapsar
+2026-06-27,Pure Ghee 500ml,2,1040,Shivaji Nagar
+2026-07-30,Methi Thepla Pack,2,260,Warje
+2026-09-15,Idli Batter 1kg,1,85,Kharadi
+2026-04-02,Pure Ghee 500ml,3,1560,Kothrud
+2026-06-03,Masala Powder 100g,4,480,Viman Nagar
+2026-07-29,Rice Murukku 250g,3,435,Kharadi
+2026-08-27,Pure Ghee 500ml,2,1040,Shivaji Nagar
+2026-08-26,Rice Murukku 250g,2,290,Kothrud
+2026-06-15,Pure Ghee 500ml,4,2080,Aundh
+2026-09-27,Pure Ghee 500ml,3,1560,Shivaji Nagar
+2026-05-04,Tomato Chutney 300g,4,760,Warje
+2026-07-23,Besan Laddu 500g,2,680,Kothrud
+2026-07-21,Mango Pickle 500g,3,840,Hadapsar
+2026-08-10,Mango Pickle 500g,1,280,Aundh
+2026-08-13,Dry Fruit Chikki,1,260,Shivaji Nagar
+2026-08-24,Mango Pickle 500g,2,560,Kharadi
+2026-09-17,Garlic Chutney 200g,1,165,Viman Nagar
+2026-05-25,Tomato Chutney 300g,1,190,Shivaji Nagar
+2026-08-03,Urad Papad 200g,1,95,Aundh
+2026-06-14,Methi Thepla Pack,3,390,Warje
+2026-07-15,Garlic Chutney 200g,2,330,Warje
+2026-05-15,Tomato Chutney 300g,1,190,Aundh
+2026-04-01,Dry Fruit Chikki,1,260,Hadapsar
+2026-04-10,Mango Pickle 500g,2,560,Shivaji Nagar
+2026-06-25,Chakli 250g,3,450,Warje
+2026-05-22,Besan Laddu 500g,1,340,Kothrud
+2026-04-28,Tomato Chutney 300g,2,380,Shivaji Nagar
+2026-04-16,Rice Murukku 250g,2,290,Baner
+2026-05-17,Mango Pickle 500g,1,280,Aundh
+2026-09-13,Masala Powder 100g,2,240,Kharadi
+2026-09-03,Urad Papad 200g,3,285,Kharadi
+2026-07-06,Masala Powder 100g,3,360,Warje
+2026-05-18,Garlic Chutney 200g,1,165,Aundh
+2026-07-30,Dry Fruit Chikki,1,260,Warje
+2026-09-20,Masala Powder 100g,3,360,Aundh
+2026-09-04,Dry Fruit Chikki,4,1040,Viman Nagar
+2026-07-01,Masala Powder 100g,2,240,Warje
+2026-07-30,Garlic Chutney 200g,1,165,Warje
+2026-09-11,Masala Powder 100g,3,360,Kothrud
+2026-06-24,Mango Pickle 500g,2,560,Kharadi
+2026-05-04,Methi Thepla Pack,2,260,Shivaji Nagar
+2026-08-17,Besan Laddu 500g,1,340,Kharadi
+2026-09-24,Idli Batter 1kg,2,170,Shivaji Nagar
+2026-08-10,Methi Thepla Pack,2,260,Aundh
+2026-05-05,Besan Laddu 500g,4,1360,Baner
+2026-04-08,Pure Ghee 500ml,4,2080,Hadapsar
+2026-04-13,Urad Papad 200g,2,190,Kharadi
+2026-06-21,Masala Powder 100g,4,480,Aundh
+2026-05-27,Pure Ghee 500ml,4,2080,Viman Nagar
+2026-04-13,Garlic Chutney 200g,1,165,Kothrud
+2026-04-20,Besan Laddu 500g,3,1020,Kothrud
+2026-06-07,Chakli 250g,1,150,Baner
+2026-04-10,Tomato Chutney 300g,3,570,Viman Nagar
+2026-08-19,Chakli 250g,2,300,Hadapsar
+2026-07-21,Methi Thepla Pack,2,260,Hadapsar
+2026-05-17,Garlic Chutney 200g,2,330,Baner
+2026-05-01,Methi Thepla Pack,1,130,Warje
+2026-09-26,Methi Thepla Pack,2,260,Warje
+2026-04-27,Masala Powder 100g,3,360,Viman Nagar
+2026-04-01,Masala Powder 100g,1,120,Hadapsar
+2026-08-24,Garlic Chutney 200g,1,165,Warje
+2026-05-01,Idli Batter 1kg,3,255,Hadapsar
+2026-09-07,Dry Fruit Chikki,2,520,Hadapsar
+2026-08-02,Dry Fruit Chikki,1,260,Viman Nagar
+2026-07-26,Idli Batter 1kg,3,255,Warje
+2026-04-20,Idli Batter 1kg,1,85,Kothrud
+2026-07-01,Dry Fruit Chikki,4,1040,Shivaji Nagar
+2026-06-11,Besan Laddu 500g,2,680,Hadapsar
+2026-07-23,Pure Ghee 500ml,1,520,Shivaji Nagar
+2026-08-30,Rice Murukku 250g,3,435,Warje
+2026-09-04,Urad Papad 200g,2,190,Warje
+2026-08-22,Tomato Chutney 300g,2,380,Hadapsar
+2026-05-17,Mango Pickle 500g,3,840,Shivaji Nagar
+2026-06-06,Masala Powder 100g,1,120,Warje
+2026-05-10,Rice Murukku 250g,1,145,Baner
+2026-05-28,Methi Thepla Pack,2,260,Warje
+2026-04-03,Dry Fruit Chikki,2,520,Shivaji Nagar
+2026-07-11,Masala Powder 100g,1,120,Kothrud
+2026-05-07,Tomato Chutney 300g,3,570,Kothrud
+2026-04-13,Tomato Chutney 300g,1,190,Hadapsar
+2026-04-04,Garlic Chutney 200g,1,165,Warje
+2026-09-18,Besan Laddu 500g,4,1360,Kharadi
+2026-09-02,Chakli 250g,1,150,Kothrud
+2026-05-20,Garlic Chutney 200g,4,660,Aundh
+2026-07-15,Chakli 250g,3,450,Kharadi
+2026-08-23,Masala Powder 100g,2,240,Viman Nagar
+2026-05-20,Mango Pickle 500g,1,280,Aundh
+2026-09-04,Pure Ghee 500ml,4,2080,Hadapsar
+2026-05-20,Rice Murukku 250g,2,290,Kharadi
+2026-05-08,Idli Batter 1kg,2,170,Hadapsar
+2026-08-15,Tomato Chutney 300g,1,190,Aundh
+2026-07-17,Idli Batter 1kg,3,255,Kothrud
+2026-08-11,Garlic Chutney 200g,1,165,Warje
+2026-07-25,Masala Powder 100g,2,240,Baner
+2026-06-20,Garlic Chutney 200g,1,165,Baner
+2026-07-29,Idli Batter 1kg,3,255,Baner
+2026-05-27,Pure Ghee 500ml,1,520,Hadapsar
+2026-08-24,Pure Ghee 500ml,2,1040,Shivaji Nagar
+2026-07-21,Masala Powder 100g,4,480,Viman Nagar
+2026-07-25,Chakli 250g,2,300,Hadapsar
+2026-07-18,Garlic Chutney 200g,2,330,Hadapsar
+2026-04-18,Chakli 250g,3,450,Hadapsar
+2026-06-10,Masala Powder 100g,3,360,Warje

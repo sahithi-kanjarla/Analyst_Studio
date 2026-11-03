@@ -1,0 +1,120 @@
+{
+  "id": "R01",
+  "business_type": "bakery",
+  "kind": "sales",
+  "what_it_tests": "a clean sales file that already carries a cost column, so margin needs no guessing",
+  "app_should": "ask few or no clarifying questions, and report profit and margin as well as revenue",
+  "generated_by": "scripts/make_review_datasets.py",
+  "seed": 20261103,
+  "files": {
+    "bakery_sales.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "clean: no missing values, no duplicates, one date format, cost column present",
+      "rows": 900,
+      "columns": 13,
+      "column_names": [
+        "order_id",
+        "order_date",
+        "item_code",
+        "item",
+        "category",
+        "quantity",
+        "unit_price",
+        "unit_cost",
+        "amount",
+        "cost_amount",
+        "payment_mode",
+        "customer_type",
+        "outlet"
+      ],
+      "missing_per_column": {
+        "order_id": 0,
+        "order_date": 0,
+        "item_code": 0,
+        "item": 0,
+        "category": 0,
+        "quantity": 0,
+        "unit_price": 0,
+        "unit_cost": 0,
+        "amount": 0,
+        "cost_amount": 0,
+        "payment_mode": 0,
+        "customer_type": 0,
+        "outlet": 0
+      },
+      "exact_duplicate_rows": 0
+    }
+  },
+  "cleaning_applied": [],
+  "answers": {
+    "row_count": {
+      "bakery_sales.csv": 900
+    },
+    "main_total": {
+      "file": "bakery_sales.csv",
+      "column": "amount",
+      "means": "revenue = quantity x unit_price",
+      "value": 536295.0,
+      "rows_counted": 900,
+      "mean": 595.88
+    },
+    "top_3_main_category": {
+      "file": "bakery_sales.csv",
+      "group_by": "category",
+      "ranked_by": "amount",
+      "items": [
+        {
+          "name": "Cakes",
+          "total": 420770.0
+        },
+        {
+          "name": "Breads",
+          "total": 56615.0
+        },
+        {
+          "name": "Cookies",
+          "total": 53660.0
+        }
+      ]
+    },
+    "distinct_key_counts": {
+      "bakery_sales.csv.order_id": 900,
+      "bakery_sales.csv.item_code": 12
+    },
+    "total_cost": {
+      "file": "bakery_sales.csv",
+      "column": "cost_amount",
+      "means": "cost of goods sold = quantity x unit_cost",
+      "value": 332983.0
+    },
+    "duplicates": {
+      "bakery_sales.csv": {
+        "exact_duplicate_rows": 0
+      }
+    },
+    "missing_values_per_column": {
+      "bakery_sales.csv": {
+        "order_id": 0,
+        "order_date": 0,
+        "item_code": 0,
+        "item": 0,
+        "category": 0,
+        "quantity": 0,
+        "unit_price": 0,
+        "unit_cost": 0,
+        "amount": 0,
+        "cost_amount": 0,
+        "payment_mode": 0,
+        "customer_type": 0,
+        "outlet": 0
+      }
+    },
+    "gross_profit": 203312.0,
+    "gross_margin_pct": 37.91,
+    "date_range": [
+      "2026-01-05",
+      "2026-10-01"
+    ]
+  }
+}

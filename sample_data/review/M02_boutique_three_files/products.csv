@@ -1,0 +1,14 @@
+product_id,product_name,category,list_price,cost_price,fabric
+P101,Cotton Kurta,Ethnic,899,520,Denim
+P102,Anarkali Suit,Ethnic,2450,1480,Silk
+P103,Cotton Saree,Sarees,1850,1150,Denim
+P104,Palazzo Pants,Bottoms,640,355,Silk
+P105,Printed Dupatta,Accessories,420,230,Rayon
+P106,Designer Blouse,Sarees,780,430,Denim
+P107,Bridal Lehenga,Ethnic,8900,5600,Georgette
+P108,Denim Jeans,Bottoms,1290,760,Cotton
+P109,Rayon Top,Western,560,305,Denim
+P110,Knit Shrug,Western,690,390,Denim
+P111,Silk Stole,Accessories,540,300,Rayon
+P112,Chikan Kurti,Ethnic,1150,690,Silk
+P999,Discontinued Scarf,Accessories,300,160,Cotton

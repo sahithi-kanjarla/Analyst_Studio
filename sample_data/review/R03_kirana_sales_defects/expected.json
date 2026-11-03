@@ -1,0 +1,172 @@
+{
+  "id": "R03",
+  "business_type": "kirana store",
+  "kind": "sales",
+  "what_it_tests": "duplicates, blanks that mean none, placeholder values (-1, N/A, unknown, -), outliers, a constant column, four date formats, text amounts, currency symbols and negative returns",
+  "app_should": "log every cleaning action, drop the 40 exact duplicates, read the text amounts, treat -1 and the placeholder words as missing, keep the negative returns as returns, and flag the constant column",
+  "generated_by": "scripts/make_review_datasets.py",
+  "seed": 20261103,
+  "files": {
+    "kirana_sales_messy.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "40 exact duplicate rows at the end; amount mixes plain numbers, '₹1,25,000', 'Rs. 1.2k' and bracketed negatives",
+      "rows": 980,
+      "columns": 12,
+      "column_names": [
+        "bill_no",
+        "bill_date",
+        "item",
+        "item_code",
+        "category",
+        "qty",
+        "rate",
+        "amount",
+        "payment_mode",
+        "offer_code",
+        "store_code",
+        "entered_by"
+      ],
+      "missing_per_column": {
+        "bill_no": 0,
+        "bill_date": 0,
+        "item": 0,
+        "item_code": 0,
+        "category": 0,
+        "qty": 0,
+        "rate": 0,
+        "amount": 0,
+        "payment_mode": 18,
+        "offer_code": 946,
+        "store_code": 0,
+        "entered_by": 0
+      },
+      "exact_duplicate_rows": 40
+    }
+  },
+  "cleaning_applied": [
+    "dropped 40 exact duplicate rows",
+    "parsed amount text into numbers (₹ symbol, Indian grouping, 'Rs. 1.2k', brackets = negative)",
+    "qty of -1 treated as missing (qty_clean)",
+    "payment_mode placeholder words (N/A, unknown, -, blank) treated as missing",
+    "blank offer_code read as 'none', not missing",
+    "bill_date parsed from its four formats (every day is 13+, so no day/month ambiguity)"
+  ],
+  "answers": {
+    "row_count": {
+      "kirana_sales_messy.csv": 940
+    },
+    "main_total": {
+      "file": "kirana_sales_messy.csv",
+      "column": "amount_parsed",
+      "means": "revenue, returns counted as negative",
+      "value": 573108.0,
+      "rows_counted": 940,
+      "mean": 609.69
+    },
+    "top_3_main_category": {
+      "file": "kirana_sales_messy.csv",
+      "group_by": "category",
+      "ranked_by": "amount_parsed",
+      "items": [
+        {
+          "name": "Staples",
+          "total": 415384.0
+        },
+        {
+          "name": "Dairy",
+          "total": 63800.0
+        },
+        {
+          "name": "Household",
+          "total": 52694.0
+        }
+      ]
+    },
+    "distinct_key_counts": {
+      "kirana_sales_messy.csv.bill_no": 940,
+      "kirana_sales_messy.csv.item_code": 12,
+      "kirana_sales_messy.csv.payment_mode": 4
+    },
+    "duplicates": {
+      "kirana_sales_messy.csv": {
+        "exact_duplicate_rows": 40
+      }
+    },
+    "missing_values_per_column": {
+      "kirana_sales_messy.csv": {
+        "bill_no": 0,
+        "bill_date": 0,
+        "item": 0,
+        "item_code": 0,
+        "category": 0,
+        "qty": 0,
+        "rate": 0,
+        "amount": 0,
+        "payment_mode": 40,
+        "offer_code": 0,
+        "store_code": 0,
+        "entered_by": 0,
+        "amount_parsed": 0,
+        "qty_clean": 25,
+        "bill_date_parsed": 0
+      }
+    },
+    "constant_columns": [
+      "store_code"
+    ],
+    "return_lines": 30,
+    "total_excluding_returns": 589226.0,
+    "total_of_returns": -16118.0,
+    "rows_with_placeholder_qty": 25,
+    "rows_with_missing_payment_mode": 40,
+    "four_largest_amounts": [
+      46500.0,
+      42600.0,
+      30000.0,
+      9450.0
+    ],
+    "total_if_outliers_excluded": 444558.0
+  },
+  "files_after_cleaning": {
+    "kirana_sales_messy.csv": {
+      "rows": 940,
+      "columns": 15,
+      "column_names": [
+        "bill_no",
+        "bill_date",
+        "item",
+        "item_code",
+        "category",
+        "qty",
+        "rate",
+        "amount",
+        "payment_mode",
+        "offer_code",
+        "store_code",
+        "entered_by",
+        "amount_parsed",
+        "qty_clean",
+        "bill_date_parsed"
+      ],
+      "missing_per_column": {
+        "bill_no": 0,
+        "bill_date": 0,
+        "item": 0,
+        "item_code": 0,
+        "category": 0,
+        "qty": 0,
+        "rate": 0,
+        "amount": 0,
+        "payment_mode": 40,
+        "offer_code": 0,
+        "store_code": 0,
+        "entered_by": 0,
+        "amount_parsed": 0,
+        "qty_clean": 25,
+        "bill_date_parsed": 0
+      },
+      "exact_duplicate_rows": 0
+    }
+  }
+}

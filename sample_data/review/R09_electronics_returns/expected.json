@@ -1,0 +1,143 @@
+{
+  "id": "R09",
+  "business_type": "electronics seller",
+  "kind": "returns",
+  "what_it_tests": "a status column with five states and a reason column that is deliberately blank for delivered orders",
+  "app_should": "treat the blank reasons as 'not applicable' rather than missing data, and report net revenue after refunds alongside gross",
+  "generated_by": "scripts/make_review_datasets.py",
+  "seed": 20261103,
+  "files": {
+    "electronics_returns.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "return_reason and return_date are blank exactly on the Delivered rows, where they do not apply",
+      "rows": 840,
+      "columns": 12,
+      "column_names": [
+        "order_id",
+        "order_date",
+        "item",
+        "sku",
+        "category",
+        "quantity",
+        "amount",
+        "status",
+        "return_reason",
+        "return_date",
+        "refund_amount",
+        "courier"
+      ],
+      "missing_per_column": {
+        "order_id": 0,
+        "order_date": 0,
+        "item": 0,
+        "sku": 0,
+        "category": 0,
+        "quantity": 0,
+        "amount": 0,
+        "status": 0,
+        "return_reason": 593,
+        "return_date": 593,
+        "refund_amount": 0,
+        "courier": 0
+      },
+      "exact_duplicate_rows": 0
+    }
+  },
+  "cleaning_applied": [],
+  "answers": {
+    "row_count": {
+      "electronics_returns.csv": 840
+    },
+    "main_total": {
+      "file": "electronics_returns.csv",
+      "column": "amount",
+      "means": "gross order value, every status included",
+      "value": 1530010.0,
+      "rows_counted": 840,
+      "mean": 1821.44
+    },
+    "top_3_main_category": {
+      "file": "electronics_returns.csv",
+      "group_by": "category",
+      "ranked_by": "amount",
+      "items": [
+        {
+          "name": "Audio",
+          "total": 572488.0
+        },
+        {
+          "name": "Wearables",
+          "total": 318409.0
+        },
+        {
+          "name": "Computer",
+          "total": 268327.0
+        }
+      ]
+    },
+    "top_3_return_reasons_by_amount": {
+      "file": "electronics_returns.csv",
+      "group_by": "return_reason",
+      "ranked_by": "amount",
+      "items": [
+        {
+          "name": "Not as described",
+          "total": 70008.0
+        },
+        {
+          "name": "Battery fault",
+          "total": 46277.0
+        },
+        {
+          "name": "Stopped working",
+          "total": 44124.0
+        }
+      ]
+    },
+    "distinct_key_counts": {
+      "electronics_returns.csv.order_id": 840,
+      "electronics_returns.csv.sku": 12,
+      "electronics_returns.csv.status": 5,
+      "electronics_returns.csv.return_reason": 13
+    },
+    "total_refunded": {
+      "file": "electronics_returns.csv",
+      "column": "refund_amount",
+      "means": "amount refunded on returns and refunds",
+      "value": 290761.0
+    },
+    "duplicates": {
+      "electronics_returns.csv": {
+        "exact_duplicate_rows": 0
+      }
+    },
+    "missing_values_per_column": {
+      "electronics_returns.csv": {
+        "order_id": 0,
+        "order_date": 0,
+        "item": 0,
+        "sku": 0,
+        "category": 0,
+        "quantity": 0,
+        "amount": 0,
+        "status": 0,
+        "return_reason": 593,
+        "return_date": 593,
+        "refund_amount": 0,
+        "courier": 0
+      }
+    },
+    "status_counts": {
+      "Delivered": 593,
+      "Returned": 82,
+      "Cancelled": 82,
+      "Refunded": 54,
+      "Exchanged": 29
+    },
+    "net_revenue_after_refunds": 1239249.0,
+    "revenue_of_delivered_only": 1053996.0,
+    "return_rate_pct_of_orders": 16.19,
+    "rows_where_reason_is_not_applicable": 593
+  }
+}

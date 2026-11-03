@@ -1,0 +1,901 @@
+expense_date,category,amount,payment_method,paid_to,notes
+2026-01-05,marketing,5772.79,Cash,MSEDCL,part payment
+2026-04-03,Product purchase,14541.74,UPI,Staff,part payment
+2026-01-28,Stock,15861.16,Bank transfer,Ad agency,
+2026-05-26,Electricity Bill,5060.95,Cash,Airtel,
+2026-05-22,RENT,39677.08,Bank transfer,Ad agency,
+2026-07-10,salaries,57709.35,Bank transfer,MSEDCL,monthly
+2026-08-14,maintenance,2910.68,Card,Landlord,
+2026-08-13,Product Purchase,12903.79,UPI,Airtel,
+2026-09-08,Salaries,33584.27,Card,Handyman,part payment
+2026-06-11,Rent ,40509.72,Card,Landlord,urgent
+2026-05-26,Internet,1390.79,Cash,MSEDCL,monthly
+2026-05-09,ELECTRICITY,6165.91,Bank transfer,Ad agency,urgent
+2026-02-05,Product Purchase,13836.59,Bank transfer,Beauty Supplies Co,urgent
+2026-01-31,Products,15039.97,UPI,Airtel,
+2026-04-24,Advertising,4928.64,Bank transfer,MSEDCL,
+2026-05-03,Product Purchase,9036.62,Bank transfer,Airtel,
+2026-01-20,Internet,726.35,Card,Beauty Supplies Co,part payment
+2026-01-20,Electricity Bill,5504.27,UPI,Handyman,monthly
+2026-05-22,Rent ,30983.95,Bank transfer,Staff,
+2026-01-19,Ads,5836.91,Cash,Ad agency,
+2026-06-15,WiFi,1258.48,Card,Handyman,urgent
+2026-08-29,Advertising,5596.52,Card,Staff,part payment
+2026-01-04,Maintenance,3556.52,UPI,MSEDCL,monthly
+2026-01-27,WiFi,1268.64,Card,Airtel,
+2026-03-22,Stock,10903.91,Bank transfer,Staff,part payment
+2026-05-07,Rent ,35414.57,Card,Staff,monthly
+2026-07-24,ELECTRICITY,3574.29,Card,Handyman,urgent
+2026-06-10,Advertising,6738.41,Cash,Staff,
+2026-08-25,Salaries,33477.14,Cash,Airtel,monthly
+2026-05-30,Products,10966.94,UPI,Landlord,
+2026-06-07,WiFi,1414.82,Bank transfer,Staff,
+2026-02-15,wifi,1299.46,Bank transfer,Handyman,
+2026-09-12,Salary,54240.23,Card,MSEDCL,part payment
+2026-03-07,Products,11876.77,Card,Landlord,urgent
+2026-02-07,Ads,4656.71,Bank transfer,Landlord,
+2026-04-17,Elec.,4419.44,Bank transfer,Airtel,part payment
+2026-03-01,marketing,7127.41,Card,Handyman,monthly
+2026-04-07,Internet,982.78,Bank transfer,Airtel,monthly
+2026-03-19,Stock,8213.8,UPI,MSEDCL,monthly
+2026-09-29,Internet Bill,729.68,Cash,Staff,
+2026-05-11,Marketing,6463.77,Cash,Beauty Supplies Co,urgent
+2026-01-08,staff salaries,66653.96,Cash,Ad agency,
+2026-02-18,staff salaries,53854.46,UPI,Airtel,
+2026-06-28,Internet,1208.56,Card,Landlord,monthly
+2026-03-22,Product Purchase,10920.69,Card,Landlord,
+2026-07-16,wifi,1070.94,Cash,MSEDCL,urgent
+2026-04-03,Advertising,4944.89,UPI,Staff,monthly
+2026-03-08,Advertising,7403.61,Cash,Landlord,urgent
+2026-08-16,products,9588.08,Bank transfer,Ad agency,part payment
+2026-03-01,Products,9706.82,UPI,Ad agency,urgent
+2026-10-07,internet,1340.82,Card,Staff,monthly
+2026-01-06,marketing,5485.88,Card,Handyman,
+2026-08-28,maintainance,2617.1,UPI,Staff,urgent
+2026-06-28,Shop Rent,48499.7,Cash,Landlord,
+2026-08-04,Maintenence,2753.2,Card,Beauty Supplies Co,monthly
+2026-09-04,marketing,7799.28,Cash,Ad agency,urgent
+2026-06-02,Internet,751.75,Bank transfer,MSEDCL,monthly
+2026-09-27,maintainance,3700.88,Bank transfer,Beauty Supplies Co,
+2026-03-26,Salaries,54996.9,Bank transfer,Landlord,
+2026-08-07,maintenance,4008.01,UPI,MSEDCL,
+2026-09-21,Maintenance,2510.09,Cash,Airtel,urgent
+2026-03-09,wifi,874.01,Cash,Staff,urgent
+2026-07-18,Maintenence,3635.5,Cash,Handyman,urgent
+2026-02-08,Products,10670.12,UPI,Staff,
+2026-03-07,Products,8455.86,Card,MSEDCL,
+2026-04-14,electricity,3857.21,Card,Staff,urgent
+2026-06-07,Product Purchase,8252.66,Cash,Beauty Supplies Co,monthly
+2026-04-03,Maintenance,2796.06,Card,Beauty Supplies Co,
+2026-03-04,Stock,12223.72,Card,MSEDCL,monthly
+2026-08-26,Maintenence,2451.38,Cash,Landlord,
+2026-03-09,Salaries,60822.75,Card,Handyman,part payment
+2026-01-26,Internet,1099.9,Cash,Beauty Supplies Co,urgent
+2026-06-08,staff salaries,42530.63,Bank transfer,Handyman,monthly
+2026-01-11,Product Purchase,10151.91,Bank transfer,Ad agency,monthly
+2026-01-26,Salaries,44480.45,Card,Staff,part payment
+2026-02-20,Maintenence,2946.73,UPI,Ad agency,
+2026-03-19,Rent,33860.44,UPI,Handyman,
+2026-04-25,RENT,24485.23,UPI,Staff,urgent
+2026-03-18,Salaries,30295.01,UPI,Beauty Supplies Co,part payment
+2026-02-25,staff salaries,57501.73,UPI,MSEDCL,part payment
+2026-08-19,products,8530.52,Cash,Ad agency,monthly
+2026-05-01,maintenance,1972.1,UPI,Beauty Supplies Co,
+2026-06-03,Product Purchase,11402.79,UPI,Landlord,urgent
+2026-09-19,salaries,39947.4,Cash,Airtel,
+2026-06-09,Products,8475.08,Card,Beauty Supplies Co,
+2026-07-06,Salary,34419.34,Bank transfer,Beauty Supplies Co,urgent
+2026-03-17,Maintenance,3141.25,Card,Landlord,monthly
+2026-03-13,Salary,65137.32,Bank transfer,Handyman,urgent
+2026-06-16,Product purchase,8342.95,Cash,Landlord,urgent
+2026-08-27,Marketing,4807.3,Card,Ad agency,
+2026-07-06,Rent,23670.5,Cash,MSEDCL,part payment
+2026-02-11,RENT,25646.61,Card,Landlord,part payment
+2026-10-05,Shop Rent,48939.72,Card,Airtel,
+2026-04-21,marketing,7853.72,Cash,Airtel,part payment
+2026-07-01,Advertising,7101.34,Bank transfer,Staff,
+2026-02-27,Internet,1283.74,Card,Landlord,
+2026-04-08,Salaries,53026.49,Card,Staff,
+2026-09-06,Marketing,4948.65,UPI,Landlord,
+2026-02-09,rent,30410.8,Card,Staff,urgent
+2026-08-30,ELECTRICITY,4543.57,Bank transfer,Beauty Supplies Co,urgent
+2026-02-14,internet,833.65,Cash,Beauty Supplies Co,urgent
+2026-09-04,marketing,7262.93,Cash,Staff,part payment
+2026-09-26,Electricity Bill,4875.1,UPI,Staff,part payment
+2026-09-06,salaries,54753.77,Card,Staff,
+2026-04-04,Maintenence,2295.67,Cash,Airtel,monthly
+2026-06-06,Marketing,8341.07,Bank transfer,Airtel,
+2026-03-30,Maintenence,2899.16,Bank transfer,Handyman,monthly
+2026-09-17,rent,38597.22,Cash,Beauty Supplies Co,urgent
+2026-01-16,rent,41566.01,Card,MSEDCL,
+2026-05-23,Electricty,3900.75,UPI,Airtel,part payment
+2026-09-25,RENT,24606.28,Bank transfer,Landlord,
+2026-03-06,RENT,40722.42,UPI,Beauty Supplies Co,urgent
+2026-05-17,Maintenence,3927.06,UPI,Airtel,part payment
+2026-03-01,Product Purchase,12220.28,UPI,Ad agency,
+2026-06-10,Product Purchase,12099.89,Bank transfer,Staff,urgent
+2026-04-03,Shop Rent,39232.65,Card,Beauty Supplies Co,urgent
+2026-03-12,Maintenence,2739.3,Bank transfer,Ad agency,part payment
+2026-03-17,maintainance,3437.13,Card,Airtel,
+2026-04-11,Marketing,8014.74,Bank transfer,MSEDCL,
+2026-01-06,Electricity,4631.27,Card,Airtel,
+2026-08-03,Maintenance,1897.63,UPI,Handyman,part payment
+2026-01-15,WiFi,948.48,UPI,Beauty Supplies Co,
+2026-03-18,rent,41722.52,Card,Landlord,part payment
+2026-05-16,Elec.,4343.16,Cash,Ad agency,monthly
+2026-10-06,Electricty,5838.46,Bank transfer,Staff,urgent
+2026-03-13,Marketing,4649.63,Card,Beauty Supplies Co,part payment
+2026-05-14,Electricity Bill,5201.05,UPI,MSEDCL,part payment
+2026-03-18,electricity,6211.75,Bank transfer,Staff,monthly
+2026-02-19,Internet,1225.79,Bank transfer,Handyman,monthly
+2026-09-19,Electricity Bill,4274.04,Cash,Airtel,part payment
+2026-01-13,marketing,4396.79,UPI,Airtel,monthly
+2026-08-20,Internet Bill,1539.57,Bank transfer,Staff,
+2026-05-29,Advertising,4299.92,Bank transfer,Handyman,
+2026-01-17,Advertising,7949.84,Bank transfer,MSEDCL,monthly
+2026-05-12,maintenance,1882.69,Bank transfer,Landlord,urgent
+2026-01-17,maintenance,3325.58,UPI,MSEDCL,
+2026-07-11,Shop Rent,47085.22,Cash,Staff,urgent
+2026-05-23,Staff Salary,57336.18,UPI,MSEDCL,monthly
+2026-02-16,Advertising,7452.03,UPI,Landlord,monthly
+2026-07-08,RENT,28765.95,Card,Ad agency,part payment
+2026-04-24,staff salaries,58807.24,Cash,Staff,
+2026-01-18,Internet Bill,1153.51,UPI,Ad agency,
+2026-07-31,Rent,30303.28,Card,Handyman,urgent
+2026-02-04,Products,9012.49,Card,MSEDCL,urgent
+2026-06-17,Internet,933.8,Cash,Landlord,monthly
+2026-03-29,Internet Bill,1627.62,Bank transfer,Beauty Supplies Co,
+2026-05-21,wifi,1221.97,UPI,MSEDCL,
+2026-03-01,maintenance,3967.35,UPI,Landlord,monthly
+2026-06-17,rent,24870.72,UPI,Airtel,
+2026-08-12,Electricity Bill,3039.59,Bank transfer,Ad agency,
+2026-03-10,Maintenence,2466.88,Card,Ad agency,part payment
+2026-05-07,Electricty,3179.23,UPI,Handyman,
+2026-06-07,Ads,7370.98,Card,Landlord,
+2026-07-31,RENT,25153.59,Card,Handyman,urgent
+2026-06-09,products,13115.04,Bank transfer,Staff,part payment
+2026-08-08,maintainance,2659.73,Card,MSEDCL,part payment
+2026-03-28,marketing,7213.3,UPI,Beauty Supplies Co,part payment
+2026-06-21,Shop Rent,28722.13,Cash,Beauty Supplies Co,part payment
+2026-08-16,ELECTRICITY,4458.35,Card,Landlord,part payment
+2026-02-05,Shop Rent,40503.58,Cash,Beauty Supplies Co,part payment
+2026-05-27,maintainance,1893.98,UPI,Staff,
+2026-06-27,Advertising,8243.17,UPI,Airtel,urgent
+2026-04-30,maintainance,3058.54,UPI,MSEDCL,part payment
+2026-05-02,salaries,55212.1,Cash,Staff,urgent
+2026-02-21,Shop Rent,24134.43,Cash,Landlord,part payment
+2026-04-18,Electricty,4852.98,Card,MSEDCL,
+2026-03-02,ELECTRICITY,5526.99,Cash,Beauty Supplies Co,
+2026-09-28,maintainance,3855.19,Bank transfer,MSEDCL,part payment
+2026-09-27,RENT,37733.31,Cash,MSEDCL,urgent
+2026-06-22,rent,36843.4,UPI,MSEDCL,monthly
+2026-03-13,Internet,1234.82,Cash,MSEDCL,
+2026-04-03,internet,1419.8,Cash,Landlord,
+2026-06-06,Products,15454.77,Card,Landlord,part payment
+2026-09-04,Product purchase,12636.35,Bank transfer,Landlord,part payment
+2026-01-11,Electricity,6096.85,Card,MSEDCL,
+2026-09-19,Rent ,33164.01,Bank transfer,Ad agency,part payment
+2026-01-06,Electricity Bill,5409.61,Bank transfer,MSEDCL,monthly
+2026-04-02,Stock,12990.87,Card,Beauty Supplies Co,part payment
+2026-02-04,Advertising,6101.83,Cash,MSEDCL,
+2026-08-30,RENT,44501.66,Bank transfer,Landlord,part payment
+2026-02-17,Marketing,5017.94,Cash,Ad agency,part payment
+2026-01-27,Marketing,5230.2,Bank transfer,Staff,part payment
+2026-04-10,wifi,720.23,Card,Landlord,urgent
+2026-03-31,salaries,36477.15,Card,MSEDCL,urgent
+2026-06-03,electricity,3374.97,Bank transfer,Ad agency,monthly
+2026-08-28,Marketing,7188.41,UPI,MSEDCL,
+2026-08-08,Ads,6976.77,Bank transfer,Staff,
+2026-01-21,Internet Bill,962.61,Bank transfer,MSEDCL,
+2026-05-20,Staff Salary,34597.27,UPI,Landlord,part payment
+2026-02-28,rent,27834.35,UPI,Ad agency,monthly
+2026-03-27,Electricity,4302.27,UPI,Beauty Supplies Co,
+2026-05-14,wifi,1511.21,Card,Airtel,
+2026-03-20,Ads,6575.06,UPI,Airtel,urgent
+2026-08-05,marketing,7768.45,Cash,Airtel,monthly
+2026-07-15,Salaries,39374.41,Card,Beauty Supplies Co,
+2026-02-08,WiFi,1448.71,Card,Beauty Supplies Co,
+2026-07-12,wifi,1207.02,Bank transfer,MSEDCL,monthly
+2026-06-30,marketing,7108.21,Bank transfer,Ad agency,part payment
+2026-04-14,Rent,30728.25,Card,Handyman,
+2026-08-05,Products,11373.15,Bank transfer,Staff,
+2026-04-22,RENT,24895.13,Bank transfer,Beauty Supplies Co,part payment
+2026-01-18,Elec.,3921.2,Card,Beauty Supplies Co,
+2026-03-15,RENT,48274.42,Bank transfer,Beauty Supplies Co,monthly
+2026-02-12,staff salaries,47871.57,Cash,Landlord,
+2026-07-28,salaries,54200.49,Bank transfer,Landlord,
+2026-03-12,Salaries,30891.18,Card,Airtel,urgent
+2026-02-16,Stock,14552.17,Cash,Landlord,urgent
+2026-06-20,Maintenance,2558.42,Card,MSEDCL,
+2026-06-08,Maintenance,2121.39,Bank transfer,MSEDCL,
+2026-08-05,maintainance,3935.19,Bank transfer,Handyman,
+2026-07-08,Salary,40490.87,Cash,Handyman,urgent
+2026-09-02,staff salaries,51652.72,Card,Landlord,monthly
+2026-09-24,Shop Rent,40728.24,Card,Staff,monthly
+2026-01-26,Electricity Bill,5985.52,Card,Landlord,part payment
+2026-06-29,staff salaries,37444.2,Card,Handyman,
+2026-04-02,Product Purchase,11619.9,UPI,Beauty Supplies Co,urgent
+2026-08-08,Salary,49189.11,Bank transfer,Airtel,
+2026-04-07,Maintenance,4035.19,UPI,Airtel,
+2026-02-09,Salaries,40817.73,UPI,MSEDCL,
+2026-06-29,electricity,4198.15,UPI,Landlord,monthly
+2026-01-29,Product purchase,11504.62,UPI,MSEDCL,
+2026-02-04,marketing,7402.11,Cash,Airtel,
+2026-09-27,Electricty,4843.62,Cash,Staff,
+2026-04-18,Maintenance,1877.58,Bank transfer,Handyman,monthly
+2026-04-08,internet,1636.06,Bank transfer,Landlord,
+2026-05-01,Internet Bill,852.66,UPI,Ad agency,monthly
+2026-07-19,Electricity,3252.67,Card,Ad agency,part payment
+2026-02-23,Salary,31753.64,UPI,Beauty Supplies Co,
+2026-06-01,maintainance,2238.09,Cash,MSEDCL,
+2026-02-04,marketing,5363.57,Bank transfer,Staff,monthly
+2026-03-14,Stock,11563.97,Bank transfer,Handyman,monthly
+2026-07-19,Internet,1276.31,Card,Beauty Supplies Co,monthly
+2026-06-24,Maintenance,2608.11,UPI,Airtel,monthly
+2026-09-10,Marketing,5507.84,Card,Beauty Supplies Co,part payment
+2026-02-27,Ads,4039.89,Card,Landlord,part payment
+2026-09-06,maintainance,3422.15,Card,Airtel,part payment
+2026-08-24,Salary,50675.62,Cash,Ad agency,
+2026-06-14,WiFi,1601.73,UPI,Landlord,
+2026-09-30,Salary,52293.83,Cash,Handyman,part payment
+2026-02-27,Maintenance,3557.71,Bank transfer,Handyman,urgent
+2026-01-22,Maintenance,2963.88,UPI,Handyman,monthly
+2026-04-11,Shop Rent,35351.73,Card,Landlord,
+2026-01-30,Rent ,41421.32,Cash,Landlord,
+2026-03-20,ELECTRICITY,3141.12,UPI,Landlord,
+2026-02-18,Marketing,8219.41,UPI,Beauty Supplies Co,
+2026-05-24,Advertising,5671.96,UPI,Airtel,urgent
+2026-09-24,Salaries,45550.11,Bank transfer,MSEDCL,
+2026-09-08,products,10245.95,Bank transfer,Landlord,
+2026-02-28,Internet,884.45,Bank transfer,Staff,
+2026-07-14,ELECTRICITY,3224.69,Cash,Landlord,monthly
+2026-01-19,Electricity,4123.63,UPI,MSEDCL,part payment
+2026-07-11,electricity,4808.02,UPI,Ad agency,part payment
+2026-08-19,Salary,35006.03,UPI,Staff,urgent
+2026-09-04,Ads,5805.91,UPI,Staff,
+2026-02-09,Rent,36053.55,UPI,Landlord,
+2026-05-10,ELECTRICITY,3705.34,Card,Landlord,
+2026-04-06,electricity,4163.02,UPI,Airtel,monthly
+2026-01-11,marketing,4937.92,Cash,Beauty Supplies Co,part payment
+2026-07-29,Electricty,4197.27,Cash,Airtel,urgent
+2026-05-11,Ads,6195.62,Bank transfer,Ad agency,monthly
+2026-05-14,Maintenence,3846.2,Bank transfer,Handyman,urgent
+2026-04-18,ELECTRICITY,3857.98,Cash,Landlord,
+2026-02-07,Rent ,30413.29,Cash,Landlord,
+2026-02-11,Maintenance,3241.58,UPI,Ad agency,
+2026-02-20,Electricity Bill,3776.07,UPI,Ad agency,part payment
+2026-06-21,maintainance,1967.04,Cash,Handyman,urgent
+2026-05-04,Maintenance,2970.78,Bank transfer,Staff,monthly
+2026-01-15,Marketing,8177.49,UPI,Beauty Supplies Co,
+2026-04-11,Electricty,5352.16,Card,Beauty Supplies Co,urgent
+2026-06-19,Product Purchase,13008.84,Cash,Beauty Supplies Co,monthly
+2026-01-11,salaries,41623.93,Cash,Staff,part payment
+2026-08-26,maintainance,3079.1,Bank transfer,Landlord,
+2026-09-03,Salary,64716.71,Cash,MSEDCL,
+2026-06-20,RENT,42451.36,Card,Ad agency,monthly
+2026-08-25,marketing,5095.34,Card,MSEDCL,urgent
+2026-09-06,marketing,4453.92,Cash,Airtel,urgent
+2026-06-28,Rent ,30239.81,Cash,MSEDCL,monthly
+2026-05-29,Electricity,3290.04,Bank transfer,Handyman,part payment
+2026-04-22,Elec.,4706.06,Card,Staff,part payment
+2026-07-27,wifi,793.92,Card,Beauty Supplies Co,
+2026-06-12,Marketing,4739.35,Cash,MSEDCL,
+2026-06-19,Marketing,5480.08,Card,Handyman,urgent
+2026-04-13,WiFi,1521.04,UPI,Handyman,
+2026-07-20,Electricty,4500.58,Bank transfer,Landlord,monthly
+2026-02-10,marketing,7633.57,Card,Staff,
+2026-07-25,Shop Rent,40540.46,UPI,Handyman,urgent
+2026-06-30,Maintenence,3196.17,Cash,Beauty Supplies Co,
+2026-04-28,Electricity Bill,5619.14,Cash,Handyman,urgent
+2026-05-19,ELECTRICITY,4499.57,Bank transfer,Airtel,monthly
+2026-02-11,Products,11307.68,UPI,Handyman,monthly
+2026-01-01,internet,1145.26,Bank transfer,Ad agency,urgent
+2026-01-04,Maintenance,2692.69,Cash,Beauty Supplies Co,
+2026-05-03,internet,1450.62,Cash,Airtel,part payment
+2026-08-15,Salary,30319.92,Card,Staff,part payment
+2026-06-24,rent,27685.59,UPI,Airtel,part payment
+2026-02-02,Maintenence,2914.69,Cash,MSEDCL,
+2026-07-15,Rent ,41290.37,UPI,MSEDCL,part payment
+2026-09-04,Salary,33611.94,Cash,Beauty Supplies Co,urgent
+2026-05-20,wifi,971.46,Bank transfer,Staff,part payment
+2026-04-05,rent,46748.92,Bank transfer,Handyman,monthly
+2026-05-10,WiFi,729.21,Card,Staff,
+2026-03-12,internet,1392.27,Bank transfer,Airtel,part payment
+2026-07-05,marketing,5553.09,Cash,Airtel,monthly
+2026-08-04,Rent ,37817.14,UPI,MSEDCL,
+2026-09-01,products,8843.65,Bank transfer,Handyman,urgent
+2026-05-08,Product purchase,14834.15,Cash,Airtel,monthly
+2026-03-26,Stock,10219.29,Card,Beauty Supplies Co,
+2026-02-02,internet,816.37,Cash,Landlord,urgent
+2026-07-17,maintenance,1862.64,Bank transfer,Ad agency,part payment
+2026-03-07,Product Purchase,9540.32,Cash,Airtel,part payment
+2026-07-02,internet,946.92,Bank transfer,Beauty Supplies Co,
+2026-05-28,Electricity,3605.98,Cash,Landlord,
+2026-01-16,Maintenence,3291.11,Bank transfer,Handyman,
+2026-09-26,Product Purchase,12488.41,Cash,Airtel,part payment
+2026-06-11,Elec.,4484.07,Cash,Beauty Supplies Co,
+2026-03-15,Salary,32362.75,UPI,Handyman,part payment
+2026-07-31,Maintenance,1976.02,Card,Ad agency,monthly
+2026-07-20,Maintenence,1990.14,Cash,Ad agency,
+2026-01-05,Internet,1436.55,Cash,MSEDCL,part payment
+2026-05-09,maintainance,4007.82,Card,Ad agency,
+2026-07-30,Salaries,48450.04,Card,Handyman,part payment
+2026-05-07,Shop Rent,35585.05,UPI,Staff,urgent
+2026-04-21,internet,1196.08,Cash,Beauty Supplies Co,part payment
+2026-07-04,maintenance,1816.38,Cash,Beauty Supplies Co,urgent
+2026-05-11,maintenance,2349.83,Cash,MSEDCL,monthly
+2026-02-27,wifi,821.18,Cash,MSEDCL,urgent
+2026-04-29,Salary,34107.91,Cash,Ad agency,
+2026-02-13,rent,33529.72,UPI,Ad agency,monthly
+2026-02-08,WiFi,1463.52,Card,Handyman,monthly
+2026-07-13,maintainance,3115.22,Card,Handyman,
+2026-01-15,electricity,5974.02,Cash,Landlord,
+2026-01-08,Product purchase,13900.25,UPI,Landlord,monthly
+2026-04-28,marketing,5512.12,Cash,Handyman,
+2026-09-14,Internet Bill,913.35,Card,Airtel,monthly
+2026-06-09,Electricity Bill,3222.26,UPI,Beauty Supplies Co,urgent
+2026-05-22,maintenance,1991.72,Cash,Handyman,urgent
+2026-10-04,maintainance,3065.27,Cash,Staff,
+2026-03-12,Salary,44260.29,Bank transfer,Landlord,urgent
+2026-04-04,internet,790.71,UPI,Airtel,
+2026-03-30,Maintenance,3780.58,UPI,Airtel,
+2026-02-25,salaries,52949.21,UPI,Handyman,
+2026-07-26,Maintenance,3603.9,Cash,Beauty Supplies Co,monthly
+2026-07-13,rent,21548.24,UPI,Handyman,part payment
+2026-07-31,Shop Rent,31367.26,Bank transfer,Handyman,
+2026-03-26,maintainance,2213.8,Bank transfer,Landlord,urgent
+2026-01-31,Electricty,4965.5,Bank transfer,Staff,
+2026-01-15,Maintenance,2804.64,Cash,MSEDCL,
+2026-01-04,Salary,34374.82,Cash,Staff,monthly
+2026-05-18,Maintenence,3378.81,Card,Airtel,monthly
+2026-09-19,Shop Rent,26692.42,UPI,MSEDCL,
+2026-04-20,WiFi,1614.65,Cash,Beauty Supplies Co,monthly
+2026-04-06,rent,25174.77,Cash,Airtel,
+2026-04-25,Maintenence,2579.04,Card,Ad agency,
+2026-01-16,Electricty,3431.53,Card,Handyman,urgent
+2026-05-02,Salaries,62423.61,Card,Airtel,part payment
+2026-06-28,Rent,35336.19,Card,Ad agency,
+2026-05-19,Products,11357.44,UPI,Beauty Supplies Co,
+2026-01-17,Salaries,48942.91,UPI,Staff,urgent
+2026-07-24,electricity,4388.17,Card,Ad agency,urgent
+2026-01-20,salaries,35507.53,Bank transfer,Handyman,
+2026-07-25,Stock,10954.56,UPI,Staff,monthly
+2026-04-11,Advertising,6271.87,Card,Airtel,
+2026-02-02,marketing,6225.61,Card,Landlord,part payment
+2026-02-05,Electricity,4495.5,UPI,Airtel,monthly
+2026-07-04,Rent ,27058.04,Bank transfer,Handyman,urgent
+2026-08-31,staff salaries,56021.85,Bank transfer,Handyman,part payment
+2026-09-18,Salaries,49573.81,Bank transfer,Staff,urgent
+2026-01-24,salaries,60175.25,UPI,Beauty Supplies Co,urgent
+2026-06-19,Stock,7529.05,Bank transfer,Airtel,
+2026-03-01,RENT,44451.73,UPI,Staff,
+2026-06-13,Electricty,6032.4,Card,Ad agency,
+2026-03-22,Internet Bill,1655.01,Bank transfer,Landlord,monthly
+2026-08-27,RENT,30424.85,Cash,Landlord,urgent
+2026-08-20,Electricity Bill,5214.64,UPI,Ad agency,
+2026-10-02,Maintenance,3248.25,Cash,Handyman,
+2026-01-15,Product Purchase,8617.73,Bank transfer,Landlord,
+2026-09-26,Elec.,4997.55,Cash,Ad agency,urgent
+2026-09-09,internet,1070.9,UPI,Ad agency,
+2026-04-03,Product purchase,14294.96,Card,Beauty Supplies Co,part payment
+2026-05-11,staff salaries,56559.05,Cash,Beauty Supplies Co,monthly
+2026-02-27,Rent ,41251.63,Card,Landlord,
+2026-07-02,Marketing,7696.58,Bank transfer,Landlord,part payment
+2026-02-21,Rent ,38220.3,Bank transfer,Handyman,part payment
+2026-05-24,Product Purchase,11115.94,Card,Airtel,
+2026-03-04,Maintenence,3465.65,UPI,Handyman,part payment
+2026-07-15,wifi,865.93,Card,Beauty Supplies Co,
+2026-09-28,ELECTRICITY,6039.18,Bank transfer,MSEDCL,
+2026-09-23,Shop Rent,34827.35,Card,MSEDCL,
+2026-09-07,RENT,31052.84,Cash,Beauty Supplies Co,urgent
+2026-07-11,marketing,5959.86,Cash,Landlord,
+2026-01-17,products,16598.33,Bank transfer,Beauty Supplies Co,urgent
+2026-07-07,Maintenance,2672.6,Bank transfer,Landlord,
+2026-07-28,Elec.,3750.0,Card,Beauty Supplies Co,urgent
+2026-05-06,Stock,11011.68,UPI,Ad agency,monthly
+2026-01-05,marketing,7063.71,Bank transfer,Ad agency,part payment
+2026-02-20,RENT,35692.05,Bank transfer,MSEDCL,part payment
+2026-06-12,Stock,11656.11,Cash,Ad agency,monthly
+2026-06-09,ELECTRICITY,5319.87,Card,Landlord,part payment
+2026-07-06,Internet Bill,1398.46,Card,Landlord,part payment
+2026-08-15,Products,7453.7,Bank transfer,Landlord,
+2026-03-20,Electricity,3977.96,Card,Staff,urgent
+2026-07-05,products,10873.37,Card,Ad agency,
+2026-01-23,maintainance,1801.15,Cash,Staff,monthly
+2026-02-24,marketing,6269.89,Cash,Staff,urgent
+2026-01-09,Salary,29681.62,UPI,MSEDCL,
+2026-02-04,electricity,3188.57,Bank transfer,Staff,urgent
+2026-08-08,Staff Salary,58674.34,UPI,Landlord,
+2026-08-13,Product purchase,10723.74,Card,MSEDCL,urgent
+2026-03-28,Elec.,2707.85,Bank transfer,Landlord,
+2026-07-01,Rent ,28533.7,Bank transfer,Staff,
+2026-04-07,Internet Bill,740.14,Bank transfer,Ad agency,
+2026-07-29,electricity,5769.17,Cash,Airtel,monthly
+2026-02-22,maintainance,4009.5,Cash,Landlord,urgent
+2026-02-22,Maintenance,2188.21,UPI,Airtel,part payment
+2026-03-30,Marketing,7494.29,UPI,MSEDCL,monthly
+2026-09-12,Advertising,4844.28,Bank transfer,Airtel,urgent
+2026-03-01,Products,16501.33,UPI,Ad agency,monthly
+2026-09-24,Product purchase,9792.35,Card,Landlord,
+2026-03-28,Elec.,6051.45,Bank transfer,Handyman,monthly
+2026-01-07,wifi,954.49,Card,MSEDCL,
+2026-01-04,staff salaries,55360.96,Cash,Airtel,urgent
+2026-07-05,Staff Salary,57715.27,Cash,Handyman,monthly
+2026-07-09,maintenance,3808.98,Cash,MSEDCL,monthly
+2026-10-07,salaries,51635.9,Bank transfer,Ad agency,part payment
+2026-08-31,Internet Bill,1441.67,Card,Handyman,monthly
+2026-08-14,wifi,1220.88,Card,Handyman,monthly
+2026-03-02,Product Purchase,16016.53,Card,Landlord,
+2026-01-31,staff salaries,30601.9,Cash,Beauty Supplies Co,urgent
+2026-08-10,Stock,10386.5,Cash,Staff,monthly
+2026-08-26,WiFi,820.57,Card,Beauty Supplies Co,
+2026-05-29,ELECTRICITY,3718.99,Card,Staff,part payment
+2026-06-11,Marketing,4889.38,Card,MSEDCL,urgent
+2026-08-27,wifi,1503.79,Bank transfer,Handyman,urgent
+2026-05-04,staff salaries,64714.91,Bank transfer,MSEDCL,
+2026-05-07,Salary,54821.77,Cash,Handyman,
+2026-06-26,Shop Rent,29765.01,Card,Airtel,
+2026-03-30,Electricity Bill,4593.27,Cash,Handyman,monthly
+2026-06-15,Ads,6969.56,Cash,Landlord,monthly
+2026-05-24,rent,21784.72,Card,Ad agency,urgent
+2026-03-21,maintainance,2930.74,UPI,Airtel,monthly
+2026-10-01,Ads,4951.9,UPI,Handyman,
+2026-04-02,marketing,6993.71,Bank transfer,Handyman,urgent
+2026-03-11,staff salaries,32063.84,UPI,MSEDCL,monthly
+2026-08-03,ELECTRICITY,3388.91,Cash,Landlord,part payment
+2026-04-28,internet,1111.91,Bank transfer,Beauty Supplies Co,
+2026-09-26,Maintenance,3155.92,Card,Ad agency,
+2026-06-01,Stock,12350.05,UPI,Landlord,monthly
+2026-02-20,Staff Salary,34735.41,Bank transfer,MSEDCL,monthly
+2026-02-05,Marketing,6633.03,Card,MSEDCL,
+2026-01-14,maintenance,3173.17,UPI,Beauty Supplies Co,
+2026-08-18,Electricity Bill,5358.06,Bank transfer,Airtel,urgent
+2026-02-17,Products,12525.32,Cash,MSEDCL,
+2026-03-18,salaries,33878.2,Cash,Handyman,
+2026-06-29,RENT,36175.59,Bank transfer,Handyman,
+2026-01-12,Shop Rent,31535.24,UPI,Ad agency,urgent
+2026-05-19,Maintenance,2420.76,Card,Airtel,
+2026-05-27,products,12000.08,UPI,Beauty Supplies Co,
+2026-02-15,maintainance,3723.19,Bank transfer,Staff,
+2026-06-12,maintainance,3277.39,Card,Landlord,monthly
+2026-03-08,Marketing,8289.73,Card,Ad agency,urgent
+2026-01-16,Internet,988.59,Card,Staff,monthly
+2026-03-26,Elec.,5154.84,Bank transfer,Landlord,
+2026-02-25,marketing,4654.44,Card,Handyman,
+2026-04-23,wifi,1079.39,Card,Handyman,
+2026-09-23,Product Purchase,12973.28,UPI,Beauty Supplies Co,
+2026-09-18,ELECTRICITY,5860.92,UPI,Landlord,part payment
+2026-06-13,Products,14197.25,Card,Beauty Supplies Co,
+2026-04-26,maintenance,3414.09,Bank transfer,Ad agency,urgent
+2026-06-09,Rent,31065.88,Cash,Staff,
+2026-02-22,electricity,5622.35,Card,Ad agency,monthly
+2026-07-31,RENT,28947.95,UPI,Staff,monthly
+2026-05-15,staff salaries,54919.11,Bank transfer,Ad agency,
+2026-01-25,Products,9931.07,UPI,Staff,urgent
+2026-01-24,Product purchase,11316.72,Cash,Staff,
+2026-02-01,Maintenance,4127.61,Bank transfer,Handyman,monthly
+2026-09-08,maintainance,3299.1,Card,Airtel,part payment
+2026-01-15,maintenance,2572.33,Cash,Beauty Supplies Co,monthly
+2026-07-15,Electricity,3548.15,Card,Airtel,urgent
+2026-07-23,Ads,4013.97,Cash,Ad agency,part payment
+2026-01-24,WiFi,1028.63,Bank transfer,Handyman,
+2026-08-30,maintainance,3909.15,Cash,Landlord,
+2026-01-12,Maintenance,3291.39,Bank transfer,Ad agency,monthly
+2026-06-04,Elec.,4494.93,UPI,Landlord,
+2026-02-07,Electricty,5498.02,Card,Staff,part payment
+2026-06-23,Advertising,8281.05,Cash,Staff,
+2026-02-16,Shop Rent,29190.14,Card,Airtel,
+2026-09-04,Maintenence,3471.78,Card,Landlord,urgent
+2026-03-25,Maintenence,2452.1,UPI,Beauty Supplies Co,
+2026-03-31,electricity,4322.9,Cash,Staff,monthly
+2026-01-30,Product purchase,9115.44,Bank transfer,MSEDCL,urgent
+2026-01-27,Products,8408.74,Bank transfer,MSEDCL,part payment
+2026-02-16,Electricty,4452.87,Bank transfer,MSEDCL,
+2026-06-18,Internet,1651.92,Bank transfer,MSEDCL,
+2026-05-22,electricity,3349.74,Bank transfer,MSEDCL,part payment
+2026-02-12,Staff Salary,41768.09,UPI,Beauty Supplies Co,
+2026-08-31,rent,37585.81,Bank transfer,Beauty Supplies Co,
+2026-01-09,Rent ,22001.1,Cash,Landlord,
+2026-01-14,Shop Rent,45154.57,UPI,Beauty Supplies Co,
+2026-01-03,Salary,48355.48,UPI,Staff,monthly
+2026-04-11,maintainance,3042.48,Card,Handyman,part payment
+2026-02-03,Electricity Bill,3720.02,Bank transfer,Airtel,monthly
+2026-08-09,salaries,35491.24,Cash,Airtel,monthly
+2026-10-07,Advertising,6866.11,UPI,Staff,
+2026-03-30,Stock,16541.17,UPI,Landlord,
+2026-05-02,maintenance,2970.36,Cash,MSEDCL,
+2026-09-26,marketing,7475.89,Card,Airtel,urgent
+2026-09-12,Maintenence,4179.47,Bank transfer,Airtel,
+2026-08-30,maintainance,2535.65,Bank transfer,Staff,
+2026-01-12,salaries,34710.46,Bank transfer,Ad agency,monthly
+2026-01-11,maintainance,3828.29,UPI,Beauty Supplies Co,urgent
+2026-09-19,rent,45312.77,Bank transfer,Airtel,monthly
+2026-01-03,marketing,6761.9,UPI,Ad agency,urgent
+2026-01-28,rent,27682.1,Bank transfer,Beauty Supplies Co,urgent
+2026-07-05,Marketing,5647.23,Bank transfer,MSEDCL,monthly
+2026-02-14,RENT,41346.01,UPI,MSEDCL,urgent
+2026-01-01,Internet,1253.91,Card,MSEDCL,urgent
+2026-03-21,Maintenence,2155.7,Bank transfer,Airtel,monthly
+2026-03-15,Advertising,3625.03,Cash,Airtel,
+2026-02-15,wifi,786.53,Bank transfer,Beauty Supplies Co,
+2026-01-31,ELECTRICITY,4699.57,Card,Ad agency,
+2026-07-14,maintainance,3240.67,Bank transfer,Beauty Supplies Co,urgent
+2026-08-04,marketing,7631.21,Card,Ad agency,urgent
+2026-02-04,wifi,1150.79,UPI,Handyman,
+2026-02-23,Stock,11508.23,UPI,Handyman,urgent
+2026-02-22,Marketing,5800.76,Bank transfer,Landlord,
+2026-05-11,Salaries,59173.83,Cash,MSEDCL,
+2026-04-29,marketing,6774.51,Cash,Landlord,
+2026-08-05,Rent,48748.38,UPI,Beauty Supplies Co,
+2026-08-18,Stock,16650.95,Bank transfer,MSEDCL,urgent
+2026-03-20,wifi,917.5,Cash,Beauty Supplies Co,
+2026-05-11,Product Purchase,7572.06,Cash,Landlord,monthly
+2026-01-30,Products,10283.81,UPI,Landlord,
+2026-09-14,RENT,32387.65,UPI,MSEDCL,urgent
+2026-08-24,Product Purchase,14799.95,Bank transfer,Ad agency,
+2026-06-17,Internet Bill,1403.46,Cash,Beauty Supplies Co,urgent
+2026-04-24,Electricty,5737.14,Card,MSEDCL,urgent
+2026-09-29,Product purchase,11606.3,Cash,MSEDCL,monthly
+2026-08-31,Stock,15607.14,Bank transfer,Handyman,monthly
+2026-07-25,Elec.,3592.95,Bank transfer,Beauty Supplies Co,
+2026-09-19,electricity,3405.09,Card,MSEDCL,
+2026-06-10,Internet,899.06,UPI,Ad agency,urgent
+2026-02-05,Internet Bill,1106.95,Bank transfer,Beauty Supplies Co,
+2026-07-24,internet,1528.94,Card,Staff,urgent
+2026-04-09,wifi,1270.23,Bank transfer,Beauty Supplies Co,urgent
+2026-08-23,staff salaries,57963.38,Card,Handyman,part payment
+2026-09-24,Rent ,38400.83,Bank transfer,Ad agency,
+2026-08-03,Maintenance,3464.19,Card,Beauty Supplies Co,urgent
+2026-01-30,Maintenence,4160.55,Bank transfer,MSEDCL,monthly
+2026-07-03,maintainance,3134.35,Bank transfer,Ad agency,
+2026-06-08,electricity,3290.3,UPI,Staff,urgent
+2026-07-10,electricity,2986.48,Card,Airtel,part payment
+2026-04-09,internet,1430.76,UPI,Beauty Supplies Co,part payment
+2026-02-07,Rent,32309.22,UPI,Beauty Supplies Co,
+2026-06-08,Rent,24806.41,Bank transfer,Beauty Supplies Co,
+2026-02-17,Product purchase,16736.65,Cash,Landlord,part payment
+2026-03-07,Internet,965.14,Cash,Beauty Supplies Co,part payment
+2026-09-02,Maintenance,3808.8,UPI,Landlord,monthly
+2026-05-24,Electricity,3426.33,Cash,MSEDCL,
+2026-08-23,Maintenance,1833.2,Card,Ad agency,
+2026-07-06,Maintenence,3285.9,Card,Ad agency,
+2026-01-17,Ads,3692.99,Cash,MSEDCL,
+2026-06-21,wifi,1094.9,UPI,Landlord,
+2026-08-15,Salary,66709.69,Bank transfer,MSEDCL,
+2026-02-24,ELECTRICITY,3665.51,Cash,Ad agency,
+2026-09-05,Advertising,7712.37,UPI,Ad agency,
+2026-03-01,Maintenance,3034.57,Cash,MSEDCL,monthly
+2026-01-10,Stock,14372.22,UPI,MSEDCL,urgent
+2026-08-01,Stock,15016.46,Card,Beauty Supplies Co,
+2026-05-05,WiFi,885.85,Card,Airtel,part payment
+2026-05-21,Shop Rent,34032.36,Bank transfer,Handyman,
+2026-05-20,Salaries,51988.95,UPI,MSEDCL,
+2026-01-16,Products,10402.96,Bank transfer,Handyman,urgent
+2026-04-30,products,16675.32,Bank transfer,Landlord,
+2026-09-22,Electricity Bill,3317.74,UPI,Landlord,monthly
+2026-10-04,Rent,23363.46,Cash,MSEDCL,
+2026-02-17,Salaries,42927.45,Card,Airtel,part payment
+2026-03-14,Maintenence,1993.06,Card,Beauty Supplies Co,monthly
+2026-08-03,Electricity Bill,3421.69,Bank transfer,Landlord,urgent
+2026-07-29,maintenance,2840.72,Bank transfer,Staff,
+2026-02-11,Internet,936.47,Bank transfer,Staff,part payment
+2026-09-26,wifi,834.46,Bank transfer,Airtel,
+2026-08-18,Shop Rent,22825.77,Card,Handyman,part payment
+2026-02-07,Shop Rent,42980.87,UPI,Airtel,monthly
+2026-05-10,products,8514.76,UPI,Ad agency,urgent
+2026-01-08,Shop Rent,48136.77,Card,Staff,
+2026-03-19,Electricty,4246.81,Bank transfer,Handyman,monthly
+2026-06-05,Maintenence,2013.88,Cash,Handyman,part payment
+2026-09-02,Maintenence,2726.78,UPI,Airtel,monthly
+2026-03-18,ELECTRICITY,3969.54,Cash,Airtel,urgent
+2026-03-22,staff salaries,49061.95,Card,Staff,
+2026-03-28,Electricity,3140.34,Card,Ad agency,monthly
+2026-07-14,internet,1321.57,Cash,Staff,
+2026-09-30,products,12729.46,Card,Staff,urgent
+2026-05-14,Advertising,6337.09,UPI,Ad agency,
+2026-02-11,Elec.,4302.16,UPI,Landlord,urgent
+2026-04-04,Electricity Bill,3055.13,Cash,Staff,
+2026-09-01,Stock,12349.25,UPI,Handyman,urgent
+2026-02-04,Products,8765.9,Bank transfer,MSEDCL,
+2026-09-19,Maintenence,2970.24,Card,Staff,part payment
+2026-03-10,ELECTRICITY,4215.91,Bank transfer,Airtel,part payment
+2026-03-28,Marketing,8077.63,Bank transfer,Beauty Supplies Co,part payment
+2026-06-17,electricity,2963.41,Cash,Handyman,part payment
+2026-07-29,Electricty,3602.05,Cash,Beauty Supplies Co,part payment
+2026-09-30,WiFi,1455.55,Cash,Ad agency,
+2026-03-08,electricity,5610.37,Bank transfer,Beauty Supplies Co,
+2026-02-11,WiFi,1044.46,UPI,Airtel,urgent
+2026-03-15,Ads,3665.21,UPI,Beauty Supplies Co,monthly
+2026-02-21,Rent,45498.77,Bank transfer,Staff,monthly
+2026-06-30,Product purchase,13816.61,Cash,Staff,monthly
+2026-04-21,Internet Bill,931.64,Bank transfer,Ad agency,urgent
+2026-07-01,Rent,44796.01,Cash,Beauty Supplies Co,part payment
+2026-06-21,Rent ,46918.87,Bank transfer,Beauty Supplies Co,part payment
+2026-10-06,Marketing,6796.95,Card,Landlord,
+2026-05-22,electricity,5265.0,Cash,Ad agency,urgent
+2026-05-23,Product Purchase,11077.11,Cash,Ad agency,
+2026-10-04,WiFi,1568.16,Card,Ad agency,
+2026-01-16,Maintenance,2770.42,UPI,MSEDCL,monthly
+2026-07-12,Maintenance,3328.94,Cash,Landlord,urgent
+2026-08-19,ELECTRICITY,5095.18,Card,Handyman,monthly
+2026-01-09,maintenance,2936.81,UPI,Landlord,part payment
+2026-07-08,Shop Rent,39007.83,Card,Handyman,
+2026-09-02,Rent,27236.99,UPI,Ad agency,part payment
+2026-03-15,Electricity Bill,5387.84,Bank transfer,MSEDCL,monthly
+2026-03-31,maintenance,2297.66,Card,Staff,urgent
+2026-08-06,Salary,53478.04,Cash,Handyman,monthly
+2026-02-26,Maintenence,4031.17,Cash,MSEDCL,
+2026-01-23,Salaries,37742.64,Card,Airtel,urgent
+2026-05-04,Product Purchase,12748.18,UPI,Ad agency,
+2026-07-01,Staff Salary,35857.64,Card,Handyman,
+2026-01-11,Product purchase,16674.31,Bank transfer,Beauty Supplies Co,urgent
+2026-04-07,Product purchase,9981.41,Cash,Ad agency,
+2026-04-24,maintainance,3864.18,Cash,Staff,monthly
+2026-03-24,RENT,46587.17,Cash,MSEDCL,urgent
+2026-07-04,WiFi,1536.61,Card,Airtel,
+2026-09-14,maintainance,2154.71,UPI,Ad agency,monthly
+2026-09-15,Salary,33745.38,Cash,Staff,
+2026-08-23,Maintenence,3462.99,Bank transfer,MSEDCL,
+2026-08-12,maintenance,3501.91,Card,Airtel,urgent
+2026-03-25,Shop Rent,47776.8,Card,Beauty Supplies Co,
+2026-07-08,maintenance,2560.05,UPI,Ad agency,
+2026-09-27,Maintenance,3714.98,Cash,Staff,
+2026-07-25,Maintenance,2374.06,Card,Landlord,part payment
+2026-02-10,WiFi,1633.0,Bank transfer,MSEDCL,urgent
+2026-05-05,wifi,854.86,Cash,Beauty Supplies Co,monthly
+2026-07-15,Ads,7668.91,Cash,Handyman,
+2026-09-06,Ads,8302.58,Bank transfer,Airtel,
+2026-02-08,Internet Bill,1201.53,Card,Ad agency,
+2026-06-03,Maintenance,3191.7,UPI,Beauty Supplies Co,monthly
+2026-05-01,marketing,4827.89,UPI,Staff,
+2026-05-15,maintainance,2707.72,Cash,Beauty Supplies Co,monthly
+2026-08-23,RENT,44663.45,Cash,Landlord,part payment
+2026-03-27,Product purchase,13025.03,Card,Ad agency,part payment
+2026-07-20,Salaries,32658.65,UPI,Airtel,
+2026-02-09,maintenance,2793.82,Card,Handyman,monthly
+2026-06-03,Staff Salary,36037.37,Card,Staff,
+2026-06-16,maintainance,2907.39,Card,Airtel,monthly
+2026-10-04,salaries,43960.04,Bank transfer,Beauty Supplies Co,monthly
+2026-03-29,Internet Bill,1269.63,Bank transfer,Staff,monthly
+2026-03-25,rent,28995.28,UPI,Landlord,part payment
+2026-03-29,RENT,37000.16,Card,Ad agency,monthly
+2026-07-25,wifi,1037.05,UPI,Ad agency,part payment
+2026-03-06,Advertising,8060.39,UPI,Handyman,monthly
+2026-06-13,RENT,44149.32,Cash,Staff,monthly
+2026-08-06,maintenance,4060.4,UPI,Landlord,
+2026-10-07,Electricty,6172.82,Card,Staff,urgent
+2026-08-20,Electricity Bill,6065.24,Card,Beauty Supplies Co,monthly
+2026-09-21,Electricity,4204.7,Cash,Ad agency,
+2026-06-22,internet,725.75,UPI,Handyman,part payment
+2026-02-05,Rent ,35038.25,UPI,MSEDCL,
+2026-03-24,Electricty,4371.42,Card,Staff,
+2026-03-05,Rent,36488.38,Bank transfer,MSEDCL,part payment
+2026-02-05,ELECTRICITY,4961.9,Bank transfer,Beauty Supplies Co,urgent
+2026-04-10,Marketing,7703.92,Cash,MSEDCL,
+2026-04-25,Stock,11183.42,UPI,Ad agency,
+2026-09-17,Elec.,5350.58,Card,MSEDCL,
+2026-08-15,Electricity Bill,5944.24,UPI,Handyman,urgent
+2026-10-02,ELECTRICITY,3045.07,Card,Handyman,
+2026-01-08,Products,14101.46,Bank transfer,Handyman,monthly
+2026-07-08,Rent ,32839.45,UPI,Airtel,
+2026-03-18,salaries,39081.77,UPI,Staff,monthly
+2026-09-16,Maintenance,4050.56,Card,Landlord,urgent
+2026-06-29,internet,1215.07,Cash,Airtel,part payment
+2026-05-04,RENT,39615.84,Bank transfer,Beauty Supplies Co,part payment
+2026-02-19,Product purchase,16147.96,UPI,Staff,monthly
+2026-05-21,electricity,5278.58,Bank transfer,MSEDCL,
+2026-05-21,RENT,26882.86,Cash,Staff,urgent
+2026-05-05,Rent,39491.5,UPI,Beauty Supplies Co,urgent
+2026-08-23,wifi,964.43,Card,Beauty Supplies Co,monthly
+2026-08-08,Marketing,5695.52,UPI,MSEDCL,monthly
+2026-03-26,Electricty,6216.79,UPI,Ad agency,part payment
+2026-05-07,RENT,34397.73,UPI,Landlord,monthly
+2026-03-19,Products,15449.12,UPI,Beauty Supplies Co,part payment
+2026-01-25,Staff Salary,36629.83,Cash,Ad agency,part payment
+2026-03-20,Maintenence,2581.32,Bank transfer,Beauty Supplies Co,urgent
+2026-03-03,Elec.,5849.82,Card,Airtel,
+2026-01-19,Staff Salary,65488.67,Bank transfer,Ad agency,monthly
+2026-03-22,rent,38641.56,Cash,Handyman,
+2026-09-30,Rent,34130.48,Card,Airtel,
+2026-09-02,Internet,1564.53,Cash,Ad agency,part payment
+2026-05-15,Electricity,6126.74,Cash,Beauty Supplies Co,
+2026-06-06,Maintenance,3565.08,UPI,Airtel,
+2026-05-01,products,9591.33,UPI,Handyman,
+2026-08-07,marketing,5343.28,Bank transfer,MSEDCL,
+2026-06-02,Marketing,7681.83,Card,MSEDCL,monthly
+2026-03-09,Salaries,49886.06,Bank transfer,Ad agency,monthly
+2026-09-05,Ads,6400.43,Cash,Staff,part payment
+2026-04-07,Product Purchase,13672.4,Bank transfer,Ad agency,urgent
+2026-06-16,electricity,3977.58,Card,Ad agency,monthly
+2026-04-10,staff salaries,53218.6,Card,Beauty Supplies Co,monthly
+2026-09-18,Rent,29063.78,UPI,Airtel,part payment
+2026-10-07,Maintenance,3275.64,Bank transfer,MSEDCL,
+2026-08-17,Product Purchase,7744.08,UPI,Airtel,monthly
+2026-07-18,Product purchase,9165.82,Cash,Ad agency,urgent
+2026-06-03,Maintenence,3847.9,UPI,MSEDCL,part payment
+2026-02-16,Advertising,6865.17,Bank transfer,MSEDCL,monthly
+2026-07-03,Salary,65540.14,Bank transfer,Staff,urgent
+2026-01-11,marketing,4945.71,Bank transfer,MSEDCL,part payment
+2026-01-03,ELECTRICITY,3923.62,Bank transfer,Handyman,monthly
+2026-01-15,Electricity Bill,5762.03,Card,Staff,urgent
+2026-03-31,maintainance,2882.58,Bank transfer,Airtel,urgent
+2026-04-17,Product purchase,14607.88,Card,Beauty Supplies Co,part payment
+2026-06-16,maintenance,3621.61,UPI,Beauty Supplies Co,part payment
+2026-04-22,Stock,13079.56,Bank transfer,MSEDCL,
+2026-03-27,Electricity Bill,5502.71,Cash,Handyman,urgent
+2026-02-04,Shop Rent,24899.0,UPI,Airtel,urgent
+2026-09-21,Products,13612.75,UPI,MSEDCL,monthly
+2026-07-15,Salary,60091.54,Card,Airtel,
+2026-04-01,Staff Salary,40602.56,Cash,MSEDCL,monthly
+2026-06-05,Shop Rent,30403.93,Cash,Landlord,part payment
+2026-09-13,Advertising,4838.71,Card,Staff,
+2026-07-10,Salary,44778.12,Card,Handyman,
+2026-03-29,Product Purchase,9294.27,Bank transfer,Handyman,
+2026-07-20,Electricity,6065.29,Bank transfer,Handyman,part payment
+2026-02-02,Salaries,38928.9,Bank transfer,Handyman,part payment
+2026-02-20,RENT,46867.35,Cash,Beauty Supplies Co,part payment
+2026-08-26,internet,1002.55,Card,Landlord,part payment
+2026-06-27,Salary,58089.58,Cash,Landlord,part payment
+2026-06-16,Electricity Bill,2983.42,Card,Staff,
+2026-05-31,WiFi,1233.45,Cash,Handyman,
+2026-01-30,Internet Bill,1500.82,UPI,MSEDCL,monthly
+2026-07-19,marketing,3837.33,Card,Airtel,part payment
+2026-02-19,maintainance,1945.73,Bank transfer,MSEDCL,urgent
+2026-09-10,Maintenance,3291.21,UPI,Beauty Supplies Co,
+2026-05-12,staff salaries,65470.19,Card,Handyman,monthly
+2026-01-17,Maintenence,2104.22,UPI,Landlord,
+2026-07-20,Products,11936.06,Card,Staff,
+2026-01-06,internet,1233.94,Card,Beauty Supplies Co,monthly
+2026-09-04,Product purchase,14494.67,Bank transfer,Airtel,monthly
+2026-09-17,Marketing,4696.04,Cash,Staff,
+2026-05-06,Elec.,3214.2,UPI,Handyman,monthly
+2026-10-08,Product purchase,14572.57,Bank transfer,Beauty Supplies Co,monthly
+2026-06-17,Internet,1572.58,Card,Ad agency,urgent
+2026-09-12,Maintenance,3215.54,Bank transfer,Airtel,urgent
+2026-04-16,electricity,6163.57,UPI,Staff,
+2026-03-04,ELECTRICITY,5342.86,Card,Airtel,urgent
+2026-05-04,Marketing,4631.33,Cash,MSEDCL,monthly
+2026-01-12,Internet,1216.35,Bank transfer,Airtel,urgent
+2026-03-27,Ads,8070.89,Bank transfer,Ad agency,
+2026-09-07,Product Purchase,14844.32,Cash,MSEDCL,
+2026-06-02,WiFi,1641.77,Bank transfer,Airtel,
+2026-07-18,Ads,5806.0,Bank transfer,MSEDCL,urgent
+2026-07-25,Staff Salary,42827.05,Cash,Landlord,monthly
+2026-02-09,Product purchase,16668.54,Bank transfer,Ad agency,
+2026-03-29,maintainance,3962.57,Cash,Airtel,monthly
+2026-06-09,Products,14327.91,Bank transfer,MSEDCL,monthly
+2026-01-18,Staff Salary,53837.88,Bank transfer,Ad agency,urgent
+2026-07-29,products,16240.01,Bank transfer,Handyman,
+2026-03-14,marketing,6645.56,Card,Handyman,urgent
+2026-01-30,marketing,5666.86,Cash,MSEDCL,monthly
+2026-01-04,Electricty,6046.06,UPI,Beauty Supplies Co,part payment
+2026-09-02,Electricty,4364.24,Card,Ad agency,urgent
+2026-05-21,ELECTRICITY,2907.82,Cash,Beauty Supplies Co,
+2026-03-08,Electricity Bill,3825.07,Card,Airtel,monthly
+2026-03-20,Salaries,52759.1,Bank transfer,Airtel,
+2026-03-16,Marketing,4112.01,Cash,Landlord,
+2026-05-04,Marketing,7746.83,Card,Airtel,
+2026-04-03,maintenance,3075.0,Card,Handyman,
+2026-01-04,Products,11218.37,Card,Staff,part payment
+2026-03-15,salaries,60245.92,Cash,MSEDCL,part payment
+2026-03-26,salaries,64556.3,Bank transfer,Ad agency,
+2026-01-28,Salaries,38671.88,Card,Airtel,monthly
+2026-03-01,staff salaries,60257.77,UPI,Landlord,monthly
+2026-07-26,Products,13345.48,UPI,Beauty Supplies Co,
+2026-01-06,Electricity Bill,6255.16,UPI,MSEDCL,
+2026-08-31,Electricity Bill,3701.19,Bank transfer,Airtel,
+2026-05-22,Product purchase,10623.5,Card,Ad agency,
+2026-03-07,maintainance,1900.03,Bank transfer,Staff,
+2026-05-31,staff salaries,49209.54,Card,Ad agency,
+2026-07-11,Internet,1022.61,Cash,Beauty Supplies Co,monthly
+2026-05-22,Internet Bill,1581.02,Bank transfer,Ad agency,urgent
+2026-03-17,Elec.,4987.17,Bank transfer,Beauty Supplies Co,
+2026-07-23,rent,31284.35,Card,Ad agency,part payment
+2026-07-22,maintenance,2857.86,Card,MSEDCL,monthly
+2026-08-02,Elec.,4027.98,Cash,Staff,
+2026-09-26,Marketing,7741.1,Bank transfer,Airtel,
+2026-09-08,wifi,1645.51,Cash,Airtel,
+2026-08-10,Shop Rent,48905.08,UPI,Ad agency,urgent
+2026-09-20,Rent,36426.39,Bank transfer,Handyman,urgent
+2026-01-29,Products,7387.82,Card,Staff,
+2026-08-15,Maintenance,3619.7,Cash,Staff,monthly
+2026-10-04,Electricity Bill,3601.82,UPI,Airtel,
+2026-09-10,maintenance,3261.22,Cash,Staff,urgent
+2026-09-14,Stock,14510.11,Card,Ad agency,
+2026-03-13,Advertising,4616.23,Cash,Airtel,urgent
+2026-01-21,maintenance,2136.15,Cash,Airtel,part payment
+2026-01-04,staff salaries,34660.43,Cash,Ad agency,urgent
+2026-10-07,rent,28373.18,UPI,MSEDCL,
+2026-07-07,Electricity,5986.85,Card,Handyman,monthly
+2026-08-21,Maintenence,3554.84,Bank transfer,Landlord,
+2026-03-25,Shop Rent,27369.79,Cash,Airtel,
+2026-04-25,Product purchase,8253.2,UPI,MSEDCL,urgent
+2026-06-19,Internet Bill,993.2,Cash,Beauty Supplies Co,monthly
+2026-09-06,internet,1632.22,Card,MSEDCL,monthly
+2026-03-08,Maintenence,3929.67,Card,Landlord,
+2026-09-19,Shop Rent,37167.24,UPI,Staff,part payment
+2026-08-21,ELECTRICITY,4911.77,Bank transfer,Airtel,
+2026-04-06,Salaries,56548.92,Card,Staff,
+2026-01-11,Rent,38411.96,Cash,MSEDCL,
+2026-08-06,Products,15404.43,Cash,Beauty Supplies Co,monthly
+2026-01-19,wifi,1476.27,Card,Handyman,part payment
+2026-10-04,Salary,55805.71,Card,Beauty Supplies Co,part payment
+2026-07-13,Staff Salary,55701.11,Cash,Airtel,part payment
+2026-03-16,electricity,4807.55,Card,Ad agency,urgent
+2026-09-25,marketing,6047.0,UPI,Beauty Supplies Co,
+2026-02-14,Staff Salary,34628.85,Cash,Beauty Supplies Co,
+2026-07-09,maintainance,2108.89,Cash,Beauty Supplies Co,
+2026-01-13,Maintenence,2821.36,Cash,Staff,
+2026-03-28,Ads,4007.38,Bank transfer,Staff,
+2026-07-25,Internet Bill,1540.2,Bank transfer,Landlord,part payment
+2026-09-05,WiFi,1231.89,Card,MSEDCL,
+2026-05-16,Salary,42191.51,Card,Landlord,
+2026-01-21,Electricity,3146.01,Card,Airtel,monthly
+2026-08-25,maintenance,4147.05,Bank transfer,Staff,part payment
+2026-02-18,Stock,12633.17,UPI,Staff,urgent
+2026-04-21,Marketing,8359.21,Cash,Beauty Supplies Co,
+2026-08-02,maintainance,2966.23,Bank transfer,Staff,urgent
+2026-06-13,ELECTRICITY,3229.18,UPI,MSEDCL,part payment
+2026-08-20,rent,37960.98,Cash,MSEDCL,monthly
+2026-06-02,Staff Salary,65099.65,Cash,Staff,part payment
+2026-08-09,wifi,1235.53,UPI,Handyman,
+2026-01-30,Salary,65835.48,Bank transfer,Ad agency,part payment
+2026-01-31,Internet,1151.13,Bank transfer,Airtel,urgent
+2026-08-12,maintainance,2229.28,Card,MSEDCL,part payment
+2026-08-04,maintenance,3392.14,UPI,Ad agency,urgent
+2026-02-18,Electricty,5731.05,UPI,MSEDCL,
+2026-08-05,Rent,21615.37,UPI,Handyman,
+2026-08-04,Internet,1400.07,Card,Staff,urgent
+2026-07-31,products,9157.44,Bank transfer,Landlord,monthly
+2026-04-11,Products,12260.86,Card,Airtel,monthly
+2026-04-11,marketing,7153.21,Cash,Ad agency,
+2026-01-19,Elec.,4348.24,Bank transfer,MSEDCL,
+2026-08-10,Internet,1139.05,Card,MSEDCL,
+2026-02-23,products,16361.9,Card,Ad agency,
+2026-06-17,Ads,5095.46,Cash,MSEDCL,
+2026-03-14,rent,26069.62,Cash,Airtel,part payment
+2026-01-09,Staff Salary,60736.82,UPI,Landlord,urgent
+2026-02-27,Shop Rent,45207.74,Cash,Handyman,part payment
+2026-02-13,Rent,45388.64,Card,Beauty Supplies Co,urgent
+2026-04-11,Electricity Bill,6077.68,UPI,Handyman,
+2026-04-02,Advertising,4049.52,Bank transfer,MSEDCL,urgent
+2026-03-31,Electricity,3424.18,UPI,Airtel,monthly
+2026-07-11,Maintenence,4176.47,Card,Handyman,monthly
+2026-07-28,Salary,59575.75,Cash,Ad agency,part payment
+2026-06-12,Marketing,5670.4,UPI,Staff,
+2026-08-01,Electricity,5914.46,Card,Ad agency,monthly
+2026-06-28,Shop Rent,36076.11,Card,MSEDCL,
+2026-06-12,Internet Bill,1602.48,Bank transfer,Airtel,urgent
+2026-01-29,salaries,46773.69,Cash,Handyman,part payment
+2026-04-19,maintainance,2092.38,UPI,MSEDCL,monthly
+2026-08-19,Salaries,38709.29,Card,Landlord,part payment
+2026-07-27,rent,37309.64,UPI,Beauty Supplies Co,part payment
+2026-09-03,Product purchase,12320.46,Bank transfer,Beauty Supplies Co,urgent
+2026-03-19,internet,1494.07,UPI,Handyman,
+2026-09-24,Salaries,57153.82,Bank transfer,Beauty Supplies Co,
+2026-10-07,salaries,64886.4,UPI,Handyman,
+2026-01-12,Maintenence,4188.79,Bank transfer,Staff,urgent
+2026-06-20,rent,29539.22,Card,Landlord,
+2026-01-09,Maintenance,2229.01,UPI,Airtel,part payment
+2026-09-19,Electricty,4461.26,Cash,Landlord,monthly
+2026-01-28,Electricity,5304.16,Bank transfer,Staff,urgent
+2026-05-26,Salaries,44377.43,UPI,Airtel,urgent
+2026-08-05,staff salaries,53143.36,Bank transfer,Beauty Supplies Co,monthly
+2026-06-13,Staff Salary,39148.73,UPI,Handyman,monthly
+2026-01-29,products,11489.25,Cash,Handyman,
+2026-10-02,Rent,47189.41,UPI,Staff,
+2026-04-28,Stock,14715.69,Cash,MSEDCL,monthly
+2026-04-25,Salaries,60793.1,Card,Landlord,urgent
+2026-09-28,Product purchase,16724.67,Bank transfer,Beauty Supplies Co,part payment
+2026-07-14,ELECTRICITY,3027.74,Card,Airtel,
+2026-09-01,Product Purchase,9204.96,UPI,Beauty Supplies Co,
+2026-05-26,Product purchase,10443.03,Bank transfer,Ad agency,urgent
+2026-06-20,ELECTRICITY,6129.91,Cash,Staff,
+2026-05-12,Stock,16474.69,Bank transfer,Landlord,urgent
+2026-01-16,Electricity,4675.43,Bank transfer,Beauty Supplies Co,
+2026-09-12,internet,1671.62,Bank transfer,Ad agency,
+2026-05-05,WiFi,878.27,Cash,Landlord,urgent
+2026-06-11,Rent ,25387.71,Bank transfer,Landlord,
+2026-06-09,maintainance,2108.6,Bank transfer,Landlord,monthly
+2026-05-21,Ads,6656.59,UPI,Ad agency,urgent
+2026-06-18,rent,29615.59,Card,Staff,
