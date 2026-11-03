@@ -21,6 +21,7 @@ import pandas as pd
 from langgraph.graph import END, START, StateGraph
 
 from . import aicache, brief as briefmod, clarify, derived, derived_check as derivedcheck, glossary, placeholders
+from . import derived_cols as dcols
 from . import goal as goalmod
 from . import context as ctxmod
 from . import critic as critic_mod
@@ -72,6 +73,7 @@ class RunState(TypedDict, total=False):
     review_saved: bool
     remove_derived: list
     derived_metrics: dict
+    derived_columns: dict
     goal_answer: dict
     summary_facts: dict
     polarity: dict
@@ -584,7 +586,15 @@ def analyze_node(state: RunState) -> dict:
     ctx = {"charts_dir": _wd(state) / "charts", "currency": (state.get("context") or {}).get("currency", ""), "kinds": briefmod.kinds(state.get("brief")), "money": undmod.money_columns(state.get("understanding")),
            "derived": {d["name"]: d for d in state["plan"].get("derived") or []}}
     emit(rid, "Analyst", f"{'Running the planned analyses' if it == 0 else 'Running follow-up checks requested by the Critic'} ({len(todo)})…")
+    calc = dcols.derived_columns(df)
+    cats = [c for c in df.columns if not pd.api.types.is_numeric_dtype(df[c]) and not pd.api.types.is_datetime64_any_dtype(df[c]) and 2 <= df[c].nunique() <= 200]
+    todo, repeats = dcols.collapse_specs(todo, dcols.canonical_dimensions(df, cats), {dcols.spec_key(f["tool"], f.get("params")) for f in findings})
+    for spec, same in repeats:
+        emit(rid, "Analyst", f"Skipped {spec['tool']} {spec['params']}: it asks about the same thing as {same} (each value of one matches exactly one value of the other), so it is analysed once as {same}.")
     for spec in todo:
+        if spec["tool"] == "scatter" and (why := dcols.pair_reason(df, spec["params"].get("x"), spec["params"].get("y"))):
+            emit(rid, "Analyst", f"Skipped scatter {spec['params']}: {why}.")
+            continue
         try:
             f = tools.REGISTRY[spec["tool"]](df, ctx, **spec["params"])
         except Exception as e:  # one bad analysis must not kill the run
@@ -596,7 +606,7 @@ def analyze_node(state: RunState) -> dict:
         f.update({"id": f"f{len(findings) + 1}", "params": spec["params"], "why": spec.get("why", ""), "round": it, "origin": spec.get("origin")})
         findings.append(f)
         emit(rid, "Analyst", f"{f['title']}: " + f["text"].replace("**", ""), finding=f["id"], chart=f.get("chart"))
-    return {"findings": findings, "iteration": it + 1}
+    return {"findings": findings, "iteration": it + 1, "derived_columns": calc}
 
 
 def _critic(state: RunState, llm) -> dict:

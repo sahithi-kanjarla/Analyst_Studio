@@ -19,6 +19,7 @@ import pandas as pd
 from scipy import stats
 
 from . import derived, wording
+from . import derived_cols as dcols
 from . import partial as partmod
 from .measures import measure_kind
 from .config import CHART_DPI
@@ -706,12 +707,19 @@ def correlation(df, ctx, cols=None):
                     color="white" if abs(corr.values[i, j]) > 0.6 else "black")
     fig.colorbar(im, ax=ax, fraction=0.046)
     _title(ax, "Which numeric columns move together (closer to +1 or -1 = stronger link)")
-    pairs = (corr.where(np.triu(np.ones(corr.shape), 1).astype(bool)).stack().sort_values(key=abs, ascending=False).head(3))
+    pairs = corr.where(np.triu(np.ones(corr.shape), 1).astype(bool)).stack()
+    linked = dcols.related_pairs(df)
+    left_out = [k for k in pairs.index if frozenset(k) in linked]          # a column calculated from others "moves together" with them by construction: not a finding
+    pairs = pairs.drop(index=left_out).sort_values(key=abs, ascending=False).head(3)
+    if pairs.empty:
+        return None
     listing = "; ".join(f"{a} & {b}: r={v:.2f}" for (a, b), v in pairs.items())
     strong = [(a, b, v) for (a, b), v in pairs.items() if abs(v) >= 0.5]
     ratios = [c for c in corr.columns if c in (ctx.get("derived") or {})]
     basis = f" {', '.join(ratios)} is a ratio, so these correlations use its per-row values (not a group-level ratio of sums)." if ratios else ""
-    text = f"Strongest relationships: {listing}. Correlation shows columns move together, not that one causes the other.{basis}"
+    calc = dcols.derived_columns(df)
+    skipped = f" Not reported because one column is calculated from the other: {'; '.join(dict.fromkeys(dcols.describe(calc[c]) for k in left_out for c in k if c in calc))}." if left_out else ""
+    text = f"Strongest relationships: {listing}. Correlation shows columns move together, not that one causes the other.{basis}{skipped}"
     action = f"{strong[0][0]} and {strong[0][1]} are strongly related (r={strong[0][2]:.2f}); consider whether one can serve as a lever or an early indicator for the other." if strong else None
     return finding("correlation", "Relationships between numeric columns", text,
                    {"top_pairs": {f"{a}|{b}": _f(v) for (a, b), v in pairs.items()}, "n": int(len(num))},
@@ -863,7 +871,7 @@ def segment_trend(df, ctx, target, date, group):
 # ---------------------------------------------------------------- scatter, composition, seasonality, tables
 def scatter(df, ctx, x, y):
     """Two numeric columns against each other: Spearman rank correlation (robust to outliers) plus a fitted line."""
-    if x == y:
+    if x == y or dcols.pair_reason(df, x, y):
         return None
     a, b = pd.to_numeric(df[x], errors="coerce"), pd.to_numeric(df[y], errors="coerce")
     d = pd.DataFrame({"x": a, "y": b}).dropna()

@@ -114,6 +114,7 @@ def candidates(state: dict) -> list[dict]:
     pol = state.get("polarity")
     out: list[dict] = []
     seen_titles: set[str] = set()
+    calc = state.get("derived_columns") or {}         # columns that are exact arithmetic of others: never suggested as a lever
 
     def add(c: dict | None):
         if c and c["title"] not in seen_titles:
@@ -240,6 +241,10 @@ def candidates(state: dict) -> list[dict]:
                       risks=["Concentration may reflect real advantages of the leaders that cannot be copied."]))
         elif tool == "scatter":
             a, b = st["x"], st["y"]
+            if a in calc and b not in calc:
+                a, b = b, a                       # a calculated column is never the lever
+            if a in calc:
+                continue
             add(_cand(**base, id="", title=f"Test whether {a} is a lever for {b}", theme="Experiment",
                       objective=f"Find out whether changing {a} actually moves {b}, or whether it is only an indicator.",
                       rationale=f.get("insight", {}).get("headline", ""),
@@ -261,6 +266,10 @@ def candidates(state: dict) -> list[dict]:
             key, r = max(pairs.items(), key=lambda kv: abs(kv[1] or 0), default=(None, 0))
             if key:
                 a, b = key.split("|")
+                if a in calc and b not in calc:
+                    a, b = b, a                   # a calculated column is never the lever
+                if a in calc:
+                    continue
                 add(_cand(**base, id="", title=f"Test whether {a} is a lever for {b}", theme="Experiment",
                           objective=f"Find out whether changing {a} actually moves {b}, or whether it is only an indicator.",
                           rationale=f.get("insight", {}).get("headline", ""),

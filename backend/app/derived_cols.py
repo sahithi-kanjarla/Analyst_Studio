@@ -5,6 +5,8 @@ Tolerance is a rounding error (cents), so a total written to two decimals still 
 quantity (B) and to judge a proposed derived measure (F)."""
 from __future__ import annotations
 
+import json
+
 import numpy as np
 import pandas as pd
 
@@ -145,3 +147,49 @@ def one_to_one_groups(df: pd.DataFrame, cols: list[str]) -> list[list[str]]:
     for c in cols:
         groups.setdefault(find(c), []).append(c)
     return [g for g in groups.values() if len(g) > 1]
+
+
+def describe(rel: dict) -> str:
+    """'amount = quantity x unit_price'."""
+    a, b = rel["inputs"]
+    sign = {"product": "×", "sum": "+", "ratio": "÷"}[rel["op"]]
+    return f"{rel['result']} = {a} {sign} {b}"
+
+
+def canonical_dimensions(df: pd.DataFrame, cols: list[str]) -> dict[str, str]:
+    """{column: the column that stands for its dimension} for columns that map one to one (a code and its label). The one with the longer values reads better, so it stands for the pair."""
+    out: dict[str, str] = {}
+    for g in one_to_one_groups(df, cols):
+        best = max(g, key=lambda c: float(df[c].dropna().astype(str).str.len().mean()))
+        out.update({c: best for c in g})
+    return out
+
+
+def spec_key(tool, params: dict) -> str:
+    return json.dumps([tool, sorted((k, v) for k, v in (params or {}).items())], default=str)
+
+
+def collapse_specs(specs: list[dict], canon: dict[str, str], seen: set[str]) -> tuple[list[dict], list[tuple[dict, str]]]:
+    """Analyses asked of two columns that are one dimension written twice are asked once, of the canonical column. (kept specs, [(dropped spec, the column it repeats)]). `seen` holds the keys already run."""
+    kept, dropped = [], []
+    seen = set(seen)
+    for spec in specs:
+        params = {k: (canon.get(v, v) if isinstance(v, str) else v) for k, v in (spec.get("params") or {}).items()}
+        key = spec_key(spec.get("tool"), params)
+        if key in seen:
+            repeated = [v for v in (spec.get("params") or {}).values() if isinstance(v, str) and v in canon]
+            same = canon[repeated[0]] if repeated else ""
+            dropped.append((spec, str(same)))
+            continue
+        seen.add(key)
+        kept.append({**spec, "params": params})
+    return kept, dropped
+
+
+def pair_reason(df: pd.DataFrame, a: str, b: str) -> str:
+    """'' or why a pair of columns must not be compared: one is calculated from the other, or both are calculated."""
+    if frozenset((a, b)) not in related_pairs(df):
+        return ""
+    d = derived_columns(df)
+    c = a if a in d else b
+    return f"{describe(d[c])}, so a relationship between them is arithmetic, not a finding" if c in d else "they are linked by an exact calculation"

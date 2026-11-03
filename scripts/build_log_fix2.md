@@ -9,7 +9,7 @@ Findings of review runs on a clean bakery file (900 rows, one row per order). Ru
 | A. Order key detection | done |
 | B. Key figures (no sum of a rate; gross profit and margin by code) | done |
 | C. Partial periods | done |
-| D. Derived columns, one-to-one categories | left to do |
+| D. Derived columns, one-to-one categories | done |
 | E. Display names | left to do |
 | F. AI-proposed derived measures checked in code | left to do |
 | G. Short titles | left to do |
@@ -45,3 +45,13 @@ Findings of review runs on a clean bakery file (900 rows, one row per order). Ru
 - Question: signal `partial_period` (weak: asked only when the run pauses anyway) when the verdict is not `normal`. "Your data ends on <date>. Is that when the data was exported, or did <measure> really stop?" Default "The data was exported then" (note only). The other answer is the new action `set_data_end` (directives, cleaner); the trend text then says the end is real.
 - Not changed: Lens `period_change` / `unusual_changes` (they already note an incomplete period but compare totals); the first period of a series is not treated the same way. The "latest month vs previous -89.5%" wording is not produced by the report trend code, so I believe it came from Lens; not confirmed.
 - Tests: `tests/test_partial_periods.py` (12): ends on day 1 (normal), day 10 (fell), day 3 (too short), last day of a month (unchanged), the weekly versions, mean measure, idea guard, question and answer. Related files re-run: 190 + 23 passed.
+
+## Fix D: derived columns and one-to-one categories (done)
+
+- `derived_cols.derived_columns(df)`: a column that equals the product or sum of two others on 98% of rows (within a rounding error), found from the values only. A small fraction that is the quotient of two others is marked as the derived one ("ratio"). Examples on the bakery: `amount = quantity x unit_price`, `cost_amount = quantity x unit_cost`.
+- Known limit: for a sum or difference the three columns fit one equation, and the code marks the sum as the derived one (`net = gross - tax` marks `gross`). Both are exact functions of the other two; which one the business "built" cannot be told from values.
+- `tools.correlation` leaves out every pair inside one relation (a derived column with its inputs, and two derived columns) and says so; `tools.scatter` returns nothing for such a pair (the run log says why). Two independent inputs (quantity and unit_price) are still compared.
+- `graph.analyze_node` stores `derived_columns` in the state; `strategy.candidates` never makes a derived column the lever (it swaps to the other column, or skips when both are derived).
+- Categorical columns that map one to one (item_code, item) are one dimension: analyses asked of both run once, on the column with the longer values (the label). Checked against findings from earlier rounds too. Run log says "Skipped ... analysed once as item".
+- A real fake-AI pipeline run on the bakery: no scatter or correlation of amount with quantity or unit_price, one finding per item/item_code, gross profit and margin as key figures. 
+- Tests: `tests/test_derived_columns.py` (6). Re-run with it: new_tools_and_views, ratio_of_sums_display, store_growth_and_ratio_correlation, varied_data, partial_periods: 84 passed (8.6 min).
