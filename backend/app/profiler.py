@@ -315,6 +315,17 @@ def infer_column(s: pd.Series, name: str) -> tuple[str, str | None]:
     return "text", None
 
 
+def safe_skew(x: pd.Series) -> float | None:
+    """Skew of a series, or None where it does not exist: fewer than three values, or no spread at all (every value identical).
+    The zero-spread case is decided here by comparing min and max, never by what the library returns: pandas 2.x gives NaN for a constant column,
+    pandas 3.x gives 0.0, and a column of one repeated decimal (0.1 x 100) gets a bogus +-1.0 from rounding noise in the variance."""
+    x = pd.to_numeric(x, errors="coerce").dropna()
+    if len(x) < 3 or x.min() == x.max():
+        return None
+    v = float(x.skew())
+    return v if np.isfinite(v) else None
+
+
 def _col_stats(s: pd.Series, role: str, conv: str | None) -> dict:
     work = s
     if conv == "numeric":
@@ -327,11 +338,11 @@ def _col_stats(s: pd.Series, role: str, conv: str | None) -> dict:
     if role in ("numeric", "binary", "categorical", "id") and pd.api.types.is_numeric_dtype(nn) and role != "id":
         try:
             st = {"min": float(nn.min()), "median": float(nn.median()), "mean": float(nn.mean()),
-                  "max": float(nn.max()), "std": float(nn.std()), "skew": float(nn.skew()) if len(nn) > 2 else float("nan")}
+                  "max": float(nn.max()), "std": float(nn.std()), "skew": safe_skew(nn)}
         except (TypeError, ValueError):
             return {}
         # A statistic that is not a real number is left out, never written as 0: one value has no spread, a constant column has no skew.
-        return {k: v for k, v in st.items() if np.isfinite(v)}
+        return {k: v for k, v in st.items() if v is not None and np.isfinite(v)}
     if role == "date":
         return {"min": str(nn.min())[:10], "max": str(nn.max())[:10]}
     if role in ("categorical", "binary"):
