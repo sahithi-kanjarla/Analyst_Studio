@@ -544,6 +544,7 @@ def lens_llm():
 @app.post("/api/runs/{run_id}/lens/pins")
 def lens_pin(run_id: str, body: LensPinIn):
     """Pin an answer to the report page or the dashboard, in a section of its own. The report itself is not changed."""
+    _writable(run_id)
     wd, _ = _lens_run(run_id)
     pin = lensstore.add_pin(wd, body.turn, body.target)
     if pin is None:
@@ -558,6 +559,7 @@ class LensViewIn(BaseModel):
 @app.post("/api/runs/{run_id}/lens/views")
 def lens_save_view(run_id: str, body: LensViewIn):
     """Keep a short version of the report that Lens wrote as an alternative view. The original report is never changed."""
+    _writable(run_id)
     wd, _ = _lens_run(run_id)
     v = lensreports.save_view(wd, body.turn)
     if v is None:
@@ -567,6 +569,7 @@ def lens_save_view(run_id: str, body: LensViewIn):
 
 @app.delete("/api/runs/{run_id}/lens/views/short")
 def lens_remove_view(run_id: str):
+    _writable(run_id)
     wd, _ = _lens_run(run_id)
     if not lensstore.remove_view(wd, "short"):
         raise HTTPException(404, "No short version is saved.")
@@ -575,6 +578,7 @@ def lens_remove_view(run_id: str):
 
 @app.delete("/api/runs/{run_id}/lens/pins/{pin_id}")
 def lens_unpin(run_id: str, pin_id: str):
+    _writable(run_id)
     wd, _ = _lens_run(run_id)
     if not lensstore.remove_pin(wd, pin_id):
         raise HTTPException(404, "Pin not found")
@@ -654,6 +658,7 @@ class BriefEditIn(BaseModel):
 def _brief_call(run_id: str, fn, *a):
     from .lens import briefs as lensbriefs
     _check_id(run_id)
+    _writable(run_id)
     wd = run_dir(run_id)
     try:
         return fn(wd, *a)
@@ -695,6 +700,7 @@ class FeedbackIn(BaseModel):
 def lens_feedback(run_id: str, body: FeedbackIn):
     """A thumbs up or down on one answer, recorded with the plan and the tools used (lens_feedback.jsonl in the run folder)."""
     from .lens import feedback
+    _writable(run_id)
     wd, _ = _lens_run(run_id)
     line = feedback.record(wd, body.turn, body.vote)
     if line is None:

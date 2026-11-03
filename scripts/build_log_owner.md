@@ -12,8 +12,10 @@ Another session can continue from here. Order: Fix 2 first, then Fix 1 in four c
   GET /api/runs lists own runs + sample; glossary scoped per owner (glossary.scoped contextvar, key "<scope>::<company>"; run worker threads and routes set it from the run's owner);
   existing tests test_clarify/test_saved_answers pin a visitor cookie (conftest.pinned_scope).
 
+- Commit 2 (Fix 1): the sample run is read-only on the routes that persist (lens pins/views/feedback, brief rename/edit/delete now 403 there); ownerless legacy runs follow PUBLIC_DEMO (can_access);
+  export/PDF is authorised by the same route guard (the PDF is made from a local HTML file, no internal HTTP request, so no signed token was needed).
+
 ## Left to do
-- Fix 1, commit 2: remaining checks of run list/glossary/ids/export (most landed in commit 1; verify with tests), legacy-run rules, retention of ownerless runs under PUBLIC_DEMO.
 - Fix 1, commit 3: route-by-route tests, smoke script visitor-B check.
 - Fix 1, commit 4: DEPLOY.md, README Known limits, upload-panel privacy note.
 - Full suite once at the end (the venv /tmp/claude-0/v1 holds the pinned versions; the single final run also covers Fix 2's "suite passes on those versions").
