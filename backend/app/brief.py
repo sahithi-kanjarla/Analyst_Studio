@@ -177,13 +177,13 @@ def resolve(llm, df: pd.DataFrame, profile: dict, goal: str, ctx: dict | None, s
     brief, else from the rules. Each ratio records which of the three gave it in `ratios[kpi]["path"]` (llm, llm-retry, rules), and the choice is in the decision log."""
     kpis = list((ctx or {}).get("kpis") or [])
     llm = deterministic(llm)
+    skipped = ""
     if llm is not None and (ctx or {}).get("explore") and not kpis and not ctxmod.description_hint(ctx):
         llm = None          # an exploratory run that names no KPI and describes no business has nothing for the brief to map: the data understanding record describes the columns, the rules do the rest (no AI call)
-        if state is not None:
-            state.setdefault("decisions", []).append({"decision": "analysis brief", "source": "rules-only", "chosen": "the rules", "why": "exploratory run with no KPI named and no business description: nothing for the brief to resolve, so no AI call was made", "errors": [], "raw_output": ""})
+        skipped = "exploratory run with no KPI named and no business description: nothing for the brief to resolve, so no AI call was made"
     view = build_view(df, profile, goal, ctx)
     validator = _make_validator(profile, kpis, df)
-    res = propose(llm, "analysis brief", SYSTEM, view, validator, _empty, state)
+    res = propose(llm, "analysis brief", SYSTEM, view, validator, _empty, state, skipped=skipped)
     out = {**res["value"], "source": res["source"]}
     ratio_kpis = [k for k in kpis if derived.kpi_numerator_tokens(k)]
     ai = lambda r: r["source"] in ("llm", "repaired")

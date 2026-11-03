@@ -104,3 +104,16 @@ def test_any_figure_that_is_not_a_real_number_is_sent_as_null():
 def test_a_report_with_ordinary_figures_is_serialised_exactly_as_before():
     content = {"a": [1, 2.5, "x", None, True], "b": {"c": 0.0}}
     assert SafeJSON(content).body == json.dumps(content, ensure_ascii=False, allow_nan=False, separators=(",", ":")).encode("utf-8")
+
+
+def test_skew_of_a_column_without_spread_is_none_whatever_the_library_says():
+    """pandas 2.x returns NaN for a constant column, pandas 3.x returns 0.0, and a repeated decimal like 0.1 can get +-1.0 from rounding noise.
+    The answer must not depend on any of that: no spread means no skew."""
+    for v in (1, 5.0, 0.1, 1 / 3, 1e8 + 0.1):
+        for n in (3, 10, 100):
+            assert profiler.safe_skew(pd.Series([v] * n)) is None, (v, n)
+            st = profiler._col_stats(pd.Series([v] * n), "numeric", None)
+            assert "skew" not in st and st["min"] == st["max"]
+    assert profiler.safe_skew(pd.Series([], dtype=float)) is None
+    assert profiler.safe_skew(pd.Series([5.0])) is None
+    assert profiler.safe_skew(pd.Series([1.0, 2.0, 10.0])) > 0

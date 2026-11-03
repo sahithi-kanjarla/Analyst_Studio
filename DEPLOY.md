@@ -86,6 +86,15 @@ Logs go to standard output (`docker logs -f analyst-studio`, or the host's log v
 - [ ] You have read "Known limits" in the README and are happy with them.
 - [ ] Try "Delete my run" on a test upload and check it is gone.
 
+## Pinned dependency versions
+
+`backend/requirements.txt` lists what the app needs, with minimum versions, and stays readable. `backend/constraints.txt` pins every package it installs (and what they pull in) to the exact
+versions the test suite passed on, and the Dockerfile installs with `pip install -r requirements.txt -c constraints.txt`, so the host runs the same pandas, numpy and scipy as the tests.
+The image uses the same Python minor version as the test machine (3.13). Different pandas versions give different statistics for the same column (for example the skew of a constant one), which is why this matters.
+
+To update: in a clean virtual environment on the same Python, run `pip install -U -r backend/requirements.txt`, run the full test suite (`cd backend && python -m pytest tests`), and only when it passes
+regenerate `backend/constraints.txt` from that environment (`pip freeze` for the packages in it, same `name==version` lines) and commit both together. Never edit a pin by hand without running the suite.
+
 ## 8. Rollback
 
 Every image is tagged with its version. To go back: stop the container, start the previous tag on the same volume.

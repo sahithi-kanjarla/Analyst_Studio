@@ -442,17 +442,19 @@ def _json_mode_refused(e: BaseException) -> bool:
 REPAIR_ASK = "\n\nYour previous reply could not be used: {problem}.\nIt was: {seen}\nAnswer again with only the corrected JSON object, nothing else."
 
 
-def ask_json_ex(llm, system: str, user: str, repair: bool = False, validate=None) -> tuple[dict | None, str]:
+def ask_json_ex(llm, system: str, user: str, repair: bool = False, validate=None, cache_ok=None, cache_tag: str = "") -> tuple[dict | None, str]:
     """Ask for JSON and defensively extract it. (object, reason): the object is None when the call failed or the output is unusable, and reason says which.
     The model is asked in its provider's JSON mode where there is one. The first valid JSON object in the reply is taken (fences, reasoning text and prose around it are ignored).
     `validate(obj) -> list of problems` checks the shape the caller expects; with problems, or a reply that is not JSON, repair=True asks exactly once more and shows the model what was wrong.
     A reply that parsed (and passed `validate`) is saved on disk (aicache) by the full prompt, model and temperature and answers the same call later; failed calls are never saved.
+    `cache_ok(obj) -> bool` is the caller's own acceptance of the reply (checked after parsing): a reply it refuses is returned but never saved, and a saved reply it now refuses is ignored, so a rerun asks again.
+    `cache_tag` is mixed into the saved-reply key: change it when the caller's checks change, and older saved replies are no longer used.
     The callers that already run their own repair loop (propose, understanding, the Lens planner) leave repair off."""
     if llm is None:
         return None, "no LLM configured"
     system = system + "\n\nReturn ONLY a single valid JSON object. No prose, no markdown fences."
-    k = _disk_key(llm, system, user)
-    if (hit := aicache.get(k)) is not None and (obj := _extract(hit)) is not None and not (validate and validate(obj)):
+    k = _disk_key(llm, system + (f"\n[cache:{cache_tag}]" if cache_tag else ""), user)
+    if (hit := aicache.get(k)) is not None and (obj := _extract(hit)) is not None and not (validate and validate(obj)) and not (cache_ok and not cache_ok(obj)):
         aicache.note_reused(_stage())
         _record(_stage(), cache_hit=True, system=system, user=user)
         return obj, ""
@@ -477,9 +479,10 @@ def ask_json_ex(llm, system: str, user: str, repair: bool = False, validate=None
         bad = f"bad JSON ({why})" if obj is None else "unexpected shape: " + "; ".join(problems)[:200]
         note_failure(bad)
         return None, bad
-    aicache.put(k, raw)
+    if cache_ok is None or cache_ok(obj):
+        aicache.put(k, raw)
     return obj, ""
 
 
-def ask_json(llm, system: str, user: str, validate=None) -> dict | None:
-    return ask_json_ex(llm, system, user, repair=True, validate=validate)[0]
+def ask_json(llm, system: str, user: str, validate=None, cache_ok=None, cache_tag: str = "") -> dict | None:
+    return ask_json_ex(llm, system, user, repair=True, validate=validate, cache_ok=cache_ok, cache_tag=cache_tag)[0]

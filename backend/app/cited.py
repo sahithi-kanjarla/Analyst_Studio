@@ -17,7 +17,32 @@ WINDOW = 6                  # words either side of a figure that must name the c
 SCOPE_WINDOW = 9            # words either side of a percent figure in which the measure and period of a growth or trend fact must be named
 CITE_RULE = ("Write the id of the fact a figure comes from in square brackets right after the figure, before any full stop, e.g. 'Set is 49.6% of amount [r1]'. "
              "Every number you write needs an id. A figure may only cite the fact it appears in, and the words around it must be about that fact's subject. "
-             "A percent change must name the measure it is a change of, and the periods for a first-vs-last comparison or the word 'trend' for a fitted trend, right beside the figure. ")
+             "A percent change must name the measure it is a change of, and the periods for a first-vs-last comparison or the word 'trend' for a fitted trend, right beside the figure. "
+             "Name the measure (what is summed or counted, for example 'sales amount' or 'orders') right beside every figure, not only the group it belongs to. ")
+YEAR_RE = re.compile(r"(?:19|20)\d\d")
+
+
+def is_label(clean: str, m: re.Match, labels: frozenset | set = frozenset()) -> bool:
+    """A number that names a period or a code and is not a measured amount: a letter glued to it (Q1, H2, FY23), a bare year, or a number the chart's own title or labels already show.
+    Only chart captions use this: a caption describing 'Q1 to Q4 2023' states no figure. Prose in the summary and the actions gets no such pass."""
+    raw = m.group(0).rstrip(".,")
+    if m.start() > 0 and clean[m.start() - 1].isalpha():
+        return True
+    after = clean[m.start() + len(raw):m.start() + len(raw) + 1]
+    if YEAR_RE.fullmatch(raw) and after != "%" and not SUFFIX_RE.match(clean, m.start() + len(raw)) and (m.start() == 0 or clean[m.start() - 1] not in "$€£₹"):
+        return True
+    return raw in labels
+
+
+def version() -> str:
+    """A short fingerprint of the checking code: part of the AI cache key of the stages that rely on it, so changing the checks invalidates their saved replies."""
+    import hashlib
+    import inspect
+    try:
+        src = "".join(inspect.getsource(f) for f in (verify, is_label, split_cites, contradicts))
+    except (OSError, TypeError):
+        src = "unknown"
+    return hashlib.sha1(src.encode("utf-8")).hexdigest()[:10]
 
 
 def make_fact(numbers_from: str, subject_from: str, scope: tuple[str, str] = ("", "")) -> dict:
@@ -67,10 +92,13 @@ def _window(text: str, m: re.Match, size: int = WINDOW) -> set[str]:
     return tokens(" ".join(before + after))
 
 
-def verify(text: str, facts: dict[str, dict]) -> tuple[str, str | None]:
-    """(text without the markers, None) when every figure is tied to a fact it matches, else (text without the markers, the reason)."""
+def verify(text: str, facts: dict[str, dict], labels: set | None = None) -> tuple[str, str | None]:
+    """(text without the markers, None) when every figure is tied to a fact it matches, else (text without the markers, the reason).
+    `labels` (chart captions only): the numbers the chart itself shows as names; with it, period labels and years are not treated as figures (see `is_label`)."""
     clean, marks = split_cites(text)
     for m in NUM_RE.finditer(clean):
+        if labels is not None and is_label(clean, m, labels):
+            continue
         piece = clean[m.start():_figure_end(clean, m)]
         shown = piece.rstrip(".,")
         cite = next((ids for pos, ids in marks if pos >= _end(m)), None)

@@ -41,10 +41,11 @@ def _why(obj) -> str:
     return " ".join(str(w).split())[:300] if isinstance(w, str) else ""
 
 
-def propose(llm, name: str, system: str, view: str, validator: Callable, fallback: Callable, state: dict | None = None) -> dict:
-    """{value, source: llm | repaired | fallback | rules-only, why, errors}. `validator(obj) -> (clean, errors)`; `fallback() -> value`."""
+def propose(llm, name: str, system: str, view: str, validator: Callable, fallback: Callable, state: dict | None = None, skipped: str = "") -> dict:
+    """{value, source: llm | repaired | fallback | rules-only, why, errors}. `validator(obj) -> (clean, errors)`; `fallback() -> value`.
+    `skipped`: why the caller chose not to ask although an AI is configured (llm is then None); the log says that instead of claiming no AI is configured."""
     if llm is None:
-        out = {"value": fallback(), "source": "rules-only", "why": "No LLM is configured, so the rule was used.", "errors": []}
+        out = {"value": fallback(), "source": "rules-only", "why": skipped or "No LLM is configured, so the rule was used.", "errors": []}
     else:
         obj, why1 = ask_json_ex(llm, system, view)
         clean, errors = _check(obj, validator, why1)

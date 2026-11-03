@@ -69,3 +69,12 @@ def test_an_exploratory_run_with_no_kpi_and_no_description_makes_no_brief_call()
     prof = profiler.profile_df(df)
     out = brief.resolve(M(), df, prof, "explore", {"explore": True, "kpis": []}, state)
     assert not calls and out["source"] == "rules-only" and any("no AI call was made" in d["why"] for d in state["decisions"])
+    assert not any("No LLM is configured" in d["why"] for d in state["decisions"])          # an AI IS configured here: the log must give the true reason for skipping the stage
+    assert sum(d["decision"] == "analysis brief" for d in state["decisions"]) == 1
+
+
+def test_with_no_llm_at_all_the_log_still_says_none_is_configured():
+    from app import propose
+    st = {"decisions": []}
+    out = propose.propose(None, "x", "s", "v", lambda o: (o, []), lambda: 1, st)
+    assert out["why"] == "No LLM is configured, so the rule was used." and out["source"] == "rules-only"
