@@ -257,7 +257,7 @@ def test_the_daily_caps_default_low_on_a_public_demo_are_configurable_and_the_me
 def test_the_upload_panel_says_what_is_stored_for_how_long_and_what_goes_to_the_ai():
     src = (ROOT / "frontend" / "src" / "components" / "UploadForm.tsx").read_text(encoding="utf-8")
     note = re.search(r'<p className="privacy-note[^>]*>(.*?)</p>', src, re.S).group(1)
-    for must in ("stored on this server", "retention_days", "deleted automatically", "Delete my run", "summaries of your data", "never individual rows"):
+    for must in ("stored on this server", "retention_days", "deleted automatically", "Delete my run", "summaries of your data", "never individual rows", "belong to this browser", "clear your cookies", "another device", "removes that run immediately"):
         assert must in note, must
     assert 'role="note"' in src
 

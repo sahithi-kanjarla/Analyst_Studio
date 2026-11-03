@@ -19,8 +19,9 @@ Another session can continue from here. Order: Fix 2 first, then Fix 1 in four c
   delete/view/lens-chip/list/glossary/legacy/PUBLIC_DEMO/cookie flags/SSE/PDF/log+metadata token checks); mutation-checked (guard disabled -> test fails);
   scripts/smoke_live.py now uses cookie jars and has the visitor-B check (6 checks); test_deploy.py adjusted (owned run under PUBLIC_DEMO, 6 smoke lines).
 
+- Commit 4 (Fix 1): upload-panel privacy note (runs belong to this browser; clearing cookies / another device loses them; "Delete my run" removes immediately), DEPLOY.md "Visitor separation" + OWNER_SECRET, README Known limits, .env.example. Frontend build passes.
+
 ## Left to do
-- Fix 1, commit 4: DEPLOY.md, README Known limits, upload-panel privacy note.
 - Full suite once at the end (the venv /tmp/claude-0/v1 holds the pinned versions; the single final run also covers Fix 2's "suite passes on those versions").
 
 ## Notes
