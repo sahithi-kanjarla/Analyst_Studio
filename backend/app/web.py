@@ -69,7 +69,17 @@ def install(app) -> None:
                 return Response("This site may not call the API from that origin.", status_code=403)
             return Response(status_code=204, headers={**cors, "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS", "Access-Control-Allow-Headers": request.headers.get("access-control-request-headers", "*") or "*",
                                                       "Access-Control-Max-Age": "600"})
-        response = await call_next(request)
+        from . import glossary, owner
+        denied = owner.guard_run_routes(request)       # any /api/runs/<id>/... of a run that is not the caller's: 404, same as a missing run (owner.py)
+        if denied is not None:
+            response = denied
+        else:
+            m = owner._RUN_PATH.match(request.url.path)
+            tok = glossary.set_scope(owner.scope_of(m.group(1)) if m else "")
+            try:
+                response = await call_next(request)
+            finally:
+                glossary.reset_scope(tok)
         for k, v in cors.items():
             response.headers[k] = v
         response.headers.setdefault("X-Content-Type-Options", "nosniff")

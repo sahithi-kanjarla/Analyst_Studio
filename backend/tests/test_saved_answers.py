@@ -12,7 +12,7 @@ import pytest  # noqa: E402
 from app import aicache, clarify, glossary, llm as llm_mod  # noqa: E402
 from app.config import RUNS_DIR  # noqa: E402
 from domains import hospital_stays  # noqa: E402
-from test_clarify import cl, qmap, result, start, wait  # noqa: E402
+from test_clarify import _visitor_glossary, cl, qmap, result, start, wait  # noqa: E402,F401
 
 
 @pytest.fixture(autouse=True)

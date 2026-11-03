@@ -21,6 +21,13 @@ def pytest_sessionfinish(session, exitstatus):
 
 import pytest
 
+PINNED_TOKEN = "T" * 43       # a browser id a test client can hold from its first request, so a test can also read or seed that visitor's glossary
+
+
+def pinned_scope(token: str = PINNED_TOKEN) -> str:
+    from app import owner
+    return owner.hash_token(token)[:32]
+
 
 @pytest.fixture(autouse=True)
 def fresh_ai_state(monkeypatch, tmp_path):

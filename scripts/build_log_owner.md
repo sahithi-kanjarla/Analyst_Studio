@@ -6,9 +6,14 @@ Another session can continue from here. Order: Fix 2 first, then Fix 1 in four c
 - Commit 0 (Fix 2): certifi pinned 2026.10.18 -> 2026.10.19 (langchain-core 1.7.4 needs >= 2026.10.19). Fresh venv: `pip install -r requirements.txt -c constraints.txt` clean, `pip check` clean.
   Added scripts/check_constraints.py (pip dry run), backend/tests/test_constraints.py, DEPLOY.md note.
 
+- Commit 1 (Fix 1): backend/app/owner.py (current_owner, cookie, HMAC hash, server secret in DATA_DIR/owner_secret or OWNER_SECRET, can_access, guard_run_routes);
+  web.py middleware applies the check to EVERY /api/runs/<id>/... path (404 for non-owner; sample run public), so a new route cannot forget it;
+  runs store `owner` (hash) in status.json; re-runs inherit it; new ids are uuid4 hex (32); old 12-char ids still accepted (RUN_ID_RE);
+  GET /api/runs lists own runs + sample; glossary scoped per owner (glossary.scoped contextvar, key "<scope>::<company>"; run worker threads and routes set it from the run's owner);
+  existing tests test_clarify/test_saved_answers pin a visitor cookie (conftest.pinned_scope).
+
 ## Left to do
-- Fix 1, commit 1: current_owner(), cookie, per-run owner check on every run endpoint.
-- Fix 1, commit 2: run list, glossary scoping, 32-char ids, PDF/export authorisation.
+- Fix 1, commit 2: remaining checks of run list/glossary/ids/export (most landed in commit 1; verify with tests), legacy-run rules, retention of ownerless runs under PUBLIC_DEMO.
 - Fix 1, commit 3: route-by-route tests, smoke script visitor-B check.
 - Fix 1, commit 4: DEPLOY.md, README Known limits, upload-panel privacy note.
 - Full suite once at the end (the venv /tmp/claude-0/v1 holds the pinned versions; the single final run also covers Fix 2's "suite passes on those versions").
