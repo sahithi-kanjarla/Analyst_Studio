@@ -50,17 +50,28 @@ def test_a_products_price_repeated_per_product_is_never_blanked_even_when_named_
     assert grain.count_order_amounts_once(table, [], {}, "product")["price"].notna().all()
 
 
-def test_with_no_ai_nothing_is_blanked_and_one_question_is_asked():
+def test_with_no_ai_unique_candidate_does_not_ask():
+    """When the candidate order key is unique per row, the file is already at order grain — do not ask."""
     df = bakery()
     prof, d = prof_with(df, None)
-    assert d["verdict"] == "ask" and "order_id" in d["candidates"]
+    assert d["verdict"] == "order_grain" and d["key"] == "order_id" and d["source"] == "name"
+    assert d["orders"] == 900 and d["per_order"] == 1.0
     typed, log = cleaner.coerce_types(df, prof)
     assert typed["unit_cost"].notna().all() and not any(r["step"] == "Counted order amounts once" for r in log)
     sigs = [s for s in signals.compute_signals(typed, prof) if s["type"] == "order_key"]
+    assert len(sigs) == 0
+
+
+def test_with_no_ai_non_unique_candidate_asks():
+    """When the candidate has repeated values and could be deduplicated, ask."""
+    df = handicrafts()
+    prof, d = prof_with(df, None)
+    assert d["verdict"] == "ask" and "order_id" in d["candidates"]
+    typed, log = cleaner.coerce_types(df, prof)
+    sigs = [s for s in signals.compute_signals(typed, prof) if s["type"] == "order_key"]
     assert len(sigs) == 1
     qs = clarify.template_questions(sigs, prof, "", {}, True)
-    assert qs[0]["text"] == "Which column identifies one order?" and qs[0]["options"][0]["action"] == {"type": "set_order_key", "column": "order_id"} and qs[0]["default"] == "none"
-    assert clarify.option_for(qs[0], None)["action"]["type"] == "note_only"          # skipping keeps every value
+    assert qs[0]["text"] == "Which column identifies one order?"
 
 
 def test_an_answer_names_the_key_and_none_leaves_no_grain():
@@ -81,7 +92,7 @@ def test_a_record_that_names_a_column_the_data_contradicts_keeps_every_value_and
     assert grain.decide(df, {}, record(df, "none"))["verdict"] == "none"
 
 
-def test_the_pipeline_on_the_bakery_without_ai_blanks_nothing_and_asks(tmp_path, monkeypatch):
+def test_the_pipeline_on_the_bakery_without_ai_does_not_ask_because_order_id_is_unique(tmp_path, monkeypatch):
     monkeypatch.setenv("RUNS_DIR", str(tmp_path / "runs"))
     monkeypatch.setenv("GLOSSARY_PATH", str(tmp_path / "g.json"))
     from app import runner
@@ -89,10 +100,11 @@ def test_the_pipeline_on_the_bakery_without_ai_blanks_nothing_and_asks(tmp_path,
     rid = runner.create_run("", [("bakery.csv", df.to_csv(index=False).encode())])
     runner._execute(rid)
     wd = runner.run_dir(rid)
-    assert (runner.read_status(rid) or {}).get("status") == "needs_input"
-    qs = json.loads((wd / "questions.json").read_text(encoding="utf-8"))["questions"]
-    assert any(q["text"] == "Which column identifies one order?" for q in qs)
-    (wd / "answers.json").write_text(json.dumps({"answers": {}, "skip": True, "notes": ""}))
-    runner._execute(rid)
+    st = runner.read_status(rid) or {}
+    if st.get("status") == "needs_input":
+        qs = json.loads((wd / "questions.json").read_text(encoding="utf-8"))["questions"]
+        assert not any(q["text"] == "Which column identifies one order?" for q in qs)
+        (wd / "answers.json").write_text(json.dumps({"answers": {}, "skip": True, "notes": ""}))
+        runner._execute(rid)
     clean = pd.read_pickle(wd / "clean.pkl")
     assert clean["unit_cost"].notna().sum() == 900

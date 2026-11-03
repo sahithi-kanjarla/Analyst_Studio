@@ -169,6 +169,11 @@ def decide(df: pd.DataFrame, roles: dict | None = None, rec: dict | None = None,
     cands = question_candidates(df, roles, [])
     if not cands:
         return out
+    for c in cands:
+        v = verify(df, c, roles)
+        if v.get("ok") and v.get("unique"):
+            found = f"'{c}' has {v['orders']:,} different values in {v['rows']:,} rows: one row per order, so nothing is repeated."
+            return {**out, **v, "verdict": "order_grain", "key": c, "source": "name", "label": label_for(c), "found": found}
     return {**out, "verdict": "ask", "source": "name" if name_candidates(df) else "data", "found": "The AI gave no answer about which column identifies an order." if rec and rec.get("source") == "llm" else "No AI answer about which column identifies an order.", "candidates": cands}
 
 

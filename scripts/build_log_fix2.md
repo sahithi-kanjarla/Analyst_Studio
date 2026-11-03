@@ -22,3 +22,8 @@ Findings of review runs on a clean bakery file (900 rows, one row per order). Ru
 - Unsure (no AI, no answer) or disagreement (the AI's pick fails the data check): every value is kept and the question "Which column identifies one order?" is asked, candidates as options, default "None of these: keep every value" (`signals.order_key_signal`, `clarify` template, new directive `set_order_key`). The answer is read when the run restarts (`graph._order_key`).
 - The profile no longer guesses a grain at profile time; `profile["grain"]` (the Orders tile) and `profile["grain_decision"]` are set in the understanding stage.
 - Tests: `tests/test_order_key.py` (7). Older tests that used the rules-only repeat detection were rewritten to name the key (a fake record, an answer, or an explicit key). Older test modules do not see the new question (`conftest.no_order_key_question`), because a rules-only run on any file with an order_id column now pauses on it.
+
+## Fix A follow-up: no question when the key is unique per row (done)
+
+- `grain.decide`: with no AI answer, a name-matched candidate that `verify` finds unique per row now gives verdict `order_grain` (source "name"), so no question is asked and nothing is blanked. The question is still asked when the candidates repeat, or when the AI and the data disagree.
+- Tests (`tests/test_order_key.py`): unique key asks nothing (bakery), repeated key still asks (handicrafts), pipeline on the bakery does not pause on the question. 8 passed.
