@@ -1,0 +1,200 @@
+{
+  "id": "M08",
+  "business_type": "handicrafts seller",
+  "kind": "connected (2 files, mixed formats)",
+  "what_it_tests": "a CSV orders file and an Excel customer list that starts below three note rows and ends with a total line, joined by customer id (the header is spelled differently in each file)",
+  "app_should": "find the real header row of the Excel file, drop its footer line, connect orders.customer_id to customers.xlsx Customer ID, and report the orders whose customer is not in the list",
+  "generated_by": "scripts/make_review_datasets.py",
+  "seed": 20261103,
+  "files": {
+    "orders.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "five customer ids used by 14 orders are not in the Excel list",
+      "rows": 700,
+      "columns": 8,
+      "column_names": [
+        "order_id",
+        "order_date",
+        "customer_id",
+        "item",
+        "category",
+        "quantity",
+        "amount",
+        "channel"
+      ],
+      "missing_per_column": {
+        "order_id": 0,
+        "order_date": 0,
+        "customer_id": 0,
+        "item": 0,
+        "category": 0,
+        "quantity": 0,
+        "amount": 0,
+        "channel": 0
+      },
+      "exact_duplicate_rows": 0
+    },
+    "customers.xlsx": {
+      "reader": "excel",
+      "options": {
+        "skiprows": 4
+      },
+      "note": "rows 1-3 are notes, row 4 is blank, row 5 is the header, the last two rows are blank and 'Total customers'",
+      "rows": 162,
+      "columns": 7,
+      "column_names": [
+        "Customer ID",
+        "Name",
+        "Email",
+        "Phone",
+        "City",
+        "Joined On",
+        "Segment"
+      ],
+      "missing_per_column": {
+        "Customer ID": 1,
+        "Name": 1,
+        "Email": 2,
+        "Phone": 2,
+        "City": 2,
+        "Joined On": 2,
+        "Segment": 2
+      },
+      "exact_duplicate_rows": 0
+    }
+  },
+  "cleaning_applied": [
+    "read the Excel file with skiprows=4 so row 5 is the header",
+    "dropped the footer rows that are not a customer id"
+  ],
+  "answers": {
+    "row_count": {
+      "orders.csv": 700,
+      "customers.xlsx": 160
+    },
+    "main_total": {
+      "file": "orders.csv",
+      "column": "amount",
+      "means": "revenue",
+      "value": 1136300.0,
+      "rows_counted": 700,
+      "mean": 1623.29
+    },
+    "top_3_main_category": {
+      "file": "orders.csv",
+      "group_by": "category",
+      "ranked_by": "amount",
+      "items": [
+        {
+          "name": "Art",
+          "total": 275280.0
+        },
+        {
+          "name": "Metalcraft",
+          "total": 249660.0
+        },
+        {
+          "name": "Woodcraft",
+          "total": 230190.0
+        }
+      ]
+    },
+    "distinct_key_counts": {
+      "orders.csv.order_id": 700,
+      "orders.csv.customer_id": 163,
+      "customers.xlsx.Customer ID": 160,
+      "customers.xlsx.City": 12
+    },
+    "duplicates": {
+      "orders.csv": {
+        "exact_duplicate_rows": 0
+      },
+      "customers.xlsx": {
+        "exact_duplicate_rows": 0
+      }
+    },
+    "missing_values_per_column": {
+      "orders.csv": {
+        "order_id": 0,
+        "order_date": 0,
+        "customer_id": 0,
+        "item": 0,
+        "category": 0,
+        "quantity": 0,
+        "amount": 0,
+        "channel": 0
+      },
+      "customers.xlsx": {
+        "Customer ID": 0,
+        "Name": 0,
+        "Email": 0,
+        "Phone": 0,
+        "City": 0,
+        "Joined On": 0,
+        "Segment": 0
+      }
+    },
+    "joins": [
+      {
+        "left": "orders.csv",
+        "right": "customers.xlsx",
+        "on": "customer_id = Customer ID",
+        "left_rows": 700,
+        "right_rows": 160,
+        "inner_join_rows": 686,
+        "left_join_rows": 700,
+        "left_rows_with_no_match": 14,
+        "unmatched_ids_in_left": [
+          "H9001",
+          "H9002",
+          "H9003",
+          "H9004",
+          "H9005"
+        ],
+        "unmatched_ids_in_right": [
+          "H0103",
+          "H0148"
+        ],
+        "repeated_key_values_in_right": [],
+        "note": "orders -> customers; the orphan ids are H9001-H9005"
+      }
+    ],
+    "customers_in_excel_list": 160,
+    "orders_with_no_matching_customer": 14,
+    "orphan_customer_ids_used_by_an_order": [
+      "H9001",
+      "H9002",
+      "H9003",
+      "H9004",
+      "H9005"
+    ],
+    "revenue_of_orphan_orders": 19190.0,
+    "customers_who_never_ordered": 2
+  },
+  "files_after_cleaning": {
+    "customers.xlsx": {
+      "rows": 160,
+      "columns": 7,
+      "column_names": [
+        "Customer ID",
+        "Name",
+        "Email",
+        "Phone",
+        "City",
+        "Joined On",
+        "Segment"
+      ],
+      "missing_per_column": {
+        "Customer ID": 0,
+        "Name": 0,
+        "Email": 0,
+        "Phone": 0,
+        "City": 0,
+        "Joined On": 0,
+        "Segment": 0
+      },
+      "exact_duplicate_rows": 0
+    }
+  }
+}

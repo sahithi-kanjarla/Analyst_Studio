@@ -1,0 +1,594 @@
+{
+  "id": "M09",
+  "business_type": "kirana store",
+  "kind": "connected (8 files at the upload limit)",
+  "what_it_tests": "eight files, the most one upload takes: four that connect (orders, customers, products, shipments) and four that have no link to anything (suppliers, staff, expenses, festivals)",
+  "app_should": "accept all eight files, find the three real links (orders-customers, orders-products, shipments-orders), connect the four tables, say the other four are not connected instead of inventing links, and report the orphan customers",
+  "generated_by": "scripts/make_review_datasets.py",
+  "seed": 20261103,
+  "files": {
+    "orders.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "three customer ids used by 10 orders are not in customers.csv",
+      "rows": 500,
+      "columns": 7,
+      "column_names": [
+        "order_id",
+        "order_date",
+        "customer_id",
+        "product_id",
+        "quantity",
+        "amount",
+        "channel"
+      ],
+      "missing_per_column": {
+        "order_id": 0,
+        "order_date": 0,
+        "customer_id": 0,
+        "product_id": 0,
+        "quantity": 0,
+        "amount": 0,
+        "channel": 0
+      },
+      "exact_duplicate_rows": 0
+    },
+    "customers.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "",
+      "rows": 120,
+      "columns": 4,
+      "column_names": [
+        "customer_id",
+        "customer_name",
+        "city",
+        "credit_account"
+      ],
+      "missing_per_column": {
+        "customer_id": 0,
+        "customer_name": 0,
+        "city": 0,
+        "credit_account": 0
+      },
+      "exact_duplicate_rows": 0
+    },
+    "products.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "product_id is the item code",
+      "rows": 12,
+      "columns": 5,
+      "column_names": [
+        "product_id",
+        "product_name",
+        "category",
+        "mrp",
+        "purchase_rate"
+      ],
+      "missing_per_column": {
+        "product_id": 0,
+        "product_name": 0,
+        "category": 0,
+        "mrp": 0,
+        "purchase_rate": 0
+      },
+      "exact_duplicate_rows": 0
+    },
+    "shipments.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "one row per delivered order; counter sales have none",
+      "rows": 280,
+      "columns": 5,
+      "column_names": [
+        "shipment_id",
+        "order_id",
+        "courier",
+        "ship_date",
+        "delivery_days"
+      ],
+      "missing_per_column": {
+        "shipment_id": 0,
+        "order_id": 0,
+        "courier": 0,
+        "ship_date": 0,
+        "delivery_days": 0
+      },
+      "exact_duplicate_rows": 0
+    },
+    "suppliers.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "unrelated: no column links to the other files",
+      "rows": 9,
+      "columns": 4,
+      "column_names": [
+        "supplier_ref",
+        "supplier_name",
+        "city",
+        "payment_terms_days"
+      ],
+      "missing_per_column": {
+        "supplier_ref": 0,
+        "supplier_name": 0,
+        "city": 0,
+        "payment_terms_days": 0
+      },
+      "exact_duplicate_rows": 0
+    },
+    "staff_roster.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "unrelated",
+      "rows": 8,
+      "columns": 4,
+      "column_names": [
+        "staff_no",
+        "staff_name",
+        "role",
+        "monthly_pay"
+      ],
+      "missing_per_column": {
+        "staff_no": 0,
+        "staff_name": 0,
+        "role": 0,
+        "monthly_pay": 0
+      },
+      "exact_duplicate_rows": 0
+    },
+    "shop_expenses.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "unrelated; months are text",
+      "rows": 30,
+      "columns": 3,
+      "column_names": [
+        "month",
+        "expense_type",
+        "amount"
+      ],
+      "missing_per_column": {
+        "month": 0,
+        "expense_type": 0,
+        "amount": 0
+      },
+      "exact_duplicate_rows": 0
+    },
+    "festival_calendar.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "unrelated",
+      "rows": 10,
+      "columns": 3,
+      "column_names": [
+        "festival",
+        "festival_date",
+        "expected_demand"
+      ],
+      "missing_per_column": {
+        "festival": 0,
+        "festival_date": 0,
+        "expected_demand": 0
+      },
+      "exact_duplicate_rows": 0
+    }
+  },
+  "cleaning_applied": [],
+  "answers": {
+    "row_count": {
+      "orders.csv": 500,
+      "customers.csv": 120,
+      "products.csv": 12,
+      "shipments.csv": 280,
+      "suppliers.csv": 9,
+      "staff_roster.csv": 8,
+      "shop_expenses.csv": 30,
+      "festival_calendar.csv": 10
+    },
+    "main_total": {
+      "file": "orders.csv",
+      "column": "amount",
+      "means": "revenue",
+      "value": 176816.0,
+      "rows_counted": 500,
+      "mean": 353.63
+    },
+    "top_3_main_category": {
+      "file": "orders.csv",
+      "group_by": "channel",
+      "ranked_by": "amount",
+      "items": [
+        {
+          "name": "Phone",
+          "total": 70449.0
+        },
+        {
+          "name": "Counter",
+          "total": 61924.0
+        },
+        {
+          "name": "WhatsApp",
+          "total": 44443.0
+        }
+      ]
+    },
+    "distinct_key_counts": {
+      "orders.csv.order_id": 500,
+      "orders.csv.customer_id": 122,
+      "orders.csv.product_id": 12,
+      "customers.csv.customer_id": 120,
+      "products.csv.product_id": 12,
+      "shipments.csv.shipment_id": 280,
+      "shipments.csv.order_id": 280
+    },
+    "duplicates": {
+      "orders.csv": {
+        "exact_duplicate_rows": 0
+      },
+      "customers.csv": {
+        "exact_duplicate_rows": 0
+      },
+      "products.csv": {
+        "exact_duplicate_rows": 0
+      },
+      "shipments.csv": {
+        "exact_duplicate_rows": 0
+      },
+      "suppliers.csv": {
+        "exact_duplicate_rows": 0
+      },
+      "staff_roster.csv": {
+        "exact_duplicate_rows": 0
+      },
+      "shop_expenses.csv": {
+        "exact_duplicate_rows": 0
+      },
+      "festival_calendar.csv": {
+        "exact_duplicate_rows": 0
+      }
+    },
+    "missing_values_per_column": {
+      "orders.csv": {
+        "order_id": 0,
+        "order_date": 0,
+        "customer_id": 0,
+        "product_id": 0,
+        "quantity": 0,
+        "amount": 0,
+        "channel": 0
+      },
+      "customers.csv": {
+        "customer_id": 0,
+        "customer_name": 0,
+        "city": 0,
+        "credit_account": 0
+      },
+      "products.csv": {
+        "product_id": 0,
+        "product_name": 0,
+        "category": 0,
+        "mrp": 0,
+        "purchase_rate": 0
+      },
+      "shipments.csv": {
+        "shipment_id": 0,
+        "order_id": 0,
+        "courier": 0,
+        "ship_date": 0,
+        "delivery_days": 0
+      },
+      "suppliers.csv": {
+        "supplier_ref": 0,
+        "supplier_name": 0,
+        "city": 0,
+        "payment_terms_days": 0
+      },
+      "staff_roster.csv": {
+        "staff_no": 0,
+        "staff_name": 0,
+        "role": 0,
+        "monthly_pay": 0
+      },
+      "shop_expenses.csv": {
+        "month": 0,
+        "expense_type": 0,
+        "amount": 0
+      },
+      "festival_calendar.csv": {
+        "festival": 0,
+        "festival_date": 0,
+        "expected_demand": 0
+      }
+    },
+    "joins": [
+      {
+        "left": "orders.csv",
+        "right": "customers.csv",
+        "on": "customer_id = customer_id",
+        "left_rows": 500,
+        "right_rows": 120,
+        "inner_join_rows": 490,
+        "left_join_rows": 500,
+        "left_rows_with_no_match": 10,
+        "unmatched_ids_in_left": [
+          "K9001",
+          "K9002",
+          "K9003"
+        ],
+        "unmatched_ids_in_right": [
+          "K0108"
+        ],
+        "repeated_key_values_in_right": [],
+        "note": "orders -> customers; the orphan ids are K9001-K9003"
+      },
+      {
+        "left": "orders.csv",
+        "right": "products.csv",
+        "on": "product_id = product_id",
+        "left_rows": 500,
+        "right_rows": 12,
+        "inner_join_rows": 500,
+        "left_join_rows": 500,
+        "left_rows_with_no_match": 0,
+        "unmatched_ids_in_left": [],
+        "unmatched_ids_in_right": [],
+        "repeated_key_values_in_right": [],
+        "note": "orders -> products"
+      },
+      {
+        "left": "shipments.csv",
+        "right": "orders.csv",
+        "on": "order_id = order_id",
+        "left_rows": 280,
+        "right_rows": 500,
+        "inner_join_rows": 280,
+        "left_join_rows": 280,
+        "left_rows_with_no_match": 0,
+        "unmatched_ids_in_left": [],
+        "unmatched_ids_in_right": [
+          "KO00004",
+          "KO00005",
+          "KO00006",
+          "KO00011",
+          "KO00013",
+          "KO00014",
+          "KO00015",
+          "KO00018",
+          "KO00023",
+          "KO00025",
+          "KO00026",
+          "KO00027",
+          "KO00028",
+          "KO00031",
+          "KO00032",
+          "KO00033",
+          "KO00036",
+          "KO00039",
+          "KO00042",
+          "KO00044",
+          "KO00045",
+          "KO00046",
+          "KO00047",
+          "KO00048",
+          "KO00049",
+          "KO00053",
+          "KO00054",
+          "KO00056",
+          "KO00060",
+          "KO00061",
+          "KO00064",
+          "KO00067",
+          "KO00071",
+          "KO00072",
+          "KO00074",
+          "KO00076",
+          "KO00077",
+          "KO00079",
+          "KO00080",
+          "KO00081",
+          "KO00083",
+          "KO00086",
+          "KO00088",
+          "KO00089",
+          "KO00091",
+          "KO00095",
+          "KO00099",
+          "KO00102",
+          "KO00109",
+          "KO00110",
+          "KO00111",
+          "KO00113",
+          "KO00115",
+          "KO00116",
+          "KO00117",
+          "KO00121",
+          "KO00123",
+          "KO00124",
+          "KO00126",
+          "KO00130",
+          "KO00132",
+          "KO00133",
+          "KO00134",
+          "KO00135",
+          "KO00137",
+          "KO00138",
+          "KO00141",
+          "KO00142",
+          "KO00143",
+          "KO00144",
+          "KO00148",
+          "KO00149",
+          "KO00151",
+          "KO00152",
+          "KO00155",
+          "KO00157",
+          "KO00158",
+          "KO00159",
+          "KO00165",
+          "KO00167",
+          "KO00170",
+          "KO00172",
+          "KO00173",
+          "KO00176",
+          "KO00177",
+          "KO00179",
+          "KO00186",
+          "KO00187",
+          "KO00188",
+          "KO00191",
+          "KO00193",
+          "KO00197",
+          "KO00200",
+          "KO00206",
+          "KO00207",
+          "KO00212",
+          "KO00213",
+          "KO00214",
+          "KO00216",
+          "KO00219",
+          "KO00221",
+          "KO00222",
+          "KO00223",
+          "KO00227",
+          "KO00228",
+          "KO00230",
+          "KO00231",
+          "KO00235",
+          "KO00237",
+          "KO00240",
+          "KO00242",
+          "KO00245",
+          "KO00249",
+          "KO00250",
+          "KO00254",
+          "KO00255",
+          "KO00256",
+          "KO00258",
+          "KO00260",
+          "KO00262",
+          "KO00263",
+          "KO00267",
+          "KO00269",
+          "KO00270",
+          "KO00273",
+          "KO00275",
+          "KO00277",
+          "KO00279",
+          "KO00284",
+          "KO00287",
+          "KO00291",
+          "KO00292",
+          "KO00298",
+          "KO00301",
+          "KO00305",
+          "KO00308",
+          "KO00309",
+          "KO00312",
+          "KO00316",
+          "KO00318",
+          "KO00319",
+          "KO00321",
+          "KO00322",
+          "KO00323",
+          "KO00326",
+          "KO00327",
+          "KO00330",
+          "KO00331",
+          "KO00333",
+          "KO00336",
+          "KO00340",
+          "KO00341",
+          "KO00344",
+          "KO00345",
+          "KO00346",
+          "KO00347",
+          "KO00352",
+          "KO00354",
+          "KO00357",
+          "KO00359",
+          "KO00361",
+          "KO00368",
+          "KO00369",
+          "KO00372",
+          "KO00375",
+          "KO00380",
+          "KO00382",
+          "KO00384",
+          "KO00385",
+          "KO00389",
+          "KO00396",
+          "KO00397",
+          "KO00398",
+          "KO00402",
+          "KO00403",
+          "KO00406",
+          "KO00407",
+          "KO00410",
+          "KO00411",
+          "KO00412",
+          "KO00417",
+          "KO00418",
+          "KO00420",
+          "KO00424",
+          "KO00426",
+          "KO00427",
+          "KO00431",
+          "KO00433",
+          "KO00436",
+          "KO00438",
+          "KO00443",
+          "KO00445",
+          "KO00448",
+          "KO00449",
+          "KO00451",
+          "KO00452",
+          "KO00454",
+          "KO00456",
+          "KO00457",
+          "KO00459",
+          "KO00460",
+          "KO00462",
+          "KO00464",
+          "KO00466",
+          "KO00467",
+          "KO00471",
+          "KO00473",
+          "KO00476",
+          "KO00479",
+          "KO00480",
+          "KO00482",
+          "KO00483",
+          "KO00486",
+          "KO00487",
+          "KO00491",
+          "KO00492",
+          "KO00494",
+          "KO00495",
+          "KO00499",
+          "KO00500"
+        ],
+        "repeated_key_values_in_right": [],
+        "note": "shipments -> orders; every shipment belongs to an order, not every order has a shipment"
+      }
+    ],
+    "files_uploaded": 8,
+    "upload_file_limit": 8,
+    "files_that_connect": [
+      "orders.csv",
+      "customers.csv",
+      "products.csv",
+      "shipments.csv"
+    ],
+    "files_with_no_link": [
+      "suppliers.csv",
+      "staff_roster.csv",
+      "shop_expenses.csv",
+      "festival_calendar.csv"
+    ],
+    "real_links_expected": 3,
+    "orders_with_no_matching_customer": 10,
+    "orders_without_a_shipment": 220,
+    "average_delivery_days": 3.01
+  }
+}

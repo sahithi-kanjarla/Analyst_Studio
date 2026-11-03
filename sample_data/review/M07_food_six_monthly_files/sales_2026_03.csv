@@ -1,0 +1,142 @@
+order_id,order_date,item,category,quantity,unit_price,amount,city,payment_mode,festival_pack
+FS030001,2026-03-12,Dry Fruit Chikki,Sweets,3,260,780,Mumbai,Cash,No
+FS030002,2026-03-21,Masala Powder 100g,Masala,2,120,240,Chennai,Card,No
+FS030003,2026-03-06,Pure Ghee 500ml,Dairy,1,520,520,Chennai,Cash,No
+FS030004,2026-03-23,Methi Thepla Pack,Snacks,1,130,130,Bengaluru,UPI,Yes
+FS030005,2026-03-20,Urad Papad 200g,Snacks,1,95,95,Delhi,UPI,Yes
+FS030006,2026-03-05,Dry Fruit Chikki,Sweets,2,260,520,Mumbai,Card,No
+FS030007,2026-03-28,Dry Fruit Chikki,Sweets,4,260,1040,Delhi,Card,Yes
+FS030008,2026-03-07,Urad Papad 200g,Snacks,4,95,380,Mumbai,UPI,No
+FS030009,2026-03-22,Mango Pickle 500g,Pickles,2,280,560,Delhi,Cash,No
+FS030010,2026-03-05,Methi Thepla Pack,Snacks,3,130,390,Mumbai,Cash,No
+FS030011,2026-03-18,Garlic Chutney 200g,Pickles,1,165,165,Mumbai,Card,No
+FS030012,2026-03-16,Besan Laddu 500g,Sweets,3,340,1020,Delhi,Card,No
+FS030013,2026-03-17,Mango Pickle 500g,Pickles,3,280,840,Bengaluru,UPI,Yes
+FS030014,2026-03-07,Dry Fruit Chikki,Sweets,2,260,520,Pune,Cash,No
+FS030015,2026-03-01,Idli Batter 1kg,Batter,1,85,85,Bengaluru,Card,No
+FS030016,2026-03-06,Pure Ghee 500ml,Dairy,1,520,520,Kolkata,UPI,No
+FS030017,2026-03-03,Dry Fruit Chikki,Sweets,2,260,520,Pune,UPI,No
+FS030018,2026-03-19,Tomato Chutney 300g,Pickles,2,190,380,Delhi,Card,No
+FS030019,2026-03-08,Garlic Chutney 200g,Pickles,4,165,660,Mumbai,Cash,No
+FS030020,2026-03-05,Urad Papad 200g,Snacks,4,95,380,Mumbai,Card,Yes
+FS030021,2026-03-22,Masala Powder 100g,Masala,3,120,360,Delhi,UPI,No
+FS030022,2026-03-27,Chakli 250g,Snacks,1,150,150,Kolkata,UPI,No
+FS030023,2026-03-27,Rice Murukku 250g,Snacks,3,145,435,Pune,Cash,No
+FS030024,2026-03-09,Methi Thepla Pack,Snacks,3,130,390,Chennai,Cash,No
+FS030025,2026-03-23,Chakli 250g,Snacks,2,150,300,Chennai,Cash,Yes
+FS030026,2026-03-01,Methi Thepla Pack,Snacks,4,130,520,Chennai,Cash,No
+FS030027,2026-03-23,Masala Powder 100g,Masala,2,120,240,Chennai,Card,Yes
+FS030028,2026-03-25,Idli Batter 1kg,Batter,1,85,85,Delhi,Card,No
+FS030029,2026-03-27,Besan Laddu 500g,Sweets,2,340,680,Kolkata,Cash,No
+FS030030,2026-03-05,Dry Fruit Chikki,Sweets,4,260,1040,Bengaluru,UPI,No
+FS030031,2026-03-08,Rice Murukku 250g,Snacks,2,145,290,Chennai,Card,Yes
+FS030032,2026-03-15,Besan Laddu 500g,Sweets,1,340,340,Mumbai,Cash,No
+FS030033,2026-03-24,Methi Thepla Pack,Snacks,1,130,130,Kolkata,Cash,Yes
+FS030034,2026-03-21,Tomato Chutney 300g,Pickles,4,190,760,Chennai,UPI,No
+FS030035,2026-03-21,Methi Thepla Pack,Snacks,1,130,130,Chennai,UPI,No
+FS030036,2026-03-18,Urad Papad 200g,Snacks,4,95,380,Delhi,Cash,No
+FS030037,2026-03-16,Rice Murukku 250g,Snacks,3,145,435,Delhi,UPI,No
+FS030038,2026-03-10,Pure Ghee 500ml,Dairy,1,520,520,Delhi,UPI,No
+FS030039,2026-03-27,Chakli 250g,Snacks,4,150,600,Bengaluru,Card,No
+FS030040,2026-03-13,Rice Murukku 250g,Snacks,1,145,145,Delhi,Cash,Yes
+FS030041,2026-03-17,Idli Batter 1kg,Batter,1,85,85,Delhi,Cash,No
+FS030042,2026-03-10,Methi Thepla Pack,Snacks,3,130,390,Delhi,Cash,No
+FS030043,2026-03-19,Chakli 250g,Snacks,1,150,150,Pune,Cash,No
+FS030044,2026-03-19,Idli Batter 1kg,Batter,1,85,85,Pune,UPI,No
+FS030045,2026-03-11,Dry Fruit Chikki,Sweets,4,260,1040,Pune,Cash,Yes
+FS030046,2026-03-27,Methi Thepla Pack,Snacks,2,130,260,Kolkata,Card,No
+FS030047,2026-03-24,Mango Pickle 500g,Pickles,1,280,280,Pune,Card,No
+FS030048,2026-03-14,Tomato Chutney 300g,Pickles,3,190,570,Mumbai,Card,No
+FS030049,2026-03-03,Masala Powder 100g,Masala,1,120,120,Kolkata,Cash,No
+FS030050,2026-03-07,Rice Murukku 250g,Snacks,4,145,580,Delhi,Cash,No
+FS030051,2026-03-14,Mango Pickle 500g,Pickles,2,280,560,Chennai,Card,Yes
+FS030052,2026-03-01,Rice Murukku 250g,Snacks,4,145,580,Chennai,Cash,Yes
+FS030053,2026-03-27,Mango Pickle 500g,Pickles,4,280,1120,Pune,Cash,No
+FS030054,2026-03-04,Dry Fruit Chikki,Sweets,2,260,520,Delhi,UPI,No
+FS030055,2026-03-10,Urad Papad 200g,Snacks,4,95,380,Delhi,Card,Yes
+FS030056,2026-03-10,Tomato Chutney 300g,Pickles,1,190,190,Chennai,Cash,Yes
+FS030057,2026-03-09,Pure Ghee 500ml,Dairy,2,520,1040,Mumbai,Card,No
+FS030058,2026-03-01,Tomato Chutney 300g,Pickles,2,190,380,Pune,Card,No
+FS030059,2026-03-18,Chakli 250g,Snacks,1,150,150,Kolkata,UPI,No
+FS030060,2026-03-20,Mango Pickle 500g,Pickles,1,280,280,Delhi,Card,No
+FS030061,2026-03-01,Dry Fruit Chikki,Sweets,1,260,260,Pune,Card,Yes
+FS030062,2026-03-25,Urad Papad 200g,Snacks,1,95,95,Bengaluru,UPI,Yes
+FS030063,2026-03-23,Dry Fruit Chikki,Sweets,1,260,260,Delhi,UPI,Yes
+FS030064,2026-03-22,Garlic Chutney 200g,Pickles,3,165,495,Kolkata,UPI,No
+FS030065,2026-03-02,Idli Batter 1kg,Batter,1,85,85,Chennai,UPI,No
+FS030066,2026-03-08,Mango Pickle 500g,Pickles,1,280,280,Delhi,UPI,Yes
+FS030067,2026-03-08,Urad Papad 200g,Snacks,2,95,190,Chennai,Cash,Yes
+FS030068,2026-03-21,Masala Powder 100g,Masala,2,120,240,Delhi,Cash,No
+FS030069,2026-03-06,Garlic Chutney 200g,Pickles,1,165,165,Pune,Cash,No
+FS030070,2026-03-15,Urad Papad 200g,Snacks,1,95,95,Mumbai,UPI,No
+FS030071,2026-03-26,Besan Laddu 500g,Sweets,3,340,1020,Bengaluru,Cash,No
+FS030072,2026-03-10,Chakli 250g,Snacks,2,150,300,Kolkata,Cash,Yes
+FS030073,2026-03-21,Chakli 250g,Snacks,1,150,150,Mumbai,UPI,Yes
+FS030074,2026-03-21,Masala Powder 100g,Masala,3,120,360,Mumbai,Card,Yes
+FS030075,2026-03-05,Masala Powder 100g,Masala,2,120,240,Kolkata,Cash,No
+FS030076,2026-03-25,Pure Ghee 500ml,Dairy,3,520,1560,Bengaluru,Card,No
+FS030077,2026-03-06,Idli Batter 1kg,Batter,3,85,255,Pune,UPI,Yes
+FS030078,2026-03-14,Mango Pickle 500g,Pickles,2,280,560,Chennai,UPI,No
+FS030079,2026-03-15,Urad Papad 200g,Snacks,1,95,95,Kolkata,Cash,Yes
+FS030080,2026-03-17,Chakli 250g,Snacks,1,150,150,Delhi,UPI,No
+FS030081,2026-03-02,Dry Fruit Chikki,Sweets,2,260,520,Delhi,UPI,No
+FS030082,2026-03-18,Mango Pickle 500g,Pickles,1,280,280,Mumbai,Card,Yes
+FS030083,2026-03-27,Mango Pickle 500g,Pickles,3,280,840,Delhi,Cash,No
+FS030084,2026-03-14,Tomato Chutney 300g,Pickles,1,190,190,Chennai,Card,Yes
+FS030085,2026-03-25,Besan Laddu 500g,Sweets,2,340,680,Chennai,Cash,No
+FS030086,2026-03-01,Masala Powder 100g,Masala,4,120,480,Kolkata,Cash,No
+FS030087,2026-03-26,Garlic Chutney 200g,Pickles,1,165,165,Mumbai,Cash,No
+FS030088,2026-03-12,Tomato Chutney 300g,Pickles,1,190,190,Bengaluru,Cash,Yes
+FS030089,2026-03-19,Urad Papad 200g,Snacks,4,95,380,Bengaluru,UPI,No
+FS030090,2026-03-15,Urad Papad 200g,Snacks,4,95,380,Kolkata,Cash,No
+FS030091,2026-03-08,Dry Fruit Chikki,Sweets,1,260,260,Pune,UPI,Yes
+FS030092,2026-03-16,Chakli 250g,Snacks,4,150,600,Delhi,Card,No
+FS030093,2026-03-03,Tomato Chutney 300g,Pickles,2,190,380,Chennai,Cash,No
+FS030094,2026-03-17,Chakli 250g,Snacks,1,150,150,Chennai,Cash,No
+FS030095,2026-03-12,Mango Pickle 500g,Pickles,1,280,280,Kolkata,Card,Yes
+FS030096,2026-03-02,Besan Laddu 500g,Sweets,4,340,1360,Kolkata,UPI,No
+FS030097,2026-03-11,Rice Murukku 250g,Snacks,3,145,435,Bengaluru,UPI,Yes
+FS030098,2026-03-05,Mango Pickle 500g,Pickles,2,280,560,Pune,UPI,No
+FS030099,2026-03-08,Methi Thepla Pack,Snacks,1,130,130,Chennai,Card,Yes
+FS030100,2026-03-10,Masala Powder 100g,Masala,1,120,120,Bengaluru,Card,No
+FS030101,2026-03-12,Besan Laddu 500g,Sweets,3,340,1020,Bengaluru,UPI,No
+FS030102,2026-03-07,Pure Ghee 500ml,Dairy,1,520,520,Delhi,Card,No
+FS030103,2026-03-01,Idli Batter 1kg,Batter,2,85,170,Bengaluru,UPI,No
+FS030104,2026-03-09,Dry Fruit Chikki,Sweets,1,260,260,Pune,Card,No
+FS030105,2026-03-16,Pure Ghee 500ml,Dairy,2,520,1040,Bengaluru,Cash,No
+FS030106,2026-03-01,Mango Pickle 500g,Pickles,4,280,1120,Bengaluru,Card,No
+FS030107,2026-03-27,Rice Murukku 250g,Snacks,4,145,580,Kolkata,Cash,No
+FS030108,2026-03-21,Besan Laddu 500g,Sweets,4,340,1360,Kolkata,Cash,Yes
+FS030109,2026-03-03,Pure Ghee 500ml,Dairy,1,520,520,Bengaluru,UPI,No
+FS030110,2026-03-24,Dry Fruit Chikki,Sweets,3,260,780,Delhi,UPI,No
+FS030111,2026-03-21,Tomato Chutney 300g,Pickles,4,190,760,Chennai,Cash,Yes
+FS030112,2026-03-24,Garlic Chutney 200g,Pickles,1,165,165,Bengaluru,Card,No
+FS030113,2026-03-15,Chakli 250g,Snacks,1,150,150,Chennai,UPI,Yes
+FS030114,2026-03-07,Methi Thepla Pack,Snacks,1,130,130,Kolkata,UPI,No
+FS030115,2026-03-07,Idli Batter 1kg,Batter,1,85,85,Pune,UPI,No
+FS030116,2026-03-18,Tomato Chutney 300g,Pickles,4,190,760,Kolkata,Card,Yes
+FS030117,2026-03-05,Garlic Chutney 200g,Pickles,1,165,165,Bengaluru,UPI,Yes
+FS030118,2026-03-12,Rice Murukku 250g,Snacks,3,145,435,Bengaluru,Cash,Yes
+FS030119,2026-03-02,Besan Laddu 500g,Sweets,1,340,340,Mumbai,UPI,No
+FS030120,2026-03-13,Masala Powder 100g,Masala,2,120,240,Pune,UPI,Yes
+FS030121,2026-03-22,Chakli 250g,Snacks,1,150,150,Mumbai,UPI,No
+FS030122,2026-03-20,Tomato Chutney 300g,Pickles,1,190,190,Bengaluru,Cash,No
+FS030123,2026-03-03,Methi Thepla Pack,Snacks,2,130,260,Pune,Cash,Yes
+FS030124,2026-03-08,Chakli 250g,Snacks,3,150,450,Bengaluru,Cash,No
+FS030125,2026-03-15,Masala Powder 100g,Masala,1,120,120,Kolkata,UPI,Yes
+FS030126,2026-03-15,Urad Papad 200g,Snacks,1,95,95,Bengaluru,UPI,No
+FS030127,2026-03-27,Dry Fruit Chikki,Sweets,4,260,1040,Bengaluru,UPI,Yes
+FS030128,2026-03-09,Mango Pickle 500g,Pickles,2,280,560,Pune,UPI,Yes
+FS030129,2026-03-28,Methi Thepla Pack,Snacks,2,130,260,Mumbai,Card,No
+FS030130,2026-03-02,Masala Powder 100g,Masala,3,120,360,Bengaluru,UPI,No
+FS030131,2026-03-12,Chakli 250g,Snacks,4,150,600,Kolkata,UPI,No
+FS030132,2026-03-20,Mango Pickle 500g,Pickles,3,280,840,Pune,Card,No
+FS030133,2026-03-24,Pure Ghee 500ml,Dairy,1,520,520,Chennai,Cash,No
+FS030134,2026-03-02,Chakli 250g,Snacks,3,150,450,Chennai,Card,Yes
+FS030135,2026-03-26,Mango Pickle 500g,Pickles,1,280,280,Kolkata,Card,No
+FS030136,2026-03-14,Dry Fruit Chikki,Sweets,3,260,780,Kolkata,UPI,Yes
+FS030137,2026-03-15,Mango Pickle 500g,Pickles,1,280,280,Bengaluru,Card,Yes
+FS030138,2026-03-18,Urad Papad 200g,Snacks,2,95,190,Chennai,UPI,Yes
+FS030139,2026-03-05,Tomato Chutney 300g,Pickles,3,190,570,Chennai,UPI,No
+FS030140,2026-03-04,Methi Thepla Pack,Snacks,2,130,260,Mumbai,Cash,No
+FS030141,2026-03-02,Tomato Chutney 300g,Pickles,1,190,190,Bengaluru,UPI,No

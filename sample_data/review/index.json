@@ -288,6 +288,55 @@
       "rows": 1532,
       "what_it_tests": "the three sides of one shop joined on item_code: what was bought, what is in stock, and what was sold, with one item sold that neither of the other two files knows",
       "app_should": "link all three on item_code, compare bought against sold per item, and name the item code that appears only in sales"
+    },
+    {
+      "id": "M07",
+      "folder": "M07_food_six_monthly_files",
+      "business_type": "home-based food seller",
+      "kind": "connected (6 files, same table)",
+      "files": [
+        "sales_2026_01.csv",
+        "sales_2026_02.csv",
+        "sales_2026_03.csv",
+        "sales_2026_04.csv",
+        "sales_2026_05.csv",
+        "sales_2026_06.csv"
+      ],
+      "rows": 801,
+      "what_it_tests": "six monthly sales files from one shop with the same columns; March has one extra column and May has the columns in a different order",
+      "app_should": "recognise the six files as the same table (same column names, order does not matter), stack them into one, keep the extra March column, and report a combined total equal to the sum of the six files"
+    },
+    {
+      "id": "M08",
+      "folder": "M08_handicrafts_csv_plus_excel",
+      "business_type": "handicrafts seller",
+      "kind": "connected (2 files, mixed formats)",
+      "files": [
+        "orders.csv",
+        "customers.xlsx"
+      ],
+      "rows": 862,
+      "what_it_tests": "a CSV orders file and an Excel customer list that starts below three note rows and ends with a total line, joined by customer id (the header is spelled differently in each file)",
+      "app_should": "find the real header row of the Excel file, drop its footer line, connect orders.customer_id to customers.xlsx Customer ID, and report the orders whose customer is not in the list"
+    },
+    {
+      "id": "M09",
+      "folder": "M09_kirana_eight_files",
+      "business_type": "kirana store",
+      "kind": "connected (8 files at the upload limit)",
+      "files": [
+        "orders.csv",
+        "customers.csv",
+        "products.csv",
+        "shipments.csv",
+        "suppliers.csv",
+        "staff_roster.csv",
+        "shop_expenses.csv",
+        "festival_calendar.csv"
+      ],
+      "rows": 969,
+      "what_it_tests": "eight files, the most one upload takes: four that connect (orders, customers, products, shipments) and four that have no link to anything (suppliers, staff, expenses, festivals)",
+      "app_should": "accept all eight files, find the three real links (orders-customers, orders-products, shipments-orders), connect the four tables, say the other four are not connected instead of inventing links, and report the orphan customers"
     }
   ]
 }

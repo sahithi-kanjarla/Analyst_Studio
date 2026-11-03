@@ -1,0 +1,10 @@
+supplier_ref,supplier_name,city,payment_terms_days
+SUP-01,Mehta Traders,Kochi,7
+SUP-02,Chavan Distributors,Mumbai,30
+SUP-03,Pillai Wholesale,Mumbai,30
+SUP-04,Gupta Distributors,Delhi,15
+SUP-05,Reddy Traders,Kochi,30
+SUP-06,Reddy Distributors,Kochi,15
+SUP-07,Singh Wholesale,Delhi,15
+SUP-08,Menon Wholesale,Jaipur,15
+SUP-09,Khan Distributors,Delhi,7

@@ -1,4 +1,4 @@
-"""Builds the review pack: 23 small datasets for a real-AI review of Analyst Studio, each with an
+"""Builds the review pack: 26 small datasets for a real-AI review of Analyst Studio, each with an
 "expected answers" file computed from pandas so a run can be marked right or wrong without guessing.
 
     python scripts/make_review_datasets.py              # writes sample_data/review/
@@ -926,7 +926,7 @@ def r17() -> dict[str, Any]:
                       "cost_per_attributed_order": lambda c: num(c[f]["ad_spend"].sum() / c[f]["orders_attributed"].sum())})
 
 
-# ================================================================== connected sets (M01-M06)
+# ================================================================== connected sets (M01-M09)
 def m01() -> dict[str, Any]:
     r, _ = rng_for(31)
     cat = CATALOGUE["bakery"]
@@ -1170,8 +1170,155 @@ def m06() -> dict[str, Any]:
                                                                       for code in sorted(cl[iv]["item_code"])}})
 
 
+def m07() -> dict[str, Any]:
+    r, _ = rng_for(37)
+    cat = CATALOGUE["home-based food seller"]
+    names, frames = [], {}
+    for m in range(1, 7):
+        rows = []
+        for n in range(1, r.randint(110, 170) + 1):
+            item, price, _, group, _ = r.choice(cat)
+            q = r.choice([1, 1, 2, 3, 4])
+            row = {"order_id": f"FS{m:02d}{n:04d}", "order_date": dt.date(2026, m, r.randint(1, 28)).isoformat(), "item": item, "category": group,
+                   "quantity": q, "unit_price": price, "amount": round(price * q, 2), "city": r.choice(CITIES[:6]), "payment_mode": r.choice(["UPI", "Cash", "Card"])}
+            if m == 3:
+                row["festival_pack"] = r.choice(["Yes", "No", "No"])                    # March has one extra column
+            rows.append(row)
+        df = pd.DataFrame(rows)
+        if m == 5:
+            df = df[list(reversed(df.columns))]                                         # May has the same columns in reverse order
+        name = f"sales_2026_{m:02d}.csv"
+        names.append(name)
+        frames[name] = df
+    note = {"sales_2026_03.csv": "has one extra column, festival_pack, after payment_mode", "sales_2026_05.csv": "the same nine columns as January, in reverse order"}
+
+    def clean(c: dict[str, pd.DataFrame]) -> dict[str, pd.DataFrame]:
+        return {**c, "stacked": pd.concat([c[n] for n in names], ignore_index=True, sort=False)}
+
+    def per_file(cl: dict[str, pd.DataFrame]) -> dict[str, Any]:
+        return {n: {"rows": int(len(cl[n])), "amount_total": num(cl[n]["amount"].sum()), "columns": [str(x) for x in cl[n].columns]} for n in names}
+
+    return spec(id="M07", dir="M07_food_six_monthly_files", business="home-based food seller", kind="connected (6 files, same table)",
+                tests="six monthly sales files from one shop with the same columns; March has one extra column and May has the columns in a different order",
+                app_should="recognise the six files as the same table (same column names, order does not matter), stack them into one, keep the extra March column, and report a combined total equal to the sum of the six files",
+                files=[File(n, df=frames[n], note=note.get(n, "the same nine columns, in the same order")) for n in names],
+                clean=clean, cleaning=["stacked the six files, matching columns by name (not by position); festival_pack is empty for the five months that lack it"],
+                amount=("stacked", "amount", "revenue over all six months"), category=("stacked", "category", "amount"),
+                keys={"stacked": ["order_id", "item", "city"]},
+                also={"per_file": per_file,
+                      "sum_of_the_six_file_totals": lambda cl: num(sum(cl[n]["amount"].sum() for n in names)),
+                      "sum_of_the_six_file_row_counts": lambda cl: int(sum(len(cl[n]) for n in names)),
+                      "stacked_rows": lambda cl: int(len(cl["stacked"])),
+                      "union_of_columns": lambda cl: [str(x) for x in cl["stacked"].columns],
+                      "files_with_the_same_column_set": [n for n in names if n != "sales_2026_03.csv"],
+                      "file_with_an_extra_column": "sales_2026_03.csv", "file_with_columns_in_a_different_order": "sales_2026_05.csv",
+                      "total_if_only_the_first_file_is_used": lambda cl: num(cl[names[0]]["amount"].sum()),
+                      "monthly_revenue": lambda cl: {n[6:13]: num(cl[n]["amount"].sum()) for n in names}})
+
+
+def m08() -> dict[str, Any]:
+    r, _ = rng_for(38)
+    cat = CATALOGUE["handicrafts seller"]
+    customers = []
+    for n in range(1, 161):
+        name, email, phone = person(r)
+        customers.append({"Customer ID": f"H{n:04d}", "Name": name, "Email": email, "Phone": phone, "City": r.choice(CITIES),
+                          "Joined On": (dt.date(2025, 1, 1) + dt.timedelta(days=r.randint(0, 600))).isoformat(), "Segment": r.choice(["Retail", "Retail", "Wholesale", "Gifting"])})
+    known = [c["Customer ID"] for c in customers]
+    orphans = [f"H9{i:03d}" for i in range(1, 6)]
+    orders = []
+    for n in range(1, 701):
+        item, price, _, group, code = r.choice(cat)
+        q = r.choice([1, 1, 2, 3])
+        orders.append({"order_id": f"HO{n:05d}", "order_date": (dt.date(2026, 1, 15) + dt.timedelta(days=r.randint(0, 240))).isoformat(),
+                       "customer_id": r.choice(orphans) if n % 50 == 0 else r.choice(known), "item": item, "category": group, "quantity": q,
+                       "amount": round(price * q, 2), "channel": r.choice(["Website", "Exhibition", "Instagram"])})
+    o, c = "orders.csv", "customers.xlsx"
+    cdf = pd.DataFrame(customers)
+
+    def writer(path: Path) -> None:
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Customers"
+        ws.append(["Kala Ghar Handicrafts"])
+        ws.append(["Customer list - exported from the old billing program"])
+        ws.append(["Prepared by the shop accountant."])
+        ws.append([])
+        ws.append(list(cdf.columns))
+        for row in cdf.itertuples(index=False):
+            ws.append(list(row))
+        ws.append([])
+        ws.append(["Total customers", len(cdf)])
+        wb.properties.created = wb.properties.modified = dt.datetime(2026, 10, 1)
+        wb.save(path)
+        freeze_xlsx(path)
+
+    def clean(cc: dict[str, pd.DataFrame]) -> dict[str, pd.DataFrame]:
+        d = cc[c]
+        return {o: cc[o], c: d[d["Customer ID"].astype(str).str.fullmatch(r"H\d{4}")].reset_index(drop=True)}
+
+    return spec(id="M08", dir="M08_handicrafts_csv_plus_excel", business="handicrafts seller", kind="connected (2 files, mixed formats)",
+                tests="a CSV orders file and an Excel customer list that starts below three note rows and ends with a total line, joined by customer id (the header is spelled differently in each file)",
+                app_should="find the real header row of the Excel file, drop its footer line, connect orders.customer_id to customers.xlsx Customer ID, and report the orders whose customer is not in the list",
+                files=[File(o, df=pd.DataFrame(orders), note="five customer ids used by 14 orders are not in the Excel list"),
+                       File(c, writer=writer, reader="excel", options={"skiprows": 4}, note="rows 1-3 are notes, row 4 is blank, row 5 is the header, the last two rows are blank and 'Total customers'")],
+                clean=clean, cleaning=["read the Excel file with skiprows=4 so row 5 is the header", "dropped the footer rows that are not a customer id"],
+                amount=(o, "amount", "revenue"), category=(o, "category", "amount"),
+                keys={o: ["order_id", "customer_id"], c: ["Customer ID", "City"]},
+                joins=[{"left": o, "right": c, "on": "customer_id", "left_on": "customer_id", "right_on": "Customer ID", "note": "orders -> customers; the orphan ids are H9001-H9005"}],
+                also={"customers_in_excel_list": lambda cl: int(len(cl[c])),
+                      "orders_with_no_matching_customer": lambda cl: int(cl[o]["customer_id"].isin(orphans).sum()),
+                      "orphan_customer_ids_used_by_an_order": lambda cl: sorted(set(cl[o]["customer_id"]) - set(cl[c]["Customer ID"])),
+                      "revenue_of_orphan_orders": lambda cl: num(cl[o].loc[cl[o]["customer_id"].isin(orphans), "amount"].sum()),
+                      "customers_who_never_ordered": lambda cl: int((~cl[c]["Customer ID"].isin(cl[o]["customer_id"])).sum())})
+
+
+def m09() -> dict[str, Any]:
+    r, _ = rng_for(39)
+    cat = CATALOGUE["kirana store"]
+    customers = [{"customer_id": f"K{n:04d}", "customer_name": person(r)[0], "city": r.choice(CITIES[:5]), "credit_account": r.choice(["Yes", "No", "No"])} for n in range(1, 121)]
+    products = [{"product_id": p[4], "product_name": p[0], "category": p[3], "mrp": p[1], "purchase_rate": p[2]} for p in cat]
+    known = [x["customer_id"] for x in customers]
+    orphans = ["K9001", "K9002", "K9003"]
+    orders = []
+    for n in range(1, 501):
+        item, price, _, _, code = r.choice(cat)
+        q = r.choice([1, 2, 2, 3, 5])
+        orders.append({"order_id": f"KO{n:05d}", "order_date": (dt.date(2026, 4, 1) + dt.timedelta(days=r.randint(0, 150))).isoformat(),
+                       "customer_id": r.choice(orphans) if n % 50 == 0 else r.choice(known), "product_id": code, "quantity": q,
+                       "amount": round(price * q, 2), "channel": r.choice(["Counter", "Phone", "WhatsApp"])})
+    shipped = [o for i, o in enumerate(orders) if i % 7 != 3 and o["channel"] != "Counter"]      # counter sales and some others have no delivery
+    shipments = [{"shipment_id": f"SH{i:05d}", "order_id": o["order_id"], "courier": r.choice(["Local Rider", "Speed Post", "App Courier"]),
+                  "ship_date": o["order_date"], "delivery_days": r.randint(1, 5)} for i, o in enumerate(shipped, start=1)]
+    suppliers = [{"supplier_ref": f"SUP-{i:02d}", "supplier_name": f"{r.choice(LAST)} {r.choice(['Traders', 'Distributors', 'Wholesale'])}", "city": r.choice(CITIES),
+                  "payment_terms_days": r.choice([7, 15, 30])} for i in range(1, 10)]
+    staff = [{"staff_no": f"EMP-{100 + i}", "staff_name": person(r)[0], "role": r.choice(["Cashier", "Packer", "Delivery", "Helper"]), "monthly_pay": r.choice([9000, 11000, 13500, 16000])} for i in range(1, 9)]
+    expenses = [{"month": f"{m} 2026", "expense_type": e, "amount": r.randint(2000, 38000)} for m in ["Apr", "May", "Jun", "Jul", "Aug"] for e in ["Rent", "Electricity", "Packaging", "Fuel", "Repairs", "Phone"]]
+    festivals = [{"festival": f, "festival_date": d, "expected_demand": r.choice(["High", "Medium"])} for f, d in
+                 [("Ugadi", "2026-03-19"), ("Ram Navami", "2026-03-27"), ("Eid", "2026-03-21"), ("Akshaya Tritiya", "2026-04-19"), ("Buddha Purnima", "2026-05-01"),
+                  ("Muharram", "2026-06-26"), ("Rath Yatra", "2026-07-16"), ("Raksha Bandhan", "2026-08-28"), ("Janmashtami", "2026-09-04"), ("Ganesh Chaturthi", "2026-09-14")]]
+    o, c, p, s = "orders.csv", "customers.csv", "products.csv", "shipments.csv"
+    u = ["suppliers.csv", "staff_roster.csv", "shop_expenses.csv", "festival_calendar.csv"]
+    return spec(id="M09", dir="M09_kirana_eight_files", business="kirana store", kind="connected (8 files at the upload limit)",
+                tests="eight files, the most one upload takes: four that connect (orders, customers, products, shipments) and four that have no link to anything (suppliers, staff, expenses, festivals)",
+                app_should="accept all eight files, find the three real links (orders-customers, orders-products, shipments-orders), connect the four tables, say the other four are not connected instead of inventing links, and report the orphan customers",
+                files=[File(o, df=pd.DataFrame(orders), note="three customer ids used by 10 orders are not in customers.csv"), File(c, df=pd.DataFrame(customers)),
+                       File(p, df=pd.DataFrame(products), note="product_id is the item code"), File(s, df=pd.DataFrame(shipments), note="one row per delivered order; counter sales have none"),
+                       File(u[0], df=pd.DataFrame(suppliers), note="unrelated: no column links to the other files"), File(u[1], df=pd.DataFrame(staff), note="unrelated"),
+                       File(u[2], df=pd.DataFrame(expenses), note="unrelated; months are text"), File(u[3], df=pd.DataFrame(festivals), note="unrelated")],
+                amount=(o, "amount", "revenue"), category=(o, "channel", "amount"),
+                keys={o: ["order_id", "customer_id", "product_id"], c: ["customer_id"], p: ["product_id"], s: ["shipment_id", "order_id"]},
+                joins=[{"left": o, "right": c, "on": "customer_id", "note": "orders -> customers; the orphan ids are K9001-K9003"},
+                       {"left": o, "right": p, "on": "product_id", "note": "orders -> products"},
+                       {"left": s, "right": o, "on": "order_id", "note": "shipments -> orders; every shipment belongs to an order, not every order has a shipment"}],
+                also={"files_uploaded": 8, "upload_file_limit": 8, "files_that_connect": [o, c, p, s], "files_with_no_link": u, "real_links_expected": 3,
+                      "orders_with_no_matching_customer": lambda cl: int(cl[o]["customer_id"].isin(orphans).sum()),
+                      "orders_without_a_shipment": lambda cl: int((~cl[o]["order_id"].isin(cl[s]["order_id"])).sum()),
+                      "average_delivery_days": lambda cl: num(cl[s]["delivery_days"].mean())})
+
+
 # ================================================================== assembling the pack
-BUILDERS = [r01, r02, r03, r04, r05, r06, r07, r08, r09, r10, r11, r12, r13, r14, r15, r16, r17, m01, m02, m03, m04, m05, m06]
+BUILDERS = [r01, r02, r03, r04, r05, r06, r07, r08, r09, r10, r11, r12, r13, r14, r15, r16, r17, m01, m02, m03, m04, m05, m06, m07, m08, m09]
 
 README_HEAD = """# Review pack (synthetic)
 

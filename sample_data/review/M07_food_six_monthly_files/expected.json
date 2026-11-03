@@ -1,0 +1,466 @@
+{
+  "id": "M07",
+  "business_type": "home-based food seller",
+  "kind": "connected (6 files, same table)",
+  "what_it_tests": "six monthly sales files from one shop with the same columns; March has one extra column and May has the columns in a different order",
+  "app_should": "recognise the six files as the same table (same column names, order does not matter), stack them into one, keep the extra March column, and report a combined total equal to the sum of the six files",
+  "generated_by": "scripts/make_review_datasets.py",
+  "seed": 20261103,
+  "files": {
+    "sales_2026_01.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "the same nine columns, in the same order",
+      "rows": 144,
+      "columns": 9,
+      "column_names": [
+        "order_id",
+        "order_date",
+        "item",
+        "category",
+        "quantity",
+        "unit_price",
+        "amount",
+        "city",
+        "payment_mode"
+      ],
+      "missing_per_column": {
+        "order_id": 0,
+        "order_date": 0,
+        "item": 0,
+        "category": 0,
+        "quantity": 0,
+        "unit_price": 0,
+        "amount": 0,
+        "city": 0,
+        "payment_mode": 0
+      },
+      "exact_duplicate_rows": 0
+    },
+    "sales_2026_02.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "the same nine columns, in the same order",
+      "rows": 115,
+      "columns": 9,
+      "column_names": [
+        "order_id",
+        "order_date",
+        "item",
+        "category",
+        "quantity",
+        "unit_price",
+        "amount",
+        "city",
+        "payment_mode"
+      ],
+      "missing_per_column": {
+        "order_id": 0,
+        "order_date": 0,
+        "item": 0,
+        "category": 0,
+        "quantity": 0,
+        "unit_price": 0,
+        "amount": 0,
+        "city": 0,
+        "payment_mode": 0
+      },
+      "exact_duplicate_rows": 0
+    },
+    "sales_2026_03.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "has one extra column, festival_pack, after payment_mode",
+      "rows": 141,
+      "columns": 10,
+      "column_names": [
+        "order_id",
+        "order_date",
+        "item",
+        "category",
+        "quantity",
+        "unit_price",
+        "amount",
+        "city",
+        "payment_mode",
+        "festival_pack"
+      ],
+      "missing_per_column": {
+        "order_id": 0,
+        "order_date": 0,
+        "item": 0,
+        "category": 0,
+        "quantity": 0,
+        "unit_price": 0,
+        "amount": 0,
+        "city": 0,
+        "payment_mode": 0,
+        "festival_pack": 0
+      },
+      "exact_duplicate_rows": 0
+    },
+    "sales_2026_04.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "the same nine columns, in the same order",
+      "rows": 156,
+      "columns": 9,
+      "column_names": [
+        "order_id",
+        "order_date",
+        "item",
+        "category",
+        "quantity",
+        "unit_price",
+        "amount",
+        "city",
+        "payment_mode"
+      ],
+      "missing_per_column": {
+        "order_id": 0,
+        "order_date": 0,
+        "item": 0,
+        "category": 0,
+        "quantity": 0,
+        "unit_price": 0,
+        "amount": 0,
+        "city": 0,
+        "payment_mode": 0
+      },
+      "exact_duplicate_rows": 0
+    },
+    "sales_2026_05.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "the same nine columns as January, in reverse order",
+      "rows": 119,
+      "columns": 9,
+      "column_names": [
+        "payment_mode",
+        "city",
+        "amount",
+        "unit_price",
+        "quantity",
+        "category",
+        "item",
+        "order_date",
+        "order_id"
+      ],
+      "missing_per_column": {
+        "payment_mode": 0,
+        "city": 0,
+        "amount": 0,
+        "unit_price": 0,
+        "quantity": 0,
+        "category": 0,
+        "item": 0,
+        "order_date": 0,
+        "order_id": 0
+      },
+      "exact_duplicate_rows": 0
+    },
+    "sales_2026_06.csv": {
+      "reader": "csv",
+      "options": {},
+      "note": "the same nine columns, in the same order",
+      "rows": 126,
+      "columns": 9,
+      "column_names": [
+        "order_id",
+        "order_date",
+        "item",
+        "category",
+        "quantity",
+        "unit_price",
+        "amount",
+        "city",
+        "payment_mode"
+      ],
+      "missing_per_column": {
+        "order_id": 0,
+        "order_date": 0,
+        "item": 0,
+        "category": 0,
+        "quantity": 0,
+        "unit_price": 0,
+        "amount": 0,
+        "city": 0,
+        "payment_mode": 0
+      },
+      "exact_duplicate_rows": 0
+    }
+  },
+  "cleaning_applied": [
+    "stacked the six files, matching columns by name (not by position); festival_pack is empty for the five months that lack it"
+  ],
+  "answers": {
+    "row_count": {
+      "sales_2026_01.csv": 144,
+      "sales_2026_02.csv": 115,
+      "sales_2026_03.csv": 141,
+      "sales_2026_04.csv": 156,
+      "sales_2026_05.csv": 119,
+      "sales_2026_06.csv": 126,
+      "stacked": 801
+    },
+    "main_total": {
+      "file": "stacked",
+      "column": "amount",
+      "means": "revenue over all six months",
+      "value": 348450.0,
+      "rows_counted": 801,
+      "mean": 435.02
+    },
+    "top_3_main_category": {
+      "file": "stacked",
+      "group_by": "category",
+      "ranked_by": "amount",
+      "items": [
+        {
+          "name": "Pickles",
+          "total": 93470.0
+        },
+        {
+          "name": "Snacks",
+          "total": 83550.0
+        },
+        {
+          "name": "Sweets",
+          "total": 81080.0
+        }
+      ]
+    },
+    "distinct_key_counts": {
+      "stacked.order_id": 801,
+      "stacked.item": 12,
+      "stacked.city": 6
+    },
+    "duplicates": {
+      "sales_2026_01.csv": {
+        "exact_duplicate_rows": 0
+      },
+      "sales_2026_02.csv": {
+        "exact_duplicate_rows": 0
+      },
+      "sales_2026_03.csv": {
+        "exact_duplicate_rows": 0
+      },
+      "sales_2026_04.csv": {
+        "exact_duplicate_rows": 0
+      },
+      "sales_2026_05.csv": {
+        "exact_duplicate_rows": 0
+      },
+      "sales_2026_06.csv": {
+        "exact_duplicate_rows": 0
+      }
+    },
+    "missing_values_per_column": {
+      "sales_2026_01.csv": {
+        "order_id": 0,
+        "order_date": 0,
+        "item": 0,
+        "category": 0,
+        "quantity": 0,
+        "unit_price": 0,
+        "amount": 0,
+        "city": 0,
+        "payment_mode": 0
+      },
+      "sales_2026_02.csv": {
+        "order_id": 0,
+        "order_date": 0,
+        "item": 0,
+        "category": 0,
+        "quantity": 0,
+        "unit_price": 0,
+        "amount": 0,
+        "city": 0,
+        "payment_mode": 0
+      },
+      "sales_2026_03.csv": {
+        "order_id": 0,
+        "order_date": 0,
+        "item": 0,
+        "category": 0,
+        "quantity": 0,
+        "unit_price": 0,
+        "amount": 0,
+        "city": 0,
+        "payment_mode": 0,
+        "festival_pack": 0
+      },
+      "sales_2026_04.csv": {
+        "order_id": 0,
+        "order_date": 0,
+        "item": 0,
+        "category": 0,
+        "quantity": 0,
+        "unit_price": 0,
+        "amount": 0,
+        "city": 0,
+        "payment_mode": 0
+      },
+      "sales_2026_05.csv": {
+        "payment_mode": 0,
+        "city": 0,
+        "amount": 0,
+        "unit_price": 0,
+        "quantity": 0,
+        "category": 0,
+        "item": 0,
+        "order_date": 0,
+        "order_id": 0
+      },
+      "sales_2026_06.csv": {
+        "order_id": 0,
+        "order_date": 0,
+        "item": 0,
+        "category": 0,
+        "quantity": 0,
+        "unit_price": 0,
+        "amount": 0,
+        "city": 0,
+        "payment_mode": 0
+      },
+      "stacked": {
+        "order_id": 0,
+        "order_date": 0,
+        "item": 0,
+        "category": 0,
+        "quantity": 0,
+        "unit_price": 0,
+        "amount": 0,
+        "city": 0,
+        "payment_mode": 0,
+        "festival_pack": 660
+      }
+    },
+    "per_file": {
+      "sales_2026_01.csv": {
+        "rows": 144,
+        "amount_total": 64315.0,
+        "columns": [
+          "order_id",
+          "order_date",
+          "item",
+          "category",
+          "quantity",
+          "unit_price",
+          "amount",
+          "city",
+          "payment_mode"
+        ]
+      },
+      "sales_2026_02.csv": {
+        "rows": 115,
+        "amount_total": 52760.0,
+        "columns": [
+          "order_id",
+          "order_date",
+          "item",
+          "category",
+          "quantity",
+          "unit_price",
+          "amount",
+          "city",
+          "payment_mode"
+        ]
+      },
+      "sales_2026_03.csv": {
+        "rows": 141,
+        "amount_total": 60715.0,
+        "columns": [
+          "order_id",
+          "order_date",
+          "item",
+          "category",
+          "quantity",
+          "unit_price",
+          "amount",
+          "city",
+          "payment_mode",
+          "festival_pack"
+        ]
+      },
+      "sales_2026_04.csv": {
+        "rows": 156,
+        "amount_total": 72530.0,
+        "columns": [
+          "order_id",
+          "order_date",
+          "item",
+          "category",
+          "quantity",
+          "unit_price",
+          "amount",
+          "city",
+          "payment_mode"
+        ]
+      },
+      "sales_2026_05.csv": {
+        "rows": 119,
+        "amount_total": 43915.0,
+        "columns": [
+          "payment_mode",
+          "city",
+          "amount",
+          "unit_price",
+          "quantity",
+          "category",
+          "item",
+          "order_date",
+          "order_id"
+        ]
+      },
+      "sales_2026_06.csv": {
+        "rows": 126,
+        "amount_total": 54215.0,
+        "columns": [
+          "order_id",
+          "order_date",
+          "item",
+          "category",
+          "quantity",
+          "unit_price",
+          "amount",
+          "city",
+          "payment_mode"
+        ]
+      }
+    },
+    "sum_of_the_six_file_totals": 348450.0,
+    "sum_of_the_six_file_row_counts": 801,
+    "stacked_rows": 801,
+    "union_of_columns": [
+      "order_id",
+      "order_date",
+      "item",
+      "category",
+      "quantity",
+      "unit_price",
+      "amount",
+      "city",
+      "payment_mode",
+      "festival_pack"
+    ],
+    "files_with_the_same_column_set": [
+      "sales_2026_01.csv",
+      "sales_2026_02.csv",
+      "sales_2026_04.csv",
+      "sales_2026_05.csv",
+      "sales_2026_06.csv"
+    ],
+    "file_with_an_extra_column": "sales_2026_03.csv",
+    "file_with_columns_in_a_different_order": "sales_2026_05.csv",
+    "total_if_only_the_first_file_is_used": 64315.0,
+    "monthly_revenue": {
+      "2026_01": 64315.0,
+      "2026_02": 52760.0,
+      "2026_03": 60715.0,
+      "2026_04": 72530.0,
+      "2026_05": 43915.0,
+      "2026_06": 54215.0
+    }
+  }
+}

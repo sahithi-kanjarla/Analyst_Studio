@@ -1,0 +1,701 @@
+order_id,order_date,customer_id,item,category,quantity,amount,channel
+HO00001,2026-02-21,H0030,Clay Pot Set,Pottery,2,1240,Exhibition
+HO00002,2026-09-04,H0111,Terracotta Vase,Pottery,1,850,Instagram
+HO00003,2026-04-15,H0126,Wooden Elephant,Woodcraft,1,1250,Exhibition
+HO00004,2026-08-22,H0141,Jute Tote Bag,Textile,1,540,Exhibition
+HO00005,2026-01-26,H0114,Terracotta Vase,Pottery,2,1700,Website
+HO00006,2026-07-08,H0135,Clay Pot Set,Pottery,1,620,Exhibition
+HO00007,2026-02-04,H0013,Jute Tote Bag,Textile,3,1620,Instagram
+HO00008,2026-06-13,H0054,Madhubani Painting,Art,1,2400,Website
+HO00009,2026-07-05,H0073,Jute Tote Bag,Textile,2,1080,Website
+HO00010,2026-07-29,H0107,Beaded Necklace,Jewellery,3,1170,Instagram
+HO00011,2026-03-24,H0131,Terracotta Vase,Pottery,1,850,Instagram
+HO00012,2026-02-22,H0117,Block Print Cushion,Textile,1,450,Instagram
+HO00013,2026-02-02,H0014,Macrame Wall Hanging,Textile,1,1150,Exhibition
+HO00014,2026-06-07,H0074,Dhokra Figurine,Metalcraft,2,3360,Website
+HO00015,2026-06-27,H0037,Terracotta Vase,Pottery,3,2550,Website
+HO00016,2026-01-20,H0028,Bamboo Serving Tray,Woodcraft,2,1560,Exhibition
+HO00017,2026-06-13,H0087,Dhokra Figurine,Metalcraft,1,1680,Exhibition
+HO00018,2026-08-14,H0030,Clay Pot Set,Pottery,2,1240,Website
+HO00019,2026-06-11,H0044,Madhubani Painting,Art,1,2400,Instagram
+HO00020,2026-05-02,H0017,Wooden Elephant,Woodcraft,1,1250,Instagram
+HO00021,2026-07-30,H0061,Dhokra Figurine,Metalcraft,3,5040,Instagram
+HO00022,2026-06-06,H0054,Jute Tote Bag,Textile,3,1620,Website
+HO00023,2026-08-12,H0033,Macrame Wall Hanging,Textile,2,2300,Instagram
+HO00024,2026-05-14,H0064,Dhokra Figurine,Metalcraft,1,1680,Exhibition
+HO00025,2026-08-17,H0100,Bamboo Serving Tray,Woodcraft,1,780,Website
+HO00026,2026-06-27,H0150,Brass Diya Set,Metalcraft,1,690,Exhibition
+HO00027,2026-05-29,H0141,Block Print Cushion,Textile,3,1350,Website
+HO00028,2026-07-14,H0007,Wooden Elephant,Woodcraft,1,1250,Instagram
+HO00029,2026-09-04,H0022,Macrame Wall Hanging,Textile,3,3450,Website
+HO00030,2026-07-28,H0017,Block Print Cushion,Textile,2,900,Instagram
+HO00031,2026-02-04,H0069,Beaded Necklace,Jewellery,3,1170,Exhibition
+HO00032,2026-03-09,H0037,Jute Tote Bag,Textile,2,1080,Instagram
+HO00033,2026-05-21,H0048,Dhokra Figurine,Metalcraft,1,1680,Exhibition
+HO00034,2026-05-09,H0126,Jute Tote Bag,Textile,1,540,Website
+HO00035,2026-06-01,H0156,Beaded Necklace,Jewellery,1,390,Exhibition
+HO00036,2026-09-02,H0134,Warli Coasters,Art,1,360,Exhibition
+HO00037,2026-07-18,H0017,Beaded Necklace,Jewellery,2,780,Website
+HO00038,2026-07-02,H0110,Jute Tote Bag,Textile,1,540,Instagram
+HO00039,2026-08-20,H0076,Warli Coasters,Art,3,1080,Exhibition
+HO00040,2026-07-08,H0123,Macrame Wall Hanging,Textile,2,2300,Website
+HO00041,2026-02-19,H0012,Clay Pot Set,Pottery,2,1240,Website
+HO00042,2026-02-16,H0087,Clay Pot Set,Pottery,3,1860,Instagram
+HO00043,2026-06-07,H0159,Brass Diya Set,Metalcraft,3,2070,Instagram
+HO00044,2026-05-01,H0012,Warli Coasters,Art,2,720,Exhibition
+HO00045,2026-03-19,H0033,Wooden Elephant,Woodcraft,2,2500,Exhibition
+HO00046,2026-09-06,H0146,Dhokra Figurine,Metalcraft,2,3360,Website
+HO00047,2026-03-11,H0070,Block Print Cushion,Textile,1,450,Website
+HO00048,2026-06-12,H0060,Beaded Necklace,Jewellery,1,390,Exhibition
+HO00049,2026-08-17,H0040,Terracotta Vase,Pottery,1,850,Instagram
+HO00050,2026-02-22,H9002,Block Print Cushion,Textile,1,450,Website
+HO00051,2026-01-17,H0054,Terracotta Vase,Pottery,1,850,Instagram
+HO00052,2026-04-04,H0137,Block Print Cushion,Textile,3,1350,Website
+HO00053,2026-06-02,H0041,Madhubani Painting,Art,1,2400,Website
+HO00054,2026-05-03,H0110,Terracotta Vase,Pottery,1,850,Instagram
+HO00055,2026-05-07,H0020,Brass Diya Set,Metalcraft,3,2070,Website
+HO00056,2026-02-02,H0059,Wooden Elephant,Woodcraft,1,1250,Website
+HO00057,2026-08-07,H0139,Dhokra Figurine,Metalcraft,2,3360,Website
+HO00058,2026-09-05,H0098,Dhokra Figurine,Metalcraft,2,3360,Exhibition
+HO00059,2026-07-27,H0076,Wooden Elephant,Woodcraft,2,2500,Exhibition
+HO00060,2026-02-05,H0030,Terracotta Vase,Pottery,1,850,Instagram
+HO00061,2026-01-21,H0013,Wooden Elephant,Woodcraft,1,1250,Exhibition
+HO00062,2026-07-16,H0044,Beaded Necklace,Jewellery,3,1170,Website
+HO00063,2026-04-19,H0081,Terracotta Vase,Pottery,1,850,Exhibition
+HO00064,2026-08-05,H0089,Jute Tote Bag,Textile,1,540,Exhibition
+HO00065,2026-03-19,H0084,Beaded Necklace,Jewellery,2,780,Exhibition
+HO00066,2026-07-30,H0125,Block Print Cushion,Textile,3,1350,Exhibition
+HO00067,2026-02-08,H0053,Warli Coasters,Art,1,360,Exhibition
+HO00068,2026-07-13,H0142,Brass Diya Set,Metalcraft,1,690,Website
+HO00069,2026-02-28,H0101,Beaded Necklace,Jewellery,1,390,Exhibition
+HO00070,2026-07-26,H0095,Jute Tote Bag,Textile,2,1080,Exhibition
+HO00071,2026-03-19,H0155,Warli Coasters,Art,1,360,Instagram
+HO00072,2026-06-19,H0091,Jute Tote Bag,Textile,1,540,Instagram
+HO00073,2026-08-03,H0096,Dhokra Figurine,Metalcraft,1,1680,Website
+HO00074,2026-01-18,H0126,Wooden Elephant,Woodcraft,1,1250,Exhibition
+HO00075,2026-06-02,H0060,Macrame Wall Hanging,Textile,1,1150,Exhibition
+HO00076,2026-02-03,H0117,Warli Coasters,Art,1,360,Website
+HO00077,2026-05-22,H0133,Bamboo Serving Tray,Woodcraft,1,780,Website
+HO00078,2026-06-26,H0049,Beaded Necklace,Jewellery,1,390,Website
+HO00079,2026-07-26,H0158,Macrame Wall Hanging,Textile,1,1150,Exhibition
+HO00080,2026-08-10,H0037,Wooden Elephant,Woodcraft,3,3750,Exhibition
+HO00081,2026-05-10,H0139,Wooden Elephant,Woodcraft,1,1250,Instagram
+HO00082,2026-03-22,H0006,Block Print Cushion,Textile,2,900,Instagram
+HO00083,2026-03-31,H0099,Jute Tote Bag,Textile,1,540,Exhibition
+HO00084,2026-07-10,H0125,Madhubani Painting,Art,1,2400,Exhibition
+HO00085,2026-07-16,H0029,Dhokra Figurine,Metalcraft,2,3360,Exhibition
+HO00086,2026-02-08,H0094,Terracotta Vase,Pottery,2,1700,Exhibition
+HO00087,2026-08-12,H0027,Terracotta Vase,Pottery,2,1700,Website
+HO00088,2026-01-21,H0067,Wooden Elephant,Woodcraft,1,1250,Instagram
+HO00089,2026-02-08,H0139,Block Print Cushion,Textile,3,1350,Website
+HO00090,2026-06-02,H0036,Dhokra Figurine,Metalcraft,2,3360,Exhibition
+HO00091,2026-07-12,H0138,Brass Diya Set,Metalcraft,1,690,Instagram
+HO00092,2026-03-08,H0001,Wooden Elephant,Woodcraft,1,1250,Website
+HO00093,2026-04-24,H0088,Dhokra Figurine,Metalcraft,2,3360,Website
+HO00094,2026-01-26,H0004,Dhokra Figurine,Metalcraft,1,1680,Website
+HO00095,2026-01-22,H0018,Warli Coasters,Art,3,1080,Exhibition
+HO00096,2026-05-07,H0018,Jute Tote Bag,Textile,2,1080,Instagram
+HO00097,2026-08-27,H0039,Brass Diya Set,Metalcraft,1,690,Instagram
+HO00098,2026-05-02,H0154,Dhokra Figurine,Metalcraft,1,1680,Exhibition
+HO00099,2026-05-11,H0140,Bamboo Serving Tray,Woodcraft,1,780,Exhibition
+HO00100,2026-01-17,H9001,Beaded Necklace,Jewellery,1,390,Instagram
+HO00101,2026-02-03,H0155,Brass Diya Set,Metalcraft,1,690,Instagram
+HO00102,2026-06-23,H0113,Macrame Wall Hanging,Textile,1,1150,Website
+HO00103,2026-07-14,H0140,Clay Pot Set,Pottery,3,1860,Website
+HO00104,2026-06-26,H0040,Brass Diya Set,Metalcraft,1,690,Website
+HO00105,2026-06-05,H0089,Macrame Wall Hanging,Textile,1,1150,Instagram
+HO00106,2026-07-24,H0087,Jute Tote Bag,Textile,2,1080,Website
+HO00107,2026-08-26,H0040,Dhokra Figurine,Metalcraft,3,5040,Exhibition
+HO00108,2026-05-19,H0160,Macrame Wall Hanging,Textile,2,2300,Instagram
+HO00109,2026-04-09,H0042,Wooden Elephant,Woodcraft,1,1250,Website
+HO00110,2026-04-21,H0096,Clay Pot Set,Pottery,1,620,Instagram
+HO00111,2026-06-29,H0017,Clay Pot Set,Pottery,1,620,Exhibition
+HO00112,2026-04-26,H0058,Dhokra Figurine,Metalcraft,1,1680,Exhibition
+HO00113,2026-03-28,H0033,Terracotta Vase,Pottery,1,850,Exhibition
+HO00114,2026-08-02,H0044,Beaded Necklace,Jewellery,2,780,Exhibition
+HO00115,2026-05-15,H0092,Jute Tote Bag,Textile,1,540,Website
+HO00116,2026-05-22,H0105,Bamboo Serving Tray,Woodcraft,1,780,Website
+HO00117,2026-07-28,H0083,Madhubani Painting,Art,3,7200,Website
+HO00118,2026-02-19,H0130,Bamboo Serving Tray,Woodcraft,1,780,Website
+HO00119,2026-05-17,H0130,Dhokra Figurine,Metalcraft,3,5040,Instagram
+HO00120,2026-08-13,H0121,Madhubani Painting,Art,2,4800,Exhibition
+HO00121,2026-07-09,H0052,Block Print Cushion,Textile,1,450,Instagram
+HO00122,2026-08-23,H0134,Warli Coasters,Art,2,720,Website
+HO00123,2026-01-26,H0031,Jute Tote Bag,Textile,1,540,Exhibition
+HO00124,2026-07-03,H0001,Madhubani Painting,Art,1,2400,Exhibition
+HO00125,2026-06-27,H0072,Bamboo Serving Tray,Woodcraft,2,1560,Instagram
+HO00126,2026-04-06,H0126,Terracotta Vase,Pottery,1,850,Website
+HO00127,2026-06-04,H0098,Beaded Necklace,Jewellery,1,390,Website
+HO00128,2026-04-21,H0022,Dhokra Figurine,Metalcraft,1,1680,Instagram
+HO00129,2026-03-10,H0097,Wooden Elephant,Woodcraft,1,1250,Instagram
+HO00130,2026-02-22,H0055,Dhokra Figurine,Metalcraft,1,1680,Exhibition
+HO00131,2026-07-23,H0015,Clay Pot Set,Pottery,1,620,Website
+HO00132,2026-06-19,H0127,Jute Tote Bag,Textile,1,540,Instagram
+HO00133,2026-07-08,H0073,Beaded Necklace,Jewellery,1,390,Exhibition
+HO00134,2026-05-07,H0115,Brass Diya Set,Metalcraft,1,690,Exhibition
+HO00135,2026-03-19,H0016,Terracotta Vase,Pottery,1,850,Website
+HO00136,2026-03-30,H0063,Bamboo Serving Tray,Woodcraft,2,1560,Instagram
+HO00137,2026-04-24,H0139,Bamboo Serving Tray,Woodcraft,1,780,Exhibition
+HO00138,2026-04-15,H0014,Wooden Elephant,Woodcraft,1,1250,Instagram
+HO00139,2026-02-15,H0083,Brass Diya Set,Metalcraft,1,690,Website
+HO00140,2026-04-26,H0021,Jute Tote Bag,Textile,1,540,Instagram
+HO00141,2026-07-30,H0039,Block Print Cushion,Textile,1,450,Website
+HO00142,2026-01-25,H0080,Warli Coasters,Art,2,720,Instagram
+HO00143,2026-07-14,H0041,Warli Coasters,Art,2,720,Exhibition
+HO00144,2026-07-29,H0022,Jute Tote Bag,Textile,1,540,Instagram
+HO00145,2026-05-06,H0112,Macrame Wall Hanging,Textile,2,2300,Website
+HO00146,2026-05-13,H0101,Clay Pot Set,Pottery,2,1240,Exhibition
+HO00147,2026-01-24,H0015,Warli Coasters,Art,2,720,Website
+HO00148,2026-07-17,H0100,Warli Coasters,Art,1,360,Instagram
+HO00149,2026-05-05,H0023,Beaded Necklace,Jewellery,2,780,Exhibition
+HO00150,2026-01-29,H9003,Bamboo Serving Tray,Woodcraft,1,780,Website
+HO00151,2026-01-22,H0098,Terracotta Vase,Pottery,3,2550,Instagram
+HO00152,2026-06-25,H0131,Macrame Wall Hanging,Textile,3,3450,Website
+HO00153,2026-06-01,H0003,Wooden Elephant,Woodcraft,2,2500,Exhibition
+HO00154,2026-02-02,H0128,Madhubani Painting,Art,3,7200,Website
+HO00155,2026-06-19,H0027,Block Print Cushion,Textile,1,450,Instagram
+HO00156,2026-06-27,H0009,Beaded Necklace,Jewellery,3,1170,Instagram
+HO00157,2026-06-07,H0093,Wooden Elephant,Woodcraft,1,1250,Exhibition
+HO00158,2026-03-15,H0130,Block Print Cushion,Textile,1,450,Exhibition
+HO00159,2026-07-15,H0052,Dhokra Figurine,Metalcraft,1,1680,Website
+HO00160,2026-08-18,H0072,Beaded Necklace,Jewellery,1,390,Instagram
+HO00161,2026-01-25,H0015,Bamboo Serving Tray,Woodcraft,2,1560,Exhibition
+HO00162,2026-05-01,H0094,Brass Diya Set,Metalcraft,3,2070,Website
+HO00163,2026-03-20,H0101,Block Print Cushion,Textile,1,450,Website
+HO00164,2026-05-08,H0071,Dhokra Figurine,Metalcraft,1,1680,Exhibition
+HO00165,2026-08-25,H0101,Clay Pot Set,Pottery,1,620,Instagram
+HO00166,2026-01-27,H0037,Beaded Necklace,Jewellery,1,390,Instagram
+HO00167,2026-07-30,H0030,Madhubani Painting,Art,1,2400,Website
+HO00168,2026-02-09,H0077,Block Print Cushion,Textile,3,1350,Exhibition
+HO00169,2026-08-27,H0071,Dhokra Figurine,Metalcraft,1,1680,Instagram
+HO00170,2026-05-23,H0059,Clay Pot Set,Pottery,1,620,Website
+HO00171,2026-05-11,H0137,Wooden Elephant,Woodcraft,1,1250,Exhibition
+HO00172,2026-04-03,H0135,Warli Coasters,Art,2,720,Exhibition
+HO00173,2026-04-16,H0036,Brass Diya Set,Metalcraft,1,690,Instagram
+HO00174,2026-04-24,H0125,Jute Tote Bag,Textile,1,540,Instagram
+HO00175,2026-07-07,H0111,Brass Diya Set,Metalcraft,2,1380,Exhibition
+HO00176,2026-04-12,H0029,Dhokra Figurine,Metalcraft,1,1680,Exhibition
+HO00177,2026-04-23,H0027,Brass Diya Set,Metalcraft,1,690,Website
+HO00178,2026-04-27,H0107,Dhokra Figurine,Metalcraft,2,3360,Instagram
+HO00179,2026-03-15,H0124,Wooden Elephant,Woodcraft,2,2500,Website
+HO00180,2026-08-23,H0010,Jute Tote Bag,Textile,3,1620,Instagram
+HO00181,2026-02-11,H0034,Clay Pot Set,Pottery,1,620,Exhibition
+HO00182,2026-03-07,H0130,Madhubani Painting,Art,2,4800,Instagram
+HO00183,2026-03-29,H0051,Brass Diya Set,Metalcraft,1,690,Exhibition
+HO00184,2026-03-27,H0144,Warli Coasters,Art,1,360,Website
+HO00185,2026-03-07,H0026,Terracotta Vase,Pottery,1,850,Website
+HO00186,2026-07-28,H0121,Clay Pot Set,Pottery,2,1240,Exhibition
+HO00187,2026-01-17,H0159,Brass Diya Set,Metalcraft,3,2070,Instagram
+HO00188,2026-05-05,H0056,Macrame Wall Hanging,Textile,2,2300,Website
+HO00189,2026-03-04,H0063,Madhubani Painting,Art,1,2400,Website
+HO00190,2026-02-03,H0155,Clay Pot Set,Pottery,1,620,Instagram
+HO00191,2026-08-07,H0031,Terracotta Vase,Pottery,1,850,Exhibition
+HO00192,2026-03-28,H0010,Block Print Cushion,Textile,1,450,Website
+HO00193,2026-07-15,H0058,Block Print Cushion,Textile,1,450,Exhibition
+HO00194,2026-03-08,H0041,Terracotta Vase,Pottery,1,850,Instagram
+HO00195,2026-05-09,H0091,Brass Diya Set,Metalcraft,1,690,Website
+HO00196,2026-07-19,H0055,Warli Coasters,Art,1,360,Instagram
+HO00197,2026-08-21,H0120,Brass Diya Set,Metalcraft,2,1380,Website
+HO00198,2026-05-14,H0124,Terracotta Vase,Pottery,1,850,Exhibition
+HO00199,2026-05-08,H0005,Madhubani Painting,Art,3,7200,Exhibition
+HO00200,2026-04-23,H9004,Jute Tote Bag,Textile,3,1620,Exhibition
+HO00201,2026-05-21,H0138,Warli Coasters,Art,2,720,Instagram
+HO00202,2026-04-14,H0040,Beaded Necklace,Jewellery,3,1170,Exhibition
+HO00203,2026-05-06,H0012,Bamboo Serving Tray,Woodcraft,3,2340,Website
+HO00204,2026-05-18,H0066,Jute Tote Bag,Textile,1,540,Instagram
+HO00205,2026-08-30,H0157,Bamboo Serving Tray,Woodcraft,2,1560,Instagram
+HO00206,2026-07-15,H0098,Jute Tote Bag,Textile,3,1620,Exhibition
+HO00207,2026-06-18,H0040,Clay Pot Set,Pottery,1,620,Website
+HO00208,2026-07-17,H0046,Block Print Cushion,Textile,1,450,Website
+HO00209,2026-08-13,H0100,Wooden Elephant,Woodcraft,3,3750,Website
+HO00210,2026-04-18,H0116,Block Print Cushion,Textile,1,450,Website
+HO00211,2026-06-01,H0006,Madhubani Painting,Art,1,2400,Instagram
+HO00212,2026-02-22,H0070,Wooden Elephant,Woodcraft,3,3750,Instagram
+HO00213,2026-07-01,H0074,Macrame Wall Hanging,Textile,3,3450,Website
+HO00214,2026-05-04,H0022,Beaded Necklace,Jewellery,2,780,Exhibition
+HO00215,2026-02-24,H0016,Jute Tote Bag,Textile,1,540,Exhibition
+HO00216,2026-07-10,H0020,Bamboo Serving Tray,Woodcraft,2,1560,Instagram
+HO00217,2026-05-23,H0010,Brass Diya Set,Metalcraft,2,1380,Exhibition
+HO00218,2026-04-19,H0085,Block Print Cushion,Textile,2,900,Exhibition
+HO00219,2026-08-27,H0149,Warli Coasters,Art,3,1080,Instagram
+HO00220,2026-06-02,H0086,Wooden Elephant,Woodcraft,3,3750,Website
+HO00221,2026-08-28,H0009,Warli Coasters,Art,3,1080,Website
+HO00222,2026-06-24,H0035,Brass Diya Set,Metalcraft,3,2070,Website
+HO00223,2026-02-02,H0087,Bamboo Serving Tray,Woodcraft,3,2340,Website
+HO00224,2026-07-06,H0002,Dhokra Figurine,Metalcraft,3,5040,Exhibition
+HO00225,2026-02-23,H0068,Jute Tote Bag,Textile,3,1620,Instagram
+HO00226,2026-06-11,H0039,Block Print Cushion,Textile,1,450,Website
+HO00227,2026-03-23,H0121,Clay Pot Set,Pottery,1,620,Website
+HO00228,2026-05-09,H0112,Dhokra Figurine,Metalcraft,2,3360,Website
+HO00229,2026-09-09,H0059,Dhokra Figurine,Metalcraft,2,3360,Exhibition
+HO00230,2026-05-08,H0129,Wooden Elephant,Woodcraft,1,1250,Instagram
+HO00231,2026-08-15,H0150,Dhokra Figurine,Metalcraft,3,5040,Website
+HO00232,2026-05-07,H0106,Wooden Elephant,Woodcraft,1,1250,Website
+HO00233,2026-04-23,H0105,Bamboo Serving Tray,Woodcraft,1,780,Instagram
+HO00234,2026-03-14,H0131,Terracotta Vase,Pottery,1,850,Instagram
+HO00235,2026-02-05,H0094,Jute Tote Bag,Textile,2,1080,Exhibition
+HO00236,2026-05-23,H0158,Beaded Necklace,Jewellery,1,390,Website
+HO00237,2026-05-26,H0126,Jute Tote Bag,Textile,3,1620,Website
+HO00238,2026-05-30,H0102,Beaded Necklace,Jewellery,1,390,Instagram
+HO00239,2026-03-04,H0150,Dhokra Figurine,Metalcraft,2,3360,Exhibition
+HO00240,2026-03-11,H0107,Warli Coasters,Art,2,720,Exhibition
+HO00241,2026-03-23,H0110,Warli Coasters,Art,1,360,Instagram
+HO00242,2026-04-21,H0072,Block Print Cushion,Textile,1,450,Instagram
+HO00243,2026-04-12,H0131,Dhokra Figurine,Metalcraft,3,5040,Website
+HO00244,2026-06-01,H0043,Warli Coasters,Art,3,1080,Instagram
+HO00245,2026-09-08,H0108,Terracotta Vase,Pottery,2,1700,Website
+HO00246,2026-06-04,H0125,Clay Pot Set,Pottery,1,620,Website
+HO00247,2026-08-07,H0057,Block Print Cushion,Textile,1,450,Instagram
+HO00248,2026-01-23,H0062,Bamboo Serving Tray,Woodcraft,1,780,Instagram
+HO00249,2026-06-26,H0107,Macrame Wall Hanging,Textile,2,2300,Instagram
+HO00250,2026-07-29,H9002,Madhubani Painting,Art,1,2400,Exhibition
+HO00251,2026-03-20,H0057,Madhubani Painting,Art,2,4800,Website
+HO00252,2026-07-25,H0046,Wooden Elephant,Woodcraft,3,3750,Instagram
+HO00253,2026-06-20,H0001,Macrame Wall Hanging,Textile,1,1150,Instagram
+HO00254,2026-07-03,H0076,Terracotta Vase,Pottery,2,1700,Instagram
+HO00255,2026-02-28,H0019,Dhokra Figurine,Metalcraft,2,3360,Instagram
+HO00256,2026-03-28,H0155,Dhokra Figurine,Metalcraft,1,1680,Website
+HO00257,2026-04-10,H0062,Dhokra Figurine,Metalcraft,3,5040,Exhibition
+HO00258,2026-08-17,H0120,Bamboo Serving Tray,Woodcraft,2,1560,Website
+HO00259,2026-05-14,H0036,Bamboo Serving Tray,Woodcraft,1,780,Instagram
+HO00260,2026-08-16,H0160,Warli Coasters,Art,2,720,Instagram
+HO00261,2026-01-28,H0010,Terracotta Vase,Pottery,1,850,Exhibition
+HO00262,2026-02-17,H0153,Clay Pot Set,Pottery,1,620,Website
+HO00263,2026-08-07,H0130,Clay Pot Set,Pottery,2,1240,Instagram
+HO00264,2026-04-30,H0039,Brass Diya Set,Metalcraft,1,690,Exhibition
+HO00265,2026-08-31,H0038,Madhubani Painting,Art,2,4800,Instagram
+HO00266,2026-08-09,H0121,Wooden Elephant,Woodcraft,1,1250,Exhibition
+HO00267,2026-02-24,H0147,Terracotta Vase,Pottery,3,2550,Exhibition
+HO00268,2026-04-22,H0021,Block Print Cushion,Textile,2,900,Exhibition
+HO00269,2026-01-23,H0115,Brass Diya Set,Metalcraft,2,1380,Instagram
+HO00270,2026-05-23,H0137,Brass Diya Set,Metalcraft,2,1380,Website
+HO00271,2026-07-17,H0042,Bamboo Serving Tray,Woodcraft,2,1560,Exhibition
+HO00272,2026-03-26,H0025,Block Print Cushion,Textile,1,450,Exhibition
+HO00273,2026-07-10,H0146,Terracotta Vase,Pottery,1,850,Instagram
+HO00274,2026-07-12,H0126,Jute Tote Bag,Textile,2,1080,Website
+HO00275,2026-08-20,H0132,Beaded Necklace,Jewellery,1,390,Instagram
+HO00276,2026-01-25,H0105,Macrame Wall Hanging,Textile,1,1150,Website
+HO00277,2026-08-15,H0064,Madhubani Painting,Art,2,4800,Exhibition
+HO00278,2026-01-27,H0038,Terracotta Vase,Pottery,3,2550,Website
+HO00279,2026-01-18,H0013,Bamboo Serving Tray,Woodcraft,1,780,Exhibition
+HO00280,2026-04-06,H0138,Wooden Elephant,Woodcraft,2,2500,Website
+HO00281,2026-04-02,H0036,Warli Coasters,Art,2,720,Instagram
+HO00282,2026-05-09,H0010,Wooden Elephant,Woodcraft,2,2500,Website
+HO00283,2026-09-06,H0118,Beaded Necklace,Jewellery,2,780,Exhibition
+HO00284,2026-09-10,H0012,Block Print Cushion,Textile,1,450,Website
+HO00285,2026-08-25,H0036,Block Print Cushion,Textile,1,450,Website
+HO00286,2026-05-21,H0141,Beaded Necklace,Jewellery,2,780,Exhibition
+HO00287,2026-02-14,H0031,Dhokra Figurine,Metalcraft,1,1680,Exhibition
+HO00288,2026-05-22,H0019,Brass Diya Set,Metalcraft,2,1380,Instagram
+HO00289,2026-04-03,H0076,Wooden Elephant,Woodcraft,2,2500,Exhibition
+HO00290,2026-04-29,H0034,Terracotta Vase,Pottery,1,850,Instagram
+HO00291,2026-07-18,H0131,Terracotta Vase,Pottery,3,2550,Website
+HO00292,2026-07-24,H0028,Warli Coasters,Art,1,360,Instagram
+HO00293,2026-09-01,H0035,Madhubani Painting,Art,2,4800,Instagram
+HO00294,2026-08-04,H0154,Terracotta Vase,Pottery,2,1700,Exhibition
+HO00295,2026-03-01,H0060,Brass Diya Set,Metalcraft,2,1380,Website
+HO00296,2026-09-03,H0131,Madhubani Painting,Art,1,2400,Website
+HO00297,2026-08-30,H0132,Madhubani Painting,Art,1,2400,Website
+HO00298,2026-08-17,H0121,Madhubani Painting,Art,3,7200,Exhibition
+HO00299,2026-05-07,H0153,Macrame Wall Hanging,Textile,1,1150,Website
+HO00300,2026-06-09,H9001,Terracotta Vase,Pottery,1,850,Instagram
+HO00301,2026-06-15,H0007,Terracotta Vase,Pottery,1,850,Exhibition
+HO00302,2026-08-01,H0025,Bamboo Serving Tray,Woodcraft,1,780,Website
+HO00303,2026-02-26,H0020,Dhokra Figurine,Metalcraft,1,1680,Website
+HO00304,2026-06-30,H0156,Wooden Elephant,Woodcraft,3,3750,Exhibition
+HO00305,2026-07-17,H0087,Jute Tote Bag,Textile,1,540,Website
+HO00306,2026-07-30,H0059,Madhubani Painting,Art,1,2400,Instagram
+HO00307,2026-05-14,H0119,Jute Tote Bag,Textile,3,1620,Website
+HO00308,2026-04-20,H0015,Beaded Necklace,Jewellery,3,1170,Website
+HO00309,2026-02-09,H0082,Bamboo Serving Tray,Woodcraft,2,1560,Website
+HO00310,2026-01-19,H0153,Block Print Cushion,Textile,2,900,Instagram
+HO00311,2026-08-11,H0059,Warli Coasters,Art,1,360,Website
+HO00312,2026-09-08,H0038,Warli Coasters,Art,2,720,Instagram
+HO00313,2026-05-24,H0024,Madhubani Painting,Art,1,2400,Website
+HO00314,2026-06-17,H0110,Madhubani Painting,Art,1,2400,Exhibition
+HO00315,2026-03-30,H0049,Clay Pot Set,Pottery,3,1860,Exhibition
+HO00316,2026-08-27,H0040,Block Print Cushion,Textile,1,450,Exhibition
+HO00317,2026-04-10,H0055,Madhubani Painting,Art,2,4800,Exhibition
+HO00318,2026-03-29,H0131,Terracotta Vase,Pottery,1,850,Website
+HO00319,2026-01-27,H0116,Jute Tote Bag,Textile,1,540,Instagram
+HO00320,2026-08-11,H0069,Jute Tote Bag,Textile,2,1080,Instagram
+HO00321,2026-03-02,H0152,Block Print Cushion,Textile,1,450,Instagram
+HO00322,2026-08-29,H0147,Wooden Elephant,Woodcraft,1,1250,Website
+HO00323,2026-03-30,H0102,Warli Coasters,Art,2,720,Website
+HO00324,2026-08-23,H0090,Warli Coasters,Art,1,360,Instagram
+HO00325,2026-04-11,H0133,Dhokra Figurine,Metalcraft,1,1680,Website
+HO00326,2026-04-27,H0079,Dhokra Figurine,Metalcraft,2,3360,Website
+HO00327,2026-07-03,H0043,Wooden Elephant,Woodcraft,1,1250,Exhibition
+HO00328,2026-08-14,H0003,Wooden Elephant,Woodcraft,3,3750,Exhibition
+HO00329,2026-09-08,H0008,Terracotta Vase,Pottery,1,850,Exhibition
+HO00330,2026-05-14,H0030,Wooden Elephant,Woodcraft,1,1250,Exhibition
+HO00331,2026-04-22,H0072,Wooden Elephant,Woodcraft,3,3750,Website
+HO00332,2026-04-10,H0093,Madhubani Painting,Art,1,2400,Exhibition
+HO00333,2026-05-08,H0072,Wooden Elephant,Woodcraft,3,3750,Instagram
+HO00334,2026-04-08,H0043,Macrame Wall Hanging,Textile,2,2300,Instagram
+HO00335,2026-05-29,H0122,Brass Diya Set,Metalcraft,2,1380,Website
+HO00336,2026-04-10,H0117,Wooden Elephant,Woodcraft,3,3750,Website
+HO00337,2026-05-15,H0160,Jute Tote Bag,Textile,1,540,Instagram
+HO00338,2026-02-11,H0117,Madhubani Painting,Art,2,4800,Exhibition
+HO00339,2026-03-11,H0084,Clay Pot Set,Pottery,3,1860,Website
+HO00340,2026-06-09,H0140,Madhubani Painting,Art,1,2400,Website
+HO00341,2026-09-07,H0107,Bamboo Serving Tray,Woodcraft,3,2340,Website
+HO00342,2026-02-11,H0123,Block Print Cushion,Textile,1,450,Website
+HO00343,2026-04-28,H0126,Macrame Wall Hanging,Textile,1,1150,Instagram
+HO00344,2026-07-11,H0095,Bamboo Serving Tray,Woodcraft,1,780,Website
+HO00345,2026-08-15,H0123,Block Print Cushion,Textile,2,900,Exhibition
+HO00346,2026-08-01,H0038,Warli Coasters,Art,1,360,Website
+HO00347,2026-03-21,H0119,Jute Tote Bag,Textile,1,540,Instagram
+HO00348,2026-02-04,H0075,Dhokra Figurine,Metalcraft,1,1680,Website
+HO00349,2026-02-26,H0086,Brass Diya Set,Metalcraft,3,2070,Website
+HO00350,2026-05-31,H9003,Dhokra Figurine,Metalcraft,1,1680,Exhibition
+HO00351,2026-07-15,H0077,Terracotta Vase,Pottery,2,1700,Website
+HO00352,2026-05-28,H0083,Brass Diya Set,Metalcraft,3,2070,Exhibition
+HO00353,2026-08-27,H0054,Beaded Necklace,Jewellery,2,780,Exhibition
+HO00354,2026-08-27,H0041,Terracotta Vase,Pottery,2,1700,Website
+HO00355,2026-03-03,H0106,Bamboo Serving Tray,Woodcraft,2,1560,Instagram
+HO00356,2026-01-29,H0146,Jute Tote Bag,Textile,1,540,Exhibition
+HO00357,2026-06-24,H0076,Madhubani Painting,Art,2,4800,Website
+HO00358,2026-04-28,H0152,Brass Diya Set,Metalcraft,1,690,Instagram
+HO00359,2026-04-29,H0143,Warli Coasters,Art,1,360,Website
+HO00360,2026-08-23,H0129,Madhubani Painting,Art,2,4800,Website
+HO00361,2026-02-25,H0092,Block Print Cushion,Textile,1,450,Website
+HO00362,2026-04-01,H0087,Jute Tote Bag,Textile,2,1080,Website
+HO00363,2026-06-15,H0046,Macrame Wall Hanging,Textile,3,3450,Instagram
+HO00364,2026-05-10,H0038,Dhokra Figurine,Metalcraft,1,1680,Exhibition
+HO00365,2026-01-24,H0122,Wooden Elephant,Woodcraft,2,2500,Exhibition
+HO00366,2026-04-18,H0005,Wooden Elephant,Woodcraft,2,2500,Exhibition
+HO00367,2026-01-17,H0009,Bamboo Serving Tray,Woodcraft,1,780,Website
+HO00368,2026-06-03,H0058,Block Print Cushion,Textile,2,900,Instagram
+HO00369,2026-08-15,H0058,Clay Pot Set,Pottery,3,1860,Website
+HO00370,2026-02-04,H0081,Block Print Cushion,Textile,3,1350,Instagram
+HO00371,2026-01-30,H0095,Brass Diya Set,Metalcraft,2,1380,Exhibition
+HO00372,2026-07-26,H0021,Bamboo Serving Tray,Woodcraft,1,780,Website
+HO00373,2026-05-26,H0032,Dhokra Figurine,Metalcraft,1,1680,Website
+HO00374,2026-04-13,H0069,Brass Diya Set,Metalcraft,1,690,Exhibition
+HO00375,2026-05-23,H0106,Madhubani Painting,Art,3,7200,Instagram
+HO00376,2026-04-03,H0037,Jute Tote Bag,Textile,1,540,Website
+HO00377,2026-02-09,H0065,Beaded Necklace,Jewellery,1,390,Exhibition
+HO00378,2026-07-28,H0007,Wooden Elephant,Woodcraft,1,1250,Instagram
+HO00379,2026-02-10,H0159,Madhubani Painting,Art,1,2400,Exhibition
+HO00380,2026-02-14,H0033,Warli Coasters,Art,1,360,Instagram
+HO00381,2026-07-22,H0087,Macrame Wall Hanging,Textile,3,3450,Website
+HO00382,2026-08-08,H0158,Macrame Wall Hanging,Textile,1,1150,Instagram
+HO00383,2026-06-26,H0011,Beaded Necklace,Jewellery,1,390,Website
+HO00384,2026-02-10,H0150,Wooden Elephant,Woodcraft,3,3750,Exhibition
+HO00385,2026-08-16,H0030,Warli Coasters,Art,1,360,Website
+HO00386,2026-02-17,H0153,Warli Coasters,Art,2,720,Instagram
+HO00387,2026-09-05,H0060,Warli Coasters,Art,3,1080,Instagram
+HO00388,2026-06-25,H0085,Terracotta Vase,Pottery,1,850,Website
+HO00389,2026-05-21,H0085,Warli Coasters,Art,1,360,Website
+HO00390,2026-07-30,H0017,Brass Diya Set,Metalcraft,1,690,Website
+HO00391,2026-03-22,H0141,Wooden Elephant,Woodcraft,1,1250,Exhibition
+HO00392,2026-06-10,H0021,Wooden Elephant,Woodcraft,3,3750,Website
+HO00393,2026-02-15,H0120,Madhubani Painting,Art,2,4800,Instagram
+HO00394,2026-06-08,H0077,Brass Diya Set,Metalcraft,3,2070,Instagram
+HO00395,2026-02-10,H0157,Dhokra Figurine,Metalcraft,2,3360,Exhibition
+HO00396,2026-06-30,H0029,Brass Diya Set,Metalcraft,2,1380,Exhibition
+HO00397,2026-02-01,H0014,Terracotta Vase,Pottery,2,1700,Exhibition
+HO00398,2026-05-02,H0096,Madhubani Painting,Art,3,7200,Website
+HO00399,2026-04-09,H0125,Brass Diya Set,Metalcraft,3,2070,Website
+HO00400,2026-08-23,H9004,Terracotta Vase,Pottery,3,2550,Website
+HO00401,2026-01-18,H0031,Terracotta Vase,Pottery,2,1700,Exhibition
+HO00402,2026-05-07,H0123,Clay Pot Set,Pottery,3,1860,Exhibition
+HO00403,2026-08-23,H0115,Block Print Cushion,Textile,1,450,Instagram
+HO00404,2026-06-30,H0128,Jute Tote Bag,Textile,1,540,Exhibition
+HO00405,2026-05-10,H0111,Bamboo Serving Tray,Woodcraft,3,2340,Exhibition
+HO00406,2026-06-20,H0145,Jute Tote Bag,Textile,2,1080,Website
+HO00407,2026-01-18,H0076,Wooden Elephant,Woodcraft,1,1250,Instagram
+HO00408,2026-08-02,H0141,Macrame Wall Hanging,Textile,2,2300,Exhibition
+HO00409,2026-02-15,H0030,Dhokra Figurine,Metalcraft,1,1680,Website
+HO00410,2026-03-20,H0097,Beaded Necklace,Jewellery,3,1170,Instagram
+HO00411,2026-06-15,H0060,Wooden Elephant,Woodcraft,2,2500,Exhibition
+HO00412,2026-07-05,H0029,Terracotta Vase,Pottery,1,850,Exhibition
+HO00413,2026-03-31,H0078,Warli Coasters,Art,2,720,Instagram
+HO00414,2026-05-05,H0138,Beaded Necklace,Jewellery,2,780,Website
+HO00415,2026-04-05,H0082,Brass Diya Set,Metalcraft,1,690,Website
+HO00416,2026-09-09,H0105,Clay Pot Set,Pottery,1,620,Exhibition
+HO00417,2026-06-27,H0081,Madhubani Painting,Art,1,2400,Website
+HO00418,2026-06-10,H0114,Warli Coasters,Art,2,720,Website
+HO00419,2026-05-31,H0071,Clay Pot Set,Pottery,2,1240,Instagram
+HO00420,2026-01-29,H0086,Warli Coasters,Art,2,720,Exhibition
+HO00421,2026-06-23,H0085,Block Print Cushion,Textile,1,450,Website
+HO00422,2026-05-22,H0105,Beaded Necklace,Jewellery,3,1170,Exhibition
+HO00423,2026-04-04,H0061,Wooden Elephant,Woodcraft,2,2500,Website
+HO00424,2026-07-11,H0021,Terracotta Vase,Pottery,3,2550,Website
+HO00425,2026-04-11,H0069,Warli Coasters,Art,2,720,Instagram
+HO00426,2026-04-04,H0118,Brass Diya Set,Metalcraft,1,690,Instagram
+HO00427,2026-09-06,H0080,Jute Tote Bag,Textile,1,540,Website
+HO00428,2026-06-01,H0135,Block Print Cushion,Textile,3,1350,Website
+HO00429,2026-03-16,H0123,Brass Diya Set,Metalcraft,2,1380,Exhibition
+HO00430,2026-06-21,H0011,Dhokra Figurine,Metalcraft,3,5040,Instagram
+HO00431,2026-04-23,H0033,Madhubani Painting,Art,1,2400,Instagram
+HO00432,2026-02-19,H0091,Bamboo Serving Tray,Woodcraft,3,2340,Instagram
+HO00433,2026-01-23,H0154,Madhubani Painting,Art,1,2400,Instagram
+HO00434,2026-04-03,H0061,Madhubani Painting,Art,1,2400,Website
+HO00435,2026-06-12,H0041,Madhubani Painting,Art,1,2400,Exhibition
+HO00436,2026-04-26,H0012,Macrame Wall Hanging,Textile,2,2300,Exhibition
+HO00437,2026-07-03,H0003,Terracotta Vase,Pottery,1,850,Instagram
+HO00438,2026-07-24,H0083,Wooden Elephant,Woodcraft,1,1250,Exhibition
+HO00439,2026-03-13,H0042,Brass Diya Set,Metalcraft,3,2070,Website
+HO00440,2026-05-11,H0026,Beaded Necklace,Jewellery,1,390,Instagram
+HO00441,2026-01-24,H0156,Block Print Cushion,Textile,2,900,Instagram
+HO00442,2026-03-06,H0086,Clay Pot Set,Pottery,3,1860,Exhibition
+HO00443,2026-07-07,H0111,Wooden Elephant,Woodcraft,1,1250,Exhibition
+HO00444,2026-07-12,H0019,Macrame Wall Hanging,Textile,3,3450,Website
+HO00445,2026-08-19,H0064,Warli Coasters,Art,3,1080,Exhibition
+HO00446,2026-06-02,H0022,Clay Pot Set,Pottery,1,620,Website
+HO00447,2026-04-23,H0059,Beaded Necklace,Jewellery,2,780,Instagram
+HO00448,2026-06-14,H0152,Dhokra Figurine,Metalcraft,3,5040,Instagram
+HO00449,2026-05-20,H0140,Bamboo Serving Tray,Woodcraft,2,1560,Instagram
+HO00450,2026-05-26,H9005,Warli Coasters,Art,2,720,Instagram
+HO00451,2026-09-07,H0118,Madhubani Painting,Art,1,2400,Instagram
+HO00452,2026-06-08,H0112,Warli Coasters,Art,1,360,Exhibition
+HO00453,2026-07-14,H0125,Beaded Necklace,Jewellery,3,1170,Website
+HO00454,2026-03-04,H0105,Bamboo Serving Tray,Woodcraft,3,2340,Exhibition
+HO00455,2026-01-30,H0080,Warli Coasters,Art,1,360,Exhibition
+HO00456,2026-01-19,H0122,Dhokra Figurine,Metalcraft,1,1680,Instagram
+HO00457,2026-06-27,H0033,Madhubani Painting,Art,1,2400,Website
+HO00458,2026-03-06,H0056,Beaded Necklace,Jewellery,2,780,Instagram
+HO00459,2026-07-04,H0015,Jute Tote Bag,Textile,1,540,Website
+HO00460,2026-03-04,H0016,Clay Pot Set,Pottery,1,620,Exhibition
+HO00461,2026-07-07,H0091,Wooden Elephant,Woodcraft,2,2500,Website
+HO00462,2026-03-18,H0134,Bamboo Serving Tray,Woodcraft,2,1560,Website
+HO00463,2026-02-07,H0061,Jute Tote Bag,Textile,2,1080,Instagram
+HO00464,2026-05-19,H0012,Warli Coasters,Art,2,720,Instagram
+HO00465,2026-09-05,H0102,Warli Coasters,Art,2,720,Instagram
+HO00466,2026-06-28,H0088,Beaded Necklace,Jewellery,2,780,Website
+HO00467,2026-06-30,H0052,Warli Coasters,Art,1,360,Exhibition
+HO00468,2026-03-18,H0107,Clay Pot Set,Pottery,1,620,Exhibition
+HO00469,2026-03-19,H0002,Macrame Wall Hanging,Textile,1,1150,Exhibition
+HO00470,2026-02-20,H0083,Macrame Wall Hanging,Textile,1,1150,Exhibition
+HO00471,2026-06-03,H0030,Madhubani Painting,Art,3,7200,Exhibition
+HO00472,2026-05-10,H0154,Warli Coasters,Art,1,360,Exhibition
+HO00473,2026-07-11,H0129,Beaded Necklace,Jewellery,3,1170,Exhibition
+HO00474,2026-02-24,H0030,Macrame Wall Hanging,Textile,3,3450,Exhibition
+HO00475,2026-03-13,H0059,Block Print Cushion,Textile,2,900,Website
+HO00476,2026-05-01,H0055,Terracotta Vase,Pottery,3,2550,Instagram
+HO00477,2026-03-21,H0046,Dhokra Figurine,Metalcraft,1,1680,Instagram
+HO00478,2026-06-11,H0093,Block Print Cushion,Textile,1,450,Instagram
+HO00479,2026-01-22,H0071,Block Print Cushion,Textile,2,900,Website
+HO00480,2026-02-26,H0048,Terracotta Vase,Pottery,2,1700,Exhibition
+HO00481,2026-06-01,H0014,Macrame Wall Hanging,Textile,2,2300,Website
+HO00482,2026-07-29,H0054,Wooden Elephant,Woodcraft,1,1250,Instagram
+HO00483,2026-02-07,H0026,Terracotta Vase,Pottery,2,1700,Instagram
+HO00484,2026-04-12,H0118,Beaded Necklace,Jewellery,2,780,Instagram
+HO00485,2026-08-16,H0113,Warli Coasters,Art,1,360,Website
+HO00486,2026-07-13,H0080,Terracotta Vase,Pottery,3,2550,Instagram
+HO00487,2026-02-14,H0028,Warli Coasters,Art,1,360,Website
+HO00488,2026-01-19,H0040,Jute Tote Bag,Textile,1,540,Website
+HO00489,2026-09-01,H0026,Beaded Necklace,Jewellery,1,390,Instagram
+HO00490,2026-04-08,H0079,Brass Diya Set,Metalcraft,3,2070,Exhibition
+HO00491,2026-03-26,H0089,Jute Tote Bag,Textile,2,1080,Website
+HO00492,2026-06-27,H0131,Terracotta Vase,Pottery,3,2550,Exhibition
+HO00493,2026-06-03,H0136,Clay Pot Set,Pottery,1,620,Website
+HO00494,2026-06-14,H0083,Bamboo Serving Tray,Woodcraft,2,1560,Exhibition
+HO00495,2026-08-29,H0094,Warli Coasters,Art,2,720,Instagram
+HO00496,2026-08-16,H0053,Macrame Wall Hanging,Textile,1,1150,Instagram
+HO00497,2026-03-07,H0093,Jute Tote Bag,Textile,1,540,Exhibition
+HO00498,2026-02-17,H0027,Bamboo Serving Tray,Woodcraft,1,780,Instagram
+HO00499,2026-02-01,H0085,Block Print Cushion,Textile,3,1350,Instagram
+HO00500,2026-02-19,H9002,Block Print Cushion,Textile,2,900,Exhibition
+HO00501,2026-06-29,H0070,Terracotta Vase,Pottery,2,1700,Website
+HO00502,2026-05-29,H0036,Beaded Necklace,Jewellery,3,1170,Instagram
+HO00503,2026-02-13,H0160,Dhokra Figurine,Metalcraft,1,1680,Exhibition
+HO00504,2026-05-13,H0098,Madhubani Painting,Art,3,7200,Exhibition
+HO00505,2026-06-15,H0021,Beaded Necklace,Jewellery,1,390,Exhibition
+HO00506,2026-04-20,H0085,Wooden Elephant,Woodcraft,3,3750,Exhibition
+HO00507,2026-07-10,H0092,Macrame Wall Hanging,Textile,1,1150,Website
+HO00508,2026-05-15,H0145,Terracotta Vase,Pottery,1,850,Instagram
+HO00509,2026-07-12,H0054,Jute Tote Bag,Textile,3,1620,Instagram
+HO00510,2026-04-14,H0073,Warli Coasters,Art,1,360,Website
+HO00511,2026-03-18,H0035,Dhokra Figurine,Metalcraft,1,1680,Instagram
+HO00512,2026-05-17,H0065,Clay Pot Set,Pottery,1,620,Instagram
+HO00513,2026-06-17,H0141,Beaded Necklace,Jewellery,1,390,Website
+HO00514,2026-06-17,H0100,Wooden Elephant,Woodcraft,2,2500,Exhibition
+HO00515,2026-06-03,H0094,Clay Pot Set,Pottery,3,1860,Website
+HO00516,2026-02-13,H0076,Brass Diya Set,Metalcraft,2,1380,Exhibition
+HO00517,2026-07-26,H0083,Block Print Cushion,Textile,2,900,Instagram
+HO00518,2026-09-11,H0119,Terracotta Vase,Pottery,3,2550,Instagram
+HO00519,2026-07-02,H0109,Block Print Cushion,Textile,2,900,Instagram
+HO00520,2026-02-03,H0045,Warli Coasters,Art,3,1080,Instagram
+HO00521,2026-03-19,H0042,Clay Pot Set,Pottery,2,1240,Website
+HO00522,2026-03-06,H0097,Bamboo Serving Tray,Woodcraft,1,780,Exhibition
+HO00523,2026-02-22,H0098,Terracotta Vase,Pottery,2,1700,Exhibition
+HO00524,2026-01-16,H0007,Clay Pot Set,Pottery,3,1860,Exhibition
+HO00525,2026-04-28,H0063,Beaded Necklace,Jewellery,1,390,Exhibition
+HO00526,2026-06-29,H0055,Wooden Elephant,Woodcraft,2,2500,Instagram
+HO00527,2026-06-02,H0119,Warli Coasters,Art,3,1080,Exhibition
+HO00528,2026-05-02,H0095,Block Print Cushion,Textile,1,450,Instagram
+HO00529,2026-04-23,H0073,Bamboo Serving Tray,Woodcraft,3,2340,Exhibition
+HO00530,2026-07-03,H0135,Warli Coasters,Art,2,720,Instagram
+HO00531,2026-05-17,H0072,Dhokra Figurine,Metalcraft,1,1680,Exhibition
+HO00532,2026-03-14,H0096,Beaded Necklace,Jewellery,2,780,Website
+HO00533,2026-04-28,H0046,Bamboo Serving Tray,Woodcraft,1,780,Instagram
+HO00534,2026-04-10,H0124,Wooden Elephant,Woodcraft,1,1250,Website
+HO00535,2026-05-17,H0012,Beaded Necklace,Jewellery,3,1170,Website
+HO00536,2026-04-17,H0022,Clay Pot Set,Pottery,1,620,Website
+HO00537,2026-08-03,H0027,Terracotta Vase,Pottery,1,850,Instagram
+HO00538,2026-06-24,H0019,Block Print Cushion,Textile,3,1350,Exhibition
+HO00539,2026-05-26,H0053,Wooden Elephant,Woodcraft,2,2500,Instagram
+HO00540,2026-06-07,H0081,Warli Coasters,Art,2,720,Exhibition
+HO00541,2026-04-27,H0045,Dhokra Figurine,Metalcraft,2,3360,Instagram
+HO00542,2026-05-06,H0067,Dhokra Figurine,Metalcraft,3,5040,Exhibition
+HO00543,2026-07-27,H0055,Terracotta Vase,Pottery,1,850,Website
+HO00544,2026-04-24,H0046,Bamboo Serving Tray,Woodcraft,3,2340,Exhibition
+HO00545,2026-05-22,H0030,Clay Pot Set,Pottery,1,620,Instagram
+HO00546,2026-01-21,H0147,Brass Diya Set,Metalcraft,2,1380,Website
+HO00547,2026-07-24,H0089,Wooden Elephant,Woodcraft,1,1250,Instagram
+HO00548,2026-04-16,H0056,Jute Tote Bag,Textile,2,1080,Exhibition
+HO00549,2026-01-20,H0121,Terracotta Vase,Pottery,2,1700,Exhibition
+HO00550,2026-06-10,H9005,Terracotta Vase,Pottery,2,1700,Exhibition
+HO00551,2026-02-11,H0030,Wooden Elephant,Woodcraft,1,1250,Instagram
+HO00552,2026-02-25,H0115,Beaded Necklace,Jewellery,1,390,Website
+HO00553,2026-07-02,H0125,Beaded Necklace,Jewellery,3,1170,Exhibition
+HO00554,2026-04-24,H0046,Beaded Necklace,Jewellery,1,390,Website
+HO00555,2026-05-08,H0066,Dhokra Figurine,Metalcraft,1,1680,Instagram
+HO00556,2026-06-16,H0051,Madhubani Painting,Art,1,2400,Website
+HO00557,2026-03-18,H0032,Jute Tote Bag,Textile,1,540,Instagram
+HO00558,2026-06-30,H0126,Clay Pot Set,Pottery,3,1860,Instagram
+HO00559,2026-08-10,H0140,Madhubani Painting,Art,2,4800,Exhibition
+HO00560,2026-05-24,H0077,Dhokra Figurine,Metalcraft,1,1680,Exhibition
+HO00561,2026-03-02,H0013,Terracotta Vase,Pottery,3,2550,Exhibition
+HO00562,2026-01-31,H0068,Madhubani Painting,Art,3,7200,Instagram
+HO00563,2026-01-27,H0128,Terracotta Vase,Pottery,2,1700,Exhibition
+HO00564,2026-07-17,H0135,Warli Coasters,Art,1,360,Website
+HO00565,2026-05-23,H0017,Warli Coasters,Art,2,720,Website
+HO00566,2026-05-27,H0057,Brass Diya Set,Metalcraft,3,2070,Website
+HO00567,2026-03-14,H0042,Macrame Wall Hanging,Textile,3,3450,Website
+HO00568,2026-04-18,H0121,Beaded Necklace,Jewellery,1,390,Exhibition
+HO00569,2026-07-18,H0109,Warli Coasters,Art,1,360,Website
+HO00570,2026-03-21,H0138,Block Print Cushion,Textile,3,1350,Exhibition
+HO00571,2026-03-05,H0108,Block Print Cushion,Textile,3,1350,Website
+HO00572,2026-07-12,H0078,Beaded Necklace,Jewellery,3,1170,Website
+HO00573,2026-07-06,H0020,Block Print Cushion,Textile,3,1350,Website
+HO00574,2026-06-02,H0149,Terracotta Vase,Pottery,3,2550,Website
+HO00575,2026-06-12,H0111,Dhokra Figurine,Metalcraft,2,3360,Instagram
+HO00576,2026-08-12,H0096,Macrame Wall Hanging,Textile,2,2300,Instagram
+HO00577,2026-03-20,H0012,Warli Coasters,Art,3,1080,Instagram
+HO00578,2026-08-01,H0140,Wooden Elephant,Woodcraft,1,1250,Website
+HO00579,2026-08-03,H0121,Dhokra Figurine,Metalcraft,1,1680,Website
+HO00580,2026-04-28,H0134,Wooden Elephant,Woodcraft,1,1250,Instagram
+HO00581,2026-02-02,H0004,Bamboo Serving Tray,Woodcraft,1,780,Instagram
+HO00582,2026-04-05,H0111,Terracotta Vase,Pottery,2,1700,Exhibition
+HO00583,2026-06-15,H0011,Dhokra Figurine,Metalcraft,1,1680,Instagram
+HO00584,2026-08-19,H0020,Terracotta Vase,Pottery,1,850,Exhibition
+HO00585,2026-04-19,H0068,Clay Pot Set,Pottery,1,620,Instagram
+HO00586,2026-07-02,H0102,Clay Pot Set,Pottery,3,1860,Exhibition
+HO00587,2026-03-09,H0138,Warli Coasters,Art,1,360,Website
+HO00588,2026-04-11,H0079,Terracotta Vase,Pottery,1,850,Website
+HO00589,2026-05-08,H0003,Jute Tote Bag,Textile,1,540,Website
+HO00590,2026-06-03,H0157,Warli Coasters,Art,1,360,Exhibition
+HO00591,2026-01-26,H0087,Clay Pot Set,Pottery,3,1860,Website
+HO00592,2026-03-18,H0054,Terracotta Vase,Pottery,1,850,Instagram
+HO00593,2026-09-04,H0077,Beaded Necklace,Jewellery,3,1170,Exhibition
+HO00594,2026-06-15,H0011,Block Print Cushion,Textile,2,900,Exhibition
+HO00595,2026-09-04,H0076,Jute Tote Bag,Textile,2,1080,Exhibition
+HO00596,2026-01-23,H0101,Block Print Cushion,Textile,1,450,Website
+HO00597,2026-04-14,H0040,Wooden Elephant,Woodcraft,2,2500,Exhibition
+HO00598,2026-02-09,H0044,Bamboo Serving Tray,Woodcraft,3,2340,Website
+HO00599,2026-08-27,H0007,Wooden Elephant,Woodcraft,1,1250,Instagram
+HO00600,2026-03-15,H9002,Bamboo Serving Tray,Woodcraft,1,780,Website
+HO00601,2026-08-08,H0014,Block Print Cushion,Textile,2,900,Website
+HO00602,2026-06-23,H0036,Bamboo Serving Tray,Woodcraft,1,780,Website
+HO00603,2026-04-17,H0048,Bamboo Serving Tray,Woodcraft,1,780,Instagram
+HO00604,2026-06-05,H0046,Bamboo Serving Tray,Woodcraft,3,2340,Website
+HO00605,2026-07-03,H0088,Clay Pot Set,Pottery,2,1240,Website
+HO00606,2026-09-02,H0024,Brass Diya Set,Metalcraft,1,690,Website
+HO00607,2026-04-26,H0107,Beaded Necklace,Jewellery,3,1170,Exhibition
+HO00608,2026-04-20,H0144,Wooden Elephant,Woodcraft,2,2500,Website
+HO00609,2026-06-13,H0035,Wooden Elephant,Woodcraft,3,3750,Instagram
+HO00610,2026-04-11,H0091,Macrame Wall Hanging,Textile,1,1150,Instagram
+HO00611,2026-07-24,H0036,Dhokra Figurine,Metalcraft,2,3360,Exhibition
+HO00612,2026-03-31,H0100,Jute Tote Bag,Textile,3,1620,Instagram
+HO00613,2026-06-21,H0033,Block Print Cushion,Textile,2,900,Website
+HO00614,2026-03-19,H0068,Warli Coasters,Art,2,720,Website
+HO00615,2026-07-11,H0115,Wooden Elephant,Woodcraft,2,2500,Exhibition
+HO00616,2026-01-29,H0003,Brass Diya Set,Metalcraft,1,690,Exhibition
+HO00617,2026-05-29,H0081,Wooden Elephant,Woodcraft,2,2500,Instagram
+HO00618,2026-08-14,H0043,Brass Diya Set,Metalcraft,2,1380,Instagram
+HO00619,2026-04-02,H0105,Jute Tote Bag,Textile,1,540,Website
+HO00620,2026-06-03,H0086,Wooden Elephant,Woodcraft,2,2500,Instagram
+HO00621,2026-03-19,H0042,Dhokra Figurine,Metalcraft,2,3360,Website
+HO00622,2026-04-09,H0154,Dhokra Figurine,Metalcraft,1,1680,Website
+HO00623,2026-08-03,H0135,Bamboo Serving Tray,Woodcraft,3,2340,Website
+HO00624,2026-05-25,H0090,Clay Pot Set,Pottery,1,620,Website
+HO00625,2026-06-28,H0140,Block Print Cushion,Textile,1,450,Exhibition
+HO00626,2026-05-21,H0087,Brass Diya Set,Metalcraft,2,1380,Exhibition
+HO00627,2026-03-12,H0063,Terracotta Vase,Pottery,1,850,Exhibition
+HO00628,2026-08-30,H0158,Wooden Elephant,Woodcraft,3,3750,Website
+HO00629,2026-04-04,H0147,Warli Coasters,Art,3,1080,Exhibition
+HO00630,2026-04-16,H0112,Bamboo Serving Tray,Woodcraft,2,1560,Instagram
+HO00631,2026-03-22,H0126,Clay Pot Set,Pottery,1,620,Instagram
+HO00632,2026-05-08,H0014,Madhubani Painting,Art,3,7200,Instagram
+HO00633,2026-06-27,H0104,Madhubani Painting,Art,1,2400,Instagram
+HO00634,2026-06-20,H0012,Warli Coasters,Art,1,360,Website
+HO00635,2026-01-29,H0135,Bamboo Serving Tray,Woodcraft,1,780,Website
+HO00636,2026-05-16,H0141,Brass Diya Set,Metalcraft,2,1380,Instagram
+HO00637,2026-02-25,H0020,Bamboo Serving Tray,Woodcraft,3,2340,Instagram
+HO00638,2026-07-24,H0095,Warli Coasters,Art,2,720,Instagram
+HO00639,2026-04-06,H0068,Bamboo Serving Tray,Woodcraft,1,780,Instagram
+HO00640,2026-06-05,H0132,Madhubani Painting,Art,3,7200,Website
+HO00641,2026-08-24,H0116,Brass Diya Set,Metalcraft,2,1380,Website
+HO00642,2026-07-03,H0133,Dhokra Figurine,Metalcraft,3,5040,Website
+HO00643,2026-08-16,H0016,Warli Coasters,Art,1,360,Instagram
+HO00644,2026-08-22,H0087,Macrame Wall Hanging,Textile,3,3450,Instagram
+HO00645,2026-03-18,H0104,Jute Tote Bag,Textile,1,540,Instagram
+HO00646,2026-03-10,H0135,Madhubani Painting,Art,1,2400,Exhibition
+HO00647,2026-09-04,H0154,Macrame Wall Hanging,Textile,1,1150,Instagram
+HO00648,2026-02-10,H0159,Terracotta Vase,Pottery,2,1700,Website
+HO00649,2026-07-22,H0120,Jute Tote Bag,Textile,1,540,Website
+HO00650,2026-01-24,H9003,Wooden Elephant,Woodcraft,3,3750,Instagram
+HO00651,2026-09-09,H0041,Madhubani Painting,Art,1,2400,Website
+HO00652,2026-05-25,H0115,Madhubani Painting,Art,3,7200,Exhibition
+HO00653,2026-02-27,H0098,Brass Diya Set,Metalcraft,1,690,Instagram
+HO00654,2026-05-03,H0149,Block Print Cushion,Textile,2,900,Exhibition
+HO00655,2026-05-31,H0081,Madhubani Painting,Art,2,4800,Website
+HO00656,2026-07-30,H0092,Macrame Wall Hanging,Textile,3,3450,Instagram
+HO00657,2026-04-25,H0001,Dhokra Figurine,Metalcraft,2,3360,Instagram
+HO00658,2026-01-22,H0065,Warli Coasters,Art,2,720,Instagram
+HO00659,2026-03-18,H0058,Macrame Wall Hanging,Textile,1,1150,Exhibition
+HO00660,2026-04-18,H0072,Dhokra Figurine,Metalcraft,3,5040,Website
+HO00661,2026-06-16,H0157,Warli Coasters,Art,1,360,Website
+HO00662,2026-02-14,H0149,Terracotta Vase,Pottery,2,1700,Instagram
+HO00663,2026-03-22,H0115,Terracotta Vase,Pottery,2,1700,Website
+HO00664,2026-07-19,H0006,Beaded Necklace,Jewellery,2,780,Exhibition
+HO00665,2026-03-23,H0070,Warli Coasters,Art,1,360,Instagram
+HO00666,2026-03-16,H0121,Block Print Cushion,Textile,1,450,Instagram
+HO00667,2026-09-09,H0145,Macrame Wall Hanging,Textile,2,2300,Website
+HO00668,2026-04-26,H0047,Beaded Necklace,Jewellery,3,1170,Exhibition
+HO00669,2026-06-05,H0064,Terracotta Vase,Pottery,3,2550,Instagram
+HO00670,2026-03-08,H0050,Bamboo Serving Tray,Woodcraft,1,780,Instagram
+HO00671,2026-03-25,H0058,Jute Tote Bag,Textile,2,1080,Website
+HO00672,2026-02-07,H0159,Beaded Necklace,Jewellery,2,780,Exhibition
+HO00673,2026-05-13,H0055,Madhubani Painting,Art,3,7200,Website
+HO00674,2026-05-27,H0158,Dhokra Figurine,Metalcraft,1,1680,Exhibition
+HO00675,2026-04-02,H0026,Bamboo Serving Tray,Woodcraft,1,780,Website
+HO00676,2026-06-02,H0037,Jute Tote Bag,Textile,2,1080,Website
+HO00677,2026-08-12,H0121,Wooden Elephant,Woodcraft,3,3750,Website
+HO00678,2026-04-25,H0081,Madhubani Painting,Art,1,2400,Instagram
+HO00679,2026-08-26,H0040,Beaded Necklace,Jewellery,1,390,Instagram
+HO00680,2026-02-17,H0118,Macrame Wall Hanging,Textile,1,1150,Exhibition
+HO00681,2026-01-28,H0024,Brass Diya Set,Metalcraft,1,690,Exhibition
+HO00682,2026-04-26,H0022,Jute Tote Bag,Textile,1,540,Website
+HO00683,2026-05-24,H0041,Madhubani Painting,Art,2,4800,Exhibition
+HO00684,2026-05-24,H0151,Bamboo Serving Tray,Woodcraft,3,2340,Exhibition
+HO00685,2026-02-27,H0141,Dhokra Figurine,Metalcraft,1,1680,Exhibition
+HO00686,2026-02-13,H0048,Macrame Wall Hanging,Textile,3,3450,Instagram
+HO00687,2026-09-07,H0153,Madhubani Painting,Art,1,2400,Instagram
+HO00688,2026-06-17,H0038,Bamboo Serving Tray,Woodcraft,3,2340,Exhibition
+HO00689,2026-06-17,H0046,Terracotta Vase,Pottery,3,2550,Instagram
+HO00690,2026-04-07,H0014,Block Print Cushion,Textile,3,1350,Exhibition
+HO00691,2026-09-08,H0137,Clay Pot Set,Pottery,2,1240,Instagram
+HO00692,2026-07-31,H0041,Dhokra Figurine,Metalcraft,1,1680,Exhibition
+HO00693,2026-06-15,H0158,Bamboo Serving Tray,Woodcraft,1,780,Instagram
+HO00694,2026-07-14,H0035,Dhokra Figurine,Metalcraft,1,1680,Exhibition
+HO00695,2026-02-04,H0032,Bamboo Serving Tray,Woodcraft,1,780,Exhibition
+HO00696,2026-03-28,H0029,Terracotta Vase,Pottery,3,2550,Website
+HO00697,2026-03-23,H0122,Macrame Wall Hanging,Textile,2,2300,Instagram
+HO00698,2026-07-22,H0020,Brass Diya Set,Metalcraft,2,1380,Exhibition
+HO00699,2026-07-17,H0054,Clay Pot Set,Pottery,3,1860,Website
+HO00700,2026-03-08,H9005,Clay Pot Set,Pottery,1,620,Website
