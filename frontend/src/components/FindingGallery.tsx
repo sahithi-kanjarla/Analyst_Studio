@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { api, Finding, RunResult, isDemo } from "../api";
+import { humanise } from "../display";
 import FindingTable from "./FindingTable";
 import InsightCard from "./InsightCard";
 import { ShowMore, ViewImg, ViewItem, ViewTitle } from "./view/ViewUI";
@@ -7,8 +8,8 @@ import { ShowMore, ViewImg, ViewItem, ViewTitle } from "./view/ViewUI";
 const TOP = 4;
 const LEVEL: Record<string, string> = { high: "tag tag-ok", medium: "tag tag-mid", low: "tag tag-warn", exploratory: "tag tag-info", descriptive: "tag" };
 
-function Tile({ f, onOpen }: { f: Finding; onOpen: () => void }) {
-  const ins = f.insight!;
+function Tile({ f, onOpen, und }: { f: Finding; onOpen: () => void; und?: RunResult["understanding"] }) {
+  const ins = { ...f.insight!, headline: humanise(f.insight!.headline, und) };
   const id = `dashboard:chart:${f.id}`;
   return (
     <ViewItem id={id} tag="article" className="tile">
@@ -21,7 +22,7 @@ function Tile({ f, onOpen }: { f: Finding; onOpen: () => void }) {
       </header>
       {f.chart_url ? (
         <button className="tile-img" onClick={onOpen} aria-label={`Open details: ${ins.headline}`}>
-          <ViewImg id={id} src={f.chart_url} alt={f.title} />
+          <ViewImg id={id} src={f.chart_url} alt={humanise(f.title, und)} />
         </button>
       ) : (
         <FindingTable f={f} />
@@ -68,7 +69,7 @@ export default function FindingGallery({ run }: { run: RunResult }) {
           <strong>Answer to your goal:</strong> {ans.sentence} {ans.groups_sentence}
           {answerCharts.length > 0 && (
             <div className="tile-grid" style={{ marginTop: 12 }}>
-              <ShowMore tab="dashboard" items={answerCharts.map((f) => ({ id: `dashboard:chart:${f.id}`, node: <Tile key={f.id} f={f} onOpen={() => setOpen(f)} /> }))} />
+              <ShowMore tab="dashboard" items={answerCharts.map((f) => ({ id: `dashboard:chart:${f.id}`, node: <Tile key={f.id} f={f} und={run.understanding} onOpen={() => setOpen(f)} /> }))} />
             </div>
           )}
         </section>
@@ -76,13 +77,13 @@ export default function FindingGallery({ run }: { run: RunResult }) {
 
       <section className="dash-section">
         <h4>Key findings <span className="muted">· highest value first</span></h4>
-        <div className="tile-grid"><ShowMore tab="dashboard" items={top.map((f) => ({ id: `dashboard:chart:${f.id}`, node: <Tile key={f.id} f={f} onOpen={() => setOpen(f)} /> }))} /></div>
+        <div className="tile-grid"><ShowMore tab="dashboard" items={top.map((f) => ({ id: `dashboard:chart:${f.id}`, node: <Tile key={f.id} f={f} und={run.understanding} onOpen={() => setOpen(f)} /> }))} /></div>
       </section>
 
       {more.length > 0 && (
         <section className="dash-section more-charts">
           <h4>More charts <span className="muted">· {more.length}</span></h4>
-          <div className="tile-grid"><ShowMore tab="dashboard" items={more.map((f) => ({ id: `dashboard:chart:${f.id}`, node: <Tile key={f.id} f={f} onOpen={() => setOpen(f)} /> }))} /></div>
+          <div className="tile-grid"><ShowMore tab="dashboard" items={more.map((f) => ({ id: `dashboard:chart:${f.id}`, node: <Tile key={f.id} f={f} und={run.understanding} onOpen={() => setOpen(f)} /> }))} /></div>
         </section>
       )}
 

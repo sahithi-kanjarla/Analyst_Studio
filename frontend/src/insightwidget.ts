@@ -1,6 +1,6 @@
 /** Which widget an insight reads as, decided from the insight's own metadata (the analysis that produced it, its tables, its sentence) and
  *  never from a column name or example text. Nothing here computes a figure: it picks the figures already in the finding and how to show them. */
-import { CardTable } from "./api";
+import type { CardTable } from "./api";
 
 export type WidgetKind = "ranking" | "share" | "image";
 export type Direction = "up" | "down" | null;
@@ -57,7 +57,7 @@ export function bigNumber(headline: string, tool: string): { value: string; labe
   const h = String(headline ?? "");
   const rho = h.match(/\b(?:rho|r)\s*=\s*([+\-−]?\d*\.\d+)/i);
   if (rho) return { value: rho[1].replace("−", "-"), label: "Strength of the link (−1 to +1)", sign: rho[1].startsWith("-") || rho[1].startsWith("−") ? -1 : 1 };
-  const mult = h.match(/(\d[\d,]*(?:\.\d+)?)\s?[×x]\b/);
+  const mult = h.match(/(\d[\d,]*(?:\.\d+)?)\s?(?:×|x\b)/);
   if (mult) return { value: `${mult[1]}×`, label: "Top compared with the lowest", sign: 0 };
   const pct = h.match(/([+\-−]?\d[\d,]*(?:\.\d+)?)\s?%/);
   if (pct) {

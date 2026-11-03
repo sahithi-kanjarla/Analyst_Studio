@@ -4,7 +4,8 @@
 import {
   FEW, POINTS_MAX, SHARE_SLICES, TABLE_ROWS, planPoints, planRanked, planSeries, planShare, planTable, plural, rankedLimit, timeStep,
 } from '../../../frontend/src/chartsize.ts';
-import { chartTitle, displayName, humanise, looksInternal, prettify } from '../../../frontend/src/display.ts';
+import { chartTitle, displayName, humanise, looksInternal, plainLabel, prettify } from '../../../frontend/src/display.ts';
+import { bigNumber, direction, shareSlices, tableSeries, takeaway, themeOf, widgetKind } from '../../../frontend/src/insightwidget.ts';
 
 const R = {};
 const ok = (name, cond, detail) => { R[name] = { ok: !!cond, detail: detail === undefined ? '' : String(detail) }; };
@@ -90,6 +91,19 @@ ok('humanise_leaves_no_underscore_id_behind', !looksInternal(humanise('growth of
 ok('chart_title_drops_total_and_the_aggregation', chartTitle('Total revenue', 'region', und) === 'Revenue by region' && chartTitle('revenue (sum)', 'sub_category', und) === 'Revenue by product range', [chartTitle('Total revenue', 'region', und), chartTitle('revenue (sum)', 'sub_category', und)].join(' | '));
 ok('chart_title_of_an_average_reads_plainly', chartTitle('Average Sale Price', 'Dept', und) === 'Sale Price by dept', chartTitle('Average Sale Price', 'Dept', und));
 ok('looks_internal_spots_what_it_should', looksInternal('discount_pct by region') && looksInternal('revenue (sum)') && !looksInternal('Revenue by region'));
+
+// ---------------------------------------------------------------- insight widgets: chosen from metadata and data, never from a name
+const tbl = { id: 't', title: 'Revenue by region (table)', columns: ['Region', 'Rows', 'Average', 'Share of total'], total: 3, rows: [['A', 50, '4,618', '16%'], ['B', 57, '4,033', '15%'], ['C', 65, '3,331', '9%']] };
+const ser = tableSeries(tbl, 'group_compare');
+ok('widget_ranking_uses_the_first_figure_column_not_the_row_count', ser && ser.valueHeader === 'Average' && ser.items[0].value === 4618 && ser.items.length === 3 && ser.title === 'Revenue by region', JSON.stringify(ser && ser.valueHeader));
+ok('widget_picked_from_the_analysis_type_and_table', widgetKind('group_compare', [tbl], 'x.png') === 'ranking' && widgetKind('trend', [tbl], 'x.png') === 'image' && widgetKind('composition', [tbl], 'x.png') === 'share' && widgetKind('trend', [], 'x.png') === 'image');
+ok('widget_big_number_comes_from_the_sentence', bigNumber('A averages 7.4× the revenue of B', 'group_compare').value === '7.4×' && bigNumber('revenue is trending down (-44% over the period)', 'trend').value === '-44%' && bigNumber('x rises as y rises (rho = +0.83)', 'correlation').value === '+0.83' && bigNumber('nothing numeric here', 'trend') === null);
+ok('widget_direction_only_where_the_sentence_supports_it', direction('revenue is trending down', 'trend') === 'down' && direction('revenue rises as price rises', 'correlation') === 'up' && direction('A averages 3x B', 'group_compare') === null && direction('up and down', 'trend') === null && direction('x', 'trend', -1) === 'down');
+ok('widget_takeaway_is_two_sentences_and_keeps_decimals', takeaway('First one is 60.0 here. Second. Third.', '') === 'First one is 60.0 here. Second.', takeaway('First one is 60.0 here. Second. Third.', ''));
+const sl = Array.from({ length: 30 }, (_, i) => ({ label: `S${i}`, value: 30 - i, text: `${30 - i}%` }));
+ok('widget_share_bar_is_five_slices_plus_other', shareSlices(sl).length === 6 && shareSlices(sl)[5].label.startsWith('Other (25') && shareSlices(sl.slice(0, 6)).length === 6);
+ok('widget_themes_follow_the_analysis_type', themeOf('group_compare') === 'ranking' && themeOf('trend') === 'time' && themeOf('correlation') === 'link' && themeOf('outliers') === 'shape');
+ok('plain_label_drops_total_and_sum', plainLabel('Total revenue') === 'Revenue' && plainLabel('revenue (sum)') === 'Revenue' && plainLabel('Total Orders') === 'Orders');
 
 const failed = Object.entries(R).filter(([, v]) => !v.ok);
 process.stdout.write(JSON.stringify(R) + '\n');

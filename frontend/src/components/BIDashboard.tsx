@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { api, DashData, DashMeasure, Finding, RunResult } from "../api";
 import { planRanked, planShare, planTable, plural, rankedLimit, SHARE_SLICES, TABLE_ROWS } from "../chartsize";
-import { chartTitle, displayName, humanise } from "../display";
+import { chartTitle, displayName, humanise, plainLabel } from "../display";
 import FindingGallery from "./FindingGallery";
 import InsightCard from "./InsightCard";
 import { Columns, Donut, HBar, Item, PALETTE } from "./charts";
@@ -166,12 +166,12 @@ export default function BIDashboard({ run }: { run: RunResult }) {
   const last = periods[periods.length - 1], prev = periods[periods.length - 2];
   const lead = data.dims[0] ? group(filtered, (r) => r.d[data.dims[0].col], m).sort((a, b) => b.value - a.value)[0] : undefined;
   const kpis: { label: string; value: string; note?: string; tone?: "up" | "down" }[] = [
-    { label: m.label, value: fmt(now), note: active && m.agg === "sum" && overall ? `${trim((now / overall) * 100, 0)}% of all` : m.note },
+    { label: plainLabel(m.label), value: fmt(now), note: active && m.agg === "sum" && overall ? `${trim((now / overall) * 100, 0)}% of all` : m.note },
     { label: "Records", value: compact(filtered.length), note: active ? `of ${compact(rows.length)}` : undefined },
   ];
   const other = measures.find((x) => x !== m && x.col !== "__count");
   if (m.agg === "sum" && m.col !== "__count") kpis.push({ label: `Average per record`, value: fmt(filtered.length ? now / filtered.length : 0) });
-  else if (other) kpis.push({ label: other.label, value: formatter(other, cur)(total(filtered, other)) });
+  else if (other) kpis.push({ label: plainLabel(other.label), value: formatter(other, cur)(total(filtered, other)) });
   if (lead && data.dims[0]) kpis.push({ label: `Top ${label(data.dims[0].col).toLowerCase()}`, value: lead.key, note: m.agg === "sum" && now ? `${trim((lead.value / now) * 100, 0)}% of ${m.label.toLowerCase()}` : fmt(lead.value) });
   if (last && prev && prev.value) {
     const ch = (last.value - prev.value) / Math.abs(prev.value);

@@ -84,3 +84,9 @@ export function chartTitle(measureLabel: string, group?: string, und?: Understan
 export function looksInternal(text: string): boolean {
   return /\b[a-z0-9]+_[a-z0-9_]+\b/i.test(String(text ?? "")) || /\((?:sum|avg|mean|count)\)/i.test(String(text ?? ""));
 }
+
+/** A stat or axis label without the aggregation word in front: "Total revenue" reads "Revenue". Only the leading word goes; the figure is untouched. */
+export function plainLabel(label: string): string {
+  const t = String(label ?? "").replace(/^\s*(total|sum of)\s+/i, "").replace(/\s*\((?:sum|avg|average|mean|count)\)\s*$/i, "").trim();
+  return t ? t.charAt(0).toUpperCase() + t.slice(1) : t;
+}

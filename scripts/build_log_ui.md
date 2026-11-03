@@ -135,3 +135,13 @@ See the sections below, written as each tab was done.
 ### Step 3b — Dashboard, Data: DONE (checked, small fixes)
 - Dashboard already had stat tiles first, tidy grid, skeleton while loading, ranked bars with "Show all (n)", subtitles (done in the earlier partial pass). No collapsed charts.
 - Data > Your data: first 10 of the column table with "Show all (n)"; the cleaning-changes fold is now named "How we got this". Backticks no longer leak into sentences.
+
+### Step 3c — Insights as widgets: DONE
+- New `frontend/src/insightwidget.ts` (pure helpers, unit-tested in `chartsize_check.mjs`) and `components/InsightWidget.tsx`. The widget is chosen from the finding's analysis type, its table and its sentence — never from a column name:
+  ranking -> compact list with mini bars (top 6, "Show all (n)", same order as the table) plus highest/lowest side-by-side cards when the table lists every group;
+  composition -> share bar (top 5 + Other); everything else (trend, link, spread) -> the finding's own chart image.
+  Headline stat tile (a multiple, percentage or correlation taken from the sentence as written; up/down arrow and colour only where the sentence or its sign supports a direction),
+  badges (type, confidence, your KPI), one-to-two-sentence takeaway, a "What to do" chip when a report action rests on the finding, and one fold "How we got this" (observation, chart image for lists, full sortable table, checks).
+- `Tiers.tsx`: findings grouped under theme headings (ordered by the most important finding in each theme), 2-column grid on desktop, one column on a phone. Lower-ranked findings are visible too (first 4, "Show all (n)"); the column profile is the one fold.
+- FindingGallery tiles on the Dashboard and `FindingTable` use plain names (no raw ids), 6 rows then "Show all (n)". Stat labels lose a leading "Total".
+- New browser test `tests/test_ui_widgets.py` + `tests/ui/widgets_check.js`: per tab, chart + explanation + action visible without a click; Show all reveals the rest; Expand all details opens folds; no underscore / raw id / "Total" / "(sum)" in titles; print = screen.

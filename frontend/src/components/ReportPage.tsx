@@ -1,5 +1,5 @@
 import { RunResult } from "../api";
-import { humanise, Understanding } from "../display";
+import { humanise, plainLabel, Understanding } from "../display";
 import LensChat from "./lens/LensChat";
 import { LensProvider } from "./lens/LensContext";
 import LensPins from "./lens/LensPins";
@@ -79,7 +79,7 @@ export default function ReportPage({ run, embedded = false, startChat = false, s
                 <ShowMore tab="report" items={tiles.map((t) => ({ id: `report:tile:${t.i}`, node: (
                   <ViewItem key={t.label} id={`report:tile:${t.i}`} className={`rp-tile ${tiles.length === 3 ? "span-4" : "span-3"}`}>
                     <span className={`rp-tile-value ${t.value.length > 11 ? "long" : ""}`}>{t.value}</span>
-                    <span className="rp-tile-label"><ViewTitle id={`report:tile:${t.i}`} text={t.label} /></span>
+                    <span className="rp-tile-label"><ViewTitle id={`report:tile:${t.i}`} text={plainLabel(t.label)} /></span>
                   </ViewItem>) }))} />
               </section>
             ) : <></>
