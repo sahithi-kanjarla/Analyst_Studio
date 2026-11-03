@@ -6,6 +6,7 @@ import tempfile
 
 _TMP = tempfile.mkdtemp(prefix="analyst_studio_tests_")
 os.environ.setdefault("LLM_PROVIDER", "none")
+os.environ.setdefault("OWNER_SECRET", "test-only-owner-secret-0123456789abcdef")       # tests never write a secret file into backend/data
 os.environ["UPLOAD_RATE_LIMIT"] = "0"         # the public-use protections are off unless a test switches one on
 os.environ["DAILY_AI_RUNS"] = "0"
 os.environ["DAILY_LENS_QUESTIONS"] = "0"
@@ -20,6 +21,13 @@ def pytest_sessionfinish(session, exitstatus):
 
 
 import pytest
+
+PINNED_TOKEN = "T" * 43       # a browser id a test client can hold from its first request, so a test can also read or seed that visitor's glossary
+
+
+def pinned_scope(token: str = PINNED_TOKEN) -> str:
+    from app import owner
+    return owner.hash_token(token)[:32]
 
 
 @pytest.fixture(autouse=True)

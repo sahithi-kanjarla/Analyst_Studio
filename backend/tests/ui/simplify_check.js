@@ -98,7 +98,13 @@ const ok = (name, cond, detail) => { R[name] = { ok: !!cond, detail: detail === 
 
   // 5/8. the answer menu and the brief
   ok('starters_removed_after_the_first_message', (await p.locator('.lens-teach').count()) === 0);
-  await ask('write a brief for the new hire about growth'); await p.waitForTimeout(500);
+  // briefs on the shared sample are read-only for everyone, so the brief steps run on this visitor's own run (made with the same browser session, so it is theirs)
+  const csv = require('fs').readFileSync(require('path').join(__dirname, '..', '..', '..', 'sample_data', 'sales.csv'));
+  const made = await p.request.post(base + '/api/runs', { multipart: { goal: 'Which segment earns the most revenue?', files: { name: 'sales.csv', mimeType: 'text/csv', buffer: csv } } });
+  const own = (await made.json()).run_id;
+  for (let i = 0; i < 120; i++) { const st = await (await p.request.get(`${base}/api/runs/${own}`)).json(); if (st.status === 'needs_input') await p.request.post(`${base}/api/runs/${own}/answers`, { data: { skip: true } }); if (['done', 'failed', 'error'].includes(st.status)) break; await p.waitForTimeout(1000); }
+  await p.goto(`${base}/#/run/${own}`); await p.reload(); await p.waitForSelector('.report-page', { timeout: 20000 }); await p.waitForTimeout(800);
+  await ask('write a brief for the new hire about revenue by segment'); await p.waitForTimeout(500);
   const brief = p.locator('.lens-brief').last();
   const order = await brief.evaluate(el => { const q = el.querySelector('.lens-brief-quality'), h = el.querySelector('.lens-brief-head'); return !!q && !!h && !!(q.compareDocumentPosition(h) & Node.DOCUMENT_POSITION_FOLLOWING); });
   ok('brief_shows_trust_and_quality_note_first', order && /How sure we are/.test(await brief.locator('.lens-brief-quality').innerText()));
@@ -113,7 +119,7 @@ const ok = (name, cond, detail) => { R[name] = { ok: !!cond, detail: detail === 
   const headTxt = await brief.locator('.lens-brief-head').innerText();
   ok('brief_edit_is_labelled', /My own headline for Priya\./.test(headTxt) && /Edited by you/.test(headTxt), headTxt);
   ok('brief_quality_note_survives_edit', /How sure we are/.test(await brief.locator('.lens-brief-quality').innerText()));
-  const saved = await (await p.request.get(base + '/api/runs/5a1e5d3e0001/briefs')).json();
+  const saved = await (await p.request.get(base + `/api/runs/${own}/briefs`)).json();
   ok('brief_saved_with_the_run', saved.briefs.some(x => x.title === 'Note for Priya' && x.headline.edited === true));
 
   await tab('Report'); await ask('which segment has the highest total revenue'); await p.waitForTimeout(800);

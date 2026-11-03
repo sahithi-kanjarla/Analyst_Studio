@@ -266,6 +266,8 @@ def execute(env: Env, plan: dict) -> tuple[dict, list[dict], list[dict]]:
         tool = tools[st["tool"]]
         try:
             r = tool.run(st.get("args") or {}, env, results)
+        except store.ReadOnlyRun:
+            raise                        # the sample run's briefs are read-only: the API answers 403
         except Exception as e:           # noqa: BLE001  a tool must never end the request with a stack trace
             errors.log(env.wd, tool.name, e, getattr(env, "last_sql", None))
             r = registry.ToolResult(ok=False, summary=f"{registry.plain(tool.name)} could not be completed", error=errors.plain_message(e))

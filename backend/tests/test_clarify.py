@@ -24,6 +24,14 @@ from app.profiler import profile_df  # noqa: E402
 from domains import DOMAINS, clean_table, hospital_stays, hr_attrition  # noqa: E402
 
 cl = TestClient(app)
+cl.cookies.set("analyst_owner", "T" * 43)       # this client is one fixed visitor, so the tests can read and seed that visitor's glossary directly
+
+
+@pytest.fixture(autouse=True)
+def _visitor_glossary():
+    from conftest import pinned_scope
+    with glossary.scoped(pinned_scope()):
+        yield
 
 
 @pytest.fixture(autouse=True)

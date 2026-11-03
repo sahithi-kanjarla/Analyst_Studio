@@ -8,11 +8,11 @@ from contextlib import asynccontextmanager
 
 from pydantic import BaseModel, Field
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
-from fastapi.responses import FileResponse, Response, StreamingResponse
+from fastapi.responses import FileResponse, JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
 from .config import ALLOWED_EXT, FRONTEND_DIST, MAX_FILES, MAX_ROWS, MAX_UPLOAD_MB, RUNS_DIR, VERSION, public_demo, retention_days
-from . import clarify, glossary, guard, tiering, viewedit, web
+from . import clarify, glossary, guard, owner, tiering, viewedit, web
 from .profiler import count_delimited_rows, too_many_rows_message
 from . import lens
 from .lens import chat as lenschat, howtext as lenshow, reports as lensreports, store as lensstore
@@ -41,6 +41,11 @@ def _writable(run_id: str) -> None:
     """The sample run is read-only: it can be viewed, but never answered, re-run or changed."""
     if is_demo(run_id):
         raise HTTPException(403, "The sample run is read-only. Upload your own data to run an analysis.")
+
+
+@app.exception_handler(lensstore.ReadOnlyRun)
+async def _read_only_run(request: Request, exc: lensstore.ReadOnlyRun):
+    return JSONResponse({"detail": str(exc)}, status_code=403)
 
 
 @app.post("/api/demo")
@@ -78,7 +83,7 @@ def delete_run(run_id: str):
 
 
 @app.post("/api/runs")
-async def new_run(request: Request, goal: str = Form(""), company: str = Form(""), industry: str = Form(""), description: str = Form(""), kpis: str = Form(""),
+async def new_run(request: Request, response: Response, goal: str = Form(""), company: str = Form(""), industry: str = Form(""), description: str = Form(""), kpis: str = Form(""),
                   audience: str = Form(""), notes: str = Form(""), currency: str = Form(""), explore: str = Form(""), review_saved: str = Form(""),
                   access_code: str = Form(""), files: list[UploadFile] = File(default=[]), file: UploadFile | None = File(default=None)):
     """Upload one or several data files (or an Excel workbook with several sheets). Several tables are connected automatically.
@@ -115,17 +120,19 @@ async def new_run(request: Request, goal: str = Form(""), company: str = Form(""
     if get_llm()[0] is not None:
         guard.reserve_ai_run()           # a run that uses the AI counts against today's cap for all visitors
     purge_expired()
-    run_id = create_run(goal[:2000], items, context=context, review_saved=review_saved.strip().lower() in ("1", "true", "on", "yes"))
+    run_id = create_run(goal[:2000], items, context=context, review_saved=review_saved.strip().lower() in ("1", "true", "on", "yes"),
+                        owner=owner.current_owner(request, response))      # the first upload from a browser sets its cookie
     start_run(run_id)
     return {"run_id": run_id}
 
 
 @app.get("/api/runs")
-def list_runs():
-    items = []
+def list_runs(request: Request):
+    """The caller's own runs (and the sample run, if it has been opened). Nobody else's."""
+    items, caller = [], owner.current_owner(request)
     for d in RUNS_DIR.iterdir():
         st = read_status(d.name) if re.match(RUN_ID_RE, d.name) else None
-        if st:
+        if st and owner.can_access(d.name, caller):
             items.append({"run_id": d.name, "goal": st.get("goal"), "status": st.get("status"), "created": st.get("created"), "filename": st.get("filename")})
     return sorted(items, key=lambda x: x.get("created") or 0, reverse=True)[:20]
 
@@ -316,31 +323,40 @@ class GlossaryIn(BaseModel):
     notes: str = ""
 
 
+def _glossary_scope(request: Request, response: Response | None = None) -> str:
+    """The caller's own glossary (owner.py). A caller with no browser id yet has none: reads find nothing, and a save starts one (cookie on `response`)."""
+    o = owner.current_owner(request, response)
+    return (o or "no-owner")[:32]
+
+
 @app.get("/api/glossary")
-def get_glossary(workspace: str | None = None):
-    """Saved definitions. No `workspace` lists every company. NOTE: this API has no authentication."""
-    return {"workspace": glossary.clean_key(workspace), **glossary.get_workspace(workspace)} if workspace is not None else {"workspaces": glossary.all_workspaces()}
+def get_glossary(request: Request, workspace: str | None = None):
+    """Your saved definitions. No `workspace` lists your companies. Other visitors' are never shown."""
+    with glossary.scoped(_glossary_scope(request)):
+        return {"workspace": glossary.clean_key(workspace), **glossary.get_workspace(workspace)} if workspace is not None else {"workspaces": glossary.all_workspaces()}
 
 
 @app.put("/api/glossary")
-def put_glossary(body: GlossaryIn, workspace: str = "default"):
+def put_glossary(body: GlossaryIn, request: Request, response: Response, workspace: str = "default"):
     entry = body.model_dump()
     err = glossary.validate_entry({**entry, "answers": {k: (v.get("value") if isinstance(v, dict) else v) for k, v in entry["answers"].items()}})
     if err:
         raise HTTPException(422, err)
-    try:
-        return {"workspace": glossary.clean_key(workspace), **glossary.put_workspace(workspace, entry)}
-    except TimeoutError as e:
-        raise HTTPException(503, str(e))
+    with glossary.scoped(_glossary_scope(request, response)):
+        try:
+            return {"workspace": glossary.clean_key(workspace), **glossary.put_workspace(workspace, entry)}
+        except TimeoutError as e:
+            raise HTTPException(503, str(e))
 
 
 @app.delete("/api/glossary")
-def delete_glossary(workspace: str):
-    try:
-        if not glossary.delete_workspace(workspace):
-            raise HTTPException(404, "No saved definitions for that workspace.")
-    except TimeoutError as e:
-        raise HTTPException(503, str(e))
+def delete_glossary(request: Request, workspace: str):
+    with glossary.scoped(_glossary_scope(request)):
+        try:
+            if not glossary.delete_workspace(workspace):
+                raise HTTPException(404, "No saved definitions for that workspace.")
+        except TimeoutError as e:
+            raise HTTPException(503, str(e))
     return {"deleted": glossary.clean_key(workspace)}
 
 
@@ -533,6 +549,7 @@ def lens_llm():
 @app.post("/api/runs/{run_id}/lens/pins")
 def lens_pin(run_id: str, body: LensPinIn):
     """Pin an answer to the report page or the dashboard, in a section of its own. The report itself is not changed."""
+    _writable(run_id)
     wd, _ = _lens_run(run_id)
     pin = lensstore.add_pin(wd, body.turn, body.target)
     if pin is None:
@@ -547,6 +564,7 @@ class LensViewIn(BaseModel):
 @app.post("/api/runs/{run_id}/lens/views")
 def lens_save_view(run_id: str, body: LensViewIn):
     """Keep a short version of the report that Lens wrote as an alternative view. The original report is never changed."""
+    _writable(run_id)
     wd, _ = _lens_run(run_id)
     v = lensreports.save_view(wd, body.turn)
     if v is None:
@@ -556,6 +574,7 @@ def lens_save_view(run_id: str, body: LensViewIn):
 
 @app.delete("/api/runs/{run_id}/lens/views/short")
 def lens_remove_view(run_id: str):
+    _writable(run_id)
     wd, _ = _lens_run(run_id)
     if not lensstore.remove_view(wd, "short"):
         raise HTTPException(404, "No short version is saved.")
@@ -564,6 +583,7 @@ def lens_remove_view(run_id: str):
 
 @app.delete("/api/runs/{run_id}/lens/pins/{pin_id}")
 def lens_unpin(run_id: str, pin_id: str):
+    _writable(run_id)
     wd, _ = _lens_run(run_id)
     if not lensstore.remove_pin(wd, pin_id):
         raise HTTPException(404, "Pin not found")
@@ -658,18 +678,24 @@ def briefs_list(run_id: str):
 
 @app.post("/api/runs/{run_id}/briefs/{brief_id}/rename")
 def brief_rename(run_id: str, brief_id: str, body: BriefRenameIn):
+    _check_id(run_id)
+    _writable(run_id)
     from .lens import briefs as lensbriefs
     return _brief_call(run_id, lensbriefs.rename, brief_id, body.title)
 
 
 @app.post("/api/runs/{run_id}/briefs/{brief_id}/edit")
 def brief_edit(run_id: str, brief_id: str, body: BriefEditIn):
+    _check_id(run_id)
+    _writable(run_id)
     from .lens import briefs as lensbriefs
     return _brief_call(run_id, lensbriefs.edit, brief_id, body.section, body.index, body.text)
 
 
 @app.delete("/api/runs/{run_id}/briefs/{brief_id}")
 def brief_delete(run_id: str, brief_id: str):
+    _check_id(run_id)
+    _writable(run_id)
     from .lens import briefs as lensbriefs
     _brief_call(run_id, lensbriefs.delete, brief_id)
     return {"deleted": brief_id}
@@ -684,6 +710,7 @@ class FeedbackIn(BaseModel):
 def lens_feedback(run_id: str, body: FeedbackIn):
     """A thumbs up or down on one answer, recorded with the plan and the tools used (lens_feedback.jsonl in the run folder)."""
     from .lens import feedback
+    _writable(run_id)
     wd, _ = _lens_run(run_id)
     line = feedback.record(wd, body.turn, body.vote)
     if line is None:

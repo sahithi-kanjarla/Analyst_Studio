@@ -36,6 +36,7 @@ Copy `.env.example` to `.env` (never commit it). The ones that matter for a publ
 | `DATA_DIR` | `/data` | no | where everything is stored (the image sets it); mount a volume here |
 | `SITE_ORIGIN` / `CORS_ORIGINS` | `https://studio.example.com` | no | only needed if the page and the API are on different origins |
 | `TRUST_PROXY_HEADERS` | `1` | no | behind a proxy you control: believe `X-Forwarded-Proto` and `X-Forwarded-For` (HTTPS headers, per-visitor limits) |
+| `OWNER_SECRET` | `a-long-random-string` | **yes** | the server secret that hashes each visitor's browser id (see *Visitor separation*). If unset, one is generated once and kept in `/data/owner_secret`; set it to keep it under your control. Changing it makes every existing run unreachable to its owner |
 | `PUBLIC_DEMO` | `on` | no | runs kept 3 days, uploads and typed Lens questions need the code, low daily caps; the sample report stays open and makes no AI call |
 | `UPLOADS_REQUIRE_CODE` | `a-long-random-code` | **yes** | the access code for uploads and typed Lens questions |
 | `RETENTION_DAYS` | `3` | no | days a finished run (and its uploads) is kept; `0` keeps everything |
@@ -94,6 +95,17 @@ The image uses the same Python minor version as the test machine (3.13). Differe
 
 To update: in a clean virtual environment on the same Python, run `pip install -U -r backend/requirements.txt`, run the full test suite (`cd backend && python -m pytest tests`), and only when it passes
 regenerate `backend/constraints.txt` from that environment (`pip freeze` for the packages in it, same `name==version` lines) and commit both together. Never edit a pin by hand without running the suite.
+
+**Check that the pins install.** `python scripts/check_constraints.py` runs pip's resolver as a dry run on `requirements.txt` with `constraints.txt` (the exact Dockerfile command; nothing is installed, the network is needed) and fails with pip's explanation if two pins disagree. Run it after every edit of the pins, and before building an image. The test `backend/tests/test_constraints.py` checks the pins offline (every line exact, the langchain-core / certifi pair consistent) and runs the dry run too when `RUN_PIP_RESOLVE=1`. Past conflict: `langchain-core==1.7.4` needs `certifi>=2026.10.19`, so certifi is pinned to 2026.10.19.
+
+## Visitor separation
+
+Every run belongs to the browser that made it. On a visitor's first upload the server sets a random 32-byte token in a cookie (`analyst_owner`: HttpOnly, SameSite=Lax, Secure on HTTPS or with `TRUST_PROXY_HEADERS=1` behind an HTTPS proxy, kept about 13 months) and stores only an HMAC-SHA256 hash of it (keyed by `OWNER_SECRET`) in the run's `status.json`. The raw token is never stored or logged. Every `/api/runs/<id>/...` request is checked in one place: someone else's run answers 404, exactly like a run that does not exist. The run list and the glossary show only the caller's own. The sample run is open to read for everyone and cannot be changed or deleted.
+
+- **This is a browser, not an account.** Clearing cookies, a private window or another device means the runs are no longer reachable (they are removed by retention, or earlier with "Delete my run" while the browser still has the cookie). Real sign-in is a planned upgrade: it replaces `current_owner` in `backend/app/owner.py` and nothing else.
+- **Behind a proxy** keep the cookie: forward `Cookie` and `Set-Cookie` and do not cache `/api/*`.
+- **Runs from before this change** have no owner. With `PUBLIC_DEMO` off (local single-user use) anyone can see and manage them; with `PUBLIC_DEMO=on` nobody can, and the normal retention cleanup deletes them. The glossary is stored per owner; entries saved before this change stay in the old shared area, used only by those older runs.
+- Back up `/data/owner_secret` with the volume (or set `OWNER_SECRET`): without it the hashes no longer match and existing runs become unreachable.
 
 ## 8. Rollback
 

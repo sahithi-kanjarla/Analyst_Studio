@@ -14,7 +14,7 @@ from .config import DEMO_DIR, RUNS_DIR, retention_days
 from . import reporter
 from .events import emit, set_quiet
 
-RUN_ID_RE = r"^[a-f0-9]{12}$"
+RUN_ID_RE = r"^(?:[a-f0-9]{12}|[a-f0-9]{32})$"      # new ids are 32 characters (a full uuid4); runs made earlier keep their 12-character ids
 DEMO_RUN_ID = "5a1e5d3e0001"  # the sample run's id: a copy of sample_data/demo/sales_run, read-only and kept by the retention sweep
 
 
@@ -80,7 +80,7 @@ def _safe_filename(name: str, used: set[str]) -> str:
 DEFAULT_EXPLORE_GOAL = "Explore this data and surface the most important insights and opportunities for the business."
 
 
-def create_run(goal: str, files_or_name, content: bytes | None = None, context: dict | None = None, review_saved: bool = False) -> str:
+def create_run(goal: str, files_or_name, content: bytes | None = None, context: dict | None = None, review_saved: bool = False, owner: str | None = None) -> str:
     """create_run(goal, [(filename, bytes), ...], context=...)  or, for one file, create_run(goal, filename, bytes).
     An empty goal means exploratory mode. `review_saved` pauses the run to show the saved answers it will reuse, even when they cover every question."""
     from .context import normalise_context
@@ -88,7 +88,7 @@ def create_run(goal: str, files_or_name, content: bytes | None = None, context: 
     context = normalise_context(context)
     if not goal.strip():
         goal, context["explore"] = DEFAULT_EXPLORE_GOAL, True
-    run_id = uuid.uuid4().hex[:12]
+    run_id = uuid.uuid4().hex
     wd = run_dir(run_id)
     (wd / "inputs").mkdir(parents=True)  # uploads live in their own folder so they can never overwrite status/result files
     used: set[str] = set()
@@ -98,11 +98,26 @@ def create_run(goal: str, files_or_name, content: bytes | None = None, context: 
         (wd / "inputs" / safe).write_bytes(data)
         names.append(safe)
     (wd / "input.json").write_text(json.dumps({"goal": goal, "files": names, "context": context, "review_saved": review_saved}))
-    write_status(run_id, "queued", goal=goal, filename=", ".join(names), created=time.time())
+    write_status(run_id, "queued", goal=goal, filename=", ".join(names), created=time.time(), **({"owner": owner} if owner else {}))     # owner: the hash of the browser's token (owner.py), never the token
     return run_id
 
 
+def _owner_kw(src_id: str) -> dict:
+    """A re-run belongs to whoever owned the run it was made from."""
+    o = (read_status(src_id) or {}).get("owner")
+    return {"owner": o} if o else {}
+
+
 def _execute(run_id: str) -> None:
+    from . import glossary, owner
+    tok = glossary.set_scope(owner.scope_of(run_id))        # the run reads and saves the glossary of its own owner only
+    try:
+        _execute_in_scope(run_id)
+    finally:
+        glossary.reset_scope(tok)
+
+
+def _execute_in_scope(run_id: str) -> None:
     from .graph import GRAPH  # imported lazily so the API starts fast
     wd = run_dir(run_id)
     meta = json.loads((wd / "input.json").read_text())
@@ -192,9 +207,9 @@ def rerun_with_answers(run_id: str, answers: dict, ask_again: list[str]) -> str:
     """Start a new run on the same files, goal and context with the given answers (question id -> option value), from the cleaning step on.
     A question in `ask_again` has no answer: the new run pauses and asks it. The old run is untouched."""
     import shutil
-    src = run_dir(run_id)
+    src, src_id = run_dir(run_id), run_id
     meta = json.loads((src / "input.json").read_text())
-    new_id = uuid.uuid4().hex[:12]
+    new_id = uuid.uuid4().hex
     dst = run_dir(new_id)
     shutil.copytree(src / "inputs", dst / "inputs")
     stored = json.loads((src / "questions.json").read_text(encoding="utf-8"))
@@ -208,7 +223,7 @@ def rerun_with_answers(run_id: str, answers: dict, ask_again: list[str]) -> str:
         old = json.loads((src / "answers.json").read_text(encoding="utf-8")) if (src / "answers.json").exists() else {}
         (dst / "answers.json").write_text(json.dumps({"answers": answers, "skip": False, "notes": old.get("notes", "")}), encoding="utf-8")
     (dst / "input.json").write_text(json.dumps({**meta, "review_saved": False}))
-    write_status(new_id, "queued", goal=meta["goal"], filename=", ".join(meta["files"]), created=time.time())
+    write_status(new_id, "queued", goal=meta["goal"], filename=", ".join(meta["files"]), created=time.time(), **_owner_kw(src_id))
     start_run(new_id)
     return new_id
 
@@ -216,9 +231,9 @@ def rerun_with_answers(run_id: str, answers: dict, ask_again: list[str]) -> str:
 def rerun_without_derived(run_id: str, names: list[str]) -> str:
     """Start a new run on the same files, goal, context and answers, leaving out the derived metrics the user removed. The old run is untouched."""
     import shutil
-    src = run_dir(run_id)
+    src, src_id = run_dir(run_id), run_id
     meta = json.loads((src / "input.json").read_text())
-    new_id = uuid.uuid4().hex[:12]
+    new_id = uuid.uuid4().hex
     dst = run_dir(new_id)
     shutil.copytree(src / "inputs", dst / "inputs")
     for f in ("questions.json", "answers.json"):
@@ -226,6 +241,6 @@ def rerun_without_derived(run_id: str, names: list[str]) -> str:
             shutil.copy(src / f, dst / f)
     removed = list(dict.fromkeys(list(meta.get("remove_derived") or []) + names))
     (dst / "input.json").write_text(json.dumps({**meta, "remove_derived": removed}))
-    write_status(new_id, "queued", goal=meta["goal"], filename=", ".join(meta["files"]), created=time.time())
+    write_status(new_id, "queued", goal=meta["goal"], filename=", ".join(meta["files"]), created=time.time(), **_owner_kw(src_id))
     start_run(new_id)
     return new_id

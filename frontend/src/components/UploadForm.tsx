@@ -215,7 +215,7 @@ export default function UploadForm({ onStarted }: { onStarted: (id: string) => v
         )}
         <p className="privacy-note muted small" role="note">
           <strong>Privacy.</strong> Your files and the results are stored on this server{site.retention_days ? ` for ${site.retention_days === 1 ? "1 day" : `${site.retention_days} days`}, then deleted automatically` : " until you delete them"}.
-          You can delete a run, with its uploaded files, at any time with “Delete my run” in the menu of its report. When an AI model is used, it is sent summaries of your data (column names, counts, ranges and a few common values), never individual rows.
+          Runs belong to this browser: if you clear your cookies or use another device, your runs are no longer reachable. “Delete my run” in the menu of a report removes that run immediately. When an AI model is used, it is sent summaries of your data (column names, counts, ranges and a few common values), never individual rows.
         </p>
         {error && <div className="error">{error}</div>}
         <div className="form-actions">

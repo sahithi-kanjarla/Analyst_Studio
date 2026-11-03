@@ -36,7 +36,7 @@ def results(tmp_path_factory):
     port = s.getsockname()[1]
     s.close()
     tmp = tmp_path_factory.mktemp("ui")
-    env = {**os.environ, "RUNS_DIR": str(tmp / "runs"), "GLOSSARY_PATH": str(tmp / "g.json"), "LLM_PROVIDER": "none", "CHATBOT": "auto", "CHART_DPI": "50", "AI_CACHE_DIR": str(tmp / "c"), "NODE_PATH": npm}
+    env = {**os.environ, "RUNS_DIR": str(tmp / "runs"), "GLOSSARY_PATH": str(tmp / "g.json"), "LLM_PROVIDER": "none", "CHATBOT": "on", "CHART_DPI": "50", "AI_CACHE_DIR": str(tmp / "c"), "NODE_PATH": npm}
     srv = subprocess.Popen([sys.executable, "-m", "uvicorn", "app.main:app", "--port", str(port)], cwd=ROOT / "backend", env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     try:
         for _ in range(60):

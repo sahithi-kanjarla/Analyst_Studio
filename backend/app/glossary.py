@@ -13,6 +13,8 @@ import os
 import re
 import threading
 import time
+from contextlib import contextmanager
+from contextvars import ContextVar
 from pathlib import Path
 
 from .config import DATA_DIR, ROOT
@@ -25,6 +27,35 @@ ANSWER_VALUE_MAX = 120
 ANSWER_COUNT_MAX = 100
 
 _lock = threading.Lock()
+
+# Whose glossary the calls below touch. Set per request (and per run, in the worker thread) by the API: a workspace is stored under "<scope>::<company>", so one visitor never reads, writes or deletes another's.
+# The empty scope is the old shared glossary (runs made before owners existed, and direct use from scripts and tests).
+_scope: ContextVar[str] = ContextVar("glossary_scope", default="")
+
+
+@contextmanager
+def scoped(scope: str):
+    tok = _scope.set(scope or "")
+    try:
+        yield
+    finally:
+        _scope.reset(tok)
+
+
+def set_scope(scope: str):
+    """For a worker thread or a middleware that cannot use `with`: returns a token for reset_scope."""
+    return _scope.set(scope or "")
+
+
+def reset_scope(tok) -> None:
+    _scope.reset(tok)
+
+
+def _sk(key: str) -> str:
+    """The storage key of a workspace for the current scope."""
+    k = clean_key(key)
+    s = _scope.get()
+    return f"{s}::{k}" if s else k
 
 
 def glossary_path() -> Path:
@@ -96,14 +127,17 @@ def _modify(fn) -> dict:
 
 
 def get_workspace(key: str) -> dict:
-    ws = _read().get(clean_key(key))
+    ws = _read().get(_sk(key))
     if not isinstance(ws, dict):
         return _empty()
     return {"answers": dict(ws.get("answers") or {}), "definitions": dict(ws.get("definitions") or {}), "notes": str(ws.get("notes") or "")}
 
 
 def all_workspaces() -> dict:
-    return {k: get_workspace(k) for k in _read()}
+    """Only the current scope's workspaces, by company name."""
+    s = _scope.get()
+    pre = f"{s}::" if s else ""
+    return {k[len(pre):]: get_workspace(k[len(pre):]) for k in _read() if k.startswith(pre) and (s or "::" not in k)}
 
 
 def validate_entry(entry: dict) -> str | None:
@@ -140,7 +174,7 @@ def put_workspace(key: str, entry: dict) -> dict:
         if a.get("fp") and (before.get(qid) or {}).get("value") == a["value"]:        # an edited value no longer has the fingerprint of the one that was saved
             answers[qid]["fp"] = a["fp"]
     new = {"answers": answers, "definitions": {t.strip(): x.strip() for t, x in (entry.get("definitions") or {}).items()}, "notes": (entry.get("notes") or "").strip()}
-    _modify(lambda d: d.__setitem__(clean_key(key), new))
+    _modify(lambda d: d.__setitem__(_sk(key), new))
     return new
 
 
@@ -149,7 +183,7 @@ def merge_answers(key: str, answers: dict[str, str], questions: dict[str, str], 
     """Add the answers given for a run to the workspace (existing items are overwritten, others kept).
     `fingerprints` ties each answer to what it was about (clarify.fingerprint); an answer without one is matched by question id and option only."""
     now = time.time()
-    ck = clean_key(key)
+    ck = _sk(key)
 
     def fn(d):
         ws = d.setdefault(ck, _empty())
@@ -159,20 +193,22 @@ def merge_answers(key: str, answers: dict[str, str], questions: dict[str, str], 
         if notes.strip():
             ws["notes"] = notes.strip()
     _modify(fn)
-    return get_workspace(ck)
+    return get_workspace(key)
 
 
 def delete_answers(key: str, qids) -> None:
     """Forget saved answers, so those questions are asked again."""
+    sk = _sk(key)
+
     def fn(d):
         for q in qids:
-            (d.get(clean_key(key)) or {}).get("answers", {}).pop(q, None)
+            (d.get(sk) or {}).get("answers", {}).pop(q, None)
     _modify(fn)
 
 
 def delete_workspace(key: str) -> bool:
     found = []
-    _modify(lambda d: found.append(d.pop(clean_key(key), None) is not None))
+    _modify(lambda d: found.append(d.pop(_sk(key), None) is not None))
     return bool(found and found[0])
 
 
