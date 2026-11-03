@@ -46,9 +46,9 @@ export default function DataViewer({ runId }: { runId: string }) {
       </p>
 
       {cmp && (
-        <details className="changes" open={changed.length > 0 && changed.length <= 8}>
+        <details className="changes fold-working" open={changed.length > 0 && changed.length <= 8}>
           <summary>
-            What cleaning changed: {changed.length === 0 ? "no column changed" : `${changed.length} of ${cmp.columns.length} columns`}
+            How we got this: what cleaning changed — {changed.length === 0 ? "no column changed" : `${changed.length} of ${cmp.columns.length} columns`}
           </summary>
           <label className="check small">
             <input type="checkbox" checked={onlyChanged} onChange={(e) => setOnlyChanged(e.target.checked)} />

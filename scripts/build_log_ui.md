@@ -131,3 +131,7 @@ See the sections below, written as each tab was done.
 
 ### Step 3a — Ideas to try: DONE
 - Each idea card shows title, why, the first evidence line, ALL first steps, "Test it first" and the KPIs as chips. Only the full evidence list and risks are in one fold "How we got this".
+
+### Step 3b — Dashboard, Data: DONE (checked, small fixes)
+- Dashboard already had stat tiles first, tidy grid, skeleton while loading, ranked bars with "Show all (n)", subtitles (done in the earlier partial pass). No collapsed charts.
+- Data > Your data: first 10 of the column table with "Show all (n)"; the cleaning-changes fold is now named "How we got this". Backticks no longer leak into sentences.

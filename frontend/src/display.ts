@@ -60,7 +60,7 @@ const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 /** A sentence the analysis wrote, with every column it names put into plain words. Figures and everything else are untouched. */
 export function humanise(text: string, und?: Understanding | null): string {
-  let out = String(text ?? "");
+  let out = String(text ?? "").replace(/`/g, "");
   if (!out) return out;
   for (const col of namesByLength(und)) {
     const name = displayName(col, und);
