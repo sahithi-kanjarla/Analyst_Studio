@@ -18,7 +18,6 @@ import argparse
 import json
 import os
 import re
-import resource
 import subprocess
 import sys
 import tempfile
@@ -55,6 +54,20 @@ def _norm(name: str) -> str:
     return str(name).strip().lower()
 
 
+def peak_mb() -> int:
+    """Peak memory of this process in MB. The `resource` module exists on Unix only, so it is imported here, not at the top: on Windows (no `resource`) the file still imports and the peak is read from the process
+    information when psutil is installed, else reported as 0 (unknown), which the limit check accepts."""
+    try:
+        import resource
+        return round(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024)          # kilobytes on Linux
+    except ImportError:
+        try:
+            import psutil
+            return round(psutil.Process().memory_info().peak_wset / 1048576) if hasattr(psutil.Process().memory_info(), "peak_wset") else round(psutil.Process().memory_info().rss / 1048576)
+        except Exception:        # noqa: BLE001  no way to read it here: unknown
+            return 0
+
+
 def run_one(name: str) -> dict:
     os.environ["LLM_PROVIDER"] = "none"
     tmp = tempfile.mkdtemp()
@@ -78,7 +91,7 @@ def run_one(name: str) -> dict:
     except Exception as e:                                          # noqa: BLE001  a crash is the result, not a reason to stop the other checks
         st = {"status": "crashed", "error": f"{type(e).__name__}: {e}"}
     out["seconds"] = round(time.time() - t0, 1)
-    out["peak_mb"] = round(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024)
+    out["peak_mb"] = peak_mb()
     ok = st.get("status") == "done"
     out["checks"]["no_crash"] = {"ok": ok, "detail": "" if ok else f"{st.get('status')}: {str(st.get('error', ''))[:300]}"}
     out["checks"]["time_memory"] = {"ok": out["seconds"] <= MAX_SECONDS and out["peak_mb"] <= MAX_MB, "detail": f"{out['seconds']} s, {out['peak_mb']} MB peak"}
