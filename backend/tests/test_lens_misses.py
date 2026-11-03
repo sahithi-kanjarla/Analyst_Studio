@@ -8,7 +8,7 @@ from app.lens import chat, store
 from app.lens.agent import planner
 from app.lens.agent.tools import view_edit
 from tests.test_lens import FakeAI
-from tests.test_partb_view import run  # noqa: F401
+from tests.test_partb_view import post, run  # noqa: F401
 
 
 def P(*steps):
@@ -18,7 +18,8 @@ def P(*steps):
 # ------------------------------------------------------------------ (a) "make the insights tab shorter with only needed charts"
 def test_only_needed_charts_is_applied_even_when_the_short_view_is_already_on(run):
     rid, wd, res = run
-    assert ve.resolve(res, store.get_view_state(wd))["tabs"]["insights"]["short"]                        # the Insights tab opens in the short view
+    post(rid, command={"cmd": "set_mode", "tab": "insights", "mode": "short"})                           # the Insights tab opens in the full view, so turn the short view on first
+    assert ve.resolve(res, store.get_view_state(wd))["tabs"]["insights"]["short"]
     ai = FakeAI(P(("view_edit", {"commands": [{"cmd": "set_mode", "tab": "insights", "mode": "short"}]})))          # the model planned only the short view
     a = chat.ask(wd, res, question="make the insights tab shorter with only needed charts", llm=ai, allow_ai=True, tab="Insights")["answer"]
     cmds = a["view"]["commands"]

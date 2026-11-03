@@ -18,24 +18,22 @@ from tests.test_partb_view import core, post, run, view  # noqa: F401
 client = TestClient(app)
 
 
-def test_report_insights_and_dashboard_open_short_and_the_others_open_full(run):
+def test_every_tab_opens_showing_everything(run):
     rid, wd, res = run
     r = view(rid)["resolved"]
-    for t in ("report", "insights", "dashboard"):
-        assert r["tabs"][t]["short"] is True and r["tabs"][t]["folded"], t
-    for t in ("strategy", "data", "cleaning", "plan", "powerbi", "chat"):
-        assert r["tabs"][t]["short"] is False, t
+    for t in ("report", "insights", "dashboard", "strategy", "data", "cleaning", "plan", "powerbi", "chat"):
+        assert r["tabs"][t]["short"] is False and not r["tabs"][t]["folded"], t
     assert r["original"] and view(rid)["bar"]["show"] is False
 
 
 def test_show_all_and_show_less_are_ordinary_changes_that_reset_removes(run):
     rid, wd, res = run
-    full = post(rid, command={"cmd": "set_mode", "tab": "insights", "mode": "full"}).json()
-    assert full["resolved"]["tabs"]["insights"]["short"] is False and not full["resolved"]["tabs"]["insights"]["folded"]
-    assert full["bar"]["show"] and "showing everything on Insights" in full["bar"]["text"]
-    back = post(rid, command={"cmd": "set_mode", "tab": "insights", "mode": "short"}).json()
-    assert back["resolved"]["original"] and back["bar"]["show"] is False                    # short is the default again: nothing to report
-    assert "already" in post(rid, command={"cmd": "set_mode", "tab": "insights", "mode": "short"}).json()["message"]
+    short = post(rid, command={"cmd": "set_mode", "tab": "insights", "mode": "short"}).json()
+    assert short["resolved"]["tabs"]["insights"]["short"] is True and short["resolved"]["tabs"]["insights"]["folded"]
+    assert short["bar"]["show"] and "short view on Insights" in short["bar"]["text"]
+    back = post(rid, command={"cmd": "set_mode", "tab": "insights", "mode": "full"}).json()
+    assert back["resolved"]["original"] and back["bar"]["show"] is False                    # full is the default: nothing to report
+    assert "already" in post(rid, command={"cmd": "set_mode", "tab": "insights", "mode": "full"}).json()["message"]
 
 
 def test_the_slim_bar_appears_for_a_hidden_item_and_disappears_with_undo_and_with_reset(run):

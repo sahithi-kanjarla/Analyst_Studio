@@ -105,3 +105,22 @@ Counts are at 1440 px. "closed" means a `<details>` the reader must click.
 ## What changed
 
 See the sections below, written as each tab was done.
+
+---
+
+## Progress (kept up to date after every step)
+
+### Step 1 — build and tests: DONE
+- Merged `origin/studio-v3-deploy` into this branch (Windows import fix and NaN fix) and pushed.
+- `npm run build` (tsc -b + vite) is clean; the only note is a pre-existing minify warning for `color-mix()` in `landing.css`.
+- `test_chartsize.py` (9) and `chartsize_check.mjs` pass.
+- Tests that assumed `DEFAULT_SHORT = ("report","insights","dashboard")` now assume every tab opens in the full view: `test_simplify.py`,
+  `test_partb_view.py`, `test_lens_misses.py`, `tests/ui/simplify_check.js` (one "Show less" link per tab instead of "Show all (n)"),
+  `tests/ui/nav_check.js` (the column table heading is now "What each column holds").
+  Short view, hide/show/undo, "Show all (n)" and Lens view edits still work and are still covered.
+
+### Left to do
+- Step 2 review of Report and Insights, display.ts, chartsize.ts, widgets.css against the rules.
+- Step 3: Ideas to try, Dashboard, Data sub-views, Insights as widgets.
+- Step 4: designer review of every tab, print/PDF parity, light and dark.
+- New browser tests (per tab; no underscores or raw ids in titles) and the final full run.

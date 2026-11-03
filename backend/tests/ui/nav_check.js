@@ -38,7 +38,7 @@ const ok = (name, cond, detail) => { R[name] = { ok: !!cond, detail: detail === 
   const seg = await p.getByRole('tablist', { name: 'Data views' }).getByRole('tab').allInnerTexts();
   ok('data_has_four_visible_subviews', JSON.stringify(seg) === JSON.stringify(['Your data', 'How files connect', 'What we cleaned', 'How we analysed']), seg.join('|'));
   ok('subviews_are_a_segmented_control_not_a_dropdown', (await p.locator('.dv select, .dv details').count()) === 0 && (await vis('.dv .dv-item')) === 4);
-  ok('your_data_includes_how_the_data_was_set_up', (await p.getByRole('heading', { name: 'How the data was set up' }).isVisible()) && (await vis('.dataviewer')) === 1 && (await vis('.column-meanings tbody tr')) >= 5);
+  ok('your_data_includes_how_the_data_was_set_up', (await p.getByRole('heading', { name: 'What each column holds' }).isVisible()) && (await vis('.dataviewer')) === 1 && (await vis('.column-meanings tbody tr')) >= 5);
   const sel = { 'How files connect': null, 'What we cleaned': 'cleaning:steps', 'How we analysed': 'plan:questions' };
   for (const [label, id] of Object.entries(sel)) {
     await p.getByRole('tablist', { name: 'Data views' }).getByRole('tab', { name: label }).click(); await p.waitForTimeout(500);

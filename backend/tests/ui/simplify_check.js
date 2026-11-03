@@ -29,7 +29,7 @@ const ok = (name, cond, detail) => { R[name] = { ok: !!cond, detail: detail === 
   for (const [t, key] of [['Report', 'report'], ['Insights', 'insights'], ['Dashboard', 'dashboard']]) {
     await tab(t);
     const txt = await p.locator('.view-all-link').allInnerTexts();
-    ok(`default_short_${key}`, txt.length === 1 && /^Show all \(\d+\)$/.test(txt[0]), txt.join('|'));
+    ok(`default_short_${key}`, txt.length === 1 && txt[0] === 'Show less', txt.join('|'));          // every tab opens in the full view; the one link offers the short view
     if (key !== 'report') await shot(key);
   }
   await tab('Report'); await shot('report');
