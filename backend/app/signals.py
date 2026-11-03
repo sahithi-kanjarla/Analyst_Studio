@@ -17,6 +17,8 @@ import itertools
 import numpy as np
 import pandas as pd
 
+from . import partial as partmod
+from .measures import measure_kind
 from .retail_roles import derive_product_measure, is_quantity as is_count_column
 from .profiler import _DMY_FULL, infer_date_order, parse_dates
 
@@ -307,6 +309,30 @@ def date_order_signals(raw: pd.DataFrame, profile: dict) -> list[dict]:
     return out
 
 
+def partial_period(df, cols, kinds=None, brief=None) -> list[dict]:
+    """The data ends part-way through its last month or week and the first measure's per-day rate there is not clearly normal: whether the data was cut off or the measure really stopped moves a headline.
+    Asked only when the run pauses anyway (never strong); when the per-day rate is normal there is nothing to ask."""
+    dates = [n for n, c in cols.items() if c["role"] == "date" and n in df.columns and pd.api.types.is_datetime64_any_dtype(df[n])]
+    if len(dates) != 1:
+        return []
+    t = df[dates[0]]
+    if t.notna().sum() < MIN_ROWS:
+        return []
+    span = (t.max() - t.min()).days
+    rule = "W" if 45 < span <= 180 else "MS" if span > 180 else None
+    ms = [m for m in _measures(df, cols) if measure_kind(m, overrides=kinds) == "additive"]
+    if rule is None or not ms:
+        return []
+    y = pd.DataFrame({"t": t, "y": _num(df, ms[0])}).dropna().set_index("t").sort_index()["y"]
+    series = y.resample(rule).sum().where(y.resample(rule).count() > 0).dropna()
+    got = partmod.analyse(y, series, rule)
+    if got is None or got[1]["verdict"] == "normal":
+        return []
+    info, v = got
+    return [_sig("partial_period", [dates[0], ms[0]], {"date": dates[0], "measure": ms[0], "unit": "week" if rule == "W" else "month", "data_end": info["data_end"], "days": info["days"],
+                                                       "days_in_period": info["days_in_period"], "verdict": v["verdict"]})]
+
+
 def order_key_signal(profile: dict) -> list[dict]:
     """One question when the order key is not settled: no AI answer, or the AI's choice and the data disagree. The decision is made once (grain.decide) and carried on the profile."""
     d = (profile or {}).get("grain_decision") or {}
@@ -320,7 +346,7 @@ def compute_signals(df: pd.DataFrame, profile: dict, raw: pd.DataFrame | None = 
     are only needed to see which text dates cannot be told apart; `kinds` are the brief's {column: additive|rate|other}; `brief` carries its roles and the derived measures the code accepted."""
     cols = _roles(profile)
     sigs: list[dict] = []
-    jobs = [lambda: order_key_signal(profile), lambda: multi_date(df, cols), lambda: negatives(df, cols), lambda: sentinels(df, cols), lambda: multi_measure(df, cols), lambda: near_sum(df, cols),
+    jobs = [lambda: order_key_signal(profile), lambda: multi_date(df, cols), lambda: partial_period(df, cols, kinds, brief), lambda: negatives(df, cols), lambda: sentinels(df, cols), lambda: multi_measure(df, cols), lambda: near_sum(df, cols),
             lambda: duplicate_columns(df, cols), lambda: label_merges(df, cols, brief), lambda: rare_labels(df, cols, brief), lambda: date_swap(df, cols), lambda: high_missing(df, cols), lambda: product_basis(df, cols, kinds, brief),
             lambda: blank_values(df, cols, kinds, brief), lambda: flag_rows(df, cols, kinds, brief)]
     if raw is not None and raw_profile is not None:

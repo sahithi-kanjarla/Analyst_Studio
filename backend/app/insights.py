@@ -272,6 +272,12 @@ def _narrative(f: dict, ctx: dict, pol: dict | None = None, cols: list[str] | No
         hyp = ["Seasonality or a one-off event (campaign, price change, outage)", "A change in the mix of segments or products over time",
                "Partial first or last periods can exaggerate or hide the direction"]
         nxt = ["Look at the same periods in earlier years if available", "Break the trend down by segment to see where it comes from"]
+        pt = st.get("partial")
+        if pt:
+            from . import partial as partmod
+            hyp = [partmod.sentence(pt, pt, target, "week" if st.get("freq") == "W" else "month", _fmt)] + [x for x in hyp if not x.startswith("Partial first or last")]
+            if pt.get("verdict") in ("too_short", "fell", "rose"):
+                nxt.insert(0, f"Confirm whether the data ends on {pt['data_end']} because it was exported then, or because {target} really stopped")
     elif tool == "segment_trend":
         target, group = p["target"], p["group"]
         fast, slow = st["fastest"], st["slowest"]

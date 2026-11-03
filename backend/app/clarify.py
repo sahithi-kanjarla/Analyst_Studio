@@ -33,16 +33,16 @@ from .signals import compute_signals
 MAX_QUESTIONS = 3        # at most this many questions are asked, in the LLM and the rules path alike
 MAX_CANDIDATES = 12      # valid questions considered before the cap picks the ones that matter most
 # How much an answer changes the analysis, most first: a placeholder or a repeated value moves every total and average; a date choice moves every trend; and so on.
-IMPACT = ("order_key", "placeholder", "sentinel", "product_basis", "date_order", "multi_date", "flag_rows", "blank_values", "negatives", "near_sum", "duplicate_columns", "label_merge", "date_swap", "rare_labels", "high_missing")
+IMPACT = ("order_key", "placeholder", "sentinel", "product_basis", "date_order", "multi_date", "partial_period", "flag_rows", "blank_values", "negatives", "near_sum", "duplicate_columns", "label_merge", "date_swap", "rare_labels", "high_missing")
 MAX_OPTIONS = 6
 UNASKED = {"multi_measure"}      # signals that feed the planner instead of the user
-CODE_OWNED = {"order_key", "product_basis", "flag_rows", "blank_values", "date_order", "label_merge", "date_swap"}      # questions code always writes itself: the answer decides how a number is built, so the wording is not left to a model
+CODE_OWNED = {"order_key", "partial_period", "product_basis", "flag_rows", "blank_values", "date_order", "label_merge", "date_swap"}      # questions code always writes itself: the answer decides how a number is built, so the wording is not left to a model
 # What an answer may do about each kind of ambiguity. A question that borrows a real signal id but offers other actions is not about that signal.
 SIGNAL_ACTIONS = {"multi_date": {"set_date_column"}, "negatives": {"handle_negatives", "filter_rows", "note_only"},
                   "sentinel": {"treat_value_as_missing", "filter_rows", "note_only"}, "near_sum": {"drop_column", "define_derived_metric", "merge_columns", "note_only"},
                   "rare_labels": {"filter_rows", "note_only"}, "high_missing": {"drop_column", "note_only"}, "duplicate_columns": {"drop_column", "merge_columns", "note_only"},
                   "flag_rows": {"filter_rows", "note_only"}, "blank_values": {"fill_missing", "filter_rows", "note_only"}, "date_order": {"set_date_order"},
-                  "label_merge": {"merge_labels", "note_only"}, "date_swap": {"swap_day_month", "note_only"}, "order_key": {"set_order_key", "note_only"}}
+                  "label_merge": {"merge_labels", "note_only"}, "date_swap": {"swap_day_month", "note_only"}, "order_key": {"set_order_key", "note_only"}, "partial_period": {"set_data_end", "note_only"}}
 DATE_FILLER = {"date", "time", "at", "on", "dt", "ts", "timestamp", "day"}
 
 
@@ -274,6 +274,11 @@ def _template(sig: dict, goal: str, ctx: dict, explore: bool) -> dict | None:
         return {**base, "text": "Which column identifies one order?", "default": "none",
                 "options": [*[_o(f"key_{i}", n, type="set_order_key", column=n) for i, n in enumerate(c[:MAX_OPTIONS - 1])], _o("none", "None of these: keep every value as it is", type="note_only")],
                 "why": f"{ev['found']} Every value is kept until you say; naming the order column lets each order be counted once."}
+    if t == "partial_period":
+        n, m, unit = ev["date"], ev["measure"], ev["unit"]
+        return {**base, "text": f"Your data ends on {ev['data_end']}. Is that when the data was exported, or did {m} really stop?", "default": "exported",
+                "options": [_o("exported", "The data was exported then", type="note_only"), _o("stopped", f"{m} really stopped then", type="set_data_end", column=n)],
+                "why": f"The last {unit} has data for {ev['days']} of {ev['days_in_period']} days, so its total is not comparable with a full {unit}; your answer decides whether a lower total there is read as incomplete data or as a real stop."}
     if t == "high_missing":
         n = c[0]
         return {**base, "text": f"{n} is {ev['missing_pct']:g}% empty. Should it still be used?", "default": "keep",

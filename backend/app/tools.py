@@ -19,6 +19,7 @@ import pandas as pd
 from scipy import stats
 
 from . import derived, wording
+from . import partial as partmod
 from .measures import measure_kind
 from .config import CHART_DPI
 from .profiler import safe_skew
@@ -625,14 +626,30 @@ def trend(df, ctx, target, date):
     if len(series) < 4:
         return None
     x = np.flatnonzero(full.notna().values)
-    lr = stats.linregress(x, series.values)
+    lr_all = stats.linregress(x, series.values)
+    unit = {"D": "day", "W": "week", "MS": "month"}[rule]
+    cur = _cur(target, ctx)
+    pinfo = pverd = None
+    all_series = series
+    if agg == "sum" and rule in ("W", "MS"):              # a total over a last period that the data only part-way reaches is not comparable with full periods
+        if partmod.last_period(d.index, rule, series.index[-1])["partial"]:
+            got = partmod.analyse(d["y"], series, rule)
+            if got is None:
+                return None               # too few complete periods to fit a trend without it
+            pinfo, pverd = got
+            series, x = series.iloc[:-1], x[:-1]
+    lr = stats.linregress(x, series.values) if pinfo else lr_all
     base = abs(series.mean()) or 1.0
     change = lr.slope * (x[-1] - x[0]) / base
     fig, ax = plt.subplots(figsize=(7, 3.6))
-    ax.plot(full.index, full.values, color=PALETTE[0], marker="o", ms=3, lw=1.8)
-    ax.plot(series.index, lr.intercept + lr.slope * x, color=PALETTE[3], ls="--", lw=1.4, label="trend")
-    unit = {"D": "day", "W": "week", "MS": "month"}[rule]
-    cur = _cur(target, ctx)
+    ax.plot(full.index[:x[-1] + 1] if pinfo else full.index, (full.values[:x[-1] + 1] if pinfo else full.values), color=PALETTE[0], marker="o", ms=3, lw=1.8)
+    ax.plot(series.index, lr.intercept + lr.slope * x, color=PALETTE[3], ls="--", lw=1.4, label="trend, complete " + unit + "s" if pinfo else "trend")
+    if pinfo:
+        ax.plot(all_series.index[-2:], all_series.values[-2:], color=PALETTE[2], lw=1.2, ls=":")
+        ax.plot([all_series.index[-1]], [all_series.values[-1]], marker="o", ms=6, mfc="white", mec=PALETTE[3], ls="none", label="incomplete " + unit)
+        xa = np.append(x, np.flatnonzero(full.notna().values)[-1])
+        ax.plot(all_series.index, lr_all.intercept + lr_all.slope * xa, color=PALETTE[4], ls=":", lw=1.2, label="trend with the incomplete " + unit)
+        ax.annotate(f"{pinfo['days']} of {pinfo['days_in_period']} days", (all_series.index[-1], all_series.values[-1]), textcoords="offset points", xytext=(0, 9), ha="center", fontsize=8, color=PALETTE[3])
     ax.annotate(f"best {cur}{_fmt(series.max())}", (series.idxmax(), series.max()), textcoords="offset points", xytext=(0, 9), ha="center", fontsize=8, color=PALETTE[1])
     ax.annotate(f"weakest {cur}{_fmt(series.min())}", (series.idxmin(), series.min()), textcoords="offset points", xytext=(0, -15), ha="center", fontsize=8, color=PALETTE[3])
     ax.margins(y=0.2)
@@ -644,18 +661,30 @@ def trend(df, ctx, target, date):
     fit_end = float(lr.intercept + lr.slope * x[-1])
     steep_fall = lr.slope < 0 and wording.steep({"relative_change": change, "end": fit_end})       # a fall of 100% or more of the level, or to below zero: no percentage
     size = f"falling steeply, from {_fmt(series.iloc[0])} to {_fmt(series.iloc[-1])}" if steep_fall else f"{change:+.0%}"
-    _title(ax, f"{target} is trending {'up' if lr.slope > 0 else 'down'} ({size} over the period)" if sig else f"No clear trend in {target} over time (p={lr.pvalue:.2f})")
+    over = f"over the complete {unit}s" if pinfo else "over the period"
+    _title(ax, f"{target} is trending {'up' if lr.slope > 0 else 'down'} ({size} {over})" if sig else f"No clear trend in {target} {over if pinfo else 'over time'} (p={lr.pvalue:.2f})")
     gaps = full.index[full.isna()]
     no_data = f" No data in {len(gaps)} {unit}{'s' if len(gaps) != 1 else ''} (for example {gaps[0].date()}); these are left out of the best and weakest {unit}." if len(gaps) else ""
     text = (f"**{target}** ({agg} per {unit}) shows a {'statistically significant ' if sig else 'weak, non-significant '}{direction} trend "
-            f"({size if steep_fall else 'about ' + size} across the period, p{_pf(lr.pvalue)}). Best {unit}: {series.idxmax().date()} ({cur}{_fmt(series.max())}); weakest: {series.idxmin().date()} ({cur}{_fmt(series.min())}).{no_data} "
-            f"The first and last {unit}s may be partial.")
+            f"({size if steep_fall else 'about ' + size} across the {'complete ' + unit + 's' if pinfo else 'period'}, p{_pf(lr.pvalue)}). Best {unit}: {series.idxmax().date()} ({cur}{_fmt(series.max())}); weakest: {series.idxmin().date()} ({cur}{_fmt(series.min())}).{no_data} ")
+    extra = {}
+    if pinfo:
+        said = " You said the data ends because it really stopped there." if getattr(df, "attrs", {}).get("data_end_is_real") else ""
+        text += partmod.sentence(pinfo, pverd, target, unit, _fmt, cur) + said
+        change_all = lr_all.slope * (np.flatnonzero(full.notna().values)[-1] - x[0]) / (abs(all_series.mean()) or 1.0)
+        text += f" Fitted on the incomplete {unit} as well, the trend would read {change_all:+.0%} (p{_pf(lr_all.pvalue)}); that figure depends on it and is not used."
+        extra = {"partial": {k: (_f(v) if isinstance(v, float) else v) for k, v in {**pinfo, **pverd}.items()},
+                 "with_partial": {"relative_change": _f(change_all), "p": _f(lr_all.pvalue), "slope": _f(lr_all.slope)}}
+        if getattr(df, "attrs", {}).get("data_end_is_real"):
+            extra["partial"]["really_ended"] = True
+    else:
+        text += f"The first and last {unit}s may be partial."
     action = (f"{target} is trending {direction} over time; find out what changed around the weakest {unit} ({series.idxmin().date()})." if sig else None)
     return finding("trend", f"{target} over time", text,
                    {"p": _f(lr.pvalue), "slope": _f(lr.slope), "relative_change": _f(change), "periods": int(len(series)), "empty_periods": int(len(gaps)), "freq": rule, "agg": agg, "n": int(len(d)),
-                    "first": _f(series.iloc[0]), "last": _f(series.iloc[-1]), "fit_end": _f(fit_end)},
+                    "first": _f(series.iloc[0]), "last": _f(series.iloc[-1]), "fit_end": _f(fit_end), **extra},
                    _save(fig, ctx, _slug("trend", target, date)), significant=bool(sig), action=action) | {
-        "series": [[str(i.date()), _f(v)] for i, v in series.items()],           # the period totals (or averages), for the report card; kept out of `stats`, which the AI number check reads
+        "series": [[str(i.date()), _f(v)] for i, v in series.items()],           # the period totals (or averages), for the report card; kept out of `stats`, which the AI number check reads. The incomplete last period is not in it.
         "date_coverage": _f(float(pd.to_datetime(df[date], errors="coerce").notna().mean()))}
 
 

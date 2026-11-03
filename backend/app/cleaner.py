@@ -247,6 +247,10 @@ def apply_directives(df: pd.DataFrame, questions: list[dict], answers: dict) -> 
                     continue
                 also = f", analysed alongside {', '.join(a['columns'][1:])}" if len(a["columns"]) > 1 else ""
                 note(q, f"'{a['columns'][0]}' is the main number{also} ({n:,} rows have a value).", n)
+        elif t == "set_data_end":
+            if not gone(q, [a["column"]]):
+                df.attrs["data_end_is_real"] = True
+                note(q, f"The data ends on {pd.to_datetime(df[a['column']], errors='coerce').max():%Y-%m-%d} because things really stopped there, as you said; a lower last period is read that way.", int(df[a["column"]].notna().sum()))
         elif t == "set_order_key":
             if not gone(q, [a["column"]]):          # the key was verified and applied when the types were fixed (coerce_types); here the answer is only recorded
                 note(q, f"'{a['column']}' identifies one order.", int(df[a["column"]].notna().sum()))

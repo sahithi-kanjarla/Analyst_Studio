@@ -17,6 +17,7 @@ from . import cited, context as ctxmod, understanding as undmod, wording
 from .measures import measure_kind
 from .insights import allowed_numbers, effect_label, polarity
 from .llm import ask_json
+from . import partial
 from .tools import _fmt
 
 IMPACT_PTS = {"High": 3, "Medium": 2, "Low": 1}
@@ -190,6 +191,8 @@ def candidates(state: dict) -> list[dict]:
                           effort="Low", how_to_test="Treat a prioritised sample and a random sample the same way for 4 weeks and compare outcomes.",
                           kpis=[f"{target} = {pos} rate in the prioritised group vs random", "Effort saved"], risks=["The relationship may weaken outside this dataset."]))
         elif tool == "trend":
+            if not partial.idea_ok(st):
+                continue                  # the newest, incomplete period points the other way per day: no idea rests on this trend
             target = p["target"]
             up = (st.get("slope") or 0) > 0
             pv = polarity(target, pol)
