@@ -35,14 +35,27 @@ const kindOf = (tool: string) => KIND[tool] ?? (tool ? prettify(tool) : "");
 /** The table under a finding: a few rows in the chart's own order, the rest behind "Show all (n)". It is never hidden behind an arrow. */
 function Table({ t, und }: { t: CardTable; und?: Understanding | null }) {
   const [all, setAll] = useState(false);
-  const plan = planTable(t.rows, { all });
+  const [sort, setSort] = useState<{ col: number; dir: 1 | -1 } | null>(null);
+  const num = (v: unknown) => { const n = parseFloat(String(v).replace(/[,%\s]/g, "")); return Number.isFinite(n) ? n : null; };
+  // sorting is display only: the rows are the same, in another order, and the header says which way
+  const ordered = !sort ? t.rows : [...t.rows].sort((a, b) => {
+    const x = num(a[sort.col]), y = num(b[sort.col]);
+    return (x !== null && y !== null ? x - y : String(a[sort.col]).localeCompare(String(b[sort.col]))) * sort.dir;
+  });
+  const plan = planTable(ordered, { all });
   return (
     <section className="key-table" data-kind="table">
       <h5>{humanise(t.title, und)}</h5>
       <div className="tablewrap">
         <table className="table">
           <thead>
-            <tr>{t.columns.map((c) => <th key={c}>{humanise(c, und)}</th>)}</tr>
+            <tr>{t.columns.map((c, j) => (
+              <th key={c} aria-sort={sort?.col === j ? (sort.dir === 1 ? "ascending" : "descending") : "none"}>
+                <button type="button" className="th-sort" onClick={() => setSort(sort?.col === j ? (sort.dir === 1 ? { col: j, dir: -1 } : null) : { col: j, dir: j === 0 ? 1 : -1 })}>
+                  {humanise(c, und)}{sort?.col === j ? (sort.dir === 1 ? " ▲" : " ▼") : ""}
+                </button>
+              </th>
+            ))}</tr>
           </thead>
           <tbody>
             {plan.items.map((r, i) => (

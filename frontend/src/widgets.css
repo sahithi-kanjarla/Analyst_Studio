@@ -119,3 +119,8 @@
   .strat-cols { grid-template-columns: minmax(0, 1fr); }
   .fold-working > summary { padding: var(--sp-3); }
 }
+
+/* sortable table headers */
+.th-sort { all: unset; cursor: pointer; font: inherit; color: inherit; }
+.th-sort:hover { text-decoration: underline; }
+.th-sort:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }

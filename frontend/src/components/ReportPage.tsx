@@ -23,7 +23,7 @@ const meaning = (caption: string) => caption.replace(/^How to read this:\s*/i, "
 
 /** A chart's own title, in plain words and sentence case: no internal column name ever reaches the heading. */
 const chartHeading = (title: string, und?: Understanding | null) => {
-  const t = humanise(String(title ?? ""), und).replace(/^\s*(total|sum of)\s+/i, "");
+  const t = humanise(String(title ?? ""), und).replace(/^\s*(total|sum of)\s+/i, "").replace(/\s*\((?:sum|avg|average|mean|count)\)\s*/gi, " ").replace(/\b(Total|Sum of)\s+/g, "").trim();
   return t.charAt(0).toUpperCase() + t.slice(1);
 };
 
