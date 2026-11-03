@@ -13,6 +13,11 @@ VERSION = 1
 MAX_TURNS = 300
 MAX_CHIPS = 400
 LOCK = threading.RLock()
+DEMO_RUN_ID = "5a1e5d3e0001"      # the shared sample run (same id as runner.DEMO_RUN_ID)
+
+
+class ReadOnlyRun(Exception):
+    """Raised when something tries to change the briefs of the shared sample run; the API turns it into the same 403 as the other sample changes."""
 
 
 def _path(wd: Path) -> Path:
@@ -149,6 +154,8 @@ def get_briefs(wd: Path) -> list[dict]:
 
 
 def put_briefs(wd: Path, briefs: list[dict]) -> None:
+    if Path(wd).name == DEMO_RUN_ID:
+        raise ReadOnlyRun("The sample run is read-only. Upload your own data to run an analysis.")
     with LOCK:
         d = load(wd)
         d["briefs"] = briefs[-60:]

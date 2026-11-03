@@ -40,3 +40,9 @@ Another session can continue from here. Order: Fix 2 first, then Fix 1 in four c
 - A real browser over HTTPS behind a proxy (the Secure flag is tested with an https TestClient and X-Forwarded-Proto only).
 - Real sign-in (not built); a multi-process race creating the secret file; migration of existing production data.
 - The Vite dev server (cross-origin) cookie behaviour: cookies are same-origin only.
+
+## Sample briefs made read-only (supersedes the earlier "briefs stay editable on the sample" decision)
+- Rename, edit, delete and create of briefs on the shared sample run now return the same 403 as the other sample changes; reading and exporting its briefs still works. Visitors keep full control of briefs on their own runs.
+- Enforced at the route (`_writable`) and again where briefs are saved (`store.put_briefs` refuses the sample's folder), so a brief made through chat is refused too.
+- `test_ui_simplify` now makes a brief on the visitor's own run; new `test_sample_briefs_readonly.py` covers the sample.
+- Found while doing this: the frontend only opened 12-character run ids from a link, so reloading a visitor's own (32-character) run went to the start page. Fixed in `App.tsx`.

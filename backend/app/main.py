@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager
 
 from pydantic import BaseModel, Field
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
-from fastapi.responses import FileResponse, Response, StreamingResponse
+from fastapi.responses import FileResponse, JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
 from .config import ALLOWED_EXT, FRONTEND_DIST, MAX_FILES, MAX_ROWS, MAX_UPLOAD_MB, RUNS_DIR, VERSION, public_demo, retention_days
@@ -41,6 +41,11 @@ def _writable(run_id: str) -> None:
     """The sample run is read-only: it can be viewed, but never answered, re-run or changed."""
     if is_demo(run_id):
         raise HTTPException(403, "The sample run is read-only. Upload your own data to run an analysis.")
+
+
+@app.exception_handler(lensstore.ReadOnlyRun)
+async def _read_only_run(request: Request, exc: lensstore.ReadOnlyRun):
+    return JSONResponse({"detail": str(exc)}, status_code=403)
 
 
 @app.post("/api/demo")
@@ -673,18 +678,24 @@ def briefs_list(run_id: str):
 
 @app.post("/api/runs/{run_id}/briefs/{brief_id}/rename")
 def brief_rename(run_id: str, brief_id: str, body: BriefRenameIn):
+    _check_id(run_id)
+    _writable(run_id)
     from .lens import briefs as lensbriefs
     return _brief_call(run_id, lensbriefs.rename, brief_id, body.title)
 
 
 @app.post("/api/runs/{run_id}/briefs/{brief_id}/edit")
 def brief_edit(run_id: str, brief_id: str, body: BriefEditIn):
+    _check_id(run_id)
+    _writable(run_id)
     from .lens import briefs as lensbriefs
     return _brief_call(run_id, lensbriefs.edit, brief_id, body.section, body.index, body.text)
 
 
 @app.delete("/api/runs/{run_id}/briefs/{brief_id}")
 def brief_delete(run_id: str, brief_id: str):
+    _check_id(run_id)
+    _writable(run_id)
     from .lens import briefs as lensbriefs
     _brief_call(run_id, lensbriefs.delete, brief_id)
     return {"deleted": brief_id}

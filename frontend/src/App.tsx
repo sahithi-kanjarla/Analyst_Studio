@@ -7,7 +7,7 @@ import History from "./components/History";
 /** The open run and, for an old link (#/run/<id>/powerbi, /chat, /cleaning ...), the name of the tab it points to. */
 function useHashRun(): [string | null, string | null, (id: string | null) => void] {
   const read = () => {
-    const m = window.location.hash.match(/^#\/run\/([a-f0-9]{12})(?:\/([\w-]+))?\/?$/);
+    const m = window.location.hash.match(/^#\/run\/([a-f0-9]{32}|[a-f0-9]{12})(?:\/([\w-]+))?\/?$/);
     return m ? { id: m[1], tab: m[2] ?? null } : { id: null, tab: null };
   };
   const [at, setAt] = useState(read);
