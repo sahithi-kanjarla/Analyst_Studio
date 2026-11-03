@@ -122,7 +122,8 @@ def derive_product_measure(df: pd.DataFrame, cols: dict, kinds: dict | None = No
     plan = (brief or {}).get("derived")
     nums = _number_columns(df, cols, kinds, (brief or {}).get("roles"))
     from .grain import detect
-    lines = detect(df, {n: c["role"] for n, c in cols.items()})          # one row per order line: the count and the price are the line's, never the order's total, shipping or tax
+    lines = detect(df, {n: c["role"] for n, c in cols.items()}, df.attrs.get("order_key"))
+    lines = lines if lines and lines["verdict"] == "verified" else None          # one row per order line: the count and the price are the line's, never the order's total, shipping or tax
     if lines:
         nums = {n: x for n, x in nums.items() if n in lines["line_columns"]}
     min_rate = MIN_LINE_RATE_DISTINCT if lines else MIN_RATE_DISTINCT          # a shop of a few dozen products has few distinct prices

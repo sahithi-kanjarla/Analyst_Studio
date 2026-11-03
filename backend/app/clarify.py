@@ -33,16 +33,16 @@ from .signals import compute_signals
 MAX_QUESTIONS = 3        # at most this many questions are asked, in the LLM and the rules path alike
 MAX_CANDIDATES = 12      # valid questions considered before the cap picks the ones that matter most
 # How much an answer changes the analysis, most first: a placeholder or a repeated value moves every total and average; a date choice moves every trend; and so on.
-IMPACT = ("placeholder", "sentinel", "product_basis", "date_order", "multi_date", "flag_rows", "blank_values", "negatives", "near_sum", "duplicate_columns", "label_merge", "date_swap", "rare_labels", "high_missing")
+IMPACT = ("order_key", "placeholder", "sentinel", "product_basis", "date_order", "multi_date", "flag_rows", "blank_values", "negatives", "near_sum", "duplicate_columns", "label_merge", "date_swap", "rare_labels", "high_missing")
 MAX_OPTIONS = 6
 UNASKED = {"multi_measure"}      # signals that feed the planner instead of the user
-CODE_OWNED = {"product_basis", "flag_rows", "blank_values", "date_order", "label_merge", "date_swap"}      # questions code always writes itself: the answer decides how a number is built, so the wording is not left to a model
+CODE_OWNED = {"order_key", "product_basis", "flag_rows", "blank_values", "date_order", "label_merge", "date_swap"}      # questions code always writes itself: the answer decides how a number is built, so the wording is not left to a model
 # What an answer may do about each kind of ambiguity. A question that borrows a real signal id but offers other actions is not about that signal.
 SIGNAL_ACTIONS = {"multi_date": {"set_date_column"}, "negatives": {"handle_negatives", "filter_rows", "note_only"},
                   "sentinel": {"treat_value_as_missing", "filter_rows", "note_only"}, "near_sum": {"drop_column", "define_derived_metric", "merge_columns", "note_only"},
                   "rare_labels": {"filter_rows", "note_only"}, "high_missing": {"drop_column", "note_only"}, "duplicate_columns": {"drop_column", "merge_columns", "note_only"},
                   "flag_rows": {"filter_rows", "note_only"}, "blank_values": {"fill_missing", "filter_rows", "note_only"}, "date_order": {"set_date_order"},
-                  "label_merge": {"merge_labels", "note_only"}, "date_swap": {"swap_day_month", "note_only"}}
+                  "label_merge": {"merge_labels", "note_only"}, "date_swap": {"swap_day_month", "note_only"}, "order_key": {"set_order_key", "note_only"}}
 DATE_FILLER = {"date", "time", "at", "on", "dt", "ts", "timestamp", "day"}
 
 
@@ -270,6 +270,10 @@ def _template(sig: dict, goal: str, ctx: dict, explore: bool) -> dict | None:
                 "options": [_o("day", f"Day first: {r['day_first'][0]} to {r['day_first'][1]}", type="set_date_order", column=n, dayfirst=True),
                             _o("month", f"Month first: {r['month_first'][0]} to {r['month_first'][1]}", type="set_date_order", column=n, dayfirst=False)],
                 "why": f"All {ev['values']:,} such dates have a day and a month of 12 or less, so both readings fit; the period they cover differs."}
+    if t == "order_key":
+        return {**base, "text": "Which column identifies one order?", "default": "none",
+                "options": [*[_o(f"key_{i}", n, type="set_order_key", column=n) for i, n in enumerate(c[:MAX_OPTIONS - 1])], _o("none", "None of these: keep every value as it is", type="note_only")],
+                "why": f"{ev['found']} Every value is kept until you say; naming the order column lets each order be counted once."}
     if t == "high_missing":
         n = c[0]
         return {**base, "text": f"{n} is {ev['missing_pct']:g}% empty. Should it still be used?", "default": "keep",
@@ -455,6 +459,14 @@ def resolve(questions: list[dict], user_answers: dict | None, saved: dict, skip:
 def date_orders(questions: list[dict], answers: dict) -> dict[str, bool]:
     """{date column: True when day comes first} for the questions about the order of d/m/y dates, with the answer or else the default."""
     return {a["column"]: a["dayfirst"] for _, _, a in chosen(questions, answers) if a["type"] == "set_date_order"}
+
+
+def order_key_answer(questions: list[dict], answers: dict) -> str | None:
+    """The column the user named as the order key (the order-key question's chosen option), "none" when they said no column does, None when the question was not asked."""
+    for q, o, a in chosen(questions, answers):
+        if q.get("kind") == "order_key":
+            return a["column"] if a["type"] == "set_order_key" else "none"
+    return None
 
 
 def target_source(questions: list[dict], answers: dict) -> str:

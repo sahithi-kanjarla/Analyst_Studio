@@ -24,6 +24,7 @@ from . import aicache, brief as briefmod, clarify, derived, derived_check as der
 from . import goal as goalmod
 from . import context as ctxmod
 from . import critic as critic_mod
+from . import grain as grainmod
 from . import understanding as undmod
 from . import insights, planner, polarity as polmod, powerbi, relations, reporter, signals, strategy, summary, tiering, tools
 from .cleaner import add_derived, apply_directives, coerce_types, scoped_clean
@@ -355,8 +356,35 @@ def understand_node(state: RunState) -> dict:
              + "; goal words: " + ("; ".join(f"{t} -> {', '.join(c) or 'no column'}" for t, c in rec["goal_columns"].items()) or "none") + ".")
     elif rec["source"] == "fallback":
         emit(rid, "Data understanding", f"The AI answer was unusable ({rec['error']}), so the word-matching rules decide.")
-    return {"understanding": rec, "decisions": decisions, "ai_notes": list(dict.fromkeys(notes)),
+    prof, decision = _order_key(state, rec)
+    emit(rid, "Data understanding", decision["found"] or "No column identifies one order.")
+    return {"understanding": rec, "profile": prof, "decisions": decisions, "ai_notes": list(dict.fromkeys(notes)),
             "stage_sources": {**(state.get("stage_sources") or {}), "understanding": {"llm": "llm", "fallback": "fallback"}.get(rec["source"], "rules")}}
+
+
+def _order_key(state: RunState, rec: dict) -> tuple[dict, dict]:
+    """(profile with the order key and its decision, the decision). The key comes from the user's answer, else the understanding record, else the column name; the data only verifies it (grain.decide)."""
+    wd = _wd(state)
+    raw = pd.read_pickle(wd / "raw.pkl")
+    typed, _ = coerce_types(raw, state["profile"])
+    answered = None          # the order-key question's answer: a column, "none", or None when it was never asked
+    qf, af = wd / "questions.json", wd / "answers.json"
+    if qf.exists() and af.exists():
+        try:
+            qs = json.loads(qf.read_text(encoding="utf-8"))["questions"]
+            given = json.loads(af.read_text(encoding="utf-8"))
+            answered = clarify.order_key_answer(qs, {} if given.get("skip") else (given.get("answers") or {}))
+        except Exception:
+            answered = None
+    roles = {c["name"]: c["role"] for c in state["profile"]["columns"]}
+    decision = grainmod.decide(typed, roles, rec, answered)
+    prof = {k: v for k, v in state["profile"].items() if k != "grain"}
+    g = grainmod.grain_of(decision)
+    if g:
+        rows = int(raw[g["key"]].notna().sum()) if g["key"] in raw.columns else g["rows"]          # the rows that carry a key, as loaded
+        prof["grain"] = {**g, "rows": rows, "per_order": round(rows / g["orders"], 2)}
+    prof["grain_decision"] = decision
+    return prof, decision
 
 
 SOURCE_WORDS = {"user": "your answers", "default": "defaults", "glossary": "the saved glossary", "goal": "your goal", "data": "the data itself"}
@@ -384,6 +412,7 @@ def clarify_node(state: RunState) -> dict:
         typed, _ = coerce_types(raw, state["profile"])
         # the signals read the cleaned values, so the roles come from the cleaned table (a price stored as "Rs. 1,299" is a number here), with the brief's corrections on top
         typed_profile = briefmod.apply_roles(profile_df(typed), (state.get("brief") or {}).get("roles") or {})
+        typed_profile["grain_decision"] = (state.get("profile") or {}).get("grain_decision")          # the order-key question comes from the one decision made in the understanding stage
         pq = state.get("placeholder_questions") or []
         skip = {c for q in pq for c in (q["columns"][0], f"{q['table']}_{q['columns'][0]}")}
         with llmmod.capture() as cap:

@@ -363,11 +363,7 @@ def profile_df(df: pd.DataFrame) -> dict:
             "stats": _col_stats(s, role, conv),
         })
     out = {"rows": int(len(df)), "cols": int(df.shape[1]), "duplicates": int(df.duplicated().sum()), "columns": cols}
-    from .grain import detect
-    g = detect(df, {c['name']: c['role'] for c in cols})
-    if g:
-        out["grain"] = g          # several rows per order: the order count is the number of different keys, not the number of rows
-    return out
+    return out          # the order key is decided later, from the understanding record (graph.understand_node), never from how values repeat
 
 
 def compact_profile(profile: dict, limit: int = 80) -> list[dict]:

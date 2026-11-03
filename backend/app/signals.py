@@ -307,12 +307,20 @@ def date_order_signals(raw: pd.DataFrame, profile: dict) -> list[dict]:
     return out
 
 
+def order_key_signal(profile: dict) -> list[dict]:
+    """One question when the order key is not settled: no AI answer, or the AI's choice and the data disagree. The decision is made once (grain.decide) and carried on the profile."""
+    d = (profile or {}).get("grain_decision") or {}
+    if d.get("verdict") != "ask" or not d.get("candidates"):
+        return []
+    return [_sig("order_key", d["candidates"], {"found": d.get("found", ""), "source": d.get("source")}, strong=True)]
+
+
 def compute_signals(df: pd.DataFrame, profile: dict, raw: pd.DataFrame | None = None, raw_profile: dict | None = None, kinds: dict | None = None, brief: dict | None = None) -> list[dict]:
     """Strong signals first. `df` should already have its types fixed (numbers as numbers, dates as dates). `raw` and `raw_profile` (the data as loaded and its profile)
     are only needed to see which text dates cannot be told apart; `kinds` are the brief's {column: additive|rate|other}; `brief` carries its roles and the derived measures the code accepted."""
     cols = _roles(profile)
     sigs: list[dict] = []
-    jobs = [lambda: multi_date(df, cols), lambda: negatives(df, cols), lambda: sentinels(df, cols), lambda: multi_measure(df, cols), lambda: near_sum(df, cols),
+    jobs = [lambda: order_key_signal(profile), lambda: multi_date(df, cols), lambda: negatives(df, cols), lambda: sentinels(df, cols), lambda: multi_measure(df, cols), lambda: near_sum(df, cols),
             lambda: duplicate_columns(df, cols), lambda: label_merges(df, cols, brief), lambda: rare_labels(df, cols, brief), lambda: date_swap(df, cols), lambda: high_missing(df, cols), lambda: product_basis(df, cols, kinds, brief),
             lambda: blank_values(df, cols, kinds, brief), lambda: flag_rows(df, cols, kinds, brief)]
     if raw is not None and raw_profile is not None:
