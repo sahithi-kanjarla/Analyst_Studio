@@ -124,3 +124,10 @@ See the sections below, written as each tab was done.
 - Step 3: Ideas to try, Dashboard, Data sub-views, Insights as widgets.
 - Step 4: designer review of every tab, print/PDF parity, light and dark.
 - New browser tests (per tab; no underscores or raw ids in titles) and the final full run.
+
+### Step 2 — review of Report and Insights: DONE
+- Report chart headings lose "Total", "Sum of" and "(sum)"; finding tables sort by header click (display order only) and keep the first 6 rows with "Show all (n)".
+- Findings' charts on Report and Insights are server-drawn images: their inner titles and the top-N inside them cannot be changed from the frontend (noted for later).
+
+### Step 3a — Ideas to try: DONE
+- Each idea card shows title, why, the first evidence line, ALL first steps, "Test it first" and the KPIs as chips. Only the full evidence list and risks are in one fold "How we got this".

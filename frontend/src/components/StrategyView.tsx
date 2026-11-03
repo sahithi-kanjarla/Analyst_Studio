@@ -75,9 +75,7 @@ export default function StrategyView({ strategies, summary, gaps, findings, unde
 
       <div className="strat-grid">
         <ShowMore tab="strategy" items={strategies.map((s) => {
-          const first = s.actions[0];
-          const rest = s.actions.slice(1);
-          return { id: `strategy:${s.id}`, node: (
+                    return { id: `strategy:${s.id}`, node: (
             <ViewItem key={s.id} id={`strategy:${s.id}`} tag="article" className={`strat ${s.kind === "foundation" ? "strat-foundation" : ""}`} data-kind="idea">
               <header>
                 <span className="insight-num">{s.rank}</span>
@@ -97,34 +95,32 @@ export default function StrategyView({ strategies, summary, gaps, findings, unde
               {!short && s.objective && <p className="strat-why" data-kind="reason">{say(s.objective)}</p>}
 
               {!short && s.evidence.length > 0 && (
-                <ul className="strat-evidence" data-kind="evidence" aria-label="What this is based on">
-                  {s.evidence.slice(0, 2).map((id) => (
-                    <li key={id} title={headline(id)}>{clip(headline(id))}</li>
-                  ))}
-                  {s.evidence.length > 2 && <li className="muted">and {s.evidence.length - 2} more {s.evidence.length - 2 === 1 ? "finding" : "findings"}</li>}
-                </ul>
+                <p className="strat-evidence-num" data-kind="evidence" title={headline(s.evidence[0])}>
+                  <span className="muted">Based on</span> {clip(headline(s.evidence[0]), 130)}
+                </p>
               )}
 
-              {!short && first && (
-                <div className="strat-first" data-kind="first-step">
-                  <h5>First step</h5>
-                  <p>{say(first)}</p>
+              {!short && s.actions.length > 0 && (
+                <div className="strat-steps" data-kind="first-step">
+                  <h5>First steps</h5>
+                  <ol className="tight">{s.actions.map((a, i) => <li key={i}>{say(a)}</li>)}</ol>
                 </div>
               )}
 
-              {!short && (rest.length > 0 || s.how_to_test || s.kpis.length > 0 || s.risks.length > 0) && (
+              {!short && s.how_to_test && <p className="strat-test"><strong>Test it first:</strong> {say(s.how_to_test)}</p>}
+
+              {!short && s.kpis.length > 0 && (
+                <div className="strat-kpis" data-kind="kpis">
+                  <h5>What to track</h5>
+                  <ul className="chip-list">{s.kpis.map((k, i) => <li key={i} className="chip-static">{say(k)}</li>)}</ul>
+                </div>
+              )}
+
+              {!short && (s.risks.length > 0 || s.evidence.length > 1) && (
                 <details className="fold fold-working">
-                  <summary>The full plan<span className="fold-hint">the other steps, how to test it, what to track and what could go wrong</span></summary>
-                  <div className="strat-cols">
-                    <section>
-                      {rest.length > 0 && <><h5>Then</h5><ol className="tight" start={2}>{rest.map((a, i) => <li key={i}>{say(a)}</li>)}</ol></>}
-                      {s.how_to_test && <><h5>Test it first</h5><p>{say(s.how_to_test)}</p></>}
-                    </section>
-                    <section>
-                      {s.kpis.length > 0 && <><h5>What to track</h5><ul className="tight">{s.kpis.map((k, i) => <li key={i}>{say(k)}</li>)}</ul></>}
-                      {s.risks.length > 0 && <><h5>What could go wrong</h5><ul className="tight">{s.risks.map((r, i) => <li key={i}>{say(r)}</li>)}</ul></>}
-                    </section>
-                  </div>
+                  <summary>How we got this<span className="fold-hint">every finding it rests on and what could go wrong</span></summary>
+                  {s.evidence.length > 1 && <><h5>Findings behind it</h5><ul className="tight">{s.evidence.map((id) => <li key={id}>{headline(id)}</li>)}</ul></>}
+                  {s.risks.length > 0 && <><h5>What could go wrong</h5><ul className="tight">{s.risks.map((r, i) => <li key={i}>{say(r)}</li>)}</ul></>}
                 </details>
               )}
             </ViewItem>) };

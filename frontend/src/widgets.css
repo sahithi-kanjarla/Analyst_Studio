@@ -124,3 +124,14 @@
 .th-sort { all: unset; cursor: pointer; font: inherit; color: inherit; }
 .th-sort:hover { text-decoration: underline; }
 .th-sort:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+/* Ideas to try: steps and KPIs are on the card; only the long evidence and risk lists are folded */
+.strat-evidence-num { margin: var(--sp-3) 0 0; font-size: var(--fs-1); line-height: 1.45; }
+.strat-steps { margin: var(--sp-4) 0 0; padding: var(--sp-3) var(--sp-4); border-left: 3px solid var(--brand); background: color-mix(in srgb, var(--brand) 6%, transparent); border-radius: 0 var(--radius) var(--radius) 0; }
+.strat-steps h5, .strat-kpis h5 { margin: 0 0 var(--sp-2) !important; }
+.strat-steps h5 { color: var(--brand) !important; }
+.strat-steps ol { margin: 0; padding-left: 1.2em; }
+.strat-test { margin: var(--sp-3) 0 0; font-size: var(--fs-2); }
+.strat-kpis { margin: var(--sp-4) 0 0; }
+.chip-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.chip-static { border: var(--border); border-radius: 999px; padding: 3px var(--sp-3); font-size: var(--fs-1); background: var(--card); }
