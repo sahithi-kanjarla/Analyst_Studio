@@ -204,30 +204,61 @@ def plan_charts(llm, state: dict, view: dict, cs: list[dict], plan: dict) -> dic
     avail = {n: v for n, v in avail.items() if v}
     q_of = {c["n"]: c["question"] for c in cs}
     picked: dict[int, list[tuple[str, str]]] = {}          # question number -> [(chart id, AI caption)]
+    computed = cited.claims((state.get("summary_facts") or {}).get("rankings") or [])
+    by_spec_all = {sp["id"]: sp for specs in avail.values() for sp in specs}
+
+    def judge_caption(text: str, sp: dict) -> tuple[str, str | None]:
+        """(caption without ids, None) when the caption may be shown, else (caption, why not). The chart is known to the code, so a caption that does not end with an id gets this chart's own fact id
+        attached before the check; a figure must then match that fact, a period label or year is not a figure, and a caption with no figure needs no id at all."""
+        fid = sp["fact"]
+        tagged = text if re.search(r"\[[^\]]*\]\s*[.!?]?\s*$", text) else f"{text.rstrip()} [{fid}]"
+        labels = {m.group(0).rstrip(".,") for s in [sp.get("title", ""), *(str(g) for g, _ in sp.get("data") or [])] for m in cited.NUM_RE.finditer(s)}
+        clean, bad = cited.verify(tagged, _chart_facts([fid], by_id, r_by_id), labels)
+        clean = clean.strip()
+        if bad:
+            return clean, bad
+        if not clean or len(clean.split()) > reportcharts.CAPTION_WORDS:
+            return clean, "caption too long"
+        if cited.contradicts(clean, computed):
+            return clean, "caption disagrees with a computed share"
+        return clean, None
+
+    def rows_of(out) -> list[tuple[int, str, str]]:
+        rows = out.get("charts") if isinstance(out, dict) else None
+        res = []
+        for row in rows if isinstance(rows, list) else []:
+            try:
+                n, cid = int(row["question"]), str(row["chart"])
+            except (KeyError, TypeError, ValueError):
+                continue
+            if n in avail and any(sp["id"] == cid for sp in avail[n]):
+                res.append((n, cid, str(row.get("caption") or "")))
+        return res
+
+    def all_captions_ok(out) -> bool:
+        """The reply is saved for reuse only when none of its captions was rejected: a rerun may then get a better one."""
+        return all(not text or judge_caption(text, by_spec_all[cid])[1] is None for _, cid, text in rows_of(out))
+
     if llm is not None and avail:
         with capture() as cap:
             out = ask_json(
                 llm,
                 "You choose charts for a business report. For each goal question below pick the ONE or TWO charts from its list that best answer the question, and write for each a caption "
                 f"of at most {reportcharts.CAPTION_WORDS} words that tells the reader how to read it (what the bars or line show, what to look at). Use only chart ids from the list. "
-                + cited.CITE_RULE + "A caption needs no figure; if it has one it must end with the id of the fact in square brackets. "
+                + cited.CITE_RULE + "Every chart in the list names its source fact under 'fact': end each caption with that fact id in square brackets, e.g. 'Bars show sales amount by region [r1]'. "
+                "A caption that only explains how to read the chart and states no figure, ranking or comparison may leave the id out. A figure in a caption must be a figure of that fact. "
                 "Return JSON: {\"charts\": [{\"question\": <question number>, \"chart\": \"<chart id>\", \"caption\": \"...\"}]}",
-                "GOAL QUESTIONS AND THEIR CHARTS: " + json.dumps({n: {"question": q_of[n], "charts": {sp["id"]: {"title": sp["title"], "fact": sp["fact"]} for sp in specs}} for n, specs in avail.items()}, ensure_ascii=False))
-        rows = out.get("charts") if isinstance(out, dict) else None
-        for row in rows if isinstance(rows, list) else []:
-            try:
-                n, cid = int(row["question"]), str(row["chart"])
-            except (KeyError, TypeError, ValueError):
-                continue
-            if n in avail and any(sp["id"] == cid for sp in avail[n]) and cid not in [c for v in picked.values() for c, _ in v] and len(picked.setdefault(n, [])) < reportcharts.PER_CARD:
-                picked[n].append((cid, str(row.get("caption") or "")))
+                "GOAL QUESTIONS AND THEIR CHARTS: " + json.dumps({n: {"question": q_of[n], "charts": {sp["id"]: {"title": sp["title"], "fact": sp["fact"]} for sp in specs}} for n, specs in avail.items()}, ensure_ascii=False),
+                cache_ok=all_captions_ok, cache_tag=f"caption:{cited.version()}:{reportcharts.CAPTION_WORDS}")          # a reply with a rejected caption is not saved; changed checks make old saved replies unused
+        for n, cid, text in rows_of(out):
+            if cid not in [c for v in picked.values() for c, _ in v] and len(picked.setdefault(n, [])) < reportcharts.PER_CARD:
+                picked[n].append((cid, text))
         if not picked:
             state.setdefault("decisions", []).append({"decision": "report_charts", "source": "fallback", "chosen": "first chart of each card", "why": cap.reason or "the model chose no listed chart",
                                                       "errors": [], "raw_output": json.dumps(out, default=str)[:500]})
     taken: set[str] = {c for v in picked.values() for c, _ in v}
     cards: dict[str, list[dict]] = {}
     budget = reportcharts.MAX_CHARTS
-    computed = cited.claims((state.get("summary_facts") or {}).get("rankings") or [])
     for n, specs in avail.items():
         by_spec = {sp["id"]: sp for sp in specs}
         chosen = list(picked.get(n, []))
@@ -241,13 +272,12 @@ def plan_charts(llm, state: dict, view: dict, cs: list[dict], plan: dict) -> dic
             sp = by_spec[cid]
             caption = reportcharts.fallback_caption(sp)
             if text:
-                clean, bad = cited.verify(text, _chart_facts([sp["fact"]], by_id, r_by_id))
-                clean = clean.strip()
-                if not bad and clean and len(clean.split()) <= reportcharts.CAPTION_WORDS and not cited.contradicts(clean, computed):
+                clean, bad = judge_caption(text, sp)
+                if not bad:
                     caption = clean
                 else:
-                    state.setdefault("decisions", []).append({"decision": "report_chart_caption", "source": "fallback", "chosen": "plain caption", "why": bad or "caption too long or disagrees with a computed share",
-                                                              "errors": [bad or clean], "raw_output": text[:300]})
+                    state.setdefault("decisions", []).append({"decision": "report_chart_caption", "source": "fallback", "chosen": "plain caption", "why": bad,
+                                                              "errors": [bad], "raw_output": text[:300]})
             cards.setdefault(q_of[n], []).append({"id": cid, "path": reportcharts.draw(sp, folder), "title": sp["title"], "fact": sp["fact"], "caption": caption})
             budget -= 1
     shown = {c["path"] for v in cards.values() for c in v}
