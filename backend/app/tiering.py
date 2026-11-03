@@ -329,7 +329,7 @@ def build_view(state: dict, df=None) -> dict:
         for a in answered:
             a["answer"] += f" [{DATE_TAG}]" if timed & set(a["ids"]) else ""
     actions = [{"text": f"{s['title']}: {s['objective']}", "evidence": s["evidence"]} for s in strat["strategies"][:ACTIONS_MAX]]
-    return {
+    return pretty_view({
         "answers": answered,
         "main_measure": summary.main_measure(state, (facts or {}).get("rankings") or []),
         "gallery": mainview.gallery_order(state),
@@ -342,7 +342,45 @@ def build_view(state: dict, df=None) -> dict:
         "checked": built["checked"],
         "profile": built["profile"],
         "strategies": strat,
-    }
+    }, state)
+
+
+TEXT_KEYS = ("title", "headline", "observation", "why_it_matters", "line", "check", "lead", "text", "short", "text_head", "text_tail", "answer", "note")
+LIST_KEYS = ("hypotheses", "check_next", "checks")
+
+
+def pretty_view(view: dict, state: dict) -> dict:
+    """Every sentence, title and line a reader sees shows a column's display name ('Unit price'), never its internal one ('unit_price'). Only text fields change: ids, column and measure parameters, group values,
+    stats and file names keep the internal names, because other code matches on them. Copies are made, so the facts the view was built from stay as they are."""
+    from . import understanding as und
+    names = und.display_names(state)
+    if not names:
+        return view
+    R = lambda t: und.apply_names(t, names) if isinstance(t, str) else t
+
+    def text(d: dict) -> dict:
+        out = {**d}
+        for k in TEXT_KEYS:
+            if isinstance(out.get(k), str):
+                out[k] = R(out[k])
+        for k in LIST_KEYS:
+            if isinstance(out.get(k), list):
+                out[k] = [R(x) if isinstance(x, str) else x for x in out[k]]
+        if isinstance(out.get("tables"), list):
+            out["tables"] = [text(t) if isinstance(t, dict) else t for t in out["tables"]]
+        if isinstance(out.get("also"), list):
+            out["also"] = [text(a) if isinstance(a, dict) else a for a in out["also"]]
+        if isinstance(out.get("groups"), list):
+            out["groups"] = [{**g, "line": R(g.get("line"))} if isinstance(g, dict) and "line" in g else g for g in out["groups"]]
+        return out
+    done = {**view}
+    for k in ("answers", "headlines", "rankings", "actions", "evidence", "appendix", "checked"):
+        if isinstance(view.get(k), list):
+            done[k] = [text(x) if isinstance(x, dict) else x for x in view[k]]
+    done["numbers"] = [{**n, "note": R(n.get("note"))} if isinstance(n, dict) else n for n in view.get("numbers") or []]
+    prof = view.get("profile") or {}
+    done["profile"] = {k: [text(x) if isinstance(x, dict) else x for x in v] if isinstance(v, list) else v for k, v in prof.items()}
+    return done
 
 
 def card_count(view: dict) -> int:

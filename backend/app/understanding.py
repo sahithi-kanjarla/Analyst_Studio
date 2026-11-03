@@ -275,28 +275,42 @@ def with_derived(rec: dict | None, derived: list[dict]) -> dict | None:
 
 
 def display_names(state: dict) -> dict[str, str]:
-    """{internal name: readable name} for every column and derived measure whose name is not readable as it is (underscores, camelCase). Names that already read well are left alone."""
+    """{internal name: readable name} for every column and derived measure whose readable name differs from the name itself (underscores, camelCase, or words the record shows apart: 'costamount' -> 'Cost amount').
+    A name that already reads well, apart from its capitals, is left alone."""
     rec = state.get("understanding") or {}
     plan = state.get("plan") or {}
     dm = list(plan.get("derived") or []) + list((state.get("derived_metrics") or {}).get("created") or [])
     names = [c["name"] for c in (state.get("profile") or {}).get("columns", [])] + [d["name"] for d in dm]
     out = {}
     for n in names:
-        if not re.search(r"_|[a-z0-9][A-Z]", n):
-            continue
         d = next((x for x in dm if x["name"] == n), None)
-        out[n] = ((rec.get("derived") or {}).get(n) or (derived_display(d) if d else "")
-                  or ((rec.get("columns") or {}).get(n) or {}).get("display_name") or readable_name(n))
+        shown = ((rec.get("derived") or {}).get(n) or (derived_display(d) if d else "")
+                 or ((rec.get("columns") or {}).get(n) or {}).get("display_name") or readable_name(n))
+        if shown and shown.casefold() != str(n).casefold():
+            out[n] = shown
     return out
 
 
-def readable(text: str, state: dict) -> str:
-    """The text with every internal column or derived-measure name replaced by its display name (one pass, so a display name is never replaced again). Main view only: the details keep the internal names."""
-    names = display_names(state)
+def apply_names(text: str, names: dict[str, str]) -> str:
+    """The text with every internal name replaced by its display name (one pass, so a display name is never replaced again)."""
     if not names or not text:
         return text
     rx = re.compile(r"(?<![A-Za-z0-9_])(" + "|".join(re.escape(n) for n in sorted(names, key=len, reverse=True)) + r")(?![A-Za-z0-9_])")
     return rx.sub(lambda m: names[m.group(1)], text)
+
+
+def readable_md(text: str, state: dict) -> str:
+    """`readable` for markdown: the targets of links and images (file paths) are never changed."""
+    names = display_names(state)
+    if not names or not text:
+        return text
+    parts = re.split(r"(\]\([^)\n]*\))", text)
+    return "".join(p if k % 2 else apply_names(p, names) for k, p in enumerate(parts))
+
+
+def readable(text: str, state: dict) -> str:
+    """The text with every internal column or derived-measure name replaced by its display name. Used for everything a reader sees; ids, parameters and file names keep the internal names."""
+    return apply_names(text, display_names(state)) if text else text
 
 
 def unmapped_lines(rec: dict | None) -> list[str]:

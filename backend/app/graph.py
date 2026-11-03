@@ -584,7 +584,7 @@ def analyze_node(state: RunState) -> dict:
     todo = state["plan"]["analyses"] if it == 0 else state["critique"]["followups"]
     findings = list(state.get("findings", []))
     ctx = {"charts_dir": _wd(state) / "charts", "currency": (state.get("context") or {}).get("currency", ""), "kinds": briefmod.kinds(state.get("brief")), "money": undmod.money_columns(state.get("understanding")),
-           "derived": {d["name"]: d for d in state["plan"].get("derived") or []}}
+           "derived": {d["name"]: d for d in state["plan"].get("derived") or []}, "display_names": undmod.display_names(state)}
     emit(rid, "Analyst", f"{'Running the planned analyses' if it == 0 else 'Running follow-up checks requested by the Critic'} ({len(todo)})…")
     calc = dcols.derived_columns(df)
     cats = [c for c in df.columns if not pd.api.types.is_numeric_dtype(df[c]) and not pd.api.types.is_datetime64_any_dtype(df[c]) and 2 <= df[c].nunique() <= 200]

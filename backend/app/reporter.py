@@ -807,6 +807,7 @@ def build_report(state: dict, summary: str, recs: list[str], run_mode: str = "",
     L += _details("Power BI", ["A ready-to-load Power BI pack (cleaned data, data model, DAX measures and visual specs) was generated alongside this report."])
     if len(warns) > mainview.WARNINGS_MAX:
         L += _details("More notices", [f"- ⚠ {w}" for w in warns[mainview.WARNINGS_MAX:]])
+    L = [mainview.und.readable_md(x, state) for x in L]          # every line a reader sees shows display names; file paths in links stay
     view["page"] = _page(state, run_mode, cs, plan, ts, answer_cards, L)
     return "\n".join(L)
 
@@ -817,14 +818,14 @@ def _page(state: dict, run_mode: str, cs: list[dict], plan: dict, ts: list, answ
     cp = state.get("chart_plan") or {}
     ans = state.get("goal_answer") or {}
     cards = [{"num": c["num"], "question": mainview.plain(c["question"]), "lines": list(c["text"]), "trust": c.get("trust") or "", "trust_why": c.get("trust_why") or "",
-              "so_what": c.get("so_what") or "", "charts": [{"title": ch["title"], "path": ch["path"], "caption": ch["caption"], "details": list(c["text"])} for ch in (cp.get("cards") or {}).get(c["question"]) or []]}
+              "so_what": c.get("so_what") or "", "charts": [{"title": mainview.readable(state, ch["title"]), "path": ch["path"], "caption": mainview.readable(state, ch["caption"]), "details": list(c["text"])} for ch in (cp.get("cards") or {}).get(c["question"]) or []]}
              for c in answer_cards]
     support = cp.get("actions") or {}
     num = {c["n"]: c["num"] for c in cs}
     actions = []
     for k, a in enumerate(plan["actions"]):
         s = support.get(k) or {}
-        actions.append({"text": a["text"], "question": num.get(a["n"]), "chart": s.get("chart") or "", "chart_title": s.get("title") or "", "figure": s.get("figure") or ""})
+        actions.append({"text": a["text"], "question": num.get(a["n"]), "chart": s.get("chart") or "", "chart_title": mainview.readable(state, s.get("title") or ""), "figure": mainview.readable(state, s.get("figure") or "")})
     charts, seen = [], set()
     for ch in [x for c in cards for x in c["charts"]] + [{"title": a["chart_title"], "path": a["chart"], "caption": a["figure"], "details": [a["figure"]] if a["figure"] else []} for a in actions if a["chart"]]:
         if ch["path"] and ch["path"] not in seen and len(charts) < 6:

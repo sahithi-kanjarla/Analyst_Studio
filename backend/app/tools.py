@@ -130,6 +130,12 @@ def _slug(*parts) -> str:
 def _save(fig, ctx, name: str) -> str:
     charts = Path(ctx["charts_dir"])
     charts.mkdir(parents=True, exist_ok=True)
+    names = ctx.get("display_names")
+    if names:
+        from .understanding import apply_names
+        for t in fig.findobj(matplotlib.text.Text):          # titles, axis labels, legends and notes show the display names, never the internal ones
+            if t.get_text():
+                t.set_text(apply_names(t.get_text(), names))
     fig.savefig(charts / f"{name}.png", dpi=CHART_DPI, bbox_inches="tight", facecolor="white")
     plt.close(fig)
     return f"charts/{name}.png"

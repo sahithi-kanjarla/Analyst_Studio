@@ -10,7 +10,7 @@ Findings of review runs on a clean bakery file (900 rows, one row per order). Ru
 | B. Key figures (no sum of a rate; gross profit and margin by code) | done |
 | C. Partial periods | done |
 | D. Derived columns, one-to-one categories | done |
-| E. Display names | left to do |
+| E. Display names | done |
 | F. AI-proposed derived measures checked in code | left to do |
 | G. Short titles | left to do |
 
@@ -55,3 +55,12 @@ Findings of review runs on a clean bakery file (900 rows, one row per order). Ru
 - Categorical columns that map one to one (item_code, item) are one dimension: analyses asked of both run once, on the column with the longer values (the label). Checked against findings from earlier rounds too. Run log says "Skipped ... analysed once as item".
 - A real fake-AI pipeline run on the bakery: no scatter or correlation of amount with quantity or unit_price, one finding per item/item_code, gross profit and margin as key figures. 
 - Tests: `tests/test_derived_columns.py` (6). Re-run with it: new_tools_and_views, ratio_of_sums_display, store_growth_and_ratio_correlation, varied_data, partial_periods: 84 passed (8.6 min).
+
+## Fix E: display names (done)
+
+- Finding about the finding: the squashed names in `review_out/` ("costamount", "unitprice", "amounttocostamountratio") are made by the review runner, not the app: `scripts/review_run.py` (on `studio-v3-bench`, line ~229) deletes underscores when it cleans markdown (`re.sub(r"[*_`#>]", ...)`), which turns `cost_amount` into `costamount`. The stored real-AI run (`255a08ff...`) has `cost_amount` everywhere. That script is not on this branch and I did not change it.
+- The app's real problem was the opposite: raw internal names (`cost_amount`, `unit_price`) stayed in the report's evidence cards, "checked" lines, appendix, ranking sentences, the "behind the numbers" details and chart titles. In the real-AI run's report text there were about 200 of them.
+- `understanding.display_names` now covers every column and derived measure whose readable name differs from the name apart from capitals (so a joined name like `costamount` gets the record's "Cost amount"; `amount` stays `amount` mid-sentence). `apply_names` / `readable_md` do the replacement; `readable_md` leaves link and image targets alone.
+- `tiering.pretty_view` renames the text fields of the whole view (answers, headlines, rankings' sentences, actions, evidence and appendix cards with their tables, checked lines, profile lines, number notes) on copies; ids, `group` / `measure` / `target` parameters, stats and key-number labels keep the internal names because other code matches on them. `reporter` applies `readable_md` to the whole report markdown and to the page's chart titles and captions. `tools._save` renames every text on a chart figure (title, axis labels, legend, notes); file names keep the internal names.
+- Joined names with no AI display name (rules-only run on a file whose headers are already joined) cannot be split by code; they stay as they are. Not tested with a real AI.
+- Test `test_main_view_polish` changed on purpose: it said the details keep the internal names; they now use display names. New: `tests/test_display_names.py` (5), including a full fake-AI bakery run (no internal name in the report, image links still point at real files). Related files re-run: 81 + 158 + 132 + 54 passed.
