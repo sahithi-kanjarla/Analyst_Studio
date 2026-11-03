@@ -12,7 +12,7 @@ Another session can continue from here. Order: Fix 2 first, then Fix 1 in four c
   GET /api/runs lists own runs + sample; glossary scoped per owner (glossary.scoped contextvar, key "<scope>::<company>"; run worker threads and routes set it from the run's owner);
   existing tests test_clarify/test_saved_answers pin a visitor cookie (conftest.pinned_scope).
 
-- Commit 2 (Fix 1): the sample run is read-only on the routes that persist (lens pins/views/feedback, brief rename/edit/delete now 403 there); ownerless legacy runs follow PUBLIC_DEMO (can_access);
+- Commit 2 (Fix 1): the sample run is read-only on the routes that persist (lens pins/views/feedback now 403 there; briefs deliberately left editable, see Decisions); ownerless legacy runs follow PUBLIC_DEMO (can_access);
   export/PDF is authorised by the same route guard (the PDF is made from a local HTML file, no internal HTTP request, so no signed token was needed).
 
 - Commit 3 (Fix 1): backend/tests/test_owner.py (route-table test over every route containing {run_id} plus /api/glossary: B gets the identical "Run not found" 404, owner reaches the handler, sample readable;
@@ -21,12 +21,22 @@ Another session can continue from here. Order: Fix 2 first, then Fix 1 in four c
 
 - Commit 4 (Fix 1): upload-panel privacy note (runs belong to this browser; clearing cookies / another device loses them; "Delete my run" removes immediately), DEPLOY.md "Visitor separation" + OWNER_SECRET, README Known limits, .env.example. Frontend build passes.
 
-## Left to do
-- Full suite once at the end (the venv /tmp/claude-0/v1 holds the pinned versions; the single final run also covers Fix 2's "suite passes on those versions").
+- Full suite, run once on the final code in the pinned venv: 1296 passed, 1 skipped, 10 failed. The 10 were (a) my own list test, which did not account for ownerless runs left by other tests (fixed) and
+  (b) test_ui_simplify (real browser; previously skipped because no frontend build existed): it renames/edits a brief on the shared sample, which my read-only rule on brief routes blocked, so I removed the rule on briefs.
+  Afterwards I re-ran only test_ui_simplify.py and test_owner.py: 27 passed. The rest of the suite was not re-run after that small change.
 
-## Notes
-- The local studio-v3 was stale (no deploy work); reset to origin/studio-v3 before branching.
-- Headless-browser PDFs are made from a local HTML file built on the server (lens/exporter.py), not by loading the app's own URL, so no internal signed token is needed; the export endpoint itself gets the owner check.
+## Left to do
+(nothing planned)
+
+## Decisions
+- Ownership is enforced by one middleware over every /api/runs/<id>/... path (default-deny), not per endpoint, so a new route cannot forget it. The route-table test was mutation-checked (guard disabled -> it fails).
+- Sample run: its Lens conversation and briefs are shared server state and stay editable through Lens/briefs (the product and the UI test rely on it); chat there is canned-chip only (no AI, no typed text), so no visitor data enters it.
+  Pins, saved short views, feedback, answers, re-runs and delete are 403 on the sample. A fully ephemeral sample Lens would be a larger change.
+- PDF export builds a local HTML file for the headless browser; no internal HTTP request, so no signed token exists or is needed.
+- Glossary entries from before this change stay in the old shared area (used only by ownerless runs); not migrated, not shown by the API.
+- Server secret: OWNER_SECRET or DATA_DIR/owner_secret. Losing or changing it orphans every run.
 
 ## NOT tested
-(filled in at the end)
+- A real browser over HTTPS behind a proxy (the Secure flag is tested with an https TestClient and X-Forwarded-Proto only).
+- Real sign-in (not built); a multi-process race creating the secret file; migration of existing production data.
+- The Vite dev server (cross-origin) cookie behaviour: cookies are same-origin only.

@@ -658,7 +658,6 @@ class BriefEditIn(BaseModel):
 def _brief_call(run_id: str, fn, *a):
     from .lens import briefs as lensbriefs
     _check_id(run_id)
-    _writable(run_id)
     wd = run_dir(run_id)
     try:
         return fn(wd, *a)

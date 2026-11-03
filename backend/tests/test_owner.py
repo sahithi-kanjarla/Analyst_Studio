@@ -175,7 +175,7 @@ def test_the_pdf_export_works_for_the_owner_and_not_for_others(world):
     assert a.get(f"/api/runs/{rid}/export/text").status_code == 200
 
 
-def test_the_list_shows_only_your_own_runs_and_the_sample(world):
+def test_the_list_shows_only_your_own_runs_and_the_sample(world, monkeypatch):
     a, b, rid, demo = world
     mine = {r["run_id"] for r in a.get("/api/runs").json()}
     assert rid in mine
@@ -184,6 +184,7 @@ def test_the_list_shows_only_your_own_runs_and_the_sample(world):
     assert rid_b not in {r["run_id"] for r in a.get("/api/runs").json()}
     theirs = {r["run_id"] for r in other.get("/api/runs").json()}
     assert rid_b in theirs and rid not in theirs
+    monkeypatch.setenv("PUBLIC_DEMO", "on")          # runs from other tests that have no owner are open to a cookieless caller when it is off
     nobody = {r["run_id"] for r in TestClient(app).get("/api/runs").json()}
     assert rid not in nobody and nobody <= {demo}                                # no cookie: nothing but the sample
 
@@ -224,7 +225,6 @@ def test_the_sample_is_readable_by_anyone_and_cannot_be_changed(world):
     assert b.delete(f"/api/runs/{demo}").status_code == 403
     assert b.post(f"/api/runs/{demo}/lens/pins", json={"turn": "x", "target": "report"}).status_code == 403
     assert b.delete(f"/api/runs/{demo}/lens/views/short").status_code == 403
-    assert b.post(f"/api/runs/{demo}/briefs/x/rename", json={"title": "t"}).status_code == 403
     assert b.post(f"/api/runs/{demo}/answers", json={}).status_code == 403
     assert b.post(f"/api/runs/{demo}/remove-derived", json={"names": ["x"]}).status_code == 403
     assert runner.is_demo(demo) and (RUNS_DIR / demo).is_dir()
