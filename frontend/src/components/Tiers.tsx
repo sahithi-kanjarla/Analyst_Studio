@@ -1,18 +1,37 @@
 import { GoalAnswer, ReportView } from "../api";
 import { humanise, Understanding } from "../display";
-import ReportCard from "./ReportCard";
+import { useState } from "react";
+import { ReportCard as Card } from "../api";
+import { themeOf, THEMES, Theme } from "../insightwidget";
+import InsightWidget from "./InsightWidget";
 import { Sections, ShowAllLink, ShowMore, TabViewBar, ViewItem, ViewTitle } from "./view/ViewUI";
 import { useView } from "./view/ViewContext";
 
 /** The Insights tab in three tiers: the answer, the evidence (full cards, each with its chart and sentence open), and the
  *  lower-ranked findings with the data profile in one clearly named section at the end.
  *  Short view (only when asked for): each insight is one line plus its chart, the top 5 first, the rest under "Show all". */
+const MORE_ROWS = 4;           // lower-ranked findings visible before "Show all (n)"
+
 export default function Tiers({ view, goalAnswer, understanding }: { view: ReportView; goalAnswer?: GoalAnswer | null; understanding?: Understanding | null }) {
   const v = useView();
   const short = !!v?.isShort("insights");
   const say = (t: string) => humanise(t, understanding);
   const p = view.profile;
   const profileLines = p.distributions.length + p.outliers.length + p.composition.length;
+  const [moreAll, setMoreAll] = useState(false);
+  // an action chip on a finding when one of the report's actions rests on it
+  const actionFor = (c: Card): string | undefined => {
+    const a = view.actions.find((x) => x.evidence.some((e) => c.members.includes(e) || e === c.id));
+    if (!a) return undefined;
+    const t = a.text; const i = t.indexOf(":");
+    return say(i > 0 ? t.slice(0, i) : t);
+  };
+  // findings grouped by theme; themes ordered by their most important finding, findings keep the report's own order inside a theme
+  const themed = (cards: Card[]): [Theme, { c: Card; i: number }[]][] => {
+    const by = new Map<Theme, { c: Card; i: number }[]>();
+    cards.forEach((c, i) => { const t = themeOf(c.tool); by.set(t, [...(by.get(t) ?? []), { c, i }]); });
+    return [...by.entries()];
+  };
   const heading = (id: string, text: string, extra?: React.ReactNode) => <h3><ViewTitle id={id} text={text} />{extra}</h3>;
   const nodes: Record<string, React.ReactNode> = {
     "insights:answer": (
@@ -46,9 +65,16 @@ export default function Tiers({ view, goalAnswer, understanding }: { view: Repor
     ),
     "insights:evidence": (
       <>
-        {heading("insights:evidence", "Evidence", <> <span className="muted small">{view.evidence.length} findings</span></>)}
-        <ShowMore tab="insights" items={view.evidence.map((c, i) => ({ id: `insights:card:${c.id}`, node: (
-          <ViewItem key={c.id} id={`insights:card:${c.id}`} tag="div" className="view-card"><ReportCard c={c} index={i + 1} compact={short} understanding={understanding} /></ViewItem>) }))} />
+        {heading("insights:evidence", "What we found", <> <span className="muted small">{view.evidence.length} findings, most important first</span></>)}
+        {themed(view.evidence).map(([theme, cards]) => (
+          <section className="iw-theme" key={theme} aria-label={THEMES[theme].title}>
+            <h4 className="iw-theme-title">{THEMES[theme].title}<small>{THEMES[theme].blurb}</small></h4>
+            <div className="iw-grid">
+              <ShowMore tab="insights" items={cards.map(({ c, i }) => ({ id: `insights:card:${c.id}`, node: (
+                <ViewItem key={c.id} id={`insights:card:${c.id}`} tag="div" className="view-card"><InsightWidget c={c} index={i + 1} compact={short} understanding={understanding} action={actionFor(c)} /></ViewItem>) }))} />
+            </div>
+          </section>
+        ))}
         {!view.evidence.length && <p className="empty-state">Nothing in this data was both reliable and big enough to call a finding. What was checked is listed below.</p>}
       </>
     ),
@@ -62,14 +88,23 @@ export default function Tiers({ view, goalAnswer, understanding }: { view: Repor
       </section>
     ) : <></>,
     "insights:appendix": (
-      <details className="fold appendix fold-working">
-        <summary><ViewTitle id="insights:appendix" text={`${view.appendix.length} more ${view.appendix.length === 1 ? "finding" : "findings"} that ranked lower, and how your columns look`} /></summary>
-        {view.appendix.map((c, i) => (
-          <ViewItem key={c.id} id={`insights:card:${c.id}`} className="view-card"><ReportCard c={c} index={i + 1} compact={short} understanding={understanding} /></ViewItem>
-        ))}
+      <section className="iw-theme" aria-label="More findings">
+        {view.appendix.length > 0 && (
+          <>
+            {heading("insights:appendix", "More findings", <> <span className="muted small">{view.appendix.length} that ranked lower</span></>)}
+            <div className="iw-grid">
+              {(moreAll ? view.appendix : view.appendix.slice(0, MORE_ROWS)).map((c, i) => (
+                <ViewItem key={c.id} id={`insights:card:${c.id}`} className="view-card"><InsightWidget c={c} index={view.evidence.length + i + 1} compact={short} understanding={understanding} action={actionFor(c)} /></ViewItem>
+              ))}
+            </div>
+            {view.appendix.length > MORE_ROWS && (
+              <p className="no-print"><button type="button" className="chip" aria-expanded={moreAll} onClick={() => setMoreAll(!moreAll)}>{moreAll ? `Show ${MORE_ROWS}` : `Show all (${view.appendix.length})`}</button></p>
+            )}
+          </>
+        )}
         {profileLines > 0 && (
-          <details className="fold">
-            <summary>How your columns look ({profileLines} {profileLines === 1 ? "line" : "lines"})</summary>
+          <details className="fold fold-working">
+            <summary>How we got this<span className="fold-hint">how your columns look ({profileLines} {profileLines === 1 ? "line" : "lines"})</span></summary>
             {([["Distributions", p.distributions], ["Outliers", p.outliers], ["Composition", p.composition]] as const).map(([title, items]) =>
               items.length > 0 && (
                 <section key={title}>
@@ -79,7 +114,7 @@ export default function Tiers({ view, goalAnswer, understanding }: { view: Repor
               ))}
           </details>
         )}
-      </details>
+      </section>
     ),
   };
   return (

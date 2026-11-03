@@ -5,7 +5,7 @@ import { planTable, TABLE_ROWS } from "../chartsize";
 import { humanise, prettify, Understanding } from "../display";
 import { ViewImg, ViewItem, ViewTitle } from "./view/ViewUI";
 
-const LEVEL_CLASS: Record<string, string> = {
+export const LEVEL_CLASS: Record<string, string> = {
   high: "tag tag-ok",
   medium: "tag tag-mid",
   low: "tag tag-warn",
@@ -30,10 +30,10 @@ const KIND: Record<string, string> = {
   concentration: "Concentration",
   growth: "Change over time",
 };
-const kindOf = (tool: string) => KIND[tool] ?? (tool ? prettify(tool) : "");
+export const kindOf = (tool: string) => KIND[tool] ?? (tool ? prettify(tool) : "");
 
 /** The table under a finding: a few rows in the chart's own order, the rest behind "Show all (n)". It is never hidden behind an arrow. */
-function Table({ t, und }: { t: CardTable; und?: Understanding | null }) {
+export function Table({ t, und }: { t: CardTable; und?: Understanding | null }) {
   const [all, setAll] = useState(false);
   const [sort, setSort] = useState<{ col: number; dir: 1 | -1 } | null>(null);
   const num = (v: unknown) => { const n = parseFloat(String(v).replace(/[,%\s]/g, "")); return Number.isFinite(n) ? n : null; };
@@ -76,14 +76,51 @@ function Table({ t, und }: { t: CardTable; und?: Understanding | null }) {
   );
 }
 
+/** The working behind one finding, in the one fold named "How we got this": how far to trust it, the checks, and what to look at next. */
+export function hasWorking(c: Card): boolean {
+  const st = c.stats;
+  return c.confidence.reasons.length > 0 || c.checks.length > 0 || c.hypotheses.length > 0 || c.check_next.length > 0 || st.n != null || st.p != null;
+}
+export function Working({ c, say, children }: { c: Card; say: (t: string) => string; children?: React.ReactNode }) {
+  const st = c.stats;
+  return (
+            <details className="fold fold-working">
+              
+              <summary>How we got this<span className="fold-hint">how far to trust it, the checks we ran and what to look at next</span></summary>
+              {children}
+              <ul className="tight">
+                {c.confidence.reasons.map((r, i) => <li key={i}>{say(r)}</li>)}
+                {c.checks.map((x, i) => <li key={`c${i}`}>{say(x)}</li>)}
+                {c.also.flatMap((a) => a.checks).map((x, i) => <li key={`a${i}`}>{say(x)}</li>)}
+              </ul>
+              {c.hypotheses.length > 0 && (
+                <>
+                  <h5>Possible explanations to test <span className="muted">(not conclusions)</span></h5>
+                  <ul className="tight">{c.hypotheses.map((h, i) => <li key={i}>{say(h)}</li>)}</ul>
+                </>
+              )}
+              {c.check_next.length > 0 && (
+                <>
+                  <h5>Check next</h5>
+                  <ul className="tight">{c.check_next.map((x, i) => <li key={i}>{say(x)}</li>)}</ul>
+                </>
+              )}
+              <p className="stats">
+                {st.n != null && <>n = {String(st.n)} </>}
+                {st.p != null && <>· {st.p < 0.001 ? "p < 0.001" : `p = ${st.p.toPrecision(2)}`} </>}
+                {st.p_adjusted != null && <>· adjusted {st.p_adjusted < 0.001 ? "p < 0.001" : `p = ${st.p_adjusted.toPrecision(2)}`}</>}
+              </p>
+            </details>
+  );
+}
+
 /** One finding: what kind it is and how far to trust it as badges, its chart, what it says in one or two sentences,
  *  its per-group figures, and the working folded into one clearly named section. */
 export default function ReportCard({ c, index, compact = false, understanding }: { c: Card; index: number; compact?: boolean; understanding?: Understanding | null }) {
-  const st = c.stats;
   const und = understanding;
   const say = (t: string) => humanise(t, und);
   const kind = kindOf(c.tool);
-  const working = c.confidence.reasons.length > 0 || c.checks.length > 0 || c.hypotheses.length > 0 || c.check_next.length > 0 || st.n != null || st.p != null;
+  const working = hasWorking(c);
   return (
     <article className="insight" data-kind="insight">
       <header className="insight-head">
@@ -120,33 +157,7 @@ export default function ReportCard({ c, index, compact = false, understanding }:
             </section>
           ))}
           {[...c.tables, ...c.also.flatMap((a) => a.tables)].map((t) => <Table key={t.id} t={t} und={und} />)}
-          {working && (
-            <details className="fold fold-working">
-              <summary>How we got this<span className="fold-hint">how far to trust it, the checks we ran and what to look at next</span></summary>
-              <ul className="tight">
-                {c.confidence.reasons.map((r, i) => <li key={i}>{say(r)}</li>)}
-                {c.checks.map((x, i) => <li key={`c${i}`}>{say(x)}</li>)}
-                {c.also.flatMap((a) => a.checks).map((x, i) => <li key={`a${i}`}>{say(x)}</li>)}
-              </ul>
-              {c.hypotheses.length > 0 && (
-                <>
-                  <h5>Possible explanations to test <span className="muted">(not conclusions)</span></h5>
-                  <ul className="tight">{c.hypotheses.map((h, i) => <li key={i}>{say(h)}</li>)}</ul>
-                </>
-              )}
-              {c.check_next.length > 0 && (
-                <>
-                  <h5>Check next</h5>
-                  <ul className="tight">{c.check_next.map((x, i) => <li key={i}>{say(x)}</li>)}</ul>
-                </>
-              )}
-              <p className="stats">
-                {st.n != null && <>n = {String(st.n)} </>}
-                {st.p != null && <>· {st.p < 0.001 ? "p < 0.001" : `p = ${st.p.toPrecision(2)}`} </>}
-                {st.p_adjusted != null && <>· adjusted {st.p_adjusted < 0.001 ? "p < 0.001" : `p = ${st.p_adjusted.toPrecision(2)}`}</>}
-              </p>
-            </details>
-          )}
+          {working && <Working c={c} say={say} />}
         </div>}
       </div>
     </article>
