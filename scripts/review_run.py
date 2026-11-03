@@ -70,6 +70,24 @@ def pick(index: list[dict], names: list[str] | None) -> list[dict]:
     return out
 
 
+AUTH_MESSAGE = "AI key refused: nothing was tested with the real AI"
+
+
+def ai_mode(fake: bool, stages: dict, unavailable_count: int) -> str:
+    """dry-run (fake model) · real (every AI call answered) · partly (some calls or stages unavailable) · rules-only (no AI call was answered). Only "real" runs count in the real-AI percentages."""
+    if fake:
+        return "dry-run"
+    answered = sum(s["calls"] - s["failed"] for s in stages.values())
+    if answered == 0:
+        return "rules-only"
+    failed = sum(s["failed"] for s in stages.values())
+    return "partly" if failed or unavailable_count else "real"
+
+
+def counted_modes(out: Path) -> tuple[str, ...]:
+    return ("dry-run",) if out.name == "_dryrun" else ("real",)
+
+
 def record_path(out: Path, d: dict) -> Path:
     return out / d["folder"] / "record.json"
 
@@ -111,7 +129,7 @@ class Timing:
         tokens = sum(r["input_tokens"] + r["output_tokens"] for r in sent)
         self.local.acc = None
         self.tokens_total += tokens
-        return {"total": total, "ai": ai, "limit": acc["limit"], "own": max(0.0, total - ai - acc["limit"]), "calls": len(sent), "failed": sum(1 for r in sent if not r["ok"]), "tokens": tokens}
+        return {"total": total, "ai": ai, "limit": acc["limit"], "own": max(0.0, total - ai - acc["limit"]), "calls": len(sent), "failed": sum(1 for r in sent if not r["ok"]), "tokens": tokens, "auth": sum(1 for r in sent if not r["ok"] and r["reason"] == "auth")}
 
     def add_stage(self, name: str, m: dict) -> None:
         s = self.stages.setdefault(name, {"total": 0.0, "ai": 0.0, "limit": 0.0, "own": 0.0, "calls": 0, "failed": 0, "tokens": 0, "passes": 0})
@@ -120,9 +138,13 @@ class Timing:
         s["passes"] += 1
 
 
+class AIKeyRefused(Exception):
+    """The provider answered "auth" (key missing, invalid or revoked). Stops the dataset at once instead of running every stage on rules."""
+
+
 class Budget:
     def __init__(self, max_tokens: int | None) -> None:
-        self.max, self.spent_before, self.hit_at = max_tokens, 0, ""
+        self.max, self.spent_before, self.hit_at, self.auth_failed = max_tokens, 0, "", False
 
     def used(self, timing: Timing) -> int:
         return self.spent_before + timing.tokens_total
@@ -137,6 +159,9 @@ def install(timing: Timing, budget: Budget) -> None:
     orig_wait, orig_sleep = pacing.wait_for_room, llm._sleep
 
     def timed_wait(tokens):
+        if any(not r["ok"] and r["reason"] == "auth" for r in llm.usage_calls()):      # the key was already refused once: no more calls, no more waiting
+            budget.auth_failed = True
+            raise AIKeyRefused("the AI provider refused the key")
         t = time.monotonic()
         try:
             return orig_wait(tokens)
@@ -160,9 +185,14 @@ def install(timing: Timing, budget: Budget) -> None:
                 budget.hit_at = budget.hit_at or name
             acc = timing.open()
             try:
-                return fn(state)
+                out = fn(state)
             finally:
-                timing.add_stage(name, timing.close(acc))
+                m = timing.close(acc)
+                timing.add_stage(name, m)
+            if m["auth"]:
+                budget.auth_failed = True
+                raise AIKeyRefused(f"the AI provider refused the key in the {name} stage")
+            return out
         return run
 
     for n in NODES:
@@ -706,6 +736,7 @@ def write_review(out: Path, d: dict, rec: dict, shots: dict | None) -> None:
     A = L.append
     A(f'# Review of {d["id"]}: {d["folder"]}\n')
     A(f'- Run: {rec["started"]} · commit `{rec["commit"]}` · model `{rec["model"]}` · run folder `{rec["run_id"]}`')
+    A(f'- AI mode: **{rec["ai_mode"]}** (real = every AI call answered · partly = some unavailable · rules-only = no AI answer, so not a real-AI result · dry-run = fake model)')
     A(f'- Status: **{rec["status"].upper()}**' + (f' ({rec["status_note"]})' if rec.get("status_note") else ""))
     A(f'- Goal given: "{rec["goal"]}"')
     A(f'- Files: {", ".join(d["files"])}')
@@ -795,13 +826,13 @@ def write_review(out: Path, d: dict, rec: dict, shots: dict | None) -> None:
 
 # ============================================================================ records: summary and scoreboard
 SCORE_HEAD = ["date_time", "dataset", "commit", "figures_passed", "figures_total", "percent_correct", "questions_asked", "questions_needed", "questions_not_needed", "connection_result",
-              "tokens", "total_seconds", "seconds_without_limit_waiting", "ai_partly_unavailable_stages", "lens_pass", "lens_scored", "status"]
+              "tokens", "total_seconds", "seconds_without_limit_waiting", "ai_partly_unavailable_stages", "lens_pass", "lens_scored", "status", "ai_mode"]
 
 
 def append_scoreboard(out: Path, rec: dict) -> None:
     row = [rec["started"], rec["id"], rec["commit"], rec["passed"], rec["total"], f'{rec["pct"]:.1f}', rec["questions"]["asked"], rec["questions"]["needed"], rec["questions"]["not_needed"],
            (rec["connection"] or {}).get("text", "n/a (single file)"), rec["tokens"] + rec["lens_tokens"], f'{rec["total_s"]:.1f}', f'{rec["total_wo_limit_s"]:.1f}', rec["unavailable_count"],
-           rec["lens_pass"], rec["lens_scored"], rec["status"]]
+           rec["lens_pass"], rec["lens_scored"], rec["status"], rec["ai_mode"]]
     csv_p, md_p = out / "scoreboard.csv", out / "scoreboard.md"
     new = not csv_p.exists()
     with csv_p.open("a", newline="", encoding="utf-8") as f:
@@ -827,17 +858,22 @@ def latest_records(out: Path, index: list[dict]) -> list[dict]:
     return recs
 
 
-def overall(recs: list[dict]) -> str:
-    done = [r for r in recs if r["status"] == "complete"]       # a partial run (token budget reached) is not counted
+def overall(recs: list[dict], modes: tuple[str, ...] = ("real",)) -> str:
+    done = [r for r in recs if r["status"] == "complete" and r.get("ai_mode") in modes]       # not counted: partial runs (token budget), failed runs, and runs where the AI was only partly or not at all available
+    skipped = len(recs) - len(done)
     p, t = sum(r["passed"] for r in done), sum(r["total"] for r in done)
-    return f"Overall: {p}/{t} figures correct = {100 * p / t:.1f}% across {len(done)} complete dataset(s) (latest run of each; partial and failed runs are not counted)." if t else "Overall: no figures scored yet."
+    what = "real-AI" if "real" in modes else "dry-run (fake AI, not a real result)"
+    if not t:
+        return f"Overall ({what}): no figures scored yet ({skipped} latest run(s) not counted)."
+    return (f"Overall ({what}): {p}/{t} figures correct = {100 * p / t:.1f}% across {len(done)} complete dataset(s) "
+            f"(latest run of each; {skipped} other latest run(s) not counted: partial, failed, partly-AI, rules-only or dry-run).")
 
 
 def write_summary(out: Path, index: list[dict]) -> None:
     recs = latest_records(out, index)
-    L = ["# Review summary (latest run of each dataset)\n", overall(recs) + "\n"]
-    L.append(md_table(["dataset", "status", "pass/fail", "questions asked", "three slowest stages", "tokens", "time s (without limit wait)"],
-                      [[r["id"], r["status"], f'{r["passed"]}/{r["total"]} ({r["pct"]:.0f}%)', f'{r["questions"]["asked"]} (needed {r["questions"]["needed"]})', ", ".join(f'{n} {s:.0f}s' for n, s in r["slowest3"]),
+    L = ["# Review summary (latest run of each dataset)\n", overall(recs, counted_modes(out)) + "\n"]
+    L.append(md_table(["dataset", "AI mode", "status", "pass/fail", "questions asked", "three slowest stages", "tokens", "time s (without limit wait)"],
+                      [[r["id"], r.get("ai_mode", "?"), r["status"], f'{r["passed"]}/{r["total"]} ({r["pct"]:.0f}%)', f'{r["questions"]["asked"]} (needed {r["questions"]["needed"]})', ", ".join(f'{n} {s:.0f}s' for n, s in r["slowest3"]),
                         f'{r["tokens"] + r["lens_tokens"]:,}', f'{r["total_s"]:.0f} ({r["total_wo_limit_s"]:.0f})'] for r in recs]))
     L.append("\n## Problems, one line each\n")
     for r in recs:
@@ -860,12 +896,14 @@ def review_one(d: dict, args, out: Path, timing: Timing, budget: Budget, model, 
     started = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     timing.stages.clear()
     timing.tokens_total = 0
-    budget.hit_at = ""
+    budget.hit_at, budget.auth_failed = "", False
     llm.begin_run()
     p = run_pipeline(d, goal, timing, say)
     wd = p["wd"]
     status, note = "complete", ""
-    if p["status"] != "done" or not (wd / "result.json").exists():
+    if budget.auth_failed:
+        status, note = "ai-refused", AUTH_MESSAGE
+    elif p["status"] != "done" or not (wd / "result.json").exists():
         status, note = "error", f'the run ended with status "{p["status"]}"' + (f': {p["error"]}' if p["error"] else "")
     elif budget.hit_at:
         status, note = "partial", f"the token budget (--max-tokens {budget.max}) was reached before the {budget.hit_at} stage; from there the stages used their rules only"
@@ -891,7 +929,7 @@ def review_one(d: dict, args, out: Path, timing: Timing, budget: Budget, model, 
         rec[k] = [] if k != "tabs" else {key: {"label": label, "headings": [], "charts": [], "insights": [], "numbers": []} for key, label, _ in NAV}
     rec.update(connection=None, passed=0, total=0, pct=0.0, unavailable_count=0, lens_pass=0, lens_scored=0, lens_tokens=0, lens_time={"total": 0.0, "limit": 0.0})
     shots = None
-    if status != "error":
+    if status not in ("error", "ai-refused"):
         res = json.loads((wd / "result.json").read_text(encoding="utf-8"))
         rec["columns"] = column_rows(res)
         rec["tabs"] = tab_view(res, wd)
@@ -925,6 +963,7 @@ def review_one(d: dict, args, out: Path, timing: Timing, budget: Budget, model, 
         for u in rec["unavailable"]:
             rec["problems"].append(f'AI {u["kind"]} in {u["stage"]}: {u["reason"][:100]}')
         rec["problems"] += [f'Lens Q{q["n"]} ({q["kind"]}) {q["status"]}: {q["detail"][:100]}' for q in rec["lens"] if q["status"] in ("FAIL", "ERROR", "NOT ANSWERED")]
+    rec["ai_mode"] = ai_mode(args.fake_ai, rec["stages"], rec["unavailable_count"])
     if note:
         rec["problems"].insert(0, note)
     (out / d["folder"]).mkdir(parents=True, exist_ok=True)
@@ -990,10 +1029,14 @@ def main() -> None:
         rec = review_one(d, args, out, timing, budget, model, label, say)
         ran.append(rec)
         append_scoreboard(out, rec)
+        if rec["status"] == "ai-refused":
+            say(f"  {AUTH_MESSAGE}. Stopped; no later dataset was started. Check GROQ_API_KEY in .env, then run again.")
+            write_summary(out, index)
+            sys.exit(2)
         say(f'  {rec["status"].upper()}: {rec["passed"]}/{rec["total"]} figures correct, {rec["tokens"] + rec["lens_tokens"]:,} tokens, {rec["total_s"]:.0f} s -> {out / (d["folder"] + ".md")}')
     write_summary(out, index)
     if ran:
-        line = overall(latest_records(out, index))
+        line = overall(latest_records(out, index), counted_modes(out))
         with (out / "scoreboard.md").open("a", encoding="utf-8") as f:
             f.write(f"\n_{dt.datetime.now():%Y-%m-%d %H:%M:%S} {line}_\n\n")
         say(line)
