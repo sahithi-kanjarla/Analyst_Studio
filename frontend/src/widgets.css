@@ -173,3 +173,10 @@
 .iw-action { margin: 0; font-size: var(--fs-1); }
 .iw-chip { display: inline-block; background: var(--brand); color: var(--brand-ink); border-radius: 999px; padding: 2px var(--sp-3); font-weight: 600; font-size: 12px; margin-right: var(--sp-2); }
 .iw .fold-working { margin-top: auto; }
+
+/* wide tables scroll inside their own card, never past the screen edge */
+.fold-working table, .bi-table { display: block; max-width: 100%; overflow-x: auto; }
+@media (max-width: 760px) { .bi-table th, .bi-table td { padding: 6px 8px; } }
+
+/* badges sit together at the left of a card, never spread across it */
+.iw-head .meta { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: var(--sp-2); }
