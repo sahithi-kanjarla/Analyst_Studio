@@ -181,18 +181,24 @@
 /* badges sit together at the left of a card, never spread across it */
 .iw-head .meta { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: var(--sp-2); }
 
-/* Dashboard tiles fill the window: the grid is 24 x 24 units, every tile has an exact rectangle (backend/app/dashplan.py), nothing is padded.
-   Layout only: no colours here. A narrow screen stacks the tiles in one column instead. */
-.bi-grid.is-fit { grid-template-columns: repeat(24, minmax(0, 1fr)); grid-template-rows: repeat(24, minmax(0, 1fr)); gap: var(--sp-3, 10px); }
-.bi-tile { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
-.bi-tile-body { flex: 1 1 auto; min-height: 0; overflow: hidden; }
-.bi-tile-wrap { display: flex; min-width: 0; min-height: 0; }
-.bi-tile-wrap > .tile { flex: 1 1 auto; min-height: 0; overflow: hidden; }
-.bi-tile-wrap .tile-img { flex: 1 1 auto; min-height: 0; display: flex; }
-.bi-tile-wrap .tile-img img { width: 100%; height: 100%; object-fit: contain; }
+/* Dashboard: a responsive grid with a minimum size per tile, so every chart is legible; the page scrolls like any other.
+   Layout only: no colours here. */
+.bi-grid.bi-flow { grid-template-columns: repeat(auto-fill, minmax(min(340px, 100%), 1fr)); gap: var(--sp-4, 16px); align-items: stretch; grid-auto-flow: row dense; }
+.bi-flow > [data-kind="series"] { grid-column: 1 / -1; }
+.bi-tile { display: flex; flex-direction: column; min-width: 0; }
+.bi-tile-body { flex: 1 1 auto; min-width: 0; }
+.bi-tile-wrap { display: flex; min-width: 0; }
+.bi-tile-wrap > .tile { flex: 1 1 auto; min-width: 0; }
+/* a finding card: plain title, trust chip, a one-line takeaway, a thumbnail you can read */
+.tile-compact { gap: var(--sp-2, 8px); }
+.tile-compact header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-3, 10px); }
+.tile-compact h4 { margin: 0; font-size: 15px; font-weight: 600; line-height: 1.3; }
+.tile-compact header .tag { flex: none; }
+.tile-take { margin: 0; color: var(--muted); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tile-compact .tile-img { min-height: 190px; display: flex; align-items: center; justify-content: center; margin-top: auto; }
+.tile-compact .tile-img img { width: 100%; max-height: 260px; object-fit: contain; }
+.tile-compact .tile-table { align-items: flex-start; max-height: 260px; overflow: hidden; text-align: left; }
+.zoom-nav { display: flex; justify-content: space-between; margin-top: var(--sp-4, 16px); }
+.zoom-live h4 { margin: 0 0 var(--sp-3, 10px); font-size: 17px; } .zoom-live small { display: block; color: var(--muted); font-weight: 400; font-size: 13px; }
+.insight-reasons { margin: 4px 0 0; }
 .tile-measures { margin: 0; padding-left: 1.1em; }
-@media (max-width: 759px) {
-  .bi-grid.is-fit { grid-template-rows: none; }
-  .bi-tile { min-height: 300px; }
-  .bi-tile-wrap { min-height: 320px; }
-}

@@ -9,7 +9,7 @@ const path = require('path');
 
 const [base, outDir, label, ...rest] = process.argv.slice(2);
 const RUN = '5a1e5d3e0001';
-const WIDTHS = [[1280, 720], [1440, 900], [1920, 1080], [390, 844]];
+const WIDTHS = process.env.WIDTHS ? process.env.WIDTHS.split(',').map((x) => x.split('x').map(Number)) : [[1280, 720], [1440, 900], [1920, 1080], [390, 844]];
 const ALL = ['landing', 'Report', 'Insights', 'Ideas to try', 'Dashboard', 'Data'];
 const pages = rest.length ? rest : ALL;
 const out = {};

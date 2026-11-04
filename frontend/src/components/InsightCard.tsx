@@ -26,13 +26,14 @@ export default function InsightCard({ f, index }: { f: Finding; index: number })
         <div className="insight-title">
           <h4>{ins.headline}</h4>
           <div className="meta">
-            <span className={LEVEL_CLASS[ins.confidence.level] ?? "tag"} title={ins.confidence.reasons.join(" ")}>
+            <span className={LEVEL_CLASS[ins.confidence.level] ?? "tag"}>
               {ins.confidence.label} confidence
             </span>
             {ins.kpi_related && <span className="tag tag-kpi">your KPI</span>}
             {ins.source === "llm" && <span className="tag tag-info" title="Wording improved by the language model using your business context">AI-tailored</span>}
             <span className="muted">{f.title}</span>
           </div>
+          {ins.confidence.reasons.length > 0 && <p className="muted small insight-reasons">{ins.confidence.reasons.join(" ")}</p>}
         </div>
       </header>
 

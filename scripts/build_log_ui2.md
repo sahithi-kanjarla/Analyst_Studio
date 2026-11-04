@@ -152,3 +152,45 @@ its own plate now.
 
 `npx tsc -b` and `npm run build` clean; `test_ui_nav.py` (the real-browser navigation suite,
 which drives the mark as the "back to home" control) → **10 passed**.
+
+---
+
+## Step 3 — click highlight on the browser-drawn charts
+
+Click a bar, slice or month: it takes the accent, every other mark fades to 25%, and a line above
+the chart says what was picked with its figure and, for a measure that adds up, its share, e.g.
+`Mar: 15.8K (9.1%)`. Click it again and the label goes. Filter-everything is unchanged. The share
+is taken from the whole list, not only the bars drawn (`whole` prop), so a "top 7 of 40" chart does
+not overstate it; a rate (average, ratio) shows no share. Marks are also reachable by keyboard
+(Tab, Enter/Space, `aria-pressed`). `charts.tsx`, `BIDashboard.tsx`, `styles.css`. Commit `64940f9`.
+
+## Step 4 — dashboard readability
+
+- The fit-to-one-screen rule and its machinery (measured height, 24x24 rectangles) are gone from the
+  page. The grid is `auto-fill, minmax(340px, 1fr)` and scrolls normally; KPIs and filters stay
+  compact at the top. Live charts get a fixed body height (230px, a time series 290px).
+  The backend `dashplan` layout and its endpoint are untouched and simply no longer used by the page.
+- A finding is a compact card: plain title, trust chip, a one-line takeaway (the finding's own
+  headline, ellipsised), and a thumbnail with a 190px minimum height.
+- Clicking a card, or "Open full size" on a live chart, opens a dialog (`ChartModal.tsx`, built on the
+  existing `Dialog`): the chart at full size, its explanation and the whole "Details, trust and
+  next steps" content. Esc closes, focus is trapped, Left/Right (or Previous/Next) move between
+  charts. Nothing expands below the card.
+- The long hover tooltips are gone (`chart_why` on the card; the confidence reasons on the insight
+  card are now written out in the dialog instead).
+- **Tests.** Nothing in the Python suite asserted fit-to-screen, so no test was relaxed.
+  `test_dashplan.py` tests the backend layout, which is unchanged. Added one browser check,
+  `dashboard_card_opens_a_dialog_and_esc_closes_it`, in `tests/ui/widgets_check.js` and
+  `test_ui_widgets.py`.
+- Checked in a real browser: dialog opens, Right/Left change chart, 30 Tabs keep focus inside, Esc
+  closes, click highlight and clear work.
+- Run: `test_ui_widgets`, `test_dashplan`, `test_chartsize`, `test_dashboard`, `test_palette` ->
+  **55 passed**. `npx tsc -b`, `npm run build` clean (the build's two CSS warnings are old).
+
+## Step 5 — checks
+
+No horizontal scroll at 390px on landing, Report, Insights, Ideas, Dashboard and Data (measured,
+`scripts/ui2_shots.js`, no console errors). Reduced motion: `tokens.css` and `polish.css` already
+cut every animation and transition under `prefers-reduced-motion`; the dialog and fades use only
+those. Screenshots (not committed): `docs/screens/ui2/step4/` (1440, 390) and `step5/` (390).
+Not tested: the full suite, and the 1280 / 1920 widths for this part, as asked.

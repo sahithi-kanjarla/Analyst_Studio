@@ -61,6 +61,13 @@ const ok = (name, cond, detail) => { R[name] = { ok: !!cond, detail: detail === 
   if (await sa.count()) { await sa.first().click(); await p.waitForTimeout(400); ok('dashboard_show_all_reveals_the_rest', (await vis('.bi-table tbody tr')) >= rowsBefore && (await vis('.bi-card')) >= 1); } else ok('dashboard_show_all_reveals_the_rest', true, 'nothing to reveal');
   t = await titles(); const bad4 = clean(t);
   ok('dashboard_titles_are_plain', bad4.length === 0, bad4.join(' | '));
+  // a finding card opens a dialog at full size; Esc closes it and the page below is unchanged
+  if (await p.locator('.tile-img').count()) {
+    await p.locator('.tile-img').first().click();
+    const opened = (await p.locator('[role=dialog]').count()) === 1;
+    await p.keyboard.press('Escape');
+    ok('dashboard_card_opens_a_dialog_and_esc_closes_it', opened && (await p.locator('[role=dialog]').count()) === 0);
+  } else ok('dashboard_card_opens_a_dialog_and_esc_closes_it', true, 'no finding card');
   // ---- Data
   await tab('Data');
   ok('data_first_rows_visible_with_show_all', (await vis('.column-meanings tbody tr')) >= 5);

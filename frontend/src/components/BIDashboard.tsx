@@ -1,11 +1,11 @@
-import { CSSProperties, ReactNode, useEffect, useMemo, useRef, useState } from "react";
-import { api, DashData, DashMeasure, DashRect, DashTile, Finding, RunResult } from "../api";
+import { ReactNode, useEffect, useMemo, useState } from "react";
+import { api, DashData, DashMeasure, DashTile, Finding, RunResult } from "../api";
 import { planShare, planTable, plural, SHARE_SLICES, TABLE_ROWS } from "../chartsize";
 import { chartTitle, displayName, humanise, plainLabel } from "../display";
 import { latestChange } from "../periodchange";
-import FindingGallery, { Tile } from "./FindingGallery";
+import ChartModal, { ZoomEntry } from "./ChartModal";
+import FindingGallery, { FindingZoom, Tile } from "./FindingGallery";
 import { useView } from "./view/ViewContext";
-import InsightCard from "./InsightCard";
 import { Columns, Donut, HBar, Item, PALETTE } from "./charts";
 import LensPins from "./lens/LensPins";
 import { Sections, ShowAllLink, TabViewBar } from "./view/ViewUI";
@@ -61,26 +61,17 @@ function Card({ title, sub, wide, kind, action, children }: { title: string; sub
 }
 
 const BAR_ROW = 30;      // height of one bar row in HBar (charts.tsx)
+const TILE_BODY = 230;   // a live chart is drawn at this height (a time series gets more); the page scrolls instead of squeezing a chart to fit
+const bodyH = (t: DashTile) => (t.kind === "trend" ? 290 : TILE_BODY);
 
-/** A tile that fills the grid cell it is given: it measures the space left under its title and hands that height to its chart, so the chart is drawn to fit (fewer bars in a small tile, more in a big one). */
-function FitCard({ title, kind, style, items, render }: { title: string; kind: string; style?: CSSProperties; items?: { measure: string; text: string }[]; render: (h: number) => { sub: string; node: ReactNode } }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [h, setH] = useState(0);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const on = () => setH(el.clientHeight);
-    on();
-    const ro = new ResizeObserver(on);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-  const out = h > 0 ? render(h) : null;
+/** One live chart as a card: a plain title, what it shows, the chart, and a button that opens it at full size. */
+function LiveCard({ title, sub, kind, items, node, height, onZoom }: { height: number; title: string; sub: string; kind: string; items?: { measure: string; text: string }[]; node: ReactNode; onZoom: () => void }) {
   return (
-    <section className="bi-card bi-tile" data-kind={kind} style={style}>
-      <h4>{title}{out?.sub && <small>{out.sub}</small>}</h4>
+    <section className="bi-card bi-tile" data-kind={kind}>
+      <h4>{title}{sub && <small>{sub}</small>}</h4>
       {items && items.length > 1 && <ul className="tile-measures small">{items.map((i) => <li key={i.measure + i.text}>{i.text}</li>)}</ul>}
-      <div ref={ref} className="bi-tile-body">{out?.node}</div>
+      <div className="bi-tile-body" style={{ minHeight: height }}>{node}</div>
+      <p className="bi-card-foot no-print"><button type="button" className="link" onClick={onZoom}>Open full size</button></p>
     </section>
   );
 }
@@ -93,60 +84,16 @@ export default function BIDashboard({ run }: { run: RunResult }) {
   const [err, setErr] = useState("");
   const [mIdx, setMIdx] = useState(0);
   const [f, setF] = useState<Filters>(EMPTY);
-  const [open, setOpen] = useState<string | null>(null);
+  const [open, setOpen] = useState<string | null>(null);           // the chart shown full size in the dialog: a tile id, or a finding id
   const [allRows, setAllRows] = useState(false);
-  const [vw, setVw] = useState(() => (typeof window === "undefined" ? 1440 : window.innerWidth));
 
   useEffect(() => {
     api.getDashboard(run.run_id).then(setData).catch((e) => setErr(e.message));
   }, [run.run_id, pinKey]);
 
-  // how many bars fit is decided from the real width, so a phone shows fewer and the subtitle matches what is drawn
-  useEffect(() => {
-    const on = () => setVw(window.innerWidth);
-    window.addEventListener("resize", on);
-    return () => window.removeEventListener("resize", on);
-  }, []);
-
   const plan = data?.plan;
-  const wide = vw >= 760;                                  // a phone shows the tiles in one column; a window shows them filling the screen
-  const fitRef = useRef<HTMLDivElement>(null);
-  const [fitH, setFitH] = useState(0);
-  const [rects, setRects] = useState<Record<string, DashRect>>({});
   const tileShown = (t: DashTile) => t.kind !== "finding" || !(view && (view.isHidden(`dashboard:chart:${t.finding_id}`) || view.isFolded(`dashboard:chart:${t.finding_id}`)));
   const shownTiles = (plan?.tiles ?? []).filter(tileShown);
-  const shownKey = shownTiles.map((t) => t.id).join("|");
-
-  // where each tile sits: the plan's own layout, or (when a view edit hid some tiles) a fresh one for the tiles still shown, so the grid still fills the window
-  useEffect(() => {
-    if (!plan) return;
-    if (shownTiles.length === plan.tiles.length) {
-      setRects(Object.fromEntries(plan.layout.tiles.map((r) => [r.id, r])));
-      return;
-    }
-    if (!shownTiles.length) {
-      setRects({});
-      return;
-    }
-    let live = true;
-    api.getDashboardLayout(run.run_id, shownTiles.map((t) => t.importance))
-      .then((l) => live && setRects(Object.fromEntries(l.tiles.map((r) => [shownTiles[Number(r.id)].id, r]))))
-      .catch(() => live && setRects({}));
-    return () => { live = false; };
-  }, [plan, shownKey]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // the grid is as tall as the room left in the window, so the dashboard fits without scrolling
-  useEffect(() => {
-    const on = () => {
-      const el = fitRef.current;
-      if (el) setFitH(Math.max(440, Math.round(window.innerHeight - (el.getBoundingClientRect().top + window.scrollY) - 20)));
-    };
-    on();
-    window.addEventListener("resize", on);
-    const ro = new ResizeObserver(on);
-    ro.observe(document.body);
-    return () => { window.removeEventListener("resize", on); ro.disconnect(); };
-  }, [data, wide]);
 
   const rows: Row[] = useMemo(() => {
     if (!data) return [];
@@ -303,7 +250,20 @@ export default function BIDashboard({ run }: { run: RunResult }) {
   const withInsight = (run.findings ?? []).filter((x) => x.insight && ["high", "medium"].includes(x.insight.confidence.level));
   const takeaways = (keyIds ? keyIds.map((id) => withInsight.find((x) => x.id === id)).filter((x): x is Finding => !!x) : withInsight.sort((a, b) => b.insight!.score - a.insight!.score)).slice(0, 3);
   const topStrategy = run.strategies?.find((s) => s.kind === "data");
-  const openFinding = (run.findings ?? []).find((x) => x.id === open);
+  // the charts the dialog can step through, in the order the page shows them; a finding opened from "What stands out" is added when it is not already on the page
+  const allFindings = run.findings ?? [];
+  const zoomEntries: ZoomEntry[] = [
+    ...shownTiles.flatMap((t): ZoomEntry[] => {
+      if (t.kind === "finding") {
+        const fd = findingOf(t);
+        return fd ? [{ id: t.id, node: <FindingZoom f={fd} index={allFindings.indexOf(fd) + 1} /> }] : [];
+      }
+      const o = liveTile(t, 460);
+      return [{ id: t.id, node: <div className="zoom-live"><h4>{o.title}{o.sub && <small>{o.sub}</small>}</h4>{o.node}</div> }];
+    }),
+    ...(open && !shownTiles.some((t) => t.id === open) && allFindings.some((x) => x.id === open)
+      ? [{ id: open, node: <FindingZoom f={allFindings.find((x) => x.id === open)!} index={allFindings.findIndex((x) => x.id === open) + 1} /> }] : []),
+  ];
 
   const chips = [
     ...Object.entries(f.dims).flatMap(([col, vs]) => vs.map((v) => ({ label: `${label(col)}: ${v}`, drop: () => toggleDim(col, v) }))),
@@ -386,20 +346,18 @@ export default function BIDashboard({ run }: { run: RunResult }) {
       {filtered.length === 0 ? (
         <div className="bi-card bi-empty">No records match these filters. <button className="bi-chip" onClick={() => setF(EMPTY)}>Clear all</button></div>
       ) : (
-        <div ref={fitRef} className={`bi-grid bi-fit ${wide ? "is-fit" : ""}`} style={wide && fitH ? { height: fitH } : undefined}>
+        <div className="bi-grid bi-flow">
           {shownTiles.map((t) => {
-            const r = wide ? rects[t.id] : undefined;
-            if (wide && !r) return null;
-            const place: CSSProperties | undefined = r ? { gridColumn: `${r.x + 1} / span ${r.w}`, gridRow: `${r.y + 1} / span ${r.h}` } : undefined;
             if (t.kind === "finding") {
               const fd = findingOf(t);
-              return fd ? <div key={t.id} className="bi-tile-wrap" style={place}><Tile f={fd} items={t.items} und={run.understanding} onOpen={() => setOpen(fd.id)} /></div> : null;
+              return fd ? <div key={t.id} className="bi-tile-wrap"><Tile f={fd} items={t.items} und={run.understanding} onOpen={() => setOpen(t.id)} /></div> : null;
             }
-            return <FitCard key={t.id} kind={t.kind === "trend" ? "series" : "ranked"} style={place} items={t.items} title={liveTile(t, 300).title} render={(h) => { const o = liveTile(t, h); return { sub: o.sub, node: o.node }; }} />;
+            const o = liveTile(t, bodyH(t));
+            return <LiveCard key={t.id} kind={t.kind === "trend" ? "series" : "ranked"} items={t.items} title={o.title} sub={o.sub} node={o.node} height={bodyH(t)} onZoom={() => setOpen(t.id)} />;
           })}
         </div>
       )}
-      <div className="no-print" hidden>{hiddenTiles.map((t) => { const fd = findingOf(t); return fd ? <Tile key={t.id} f={fd} items={t.items} und={run.understanding} onOpen={() => setOpen(fd.id)} /> : null; })}</div>
+      <div className="no-print" hidden>{hiddenTiles.map((t) => { const fd = findingOf(t); return fd ? <Tile key={t.id} f={fd} items={t.items} und={run.understanding} onOpen={() => setOpen(t.id)} /> : null; })}</div>
 
           </>
         ),
@@ -468,14 +426,7 @@ export default function BIDashboard({ run }: { run: RunResult }) {
       <LensPins target="dashboard" />
       {data.sampled && <p className="bi-muted small">Large dataset: the dashboard uses a random sample of {data.rows.length.toLocaleString()} of {data.total_rows.toLocaleString()} rows. Download the full cleaned data from the Data tab.</p>}
 
-      {openFinding && (
-        <div className="modal" role="dialog" aria-modal="true" aria-label="Insight details" onClick={() => setOpen(null)}>
-          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-x" aria-label="Close" onClick={() => setOpen(null)}>✕</button>
-            <InsightCard f={openFinding} index={(run.findings ?? []).indexOf(openFinding) + 1} />
-          </div>
-        </div>
-      )}
+      {open && zoomEntries.some((e) => e.id === open) && <ChartModal entries={zoomEntries} current={open} onSelect={setOpen} onClose={() => setOpen(null)} />}
     </div>
   );
 }
