@@ -544,14 +544,16 @@ def plan_node(state: RunState) -> dict:
                                 "why": "An id, a code, or an integer with many distinct values and no declared kind: totals and averages of it mean nothing.", "errors": []})
     with llmmod.capture() as cap_plan:
         plan, notes = planner.propose_plan(llm, typed, prof, state["goal"], ctx, explore, ov, st)
-    if llm and st["decisions"][-1]["source"] == "fallback":
-        emit(rid, "Planner", "The LLM answer was unusable after one repair, so rule-based planning was used instead.")
+    planner_failed = bool(llm and st["decisions"][-1]["source"] == "fallback")
+    if planner_failed:
+        why = "; ".join(str(e) for e in (st["decisions"][-1].get("errors") or [])[:3])
+        emit(rid, "Planner", "The LLM answer was unusable after one repair, so rule-based planning was used instead." + (f" Problems found in the plan: {why}." if why else ""))
     extra["decisions"] = st["decisions"]
     for n in notes:
         emit(rid, "Planner", n)
     emit(rid, "Planner", f"Target: {plan['target'] or 'none (descriptive analysis)'}. Using {len(plan['relevant_columns'])} of {prof['cols']} columns, {len(plan['analyses'])} analyses planned.",
          plan=plan)
-    out = {"plan": plan, "llm_mode": label if llm else "rules-only", "stage_sources": {**(state.get("stage_sources") or {}), "planner": plan["source"]}, **extra}
+    out = {"plan": plan, "llm_mode": label if llm else "rules-only", "stage_sources": {**(state.get("stage_sources") or {}), "planner": "fallback" if planner_failed else plan["source"]}, **extra}
     out = _ai_failed(state, out, "derived measures", llm, cap_derived)
     return _ai_failed(state, out, "the analysis plan", llm, cap_plan)
 

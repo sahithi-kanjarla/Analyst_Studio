@@ -76,7 +76,8 @@ def test_valid_plan_with_hallucinations(data):
     assert all(t != "magic_forecast" for t, _ in tools_run) and ("group_compare", "does_not_exist") not in tools_run
     plan_decision = next(d for d in res["decisions"] if d["decision"] == "analysis plan")
     assert plan_decision["source"] == "fallback" and any("does_not_exist" in e for e in plan_decision["errors"])
-    assert any("rule-based planning" in e["message"] for e in events)
+    assert any("rule-based planning" in e["message"] and "does_not_exist" in e["message"] for e in events)      # the message says what was wrong with the plan
+    assert res["stage_sources"]["planner"] == "fallback"                                                        # not a silent "rules"
     # prose from the LLM, numbers from the tools; hallucinated critic follow-up ignored
     assert "FAKE SUMMARY" in res["report_md"] and "Prioritise Enterprise accounts." not in res["report_md"]      # one recommendation list: the strategy-based "What to do", not the free-text recommendations
     assert "confounded with company size" in res["report_md"]

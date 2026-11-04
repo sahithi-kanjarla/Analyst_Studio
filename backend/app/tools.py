@@ -1130,7 +1130,7 @@ def seasonality(df, ctx, target, date):
     action = (f"{target} follows a {name} pattern; plan staffing, stock or promotions around {hi} (high) and {lo} (low)." if sig and r["eta"] >= 0.01 else None)
     vals = {r["labels"][int(i) - (1 if name == "month" else 0)]: _f(v) for i, v in m.items()}
     return finding("seasonality", f"{target} by {unit}", text,
-                   {"p": _f(r["p"]), "effect": _f(r["eta"]), "effect_name": "eta_squared", "n": r["n"], "cycle": name, "cycles": {k: {"p": _f(v["p"]), "best": v["labels"][int(v["means"].idxmax()) - (1 if k == "month" else 0)], "worst": v["labels"][int(v["means"].idxmin()) - (1 if k == "month" else 0)]} for k, v in results.items()}, "best": hi, "worst": lo,
+                   {"p": _f(r["p"]), "effect": _f(r["eta"]), "effect_name": "eta_squared", "n": r["n"], "cycle": name, "cycles": {k: {"p": _f(v["p"]), "effect": _f(v["eta"]), "best": v["labels"][int(v["means"].idxmax()) - (1 if k == "month" else 0)], "worst": v["labels"][int(v["means"].idxmin()) - (1 if k == "month" else 0)]} for k, v in results.items()}, "best": hi, "worst": lo,
                     "values": vals, "min_group_n": r["min_n"], "kind": kind, "basis": "period totals" if total else "ratio of sums" if spec is not None else "row averages"},
                    _save(fig, ctx, _slug("seas", target, date)), significant=sig, action=action)
 

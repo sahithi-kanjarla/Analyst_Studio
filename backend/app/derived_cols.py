@@ -38,9 +38,17 @@ def _close(a: np.ndarray, b: np.ndarray) -> float:
     return float((np.abs(a[ok] - b[ok]) <= ATOL + RTOL * np.abs(b[ok])).mean())
 
 
+COVER = 0.5                 # the other column must have a value on at least this share of the rows where the first one has a value
+
+
 def is_close_to(a: pd.Series, b: pd.Series) -> bool:
-    """True when two columns are equal within a rounding error on nearly every row both have."""
-    return _close(pd.to_numeric(a, errors="coerce").to_numpy(float), pd.to_numeric(b, errors="coerce").to_numpy(float)) >= MATCH
+    """True when two columns are equal within a rounding error on nearly every row both have, and the second one is filled on most of the rows the first one is.
+    A column that is mostly empty and happens to match on its few filled rows (a refund that equals the line total on returned lines only) is not a copy."""
+    x, y = pd.to_numeric(a, errors="coerce").to_numpy(float), pd.to_numeric(b, errors="coerce").to_numpy(float)
+    have = int((~np.isnan(x)).sum())
+    if have == 0 or int((~(np.isnan(x) | np.isnan(y))).sum()) < COVER * have:
+        return False
+    return _close(x, y) >= MATCH
 
 
 _cache: dict = {}
