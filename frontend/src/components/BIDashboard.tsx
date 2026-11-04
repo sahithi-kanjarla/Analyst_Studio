@@ -62,7 +62,7 @@ function Card({ title, sub, wide, kind, action, children }: { title: string; sub
 const BAR_ROW = 30;      // height of one bar row in HBar (charts.tsx)
 
 /** A tile that fills the grid cell it is given: it measures the space left under its title and hands that height to its chart, so the chart is drawn to fit (fewer bars in a small tile, more in a big one). */
-function FitCard({ title, kind, style, render }: { title: string; kind: string; style?: CSSProperties; render: (h: number) => { sub: string; node: ReactNode } }) {
+function FitCard({ title, kind, style, items, render }: { title: string; kind: string; style?: CSSProperties; items?: { measure: string; text: string }[]; render: (h: number) => { sub: string; node: ReactNode } }) {
   const ref = useRef<HTMLDivElement>(null);
   const [h, setH] = useState(0);
   useEffect(() => {
@@ -78,6 +78,7 @@ function FitCard({ title, kind, style, render }: { title: string; kind: string; 
   return (
     <section className="bi-card bi-tile" data-kind={kind} style={style}>
       <h4>{title}{out?.sub && <small>{out.sub}</small>}</h4>
+      {items && items.length > 1 && <ul className="tile-measures small">{items.map((i) => <li key={i.measure + i.text}>{i.text}</li>)}</ul>}
       <div ref={ref} className="bi-tile-body">{out?.node}</div>
     </section>
   );
@@ -385,7 +386,7 @@ export default function BIDashboard({ run }: { run: RunResult }) {
               const fd = findingOf(t);
               return fd ? <div key={t.id} className="bi-tile-wrap" style={place}><Tile f={fd} items={t.items} und={run.understanding} onOpen={() => setOpen(fd.id)} /></div> : null;
             }
-            return <FitCard key={t.id} kind={t.kind === "trend" ? "series" : "ranked"} style={place} title={liveTile(t, 300).title} render={(h) => { const o = liveTile(t, h); return { sub: o.sub, node: o.node }; }} />;
+            return <FitCard key={t.id} kind={t.kind === "trend" ? "series" : "ranked"} style={place} items={t.items} title={liveTile(t, 300).title} render={(h) => { const o = liveTile(t, h); return { sub: o.sub, node: o.node }; }} />;
           })}
         </div>
       )}

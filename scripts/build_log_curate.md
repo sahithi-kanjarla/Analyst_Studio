@@ -219,3 +219,28 @@ empty, mode overview, placeholder absent from report and API) and one with the t
 `_plain_state("", True, …)` are unchanged (explore flag on).
 Run: test_curate + test_explore_placeholder (36 passed); test_main_view, test_main_view_polish, test_report_page_stage1, test_report_consistency,
 test_run_safety, test_partb_view (79 passed). Not tested: a real-AI run, the browser, the full suite (leave to a cloud session).
+
+
+## Part B3 of 3: the Dashboard reads the selection
+
+### Step 1 - dashboard plan, window-filling layout, frontend
+**New `backend/app/dashplan.py`** (no column name or example value in it). `build_plan(dash, result)` is added to `/dashboard` as `plan`:
+- **Tiles**: the time view, one interactive chart per category column, and the chart of each kept finding (`curation.tabs["dashboard:chart"]`). They go through the
+  same `curate.apply_cut` as the other tabs. What the cut drops, and what one screen cannot hold (`MAX_TILES` = grid area / `MIN_TILE_AREA` = 12), is the **More** list.
+  A merged finding is one tile and carries its measure lines (`items`). A finding chart that repeats a live chart (same measure + dimension ranked bars, or the same time view)
+  is never a second tile; its merged measure lines move onto the live tile. The one-column table "in full" moved into More.
+- **Importance** of a live tile: the importance of the finding it repeats, else top importance x the column's share of variance explained; goal columns are always kept; the time view is always kept in overview mode.
+- **Filters**: the category columns tied to the kept tiles first, at most `MAX_FILTERS` (3; the page already capped at 3). Date controls (year, quarter) are the existing ones. **Filters did exist, so nothing new was built.**
+- **Layout** (`layout`, `arrange`): a slicing of a 24 x 24 grid. Weight = 0.5 + importance / top importance, so the top tile is bigger; every cell belongs to exactly one tile, so there is no gap, overlap or filler,
+  and with few tiles each tile is bigger. Cuts leave each half room for its tiles (`MIN_TILE_AREA`).
+- **Objective line** (`objective_line`): explore run -> "Overview of your data"; otherwise the plan's objective or the typed goal; never blank, never the placeholder.
+- `GET /api/runs/{id}/dashboard/layout?importance=9,5,2` returns the rectangles for any list of tiles (used when a view edit hides or folds some, so the grid still fills the window).
+
+**Front end**: `BIDashboard.tsx` draws the plan: key figures row, filters in the header row, then the tiles in a CSS grid whose height is the room left in the window
+(`.bi-fit`, widgets.css; layout only, no colours). Each live tile measures its body and draws to fit (bars that fit, donut ring size, column height). Below: "Answer to your goal" and a collapsed
+"More charts" (drawn only when opened). On a phone width (< 760px) the tiles stack. `FindingGallery.tsx` no longer lists every finding. No colours or click/highlight behaviour changed.
+Old runs without curation: the plan falls back to the gallery's key order (the sample run was checked in a browser at 1440x900: 3 tiles filled the grid exactly, no gap).
+
+### Step 2 - merged cards, objective line
+Checked with a three-measure run (same leader on revenue, units, profit): Report and Insights show one card with one line per measure, and the chart URL answers 200. On the Dashboard the merged chart was the
+live region chart, so its measure lines were being lost; they now show on that tile. `curate._item`: a merged line with no single figure to quote now reads as the finding's headline, not a bare column name.

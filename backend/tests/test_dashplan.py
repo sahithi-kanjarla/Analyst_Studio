@@ -131,3 +131,20 @@ def test_a_real_run_has_a_plan_that_fills_the_grid():
     assert {t["id"] for t in plan["layout"]["tiles"]} == set(ids)
     assert set(plan["filters"]) <= {x["col"] for x in d["dims"]} and len(plan["filters"]) <= dashplan.MAX_FILTERS
     assert d["objective"].strip()
+
+
+def test_merged_measures_stay_visible_when_the_chart_is_drawn_live():
+    fs = [_finding("a", "group_compare", "revenue", "region", 9.0), _finding("b", "group_compare", "units", "region", 8.5)]
+    merges = {"a": {"items": [{"measure": "revenue", "text": "revenue: N at 100"}, {"measure": "units", "text": "units: N at 5"}]}}
+    res = _result(fs, ["a"], merges=merges)
+    res["curation"]["absorbed"] = {"b": "a", "ch_b": "ch_a"}
+    plan = dashplan.build_plan(_dash(dims=("region",), date=False), res)
+    live = [t for t in plan["tiles"] + plan["more"] if t["id"] == "dim:region"][0]
+    assert [i["text"] for i in live["items"]] == ["revenue: N at 100", "units: N at 5"]
+    assert not [t for t in plan["tiles"] + plan["more"] if t["id"] in ("chart:a", "chart:b")]
+
+
+def test_a_merged_line_without_a_figure_reads_as_the_findings_own_headline():
+    from app import curate
+    c = {"id": "x", "measure": "revenue", "dimension": "region", "tool": "outcome_compare", "title": "Region N leads on revenue"}
+    assert curate._item(c)["text"] == "Region N leads on revenue"

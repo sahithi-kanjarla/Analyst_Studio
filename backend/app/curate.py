@@ -512,7 +512,7 @@ def _item(c: dict) -> dict:
         fig = float(c["leader_value"])
         text = f"{m}: {c['leader']} at {_num_text(fig)}"
     else:
-        fig, text = None, f"{m}"
+        fig, text = None, (c.get("title") or f"{m}")      # no single figure to quote: the finding's own headline, never a bare column name
     return {"id": c["id"], "measure": m, "figure": fig, "text": text}
 
 

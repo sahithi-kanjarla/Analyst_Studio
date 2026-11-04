@@ -47,3 +47,15 @@ def test_a_short_typed_goal_is_kept_as_the_goal_and_is_not_an_overview():
     res = result(rid)
     assert res["goal"] == "best seller?"
     assert res["curation"]["mode"] == "goal"
+
+
+def test_dashboard_objective_line_for_an_explore_run_is_an_overview_line_not_a_placeholder():
+    from app import dashplan
+    rid = start(_df(), goal="")
+    assert wait(rid) in ("done", "needs_input")
+    if wait(rid) == "needs_input":
+        assert cl.post(f"/api/runs/{rid}/answers", json={}).status_code == 200
+        assert wait(rid) == "done"
+    d = cl.get(f"/api/runs/{rid}/dashboard").json()
+    assert d["objective"] == dashplan.OVERVIEW_LINE and d["plan"]["objective"] == dashplan.OVERVIEW_LINE and d["plan"]["mode"] == "overview"
+    assert DEFAULT_EXPLORE_GOAL not in str(d) and "no specific goal" not in d["objective"].lower()

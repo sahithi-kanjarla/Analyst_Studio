@@ -168,6 +168,10 @@ def build_plan(dash: dict, result: dict) -> dict:
         if tool in TREND_TOOLS and t["measure"] == primary and dash.get("date"):
             return True
         return tool in RANKED_TOOLS and t["measure"] == primary and t["dimension"] in covered_dims
+    live_dim = {t["col"]: t for t in live if t["kind"] == "dim"}
+    for t in fin_tiles + fin_more:                         # a merged card's measures are not lost when its chart is the live one: they go on that tile
+        if duplicate(t) and t.get("items") and t["dimension"] in live_dim:
+            live_dim[t["dimension"]]["items"] = t["items"]
     fin_tiles = [t for t in fin_tiles if not duplicate(t)]
     fin_more = [t for t in fin_more if not duplicate(t)]
 
