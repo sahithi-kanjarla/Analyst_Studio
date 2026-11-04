@@ -188,6 +188,7 @@ def _candidates_from_findings(findings: list[dict], goal: str) -> list[dict]:
             "caution": caution,
             "base_score": float(score_val),
             "tool": tool,
+            "within": (str((f.get("params") or {}).get("within") or ""), str((f.get("params") or {}).get("within_value") or "")),
         })
         # chart candidate (if the finding has a chart, is not a robustness/table
         # tool, and is not a null result — null results never get their own chart)
@@ -519,6 +520,9 @@ def _item(c: dict) -> dict:
 def _relation(c: dict, p: dict) -> tuple[str, float]:
     """How much of c is already said by p: (kind, overlap) with kind 'merge', 'same', 'partial' or ''."""
     same_dim = bool(c["dimension"]) and c["dimension"] == p["dimension"]
+    if c.get("within") != p.get("within"):        # a slice (within category = X) and the whole table, or two different slices, are different populations: never one card
+        both = c["tool"] == p["tool"] == "group_compare"
+        return ("partial", PARTIAL_OVERLAP) if both and same_dim and c["measure"] != p["measure"] and c["leader"] and c["leader"] == p["leader"] else ("", 0.0)
     if same_dim and c["measure"] == p["measure"] and c["tool"] != p["tool"]:
         return "merge", 1.0                       # the same measure and dimension drawn another way
     both_cmp = c["tool"] == p["tool"] == "group_compare"
