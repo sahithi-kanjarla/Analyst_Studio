@@ -226,7 +226,9 @@ def find_col(df, name):
 
 
 def sentences(text: str, k: int = 2) -> str:
-    t = re.sub(r"\s+", " ", re.sub(r"[*_`#>]", "", str(text or ""))).strip()
+    # Strip markdown marks, but keep an underscore that sits inside a name (cost_amount stays cost_amount) and never join words.
+    t = re.sub(r"[*`#>]|(?<![A-Za-z0-9])_|_(?![A-Za-z0-9])", " ", str(text or ""))
+    t = re.sub(r"\s+", " ", t).strip()
     return " ".join(re.split(r"(?<=[.!?])\s+", t)[:k])
 
 
@@ -374,6 +376,8 @@ def visible_text(res: dict) -> str:
         parts.append(f'{f.get("title", "")}. {f.get("text", "")}')
     for m in res.get("key_metrics") or []:
         parts.append(f'{m.get("label")}: {m.get("value")} {m.get("note", "")}')
+    for m in (res.get("report_view") or {}).get("numbers") or []:      # the Key figures / key numbers lines
+        parts.append(f'{m.get("label")}: {m.get("value")} {m.get("note", "")}')
     try:
         parts += [f'{i["title"]}. {i.get("text", "")}' for i in viewedit.catalogue(res)["items"].values()]
     except Exception:       # noqa: BLE001
@@ -411,6 +415,15 @@ class Tables:
                 if c is not None:
                     return df, c, "analysis table" if which == "analysis" else f"table {stem_of(fname)}"
         return None, None, "not found"
+
+
+def left_out_as_empty(res: dict, col: str) -> bool:
+    """True when the cleaning log says this column was left out because it had nothing in it."""
+    for st in res.get("cleaning_log") or []:
+        if "empty" in str(st.get("step", "")).lower() and "left out" in str(st.get("step", "")).lower():
+            if repr(col) in str(st.get("detail", "")) or f"'{col}'" in str(st.get("detail", "")):
+                return True
+    return False
 
 
 def check_figures(exp: dict, res: dict, wd: Path, text: str) -> list[dict]:
@@ -505,7 +518,8 @@ def check_figures(exp: dict, res: dict, wd: Path, text: str) -> list[dict]:
         for col, want in miss.items():
             c = find_col(A, col)
             if c is None:
-                diffs.append(f"{col}: column not in the cleaned table")
+                if not left_out_as_empty(res, col):
+                    diffs.append(f"{col}: column not in the cleaned table")
             elif int(A[c].isna().sum()) != want:
                 diffs.append(f"{col}: expected {want} blank, got {int(A[c].isna().sum())}")
         if miss:
