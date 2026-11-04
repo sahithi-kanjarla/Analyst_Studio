@@ -79,3 +79,71 @@ saved in `result.json`.
 
 Existing tests still pass: `test_pipeline` (6), `test_report_tiers` (8),
 `test_token_budget` (5), `test_report_consistency` (10), `test_dashboard` (2).
+
+## Part B2 of 3: tabs use the saved curation selection
+
+### Step 2 — backend apply_curation, frontend tabs, tests
+
+**Backend: `tiering.apply_curation(view, curation)`** — called in `main.py`
+when serving the API response.  Mutates the view in place:
+
+- **Insights tab**: re-partitions `evidence` (kept findings only) and adds
+  `more_findings` (overflow with real information).  Null-result cards are
+  removed from both lists; their one-line summaries go into `null_lines`.
+  `null_counted` tracks how many null results were grouped away.
+- **Report tab**: `report_findings` holds the most important findings for the
+  shareable summary.  A floor of `MIN_REPORT_FINDINGS = 3` fills from the
+  overall pool when curation keeps fewer.
+- **Ideas tab**: `strategies.strategies` holds kept ideas,
+  `strategies.more` holds overflow, `strategies.dropped` is the left-out count.
+- **Data tab**: `left_out_count` (the aggregate from curate.py) tells the user
+  how many minor findings were excluded and why.
+- When no curation exists (old runs), the view is unchanged.
+
+`main.py` change (lines ~162–174): applies curation after building chart_urls,
+then patches chart_url on the new `report_findings` and `more_findings` lists.
+Uses `.get()` for evidence/appendix to handle the empty-list case safely.
+
+**Frontend changes**:
+
+- `api.ts`: `NullLine` interface.  `ReportView` gains `report_findings`,
+  `more_findings`, `null_lines`, `null_counted`, `left_out_count`, and
+  `strategies.more`.
+- `Tiers.tsx` (Insights tab): detects curated mode via `view.more_findings`.
+  Evidence section renders pre-filtered cards.  A new `MoreFindingsList`
+  component shows a collapsed `<details>` block — each item has title + one
+  line of text, and the chart draws only when opened (`useState(opened)` on
+  `onToggle`).  Null lines rendered as "Checked, no reliable difference"
+  one-liners.  `LegacyAppendix` preserves the old rendering for runs without
+  curation.
+- `StrategyView.tsx`: accepts `more` prop; renders a collapsed "More (N ideas
+  that ranked lower)" details block with title + one-line objective.
+- `ReportPage.tsx`: the `report:evidence` section shows curated
+  `report_findings` (each with chart image, headline, observation text) when
+  available, falls back to `page.charts` for old runs.  New `report:ideas`
+  section shows the top 4 strategies with a "and N more on the Ideas tab" link.
+  New `ReportFinding` component for individual finding cards.
+- `Results.tsx`: Data tab shows a muted note when `left_out_count > 0`:
+  "N minor findings were left out … they stay in the full results."
+  Passes `strategies.more` to `StrategyView`.
+
+**Tests** (8 new in `test_curate.py`, 19 total):
+- `test_apply_curation_partitions_evidence_and_more`: kept and more are
+  disjoint; every id accounted for.
+- `test_report_findings_has_a_floor`: at least `MIN_REPORT_FINDINGS` cards.
+- `test_report_never_empty_on_small_file`: one finding is enough.
+- `test_null_result_has_no_chart_in_display`: null results are never full cards
+  in evidence or report_findings.
+- `test_left_out_count_in_view`: view carries an integer `left_out_count`.
+- `test_more_findings_reachable`: 19 findings — all non-left-out are in
+  evidence, more_findings or appendix.
+- `test_strategies_more_list`: kept and more strategies are disjoint.
+- `test_apply_curation_empty_is_noop`: empty curation leaves view unchanged.
+
+**No old tests changed.** The existing tests call `tiering.build_view()`
+directly, which is unchanged.  `apply_curation` is a separate post-processing
+step applied in `main.py`, so existing assertions on the raw view still hold.
+
+**Test results**: 19 passed (test_curate), 25 passed (test_report_tiers +
+test_report_page_stage1), 11 passed (test_report_consistency), 13 passed
+(test_main_view).  TypeScript compiles clean.
