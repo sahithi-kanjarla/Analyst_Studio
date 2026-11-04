@@ -16,7 +16,7 @@ def node_major() -> int | None:
     if not shutil.which("node"):
         return None
     try:
-        out = subprocess.run(["node", "-v"], capture_output=True, text=True, timeout=20).stdout.strip()
+        out = subprocess.run([shutil.which("node"), "-v"], capture_output=True, text=True, timeout=20).stdout.strip()
         return int(out.lstrip("v").split(".")[0])
     except (ValueError, OSError, subprocess.SubprocessError):
         return None
@@ -27,7 +27,7 @@ def results():
     major = node_major()
     if major is None or major < 22:
         pytest.skip("needs node 22+ (it runs the TypeScript helpers directly)")
-    out = subprocess.run(["node", "--experimental-strip-types", str(SCRIPT)], cwd=ROOT, capture_output=True, text=True, timeout=180)
+    out = subprocess.run([shutil.which("node"), "--experimental-strip-types", str(SCRIPT)], cwd=ROOT, capture_output=True, text=True, timeout=180)
     line = [x for x in out.stdout.splitlines() if x.startswith("{")]
     assert line, out.stdout + out.stderr
     return json.loads(line[-1])
