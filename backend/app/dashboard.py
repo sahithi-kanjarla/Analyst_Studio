@@ -34,6 +34,44 @@ def _eta_squared(y: pd.Series, g: pd.Series) -> float:
     return float((grp["count"] * (grp["mean"] - d["y"].mean()) ** 2).sum() / tot)
 
 
+WORDLIKE = re.compile(r"^[^\W\d_][^\W\d_ '&.\-/]*(?:[ '&.\-/]+[^\W\d_][^\W\d_ '&.\-/]*)*$")
+
+
+def _one_to_one(df: pd.DataFrame, a: str, b: str) -> bool:
+    """True when every value of a goes with exactly one value of b and the other way round (the same grouping written twice, such as a name and its code)."""
+    s = df[[a, b]].dropna()
+    na, nb = s[a].nunique(), s[b].nunique()
+    return na >= 2 and na == nb and len(s.drop_duplicates()) == na
+
+
+def _readability(df: pd.DataFrame, col: str) -> tuple[float, float]:
+    """How readable a column's values are, from the values alone: the share that are words (letters, spaces and common marks, no digits), then their average length."""
+    vals = df[col].dropna().astype(str).drop_duplicates().head(200)
+    if vals.empty:
+        return (0.0, 0.0)
+    return (float(vals.map(lambda v: bool(WORDLIKE.match(v.strip()))).mean()), float(vals.str.len().mean()))
+
+
+def drop_twin_dims(df: pd.DataFrame, dims: list[dict]) -> tuple[list[dict], dict[str, str]]:
+    """Of two columns that group the rows identically, keep one: the one the goal names, else the one whose values read as words rather than codes. Returns (dims, {dropped: kept})."""
+    dropped: dict[str, str] = {}
+    by_n: dict[int, list[dict]] = {}
+    for d in dims:
+        by_n.setdefault(d["unique"], []).append(d)
+    for group in by_n.values():
+        for i, a in enumerate(group):
+            for b in group[i + 1:]:
+                if a["col"] in dropped or b["col"] in dropped or not _one_to_one(df, a["col"], b["col"]):
+                    continue
+                if bool(a.get("goal")) != bool(b.get("goal")):
+                    keep, lose = (a, b) if a.get("goal") else (b, a)
+                else:
+                    ra, rb = _readability(df, a["col"]), _readability(df, b["col"])
+                    keep, lose = (b, a) if rb > ra else (a, b)
+                dropped[lose["col"]] = keep["col"]
+    return [d for d in dims if d["col"] not in dropped], dropped
+
+
 def _measure(df: pd.DataFrame, col: str, currency: str, kinds: dict | None = None, ratios: dict | None = None, money_cols: set | None = None):
     spec = (ratios or {}).get(col)
     if spec is not None and spec["b"] in df.columns:      # a derived ratio: the page weights each row by its denominator, so groups show sum A / sum B, never a mean of row ratios
@@ -94,6 +132,7 @@ def build_dashboard(wd: Path, result: dict, pinned: list[str] | None = None) -> 
             continue
         eta = _eta_squared(cols[measures[0]["col"]], df[c].astype(str)) if measures else 0.0
         dims.append({"col": c, "unique": n, "score": eta, **({"top": GOAL_TOP, "goal": True} if goal else {})})
+    dims, _ = drop_twin_dims(df, dims)
     dims.sort(key=lambda d: (-d["score"], d["unique"]))
     keep = [d for d in dims if d.get("goal")][:MAX_DIMS]
     keep += [d for d in dims if not d.get("goal") and d["score"] >= 0.02][:MAX_DIMS - len(keep)]
