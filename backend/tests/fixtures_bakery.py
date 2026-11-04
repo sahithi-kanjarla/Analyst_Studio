@@ -42,3 +42,17 @@ def record(df, order_key=None, roles=None):
     parts, errors = und.validate(reply, list(df.columns))
     assert not errors, errors
     return und._record("llm", parts)
+
+
+def boutique(n=700, end="2025-10-09", seed=5):
+    """A boutique-style order-line file: gross, discount and a net_received column, and a last month that stops on day 9 (a part-month export)."""
+    rng = np.random.default_rng(seed)
+    prods = [(f"Product {chr(65 + i)}", ["Ethnic", "Western", "Accessories"][i % 3], 400 + i * 150) for i in range(10)]
+    pick = rng.integers(0, 10, n)
+    dates = pd.Timestamp(end) - pd.to_timedelta(rng.integers(0, 250, n), unit="D")
+    qty = rng.integers(1, 4, n)
+    gross = np.array([prods[i][2] for i in pick]) * qty
+    disc = np.round(gross * rng.choice([0, 0.05, 0.1, 0.2], n), 2)
+    return pd.DataFrame({"order_id": [f"BT-{i:05d}" for i in range(1, n + 1)], "order_date": dates.sort_values().strftime("%Y-%m-%d").values,
+                         "product_name": [prods[i][0] for i in pick], "product_category": [prods[i][1] for i in pick], "sales_channel": rng.choice(["Website", "Marketplace", "Store"], n),
+                         "quantity": qty, "gross_amount": gross, "discount_amount": disc, "net_received": np.round(gross - disc, 2)})
