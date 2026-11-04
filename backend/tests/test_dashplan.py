@@ -148,3 +148,66 @@ def test_a_merged_line_without_a_figure_reads_as_the_findings_own_headline():
     from app import curate
     c = {"id": "x", "measure": "revenue", "dimension": "region", "tool": "outcome_compare", "title": "Region N leads on revenue"}
     assert curate._item(c)["text"] == "Region N leads on revenue"
+
+
+# ------------------------------------------------------------------ Lens, export and Power BI follow the same selection
+def _same_leader_df():
+    import pandas as pd
+    rng = np.random.default_rng(5)
+    n = 900
+    region = rng.choice(list("NSEW"), n)
+    base = np.where(region == "N", 3.0, np.where(region == "S", 2.0, np.where(region == "E", 1.2, 1.0)))
+    return pd.DataFrame({"date": pd.date_range("2023-01-01", periods=n, freq="D"), "region": region, "channel": rng.choice(["web", "store", "app"], n),
+                         "revenue": (100 * base + rng.normal(0, 10, n)).round(2), "units": (5 * base + rng.normal(0, .5, n)).round(2),
+                         "profit": (30 * base + rng.normal(0, 4, n)).round(2)})
+
+
+def test_lens_can_show_a_more_item_on_request_and_it_joins_the_dashboard():
+    from test_new_tools_and_views import run
+    rid, res = run(_same_leader_df(), "Which region is best?")
+    c = TestClient(app)
+    before = c.get(f"/api/runs/{rid}/dashboard").json()["plan"]
+    more = [t for t in before["more"] if t["kind"] == "finding"]
+    assert more, "this data should leave at least one chart in the More list"
+    pick = more[0]["finding_id"]
+    assert not [t for t in before["tiles"] if t.get("finding_id") == pick]
+    r = c.post(f"/api/runs/{rid}/view", json={"command": {"cmd": "show", "ids": [f"dashboard:chart:{pick}"]}})      # the same command Lens sends for "show me that chart"
+    assert r.status_code == 200 and "Added to the Dashboard" in r.json()["message"]
+    after = c.get(f"/api/runs/{rid}/dashboard").json()["plan"]
+    assert pick in [t.get("finding_id") for t in after["tiles"]]
+    assert pick not in [t.get("finding_id") for t in after["more"]]
+    assert dashplan.covered(after["layout"]["tiles"]) == (dashplan.GRID_COLS * dashplan.GRID_ROWS, 0)
+    c.post(f"/api/runs/{rid}/view", json={"command": {"cmd": "undo"}})
+    assert pick not in [t.get("finding_id") for t in c.get(f"/api/runs/{rid}/dashboard").json()["plan"]["tiles"]]
+
+
+def test_a_chart_the_selection_left_out_entirely_can_still_be_asked_for():
+    fs = [_finding("a", "group_compare", "revenue", "region", 9.0), _finding("z", "scatter", "units", "", 0.1)]
+    res = _result(fs, ["a"])                                        # "z" is neither kept nor in More
+    assert "dashboard:chart:z" in [f"dashboard:chart:{f['id']}" for f in fs]
+    plan = dashplan.build_plan(_dash(dims=(), date=False), res, ["dashboard:chart:z"])
+    assert "chart:z" in [t["id"] for t in plan["tiles"]]
+    assert dashplan.covered(plan["layout"]["tiles"]) == (dashplan.GRID_COLS * dashplan.GRID_ROWS, 0)
+
+
+def test_print_report_and_power_bi_follow_the_selection():
+    from pathlib import Path
+    from app import powerbi
+    from app.lens import exporter
+    from app.runner import RUNS_DIR
+    from test_new_tools_and_views import run
+    rid, res = run(_same_leader_df(), "Which region is best?")
+    cards = exporter.curated_cards(res)
+    assert cards and len(cards) < len(res["findings"])
+    html_ = exporter.report_html(res, Path(RUNS_DIR) / rid)
+    for c in cards:
+        if c.get("chart"):
+            assert c["headline"].split(" (")[0][:20] in html_
+    merged = [c for c in cards if c.get("merged")]
+    assert merged and merged[0]["merged"]["items"][1]["text"] in html_ and html_.count(merged[0]["merged"]["items"][1]["text"]) == 1
+    vis = powerbi.build_visuals(res["findings"], res["plan"], res["curation"])
+    every = powerbi.build_visuals(res["findings"], res["plan"], None)
+    assert len(vis) < len(every)
+    chosen, left = powerbi.selected_findings(res["findings"], res["curation"])
+    assert left > 0 and not ({f["id"] for f in chosen} & set(res["curation"]["absorbed"]))
+    assert powerbi.selected_findings(res["findings"], {})[1] == 0                  # an older run: everything, as before

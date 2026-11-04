@@ -755,7 +755,7 @@ def powerbi_node(state: RunState) -> dict:
     rid = state["run_id"]
     emit(rid, "Power BI", "Packaging cleaned data, DAX measures and visual specs for Power BI…")
     df = pd.read_pickle(_wd(state) / "clean.pkl")
-    info = powerbi.build_pack(_wd(state), df, state["profile"], state["plan"], state["findings"], state["goal"], state.get("data_model"), briefmod.kinds(state.get("brief")))
+    info = powerbi.build_pack(_wd(state), df, state["profile"], state["plan"], state["findings"], state["goal"], state.get("data_model"), briefmod.kinds(state.get("brief")), state.get("curation"))
     emit(rid, "Power BI", f"Pack ready: {len(info['measures'])} DAX measures, {len(info['visuals'])} visual specs" + (", plus the table relationships." if state.get("data_model") else "."))
     return {"powerbi": info}
 

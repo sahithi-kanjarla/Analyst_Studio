@@ -244,3 +244,26 @@ Old runs without curation: the plan falls back to the gallery's key order (the s
 ### Step 2 - merged cards, objective line
 Checked with a three-measure run (same leader on revenue, units, profit): Report and Insights show one card with one line per measure, and the chart URL answers 200. On the Dashboard the merged chart was the
 live region chart, so its measure lines were being lost; they now show on that tile. `curate._item`: a merged line with no single figure to quote now reads as the finding's headline, not a bare column name.
+
+### Step 3 - every other place that shows findings or charts
+| place | follows the selection? | what was done |
+|---|---|---|
+| Report, Insights, Ideas tabs | yes (B2/B4) | unchanged |
+| Dashboard | **now yes** | step 1 |
+| Print / PDF report (`lens/exporter.py` `report_html`) | **was no** (used the report page's fixed first 6 charts) | now uses the same cards the Report tab shows (`curated_cards`: stored view + `tiering.apply_curation`), a merged group once with its measure lines; older runs keep the old charts |
+| Power BI starter pack (`powerbi.build_visuals`) | **was no** (one visual per finding, nulls included) | now the findings the Dashboard keeps, merged once; `POWERBI_GUIDE.md` says how many lower-ranked findings are not listed; older runs list everything as before |
+| Plain-text report export | has no findings list (headline, actions, trust notes) | nothing to change |
+| `report.md` (the written full report, "Report" download) | **no** | It is written in the report stage, which runs *before* the curate stage, and it is the full written record (every finding, checks, cleaning). Not changed: following the selection would mean moving the curate stage before the report stage and cutting the full record. **Your call.** |
+| Lens agent facts (`report_facts`, `rank`, `data_query`...) | not limited by it, on purpose | they search the whole fact sheet / data, so a More or left-out finding can still be asked about |
+| Lens briefs | built from the report's headline, key figures and chosen facts, not from the findings list | nothing to change |
+| Older runs without `curation` | yes, fallback | Dashboard uses the gallery's key order; PDF and Power BI use the old lists; tabs unchanged (B2) |
+
+**Lens can show a More or left-out item.** The view command `show` on a Dashboard chart that is not hidden now **pins** it (the pin means "kept, never folded"), and the Dashboard plan (`dashplan.build_plan(..., pinned)`)
+always draws pinned charts, even one the selection left out entirely; the grid is re-cut for them. `undo` removes it again. The Dashboard re-reads its plan when the pins change.
+Test: `test_dashplan.py::test_lens_can_show_a_more_item_on_request_and_it_joins_the_dashboard` (through the same `/view` route Lens commands use) and `test_a_chart_the_selection_left_out_entirely_can_still_be_asked_for`.
+Not tested: Lens choosing that command from a typed sentence with a real model (fake AI only).
+
+### Step 4 - tests (all in `backend/tests/test_dashplan.py`, plus one in `test_explore_placeholder.py`)
+Tile sizes leave no gap or overlap for 1, 2, 3, 6, 10 and 12 tiles; the top tile is the largest; 3 tiles are each bigger than 10; a repeated chart is never a second tile; with one important item the plan has
+1-3 tiles and no filler; merged cards are one tile with their measures (also on the live tile); filters are few; explore objective is "Overview of your data" (unit and end-to-end); More item shown on request;
+PDF and Power BI follow the selection. Old tests changed in B3: **none**.

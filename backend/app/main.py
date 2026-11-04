@@ -421,7 +421,7 @@ def dashboard_data(run_id: str):
     res = wd / "result.json"
     if not res.exists() or not (wd / "clean.pkl").exists():
         raise HTTPException(404, "Dashboard not ready")
-    return build_dashboard(wd, json.loads(res.read_text()))
+    return build_dashboard(wd, json.loads(res.read_text()), list((lensstore.get_view_state(wd) or {}).get("pinned") or []))
 
 
 @app.get("/api/runs/{run_id}/dashboard/layout")

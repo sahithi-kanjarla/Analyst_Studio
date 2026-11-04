@@ -369,6 +369,11 @@ def _push(prev: dict, new: dict) -> dict:
     return new
 
 
+def _on_dashboard_list(result: dict, item_id: str) -> bool:
+    """True for a Dashboard chart item of a run that has a saved selection (so the Dashboard may not be drawing it).  Pinning it is harmless when it is already drawn."""
+    return item_id.startswith("dashboard:chart:") and (((result.get("curation") or {}).get("tabs") or {}).get("dashboard:chart")) is not None
+
+
 def apply(result: dict, state: dict, cmd: dict, cat: dict | None = None) -> tuple[dict, str]:
     """(new state, a plain sentence saying what changed). Raises ViewError for anything not on the closed list or not valid for this run. A command that changes nothing returns the same state
     (nothing is added to the history) and says so."""
@@ -398,9 +403,15 @@ def apply(result: dict, state: dict, cmd: dict, cat: dict | None = None) -> tupl
             if name == "show":
                 new["hidden"] = [h for h in new["hidden"] if h != i]
         names = ", ".join(f"“{_label(cat, i)}”" for i in ids[:3]) + (f" and {len(ids) - 3} more" if len(ids) > 3 else "")
-        if name == "show" and not any(i in prev["hidden"] for i in ids):
+        promote = [i for i in ids if name == "show" and i not in prev["hidden"] and _on_dashboard_list(result, i)]      # asking to see a Dashboard chart that was not hidden: it may be in "More" or left out, so it is put on the Dashboard
+        for i in promote:
+            if i not in new["pinned"]:
+                new["pinned"].append(i)
+        if name == "show" and not promote and not any(i in prev["hidden"] for i in ids):
             return prev, "Nothing was hidden there, so nothing changed."
         msg = f"{'Hidden' if name == 'hide' else 'Shown again'}: {names}." + (" It stays in your saved report and can be restored from Hidden items." if name == "hide" else "")
+        if promote:
+            msg = f"Added to the Dashboard: {', '.join(f'“{_label(cat, i)}”' for i in promote[:3])}. It was ranked lower, so it was in the More list."
     elif name == "keep_only":
         from . import viewselect as vs
         scope, keep = cmd.get("scope"), cmd.get("keep")

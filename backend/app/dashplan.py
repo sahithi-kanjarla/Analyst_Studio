@@ -103,8 +103,9 @@ def _finding_id(chart_id: str) -> str:
     return chart_id[3:] if chart_id.startswith("ch_") else chart_id
 
 
-def build_plan(dash: dict, result: dict) -> dict:
-    """Pick the dashboard's tiles, its "More" list and its filters from the saved selection."""
+def build_plan(dash: dict, result: dict, pinned: list[str] | None = None) -> dict:
+    """Pick the dashboard's tiles, its "More" list and its filters from the saved selection.
+    `pinned` are view-item ids the person pinned or asked to be shown (e.g. through Lens): those charts are always on the dashboard."""
     cur = result.get("curation") or {}
     cands = {c["id"]: c for c in cur.get("candidates") or []}
     findings = {f["id"]: f for f in result.get("findings") or []}
@@ -149,6 +150,23 @@ def build_plan(dash: dict, result: dict) -> dict:
             tile["items"] = [{"measure": i.get("measure", ""), "text": i.get("text", "")} for i in merges[fid].get("items") or []]
         (fin_tiles if cid in kept_ids else fin_more).append(tile)
 
+    # --- a chart the person asked for (pinned, or "show" on a More item) is on the dashboard whatever the cut said
+    want = [i[len("dashboard:chart:"):] for i in pinned or [] if i.startswith("dashboard:chart:")]
+    have = {t["finding_id"] for t in fin_tiles}
+    for fid in want:
+        f = findings.get(fid)
+        if not f or not f.get("chart") or fid in have:
+            continue
+        old = next((t for t in fin_more if t["finding_id"] == fid), None)
+        if old is not None:
+            fin_more.remove(old)
+        c = cands.get(f"ch_{fid}") or cands.get(fid)
+        fin_tiles.append(old or {"id": f"chart:{fid}", "kind": "finding", "finding_id": fid, "importance": max(imp_of(c, f), top * 0.5),
+                                 "title": (f.get("insight") or {}).get("headline") or f.get("title", ""), "measure": (c or {}).get("measure", ""),
+                                 "dimension": (c or {}).get("dimension", ""), "direct": False, "core": False})
+        fin_tiles[-1]["pinned"] = True
+    pin_ids = {f"chart:{fid}" for fid in want}
+
     # --- the interactive tiles
     live: list[dict] = []
     drawn_by_finding = lambda t: (t["finding_id"] and findings.get(t["finding_id"], {}).get("tool"))   # noqa: E731
@@ -172,14 +190,15 @@ def build_plan(dash: dict, result: dict) -> dict:
     for t in fin_tiles + fin_more:                         # a merged card's measures are not lost when its chart is the live one: they go on that tile
         if duplicate(t) and t.get("items") and t["dimension"] in live_dim:
             live_dim[t["dimension"]]["items"] = t["items"]
-    fin_tiles = [t for t in fin_tiles if not duplicate(t)]
+    fin_tiles = [t for t in fin_tiles if t["id"] in pin_ids or not duplicate(t)]
     fin_more = [t for t in fin_more if not duplicate(t)]
 
     # --- the cut, then what one screen holds
     pool = live + fin_tiles
-    kept, more, _ = curate.apply_cut([{**t, "null_result": False, "caution": False, "pinned": False} for t in pool])
-    kept = sorted(kept, key=lambda t: (-t["importance"], t["id"]))
+    kept, more, _ = curate.apply_cut([{**t, "null_result": False, "caution": False, "pinned": t["id"] in pin_ids} for t in pool])
+    kept = sorted(kept, key=lambda t: (t["id"] not in pin_ids, -t["importance"], t["id"]))        # what the person asked for is the last to spill
     spill, kept = kept[MAX_TILES:], kept[:MAX_TILES]
+    kept = sorted(kept, key=lambda t: (-t["importance"], t["id"]))
     more_all = sorted(more + spill, key=lambda t: (-t["importance"], t["id"])) + fin_more
     slim = lambda t: {k: v for k, v in t.items() if k not in ("null_result", "caution", "pinned")}   # noqa: E731
     kept, more_all = [slim(t) for t in kept], [slim(t) for t in more_all]

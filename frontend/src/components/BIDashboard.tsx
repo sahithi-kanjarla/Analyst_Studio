@@ -86,6 +86,8 @@ function FitCard({ title, kind, style, items, render }: { title: string; kind: s
 
 /** Power BI-style dashboard: every visual is drawn in the browser from the cleaned data, so selecting a month, segment or year re-filters all the others. */
 export default function BIDashboard({ run }: { run: RunResult }) {
+  const view = useView();
+  const pinKey = (view?.data.state.pinned ?? []).filter((i) => i.startsWith("dashboard:chart:")).join(",");   // a chart pinned (or asked for) in Lens joins the dashboard
   const [data, setData] = useState<DashData | null>(null);
   const [err, setErr] = useState("");
   const [mIdx, setMIdx] = useState(0);
@@ -96,7 +98,7 @@ export default function BIDashboard({ run }: { run: RunResult }) {
 
   useEffect(() => {
     api.getDashboard(run.run_id).then(setData).catch((e) => setErr(e.message));
-  }, [run.run_id]);
+  }, [run.run_id, pinKey]);
 
   // how many bars fit is decided from the real width, so a phone shows fewer and the subtitle matches what is drawn
   useEffect(() => {
@@ -105,7 +107,6 @@ export default function BIDashboard({ run }: { run: RunResult }) {
     return () => window.removeEventListener("resize", on);
   }, []);
 
-  const view = useView();
   const plan = data?.plan;
   const wide = vw >= 760;                                  // a phone shows the tiles in one column; a window shows them filling the screen
   const fitRef = useRef<HTMLDivElement>(null);
