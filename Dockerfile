@@ -28,9 +28,11 @@ ARG APP_VERSION=1.0.0
 ENV APP_VERSION=$APP_VERSION APP_ENV=production DATA_DIR=/data PORT=8000
 RUN useradd --create-home --uid 10001 app && mkdir -p /data && chown -R app:app /data
 VOLUME ["/data"]
-USER app
+# no USER line on purpose: the entrypoint fixes the volume's owner as root, then drops to the "app" user (uid 10001) before the app starts
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 WORKDIR /app/backend
 EXPOSE 8000
 # the port is whatever PORT says; the check calls the page's own health route (status and version only)
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 CMD python -c "import os,urllib.request;urllib.request.urlopen('http://127.0.0.1:%s/api/health' % os.environ.get('PORT', '8000'), timeout=4)" || exit 1
+ENTRYPOINT ["sh", "/usr/local/bin/docker-entrypoint.sh"]
 CMD ["python", "-m", "app"]

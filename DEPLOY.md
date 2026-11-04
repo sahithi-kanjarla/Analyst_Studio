@@ -9,7 +9,7 @@ git clone <your repository> analyst-studio && cd analyst-studio
 docker build -t analyst-studio:1.0.0 --build-arg APP_VERSION=1.0.0 .
 ```
 
-The image builds the frontend, installs the backend requirements and Chromium (used for the PDF exports), runs as a non-root user (`app`, uid 10001) and has a health check.
+The image builds the frontend, installs the backend requirements and Chromium (used for the PDF exports), starts as root only to make the mounted `/data` volume writable, then runs the app as a non-root user (`app`, uid 10001) and has a health check.
 
 ## 2. Run
 
