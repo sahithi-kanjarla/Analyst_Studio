@@ -10,7 +10,8 @@ COPY frontend/ ./
 RUN npm run build
 
 # ---- stage 2: the backend, with the built frontend next to it ----
-FROM python:3.13-slim          # the Python the tests ran on (see backend/constraints.txt)
+# the Python the tests ran on (see backend/constraints.txt)
+FROM python:3.13-slim
 ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1 MPLBACKEND=Agg
 # Chromium makes the PDF exports (briefs and the report); the fonts keep the PDFs readable
 RUN apt-get update && apt-get install -y --no-install-recommends chromium fonts-liberation && rm -rf /var/lib/apt/lists/*

@@ -323,3 +323,52 @@ def test_everything_the_app_writes_goes_under_the_data_dir(monkeypatch, tmp_path
             "from app import config, glossary, aicache, guard;print(config.RUNS_DIR, glossary.glossary_path(), aicache.cache_dir(), guard._usage_path())") % str(tmp_path)
     out = subprocess.run([sys.executable, "-c", code], cwd=ROOT / "backend", capture_output=True, text=True, env={**os.environ, "RUNS_DIR": ""}).stdout.split()
     assert len(out) == 4 and all(o.startswith(str(tmp_path)) for o in out), out
+
+
+# ------------------------------------------------------------------ Dockerfile and requirements (hardening)
+def test_no_dockerfile_instruction_line_has_a_trailing_comment():
+    # Docker takes "FROM image  # note" as part of the instruction and fails; comments need their own line.
+    bad = []
+    for n, line in enumerate((ROOT / "Dockerfile").read_text(encoding="utf-8").splitlines(), 1):
+        if line.strip() and not line.lstrip().startswith("#") and " #" in line:
+            bad.append((n, line))
+    # HEALTHCHECK's python -c string has no " #"; anything listed here is a real trailing comment
+    assert not bad, bad
+
+
+def _pkg_names(path):
+    names = set()
+    for l in path.read_text().splitlines():
+        l = l.split("#")[0].strip()
+        if l and not l.startswith("-"):
+            names.add(re.split(r"[<>=!~\[ ]", l)[0].lower().replace("_", "-"))
+    return names
+
+
+def test_runtime_requirements_have_the_sql_guard_packages_and_no_test_tools():
+    runtime = _pkg_names(ROOT / "backend" / "requirements.txt")
+    assert {"duckdb", "sqlglot"} <= runtime
+    assert "pytest" not in runtime and "httpx" not in runtime
+    pinned = _pkg_names(ROOT / "backend" / "constraints.txt")
+    assert {"duckdb", "sqlglot"} <= pinned
+    dev = (ROOT / "backend" / "requirements-dev.txt").read_text()
+    assert "-r requirements.txt" in dev and "pytest" in dev
+
+
+def test_every_third_party_import_in_the_app_is_a_runtime_requirement():
+    import ast
+    runtime = _pkg_names(ROOT / "backend" / "requirements.txt")
+    alias = {"dotenv": "python-dotenv", "langchain-groq": "langchain-groq", "langchain-google-genai": "langchain-google-genai",
+             "langchain-ollama": "langchain-ollama", "starlette": "fastapi", "pydantic": "fastapi", "multipart": "python-multipart"}
+    optional = {"langchain-google-genai", "langchain-ollama"}
+    stdlib = set(sys.stdlib_module_names)
+    seen = set()
+    for f in (ROOT / "backend" / "app").rglob("*.py"):
+        for node in ast.walk(ast.parse(f.read_text(encoding="utf-8"))):
+            mods = [a.name for a in node.names] if isinstance(node, ast.Import) else ([node.module] if isinstance(node, ast.ImportFrom) and node.level == 0 and node.module else [])
+            for m in mods:
+                top = m.split(".")[0]
+                if top not in stdlib and top != "app":
+                    seen.add(top.replace("_", "-"))
+    missing = {alias.get(m, m) for m in seen} - runtime - optional
+    assert not missing, missing

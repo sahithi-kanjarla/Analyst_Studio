@@ -17,8 +17,6 @@ langchain-groq>=0.2  # the default free LLM provider (Groq)
 # Local & free, no key:      pip install langchain-ollama      (and install Ollama from ollama.com)
 # Free tier API key:         pip install langchain-google-genai   (Gemini)
 
-# --- Dev ---
-pytest>=8
-httpx>=0.27
+# --- Runtime: the Lens SQL guard (app/lens/agent/sqlguard.py) needs both ---
 duckdb>=1.0
 sqlglot>=25
