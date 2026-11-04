@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
-import { api, DashData, DashMeasure, Finding, RunResult } from "../api";
-import { planRanked, planShare, planTable, plural, rankedLimit, SHARE_SLICES, TABLE_ROWS } from "../chartsize";
+import { CSSProperties, ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { api, DashData, DashMeasure, DashRect, DashTile, Finding, RunResult } from "../api";
+import { planShare, planTable, plural, SHARE_SLICES, TABLE_ROWS } from "../chartsize";
 import { chartTitle, displayName, humanise, plainLabel } from "../display";
-import FindingGallery from "./FindingGallery";
+import FindingGallery, { Tile } from "./FindingGallery";
+import { useView } from "./view/ViewContext";
 import InsightCard from "./InsightCard";
 import { Columns, Donut, HBar, Item, PALETTE } from "./charts";
 import LensPins from "./lens/LensPins";
@@ -58,6 +59,30 @@ function Card({ title, sub, wide, kind, action, children }: { title: string; sub
   );
 }
 
+const BAR_ROW = 30;      // height of one bar row in HBar (charts.tsx)
+
+/** A tile that fills the grid cell it is given: it measures the space left under its title and hands that height to its chart, so the chart is drawn to fit (fewer bars in a small tile, more in a big one). */
+function FitCard({ title, kind, style, render }: { title: string; kind: string; style?: CSSProperties; render: (h: number) => { sub: string; node: ReactNode } }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [h, setH] = useState(0);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const on = () => setH(el.clientHeight);
+    on();
+    const ro = new ResizeObserver(on);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const out = h > 0 ? render(h) : null;
+  return (
+    <section className="bi-card bi-tile" data-kind={kind} style={style}>
+      <h4>{title}{out?.sub && <small>{out.sub}</small>}</h4>
+      <div ref={ref} className="bi-tile-body">{out?.node}</div>
+    </section>
+  );
+}
+
 /** Power BI-style dashboard: every visual is drawn in the browser from the cleaned data, so selecting a month, segment or year re-filters all the others. */
 export default function BIDashboard({ run }: { run: RunResult }) {
   const [data, setData] = useState<DashData | null>(null);
@@ -66,7 +91,6 @@ export default function BIDashboard({ run }: { run: RunResult }) {
   const [f, setF] = useState<Filters>(EMPTY);
   const [open, setOpen] = useState<string | null>(null);
   const [allRows, setAllRows] = useState(false);
-  const [allDims, setAllDims] = useState<Record<string, boolean>>({});
   const [vw, setVw] = useState(() => (typeof window === "undefined" ? 1440 : window.innerWidth));
 
   useEffect(() => {
@@ -79,6 +103,47 @@ export default function BIDashboard({ run }: { run: RunResult }) {
     window.addEventListener("resize", on);
     return () => window.removeEventListener("resize", on);
   }, []);
+
+  const view = useView();
+  const plan = data?.plan;
+  const wide = vw >= 760;                                  // a phone shows the tiles in one column; a window shows them filling the screen
+  const fitRef = useRef<HTMLDivElement>(null);
+  const [fitH, setFitH] = useState(0);
+  const [rects, setRects] = useState<Record<string, DashRect>>({});
+  const tileShown = (t: DashTile) => t.kind !== "finding" || !(view && (view.isHidden(`dashboard:chart:${t.finding_id}`) || view.isFolded(`dashboard:chart:${t.finding_id}`)));
+  const shownTiles = (plan?.tiles ?? []).filter(tileShown);
+  const shownKey = shownTiles.map((t) => t.id).join("|");
+
+  // where each tile sits: the plan's own layout, or (when a view edit hid some tiles) a fresh one for the tiles still shown, so the grid still fills the window
+  useEffect(() => {
+    if (!plan) return;
+    if (shownTiles.length === plan.tiles.length) {
+      setRects(Object.fromEntries(plan.layout.tiles.map((r) => [r.id, r])));
+      return;
+    }
+    if (!shownTiles.length) {
+      setRects({});
+      return;
+    }
+    let live = true;
+    api.getDashboardLayout(run.run_id, shownTiles.map((t) => t.importance))
+      .then((l) => live && setRects(Object.fromEntries(l.tiles.map((r) => [shownTiles[Number(r.id)].id, r]))))
+      .catch(() => live && setRects({}));
+    return () => { live = false; };
+  }, [plan, shownKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // the grid is as tall as the room left in the window, so the dashboard fits without scrolling
+  useEffect(() => {
+    const on = () => {
+      const el = fitRef.current;
+      if (el) setFitH(Math.max(440, Math.round(window.innerHeight - (el.getBoundingClientRect().top + window.scrollY) - 20)));
+    };
+    on();
+    window.addEventListener("resize", on);
+    const ro = new ResizeObserver(on);
+    ro.observe(document.body);
+    return () => { window.removeEventListener("resize", on); ro.disconnect(); };
+  }, [data, wide]);
 
   const rows: Row[] = useMemo(() => {
     if (!data) return [];
@@ -185,24 +250,34 @@ export default function BIDashboard({ run }: { run: RunResult }) {
     ? group(rows.filter((r) => passes(r, undefined, true)), period, m).sort((a, b) => (a.key < b.key ? -1 : 1)).map((g) => ({ key: g.key, label: periodLabel(g.key, grain, years.length > 1), value: g.value }))
     : [];
 
-  // How many of a dimension's values to draw, and the line that says which ones: one shared rule for every chart (chartsize.ts).
-  // A total may be pooled into "Other"; an average or a rate may not, so those keep the top N and the full list behind "Show all".
+  // One shared rule for every chart (chartsize.ts). A share chart only reads well, and is only honest, for a few parts of a total that add up with nothing negative: chartsize decides.
+  // Bars that are not drawn here are in the full table under "More charts".
   const measureKind = m.agg === "sum" ? "additive" : "rate";
   const dimValues = (col: string): Item[] =>
     group(rows.filter((r) => passes(r, col)), (r) => r.d[col], m).sort((a, b) => b.value - a.value)
       .map((g) => ({ key: g.key, label: g.key, value: g.value, n: g.n }));
-  const dimPlan = (col: string) => {
+  /** The chart for one live tile, drawn to the height it was given. */
+  const liveTile = (t: DashTile, h: number): { title: string; sub: string; node: ReactNode } => {
+    if (t.kind === "trend") {
+      return { title: chartTitle(m.label, undefined, run.understanding) + ` per ${grain}`,
+        sub: trend.length > 1 ? `All ${trend.length} ${plural(grain)}, ${trend[0].label} to ${trend[trend.length - 1].label} · click one to filter` : "",
+        node: trend.length > 1 ? <Columns items={trend} selected={f.time} onToggle={(k) => setF((p) => ({ ...p, time: toggle(p.time, k) }))} fmt={fmt} height={Math.max(120, h)} /> : null };
+    }
+    const col = t.col as string;
     const values = dimValues(col);
-    const plan = planRanked(values, { width: vw, measure: measureKind, group: label(col), measureLabel: m.label });
-    if (!allDims[col] || !plan.showAll) return plan;
-    return { ...plan, items: values, shown: values.length, pooled: false, subtitle: `All ${values.length} ${plural(label(col).toLowerCase())} by ${m.label.toLowerCase()}` };
+    const share = values.length >= 2 && values.length <= SHARE_SLICES ? planShare(values, { measure: measureKind, group: label(col), measureLabel: m.label }) : null;
+    if (share?.suitable) {
+      return { title: `Share of ${chartTitle(m.label, undefined, run.understanding).toLowerCase()} by ${label(col).toLowerCase()}`, sub: share.subtitle,
+        node: <Donut items={share.items as Item[]} selected={f.dims[col] ?? []} onToggle={(k) => toggleDim(col, k)} fmt={fmt} maxSize={h - 8} /> };
+    }
+    const fits = Math.max(3, Math.floor((h - 4) / BAR_ROW));
+    const shown = values.slice(0, fits);
+    const what = plural(label(col).toLowerCase());
+    return { title: chartTitle(m.label, col, run.understanding),
+      sub: values.length > shown.length ? `Top ${shown.length} of ${values.length} ${what} by ${m.label.toLowerCase()}` : `All ${values.length} ${what} by ${m.label.toLowerCase()}`,
+      node: <HBar items={shown} selected={f.dims[col] ?? []} onToggle={(k) => toggleDim(col, k)} fmt={fmt} /> };
   };
-  // A share chart only reads well, and is only honest, for a few parts of a total that add up with nothing negative: chartsize decides.
-  const donutCandidate = data.dims.find((d) => d.unique >= 2 && d.unique <= SHARE_SLICES);
-  const donutPlan = donutCandidate
-    ? planShare(dimValues(donutCandidate.col), { measure: measureKind, group: label(donutCandidate.col), measureLabel: m.label })
-    : null;
-  const donutDim = donutPlan?.suitable ? donutCandidate : undefined;
+  const findingOf = (t: DashTile) => (run.findings ?? []).find((x) => x.id === t.finding_id);
   const tableDim = data.dims[0];
   const tableRows = tableDim
     ? group(rows.filter((r) => passes(r, tableDim.col)), (r) => r.d[tableDim.col], m).sort((a, b) => b.value - a.value)
@@ -227,14 +302,16 @@ export default function BIDashboard({ run }: { run: RunResult }) {
     ...f.time.map((v) => ({ label: periodLabel(v, grain, years.length > 1), drop: () => setF((p) => ({ ...p, time: toggle(p.time, v) })) })),
   ];
 
-  const barDims = data.dims.filter((d) => d !== donutDim);
+  const filterDims = (plan?.filters ?? []).map((c) => data.dims.find((d) => d.col === c)).filter((d): d is NonNullable<typeof d> => !!d);
+  const moreLive = (plan?.more ?? []).filter((t) => t.kind !== "finding");
+  const hiddenTiles = (plan?.tiles ?? []).filter((t) => t.kind === "finding" && view?.isHidden(`dashboard:chart:${t.finding_id}`));
 
   return (
     <div className="bi">
       <header className="bi-head">
         <div>
           <h3>{data.title ? `${data.title} dashboard` : "Dashboard"}</h3>
-          <p className="bi-muted">{(data.objective || run.goal).slice(0, 120)}{(data.objective || run.goal).length > 120 ? "…" : ""}</p>
+          <p className="bi-muted">{data.objective.slice(0, 120)}{data.objective.length > 120 ? "…" : ""}</p>
         </div>
         <div className="bi-slicers">
           {measures.length > 1 && (
@@ -255,7 +332,7 @@ export default function BIDashboard({ run }: { run: RunResult }) {
               <div className="bi-btns">{["Q1", "Q2", "Q3", "Q4"].map((q) => <button key={q} className={f.quarters.includes(q) ? "on" : ""} onClick={() => setF((p) => ({ ...p, quarters: toggle(p.quarters, q) }))}>{q}</button>)}</div>
             </div>
           )}
-          {data.dims.slice(0, 3).map((d) => {
+          {filterDims.map((d) => {
             const sel = f.dims[d.col] ?? [];
             const opts = [...new Set(rows.map((r) => r.d[d.col]).filter((v): v is string => !!v))].sort();
             return (
@@ -299,70 +376,67 @@ export default function BIDashboard({ run }: { run: RunResult }) {
       {filtered.length === 0 ? (
         <div className="bi-card bi-empty">No records match these filters. <button className="bi-chip" onClick={() => setF(EMPTY)}>Clear all</button></div>
       ) : (
-        <div className="bi-grid">
-          {trend.length > 1 && (
-            <Card kind="series" title={chartTitle(m.label, undefined, run.understanding) + ` per ${grain}`}
-              sub={`All ${trend.length} ${plural(grain)}, ${trend[0].label} to ${trend[trend.length - 1].label} · click one to filter`} wide>
-              <Columns items={trend} selected={f.time} onToggle={(k) => setF((p) => ({ ...p, time: toggle(p.time, k) }))} fmt={fmt} />
-            </Card>
-          )}
-          {donutDim && donutPlan && (
-            <Card kind="share" title={`Share of ${chartTitle(m.label, undefined, run.understanding).toLowerCase()} by ${label(donutDim.col).toLowerCase()}`} sub={donutPlan.subtitle}>
-              <Donut items={donutPlan.items as Item[]} selected={f.dims[donutDim.col] ?? []} onToggle={(k) => toggleDim(donutDim.col, k)} fmt={fmt} />
-            </Card>
-          )}
-          {barDims.map((d) => {
-            const plan = dimPlan(d.col);
-            return (
-              <Card key={d.col} kind="ranked" title={chartTitle(m.label, d.col, run.understanding)} sub={plan.subtitle}
-                action={plan.showAll ? (
-                  <button type="button" className="bi-chip" aria-expanded={!!allDims[d.col]} onClick={() => setAllDims((p) => ({ ...p, [d.col]: !p[d.col] }))}>
-                    {allDims[d.col] ? `Show top ${rankedLimit(vw)}` : `Show all (${plan.total})`}
-                  </button>
-                ) : undefined}>
-                <HBar items={plan.items as Item[]} selected={f.dims[d.col] ?? []} onToggle={(k) => toggleDim(d.col, k)} fmt={fmt} />
-              </Card>
-            );
+        <div ref={fitRef} className={`bi-grid bi-fit ${wide ? "is-fit" : ""}`} style={wide && fitH ? { height: fitH } : undefined}>
+          {shownTiles.map((t) => {
+            const r = wide ? rects[t.id] : undefined;
+            if (wide && !r) return null;
+            const place: CSSProperties | undefined = r ? { gridColumn: `${r.x + 1} / span ${r.w}`, gridRow: `${r.y + 1} / span ${r.h}` } : undefined;
+            if (t.kind === "finding") {
+              const fd = findingOf(t);
+              return fd ? <div key={t.id} className="bi-tile-wrap" style={place}><Tile f={fd} items={t.items} und={run.understanding} onOpen={() => setOpen(fd.id)} /></div> : null;
+            }
+            return <FitCard key={t.id} kind={t.kind === "trend" ? "series" : "ranked"} style={place} title={liveTile(t, 300).title} render={(h) => { const o = liveTile(t, h); return { sub: o.sub, node: o.node }; }} />;
           })}
-          {tableDim && tableRows.length > 0 && (
-            <Card kind="table" title={`${chartTitle(m.label, tableDim.col, run.understanding)}, in full`}
-              sub={m.agg === "sum" ? `${tablePlan.subtitle} · each one's share of ${m.label.toLowerCase()}` : `${tablePlan.subtitle} · each one against the overall average`} wide>
-              <table className="bi-table">
-                <thead>
-                  <tr><th>{label(tableDim.col)}</th><th className="r">Records</th><th className="r">{m.label}</th><th>{m.agg === "sum" ? "Share" : "vs average"}</th></tr>
-                </thead>
-                <tbody>
-                  {tableShown.map((r, i) => {
-                    const on = (f.dims[tableDim.col] ?? []).includes(r.key);
-                    const diff = overall ? (r.value - overall) / Math.abs(overall) : 0;
-                    return (
-                      <tr key={r.key} className={on ? "sel" : ""} onClick={() => toggleDim(tableDim.col, r.key)}>
-                        <td><i style={{ background: PALETTE[i % PALETTE.length] }} />{r.key}</td>
-                        <td className="r">{r.n.toLocaleString()}</td>
-                        <td className="r">{fmt(r.value)}</td>
-                        <td>
-                          {m.agg === "sum" ? (
-                            <span className="share"><s style={{ width: `${Math.max(2, (Math.abs(r.value) / tableMax) * 100)}%` }} />{trim((r.value / tableTotal) * 100, 0)}%</span>
-                          ) : (
-                            <span className={diff >= 0 ? "t-up" : "t-down"}>{diff >= 0 ? "+" : ""}{trim(diff * 100, 0)}%</span>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-              {(tablePlan.showAll || allRows) && (
-                <p className="bi-muted small no-print"><button className="bi-chip" aria-expanded={allRows} onClick={() => setAllRows(!allRows)}>{allRows ? `Show top ${TABLE_ROWS}` : `Show all (${tableAll})`}</button></p>
-              )}
-            </Card>
-          )}
         </div>
       )}
+      <div className="no-print" hidden>{hiddenTiles.map((t) => { const fd = findingOf(t); return fd ? <Tile key={t.id} f={fd} items={t.items} und={run.understanding} onOpen={() => setOpen(fd.id)} /> : null; })}</div>
 
           </>
         ),
-        "dashboard:gallery": <FindingGallery run={run} />,
+        "dashboard:gallery": (
+          <FindingGallery run={run} more={plan?.more ?? []} extra={
+            <>
+              {moreLive.length > 0 && (
+                <div className="bi-grid">
+                  {moreLive.map((t) => { const o = liveTile(t, 300); return o.node ? <Card key={t.id} kind="ranked" title={o.title} sub={o.sub}>{o.node}</Card> : null; })}
+                </div>
+              )}
+              {tableDim && tableRows.length > 0 && (
+                <Card kind="table" title={`${chartTitle(m.label, tableDim.col, run.understanding)}, in full`}
+                  sub={m.agg === "sum" ? `${tablePlan.subtitle} · each one's share of ${m.label.toLowerCase()}` : `${tablePlan.subtitle} · each one against the overall average`} wide>
+                  <table className="bi-table">
+                    <thead>
+                      <tr><th>{label(tableDim.col)}</th><th className="r">Records</th><th className="r">{m.label}</th><th>{m.agg === "sum" ? "Share" : "vs average"}</th></tr>
+                    </thead>
+                    <tbody>
+                      {tableShown.map((r, i) => {
+                        const on = (f.dims[tableDim.col] ?? []).includes(r.key);
+                        const diff = overall ? (r.value - overall) / Math.abs(overall) : 0;
+                        return (
+                          <tr key={r.key} className={on ? "sel" : ""} onClick={() => toggleDim(tableDim.col, r.key)}>
+                            <td><i style={{ background: PALETTE[i % PALETTE.length] }} />{r.key}</td>
+                            <td className="r">{r.n.toLocaleString()}</td>
+                            <td className="r">{fmt(r.value)}</td>
+                            <td>
+                              {m.agg === "sum" ? (
+                                <span className="share"><s style={{ width: `${Math.max(2, (Math.abs(r.value) / tableMax) * 100)}%` }} />{trim((r.value / tableTotal) * 100, 0)}%</span>
+                              ) : (
+                                <span className={diff >= 0 ? "t-up" : "t-down"}>{diff >= 0 ? "+" : ""}{trim(diff * 100, 0)}%</span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                  {(tablePlan.showAll || allRows) && (
+                    <p className="bi-muted small no-print"><button className="bi-chip" aria-expanded={allRows} onClick={() => setAllRows(!allRows)}>{allRows ? `Show top ${TABLE_ROWS}` : `Show all (${tableAll})`}</button></p>
+                  )}
+                </Card>
+              )}
+            </>
+          } />
+        ),
         "dashboard:takeaways": (
           <>
 

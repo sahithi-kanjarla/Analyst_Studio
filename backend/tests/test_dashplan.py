@@ -114,10 +114,10 @@ def test_layout_endpoint_is_a_pure_function_of_the_tiles():
     from test_new_tools_and_views import run, sales
     rid, _ = run(sales(), "What drives revenue?")
     c = TestClient(app)
-    r = c.get(f"/api/runs/{rid}/dashboard/layout", params={"tiles": "a:9,b:5,c:2"})
+    r = c.get(f"/api/runs/{rid}/dashboard/layout", params={"importance": "9,5,2"})
     assert r.status_code == 200
     assert dashplan.covered(r.json()["tiles"]) == (dashplan.GRID_COLS * dashplan.GRID_ROWS, 0)
-    assert c.get(f"/api/runs/{rid}/dashboard/layout", params={"tiles": "a:x"}).status_code == 400
+    assert c.get(f"/api/runs/{rid}/dashboard/layout", params={"importance": "x"}).status_code == 400
 
 
 def test_a_real_run_has_a_plan_that_fills_the_grid():

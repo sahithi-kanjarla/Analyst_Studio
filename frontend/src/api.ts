@@ -467,6 +467,28 @@ export interface DashData {
   rows: (string | number | null)[][];
   total_rows: number;
   sampled: boolean;
+  plan: DashPlan;
+}
+
+/** Which charts the dashboard shows (chosen by the saved selection), the filters worth showing, and where each tile sits on a 24 x 24 grid that is fully covered. */
+export interface DashTile {
+  id: string;
+  kind: "trend" | "dim" | "finding";
+  col?: string;
+  finding_id: string;
+  importance: number;
+  title: string;
+  items?: { measure: string; text: string }[];
+}
+export interface DashRect { id: string; x: number; y: number; w: number; h: number }
+export interface DashPlan {
+  curated: boolean;
+  tiles: DashTile[];
+  more: DashTile[];
+  filters: string[];
+  layout: { cols: number; rows: number; tiles: DashRect[] };
+  objective: string;
+  mode: "goal" | "overview";
 }
 
 export interface DataSource {
@@ -562,6 +584,8 @@ export const api = {
   getAnswersReview: (id: string) => fetch(`/api/runs/${id}/answers-review`).then((r) => json<{ workspace: string; status: string; answers: AnswerRow[] }>(r)),
   rerunWithAnswers: (id: string, answers: Record<string, string>, ask_again: string[]) =>
     fetch(`/api/runs/${id}/rerun-answers`, { method: "POST", headers: JSON_HEADERS(), body: JSON.stringify({ answers, ask_again }) }).then((r) => json<{ run_id: string }>(r)),
+  getDashboardLayout: (id: string, importance: number[]) =>
+    fetch(`/api/runs/${id}/dashboard/layout?importance=${importance.join(",")}`).then((r) => json<{ cols: number; rows: number; tiles: DashRect[] }>(r)),
   getDashboard: (id: string) => fetch(`/api/runs/${id}/dashboard`).then((r) => json<DashData>(r)),
   getSources: (id: string) => fetch(`/api/runs/${id}/sources`).then((r) => json<DataSource[]>(r)),
   downloadUrl: (id: string, source: string) => `/api/runs/${id}/data/download?source=${encodeURIComponent(source)}`,

@@ -425,18 +425,15 @@ def dashboard_data(run_id: str):
 
 
 @app.get("/api/runs/{run_id}/dashboard/layout")
-def dashboard_layout(run_id: str, tiles: str = ""):
+def dashboard_layout(run_id: str, importance: str = ""):
     """The tile sizes for the tiles the page can show now (a view edit may hide or fold some), so the grid still fills the window.
-    `tiles` is "id:importance,id:importance"; the answer is a pure function of it."""
+    `importance` is the comma-separated importance of each tile, in the page's order; the answer is one rectangle per tile, same order, id = position."""
     _check_id(run_id)
-    items = []
-    for part in [p for p in tiles.split(",") if p][:dashplan.MAX_TILES]:
-        tid, _, imp = part.rpartition(":")
-        try:
-            items.append({"id": tid, "importance": float(imp)})
-        except ValueError:
-            raise HTTPException(400, "tiles must look like id:importance,id:importance")
-    return dashplan.arrange(items)
+    try:
+        vals = [float(p) for p in importance.split(",") if p][:dashplan.MAX_TILES]
+    except ValueError:
+        raise HTTPException(400, "importance must be a comma-separated list of numbers")
+    return dashplan.arrange([{"id": str(i), "importance": v} for i, v in enumerate(vals)])
 
 
 @app.get("/api/runs/{run_id}/data/compare")
