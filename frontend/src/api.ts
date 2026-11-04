@@ -122,6 +122,7 @@ export interface ReportPageData {
   charts: { title: string; path: string; caption: string; details: string[]; url?: string }[];
   no_action: string[];
   behind_md: string;
+  more?: { title: string; md: string }[];
   scope?: string;
   footnotes?: string[];
 }

@@ -6,6 +6,7 @@ import Dialog from "./Dialog";
 import LensChat from "./lens/LensChat";
 import { LensProvider } from "./lens/LensContext";
 import LensPins from "./lens/LensPins";
+import Md from "./Md";
 import PrintPanel from "./PrintPanel";
 import { Sections, ShowAllLink, ShowMore, TabViewBar, ViewImg, ViewItem, ViewTitle } from "./view/ViewUI";
 import { useView } from "./view/ViewContext";
@@ -206,6 +207,17 @@ export default function ReportPage({ run, embedded = false, startChat = false, s
           ),
         }} />
         <ShowAllLink tab="report" />
+
+        {(page.more ?? []).length > 0 && (
+          <section className="rp-section rp-more-sections" data-kind="details" aria-label="More detail">
+            {(page.more ?? []).map((m, i) => (
+              <details key={i} className="fold" data-kind="details">
+                <summary>{m.title}</summary>
+                <Md md={m.md} thumbs />
+              </details>
+            ))}
+          </section>
+        )}
 
         <LensPins target="report" />
 

@@ -195,7 +195,12 @@ def get_run(run_id: str):
                 ch["url"] = base + ch["path"]
             for a in pg["actions"]:
                 a["chart_url"] = base + a["chart"] if a.get("chart") else ""
+            if "more" not in pg:          # a run saved before the Report listed its content sections: split them out of the saved text
+                from .reporter import _more_sections
+                pg["more"] = _more_sections(pg["behind_md"].splitlines())
             pg["behind_md"] = pg["behind_md"].replace("](charts/", f"]({base}charts/")
+            for sec in pg.get("more") or []:
+                sec["md"] = sec["md"].replace("](charts/", f"]({base}charts/")
         for c in view.get("evidence", []) + view.get("appendix", []):
             if c.get("chart"):
                 c["chart_url"] = base + c["chart"]

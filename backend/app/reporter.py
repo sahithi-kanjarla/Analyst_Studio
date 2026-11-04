@@ -874,6 +874,34 @@ def _footnotes(state: dict) -> list[str]:
     return out[:3]
 
 
+METHOD_TITLES = ("How the data was set up", "Definitions used", "Power BI")          # how the data was organised, cleaned, set up or built: not Report content
+MORE_TITLES = (("Answer details", "Answer details"), ("Evidence", "Evidence"), ("Strategy and Recommendations", "Strategy and recommendations"),
+               ("Statistics and limitations", "Limits and data gaps"), ("Appendix", "More detail"), ("Checked, nothing found", "Checked, nothing found"))
+
+
+def _more_sections(tail: list[str]) -> list[dict]:
+    """The collapsed sections after "View more", one {title, md} each, without the method ones. Nested <details> stay inside their section."""
+    out, depth, cur = [], 0, []
+    for ln in tail:
+        if ln == "<details>" and depth == 0:
+            depth, cur = 1, []
+            continue
+        if ln == "<details>":
+            depth += 1
+        elif ln == "</details>":
+            depth -= 1
+            if depth == 0:
+                m = re.match(r"<summary>(.*)</summary>$", cur[0]) if cur else None
+                title, body = (m.group(1), "\n".join(cur[1:]).strip()) if m else ("", "")
+                if title and body and not title.startswith(METHOD_TITLES):
+                    short = next((new for old, new in MORE_TITLES if title.startswith(old)), title)
+                    out.append({"title": short, "md": body})
+                continue
+        if depth:
+            cur.append(ln)
+    return out
+
+
 def _page(state: dict, run_mode: str, cs: list[dict], plan: dict, ts: list, answer_cards: list[dict], lines: list[str]) -> dict:
     """The main view as data, for the designed report page: the same cards, actions and figures the markdown shows, in the same words."""
     ctx = state.get("context") or {}
