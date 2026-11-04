@@ -62,7 +62,8 @@
       "means": "revenue, returns counted as negative",
       "value": 573108.0,
       "rows_counted": 940,
-      "mean": 609.69
+      "mean": 609.69,
+      "goal": true
     },
     "top_3_main_category": {
       "file": "kirana_sales_messy.csv",
@@ -81,7 +82,8 @@
           "name": "Household",
           "total": 52694.0
         }
-      ]
+      ],
+      "goal": true
     },
     "distinct_key_counts": {
       "kirana_sales_messy.csv.bill_no": 940,

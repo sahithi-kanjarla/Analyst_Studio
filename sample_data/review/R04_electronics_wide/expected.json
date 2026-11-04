@@ -167,7 +167,8 @@
       "means": "revenue",
       "value": 1475971.0,
       "rows_counted": 700,
-      "mean": 2108.53
+      "mean": 2108.53,
+      "goal": true
     },
     "top_3_main_category": {
       "file": "electronics_wide.csv",
@@ -186,7 +187,8 @@
           "name": "Wearables",
           "total": 311411.0
         }
-      ]
+      ],
+      "goal": true
     },
     "distinct_key_counts": {
       "electronics_wide.csv.order_id": 700,

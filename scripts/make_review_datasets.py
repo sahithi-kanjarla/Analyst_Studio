@@ -240,10 +240,10 @@ def build(s: dict[str, Any]) -> dict[str, Any]:
     if s.get("amount"):
         name, col, label = s["amount"]
         a["main_total"] = {"file": name, "column": col, "means": label, "value": num(clean[name][col].sum()),
-                           "rows_counted": int(clean[name][col].notna().sum()), "mean": num(clean[name][col].mean())}
+                           "rows_counted": int(clean[name][col].notna().sum()), "mean": num(clean[name][col].mean()), "goal": True}
     if s.get("category"):
         name, col, val = s["category"]
-        a["top_3_main_category"] = {"file": name, "group_by": col, "ranked_by": val, "items": top_n(clean[name], col, val)}
+        a["top_3_main_category"] = {"file": name, "group_by": col, "ranked_by": val, "items": top_n(clean[name], col, val), "goal": True}
     for extra in s.get("extra_tops", []):
         name, col, val, key = extra
         a[key] = {"file": name, "group_by": col, "ranked_by": val, "items": top_n(clean[name], col, val)}

@@ -59,7 +59,8 @@
       "means": "money actually received after fees and adjustments",
       "value": 1285801.87,
       "rows_counted": 900,
-      "mean": 1428.67
+      "mean": 1428.67,
+      "goal": true
     },
     "top_3_main_category": {
       "file": "marketplace_settlement.csv",
@@ -78,7 +79,8 @@
           "name": "Mechanical Keyboard",
           "total": 195746.45
         }
-      ]
+      ],
+      "goal": true
     },
     "distinct_key_counts": {
       "marketplace_settlement.csv.order_id": 900,

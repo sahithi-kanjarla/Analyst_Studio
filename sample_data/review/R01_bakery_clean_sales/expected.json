@@ -57,7 +57,8 @@
       "means": "revenue = quantity x unit_price",
       "value": 536295.0,
       "rows_counted": 900,
-      "mean": 595.88
+      "mean": 595.88,
+      "goal": true
     },
     "top_3_main_category": {
       "file": "bakery_sales.csv",
@@ -76,7 +77,8 @@
           "name": "Cookies",
           "total": 53660.0
         }
-      ]
+      ],
+      "goal": true
     },
     "distinct_key_counts": {
       "bakery_sales.csv.order_id": 900,

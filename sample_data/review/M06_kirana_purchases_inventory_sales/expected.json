@@ -99,7 +99,8 @@
       "means": "revenue",
       "value": 407600.0,
       "rows_counted": 1100,
-      "mean": 370.55
+      "mean": 370.55,
+      "goal": true
     },
     "distinct_key_counts": {
       "purchases.csv.purchase_id": 420,

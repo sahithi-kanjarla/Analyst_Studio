@@ -131,7 +131,8 @@
       "means": "revenue from the order table",
       "value": 714576.0,
       "rows_counted": 640,
-      "mean": 1116.53
+      "mean": 1116.53,
+      "goal": true
     },
     "distinct_key_counts": {
       "orders.csv.order_id": 640,

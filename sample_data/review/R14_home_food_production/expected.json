@@ -51,7 +51,8 @@
       "means": "material consumed (a quantity, not money)",
       "value": 5861.27,
       "rows_counted": 649,
-      "mean": 9.03
+      "mean": 9.03,
+      "goal": true
     },
     "top_3_main_category": {
       "file": "food_production_batches.csv",
@@ -70,7 +71,8 @@
           "name": "Chakli 250g",
           "total": 1081.94
         }
-      ]
+      ],
+      "goal": true
     },
     "top_3_materials_by_quantity_used": {
       "file": "food_production_batches.csv",

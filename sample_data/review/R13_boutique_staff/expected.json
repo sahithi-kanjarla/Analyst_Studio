@@ -57,7 +57,8 @@
       "means": "monthly payroll",
       "value": 1455461.11,
       "rows_counted": 60,
-      "mean": 24257.69
+      "mean": 24257.69,
+      "goal": true
     },
     "top_3_main_category": {
       "file": "boutique_staff.csv",
@@ -76,7 +77,8 @@
           "name": "Tailor",
           "total": 185513.97
         }
-      ]
+      ],
+      "goal": true
     },
     "distinct_key_counts": {
       "boutique_staff.csv.employee_id": 60,

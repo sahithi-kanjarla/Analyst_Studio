@@ -59,7 +59,8 @@
       "means": "revenue summed from the line amounts (the correct way)",
       "value": 1452380.0,
       "rows_counted": 1000,
-      "mean": 1452.38
+      "mean": 1452.38,
+      "goal": true
     },
     "top_3_main_category": {
       "file": "handicraft_order_lines.csv",
@@ -78,7 +79,8 @@
           "name": "Metalcraft",
           "total": 266340.0
         }
-      ]
+      ],
+      "goal": true
     },
     "distinct_key_counts": {
       "handicraft_order_lines.csv.order_id": 460,

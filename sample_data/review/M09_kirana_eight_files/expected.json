@@ -192,7 +192,8 @@
       "means": "revenue",
       "value": 176816.0,
       "rows_counted": 500,
-      "mean": 353.63
+      "mean": 353.63,
+      "goal": true
     },
     "top_3_main_category": {
       "file": "orders.csv",
@@ -211,7 +212,8 @@
           "name": "WhatsApp",
           "total": 44443.0
         }
-      ]
+      ],
+      "goal": true
     },
     "distinct_key_counts": {
       "orders.csv.order_id": 500,

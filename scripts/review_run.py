@@ -243,8 +243,8 @@ def md_table(head: list[str], rows: list[list]) -> str:
     return "| " + " | ".join(head) + " |\n|" + "|".join("---" for _ in head) + "|\n" + "\n".join("| " + " | ".join(esc(c) for c in r) + " |" for r in rows) + "\n"
 
 
-def fig(fid: str, label: str, expected, actual, ok: bool | None, detail: str = "", scored: bool = True) -> dict:
-    return {"id": fid, "label": label, "expected": expected, "actual": actual, "ok": ok, "detail": detail, "scored": scored and ok is not None}
+def fig(fid: str, label: str, expected, actual, ok: bool | None, detail: str = "", scored: bool = True, goal: bool = False) -> dict:
+    return {"id": fid, "label": label, "expected": expected, "actual": actual, "ok": ok, "detail": detail, "scored": scored and ok is not None, "goal": goal}
 
 
 def close(a, b, rel=1e-6, abs_=0.011) -> bool:
@@ -319,6 +319,32 @@ def column_rows(res: dict) -> list[dict]:
     return out
 
 
+def null_ids(res: dict) -> set:
+    """Ids of findings the curation marked as null results (no reliable difference)."""
+    return {c.get("id") for c in (res.get("curation") or {}).get("candidates") or [] if c.get("null_result")}
+
+
+def chart_stats(tabs: dict) -> dict:
+    """Charts per tab, duplicate charts (same type, measure and dimension; the extra copies are counted) and charts made for null results."""
+    per_tab, dup, null = {}, 0, 0
+    for key, v in tabs.items():
+        charts = v.get("charts") or []
+        per_tab[key] = len(charts)
+        seen: set = set()
+        for c in charts:
+            k = (c.get("type"), c.get("measure"), c.get("dimension"))
+            if c.get("measure") or c.get("dimension"):          # a chart with no known measure and dimension cannot be called a duplicate
+                dup += k in seen
+                seen.add(k)
+            null += bool(c.get("null_result"))
+    return {"per_tab": per_tab, "duplicates": dup, "null_charts": null}
+
+
+def left_out_shown(res: dict) -> int:
+    """The number the Data tab shows as 'minor findings left out' (0 when the run has no curation)."""
+    return int((res.get("curation") or {}).get("left_out_count") or 0)
+
+
 def tab_view(res: dict, wd: Path) -> dict:
     from app import viewedit
     cat = viewedit.catalogue(res)
@@ -330,7 +356,9 @@ def tab_view(res: dict, wd: Path) -> dict:
         for i in items:
             if i["kind"] == "chart":
                 f = next((findings[x] for x in i.get("finding_ids") or [] if x in findings), None)
-                v["charts"].append({"tab": label, "title": i["title"], "type": (f or {}).get("chart_type") or "image", "subtitle": sentences((f or {}).get("chart_why") or i.get("text") or "", 1)})
+                v["charts"].append({"tab": label, "title": i["title"], "type": (f or {}).get("chart_type") or "image", "subtitle": sentences((f or {}).get("chart_why") or i.get("text") or "", 1),
+                                    "measure": str((f or {}).get("measure") or ""), "dimension": str((f or {}).get("dimension") or ""),
+                                    "null_result": any(x in null_ids(res) for x in i.get("finding_ids") or [])})
             elif i["kind"] in ("insight", "strategy"):
                 v["insights"].append({"title": i["title"], "text": sentences(i.get("text") or i["title"], 2)})
             elif i["kind"] == "card" and key in ("report", "data"):
@@ -369,6 +397,19 @@ def unavailable(res: dict) -> list[dict]:
     return out
 
 
+def report_text(res: dict) -> str:
+    """What the Report tab shows: the report text, the key figures and the Report tab's catalogue items."""
+    from app import viewedit
+    parts = [re.sub(r"</?(?:details|summary)[^>]*>|<a id=[^>]*></a>", "", res.get("report_md") or "")]
+    for m in list(res.get("key_metrics") or []) + list((res.get("report_view") or {}).get("numbers") or []):
+        parts.append(f'{m.get("label")}: {m.get("value")} {m.get("note", "")}')
+    try:
+        parts += [f'{i["title"]}. {i.get("text", "")}' for i in viewedit.catalogue(res)["items"].values() if i["tab"] == "report"]
+    except Exception:       # noqa: BLE001
+        pass
+    return "\n".join(parts)
+
+
 def visible_text(res: dict) -> str:
     from app import viewedit
     parts = [re.sub(r"</?(?:details|summary)[^>]*>|<a id=[^>]*></a>", "", res.get("report_md") or "")]
@@ -382,6 +423,8 @@ def visible_text(res: dict) -> str:
         parts += [f'{i["title"]}. {i.get("text", "")}' for i in viewedit.catalogue(res)["items"].values()]
     except Exception:       # noqa: BLE001
         pass
+    for st in res.get("cleaning_log") or []:       # the Data tab
+        parts.append(f'{st.get("step", "")} {st.get("detail", "")}')
     return "\n".join(parts)
 
 
@@ -426,7 +469,9 @@ def left_out_as_empty(res: dict, col: str) -> bool:
     return False
 
 
-def check_figures(exp: dict, res: dict, wd: Path, text: str) -> list[dict]:
+def check_figures(exp: dict, res: dict, wd: Path, text: str, rtext: str | None = None) -> list[dict]:
+    """A figure marked "goal": true in expected.json is what the goal asks for: it must be in the Report tab text or key figures (rtext). Every other figure passes if it is anywhere in text."""
+    rtext = text if rtext is None else rtext
     from scorecard import has_num
     import pandas as pd
     ans, files = exp["answers"], exp["files"]
@@ -452,8 +497,8 @@ def check_figures(exp: dict, res: dict, wd: Path, text: str) -> list[dict]:
         out.append(fig("rows", f"rows analysed ({stem_of(target)})", rc.get(target), len(A), len(A) == rc.get(target),
                        "" if len(A) == rc.get(target) else f"expected the cleaned {target}; the app's analysis table has {len(A)}"))
 
-    def shown(v) -> bool:
-        return has_num(text, float(v), tol_shown(float(v)))
+    def shown(v, goal: bool = False) -> bool:
+        return has_num(rtext if goal else text, float(v), tol_shown(float(v)))
 
     # main total, extra sums
     totals = []
@@ -463,13 +508,15 @@ def check_figures(exp: dict, res: dict, wd: Path, text: str) -> list[dict]:
         if isinstance(v, dict) and v.get("means") and k != "main_total" and "value" in v and v.get("column"):
             totals.append((k, v["file"], v["column"], v["value"], v["means"]))
     for k, fname, col, want, means in totals:
+        goal = bool(ans["main_total" if k == "total" else k].get("goal"))
         df, c, where = T.for_col(fname, col)
         if df is None:
             out.append(fig(f"{k}-computed", f"{means}: sum of {col}", want, "column not found", False, "the column is not in the analysis table or the loaded table"))
         else:
             got = float(pd.to_numeric(df[c], errors="coerce").sum())
             out.append(fig(f"{k}-computed", f"{means}: sum of {col} ({where})", want, round(got, 2), close(got, want), "" if close(got, want) else f"difference {got - want:,.2f}"))
-        out.append(fig(f"{k}-shown", f"{means}: the figure appears in the report text", want, "found" if shown(want) else "not found", shown(want), "search of the visible text, within 0.5%"))
+        out.append(fig(f"{k}-shown", f"{means}: the figure appears in the {'Report tab (goal figure)' if goal else 'app'}", want, "found" if shown(want, goal) else "not found", shown(want, goal),
+                       "goal figure: searched in the Report tab text and key figures, within 0.5%" if goal else "search of the visible text of all tabs, within 0.5%", goal=goal))
 
     # top 3
     tops = [("top_3_main_category", ans.get("top_3_main_category"))] + [(k, v) for k, v in ans.items() if isinstance(v, dict) and "group_by" in v and k != "top_3_main_category"]
@@ -487,9 +534,10 @@ def check_figures(exp: dict, res: dict, wd: Path, text: str) -> list[dict]:
             ok = len(got) == len(want) and all(x["name"] == y["name"] and close(x["total"], y["total"]) for x, y in zip(got, want))
             out.append(fig(f"{k}-computed", f"top 3 {t['group_by']} by {t['ranked_by']} ({where})", [f"{x['name']} {x['total']:,.0f}" for x in want], [f"{x['name']} {x['total']:,.0f}" for x in got], ok))
         first = want[0]
-        in_text = first["name"].lower() in text.lower() and shown(first["total"])
-        out.append(fig(f"{k}-shown", f"top {t['group_by']} '{first['name']}' and its total appear in the report text", f"{first['name']} {first['total']:,.0f}", "found" if in_text else "not found", in_text,
-                       "search of the visible text"))
+        goal = bool(t.get("goal"))
+        in_text = first["name"].lower() in (rtext if goal else text).lower() and shown(first["total"], goal)
+        out.append(fig(f"{k}-shown", f"top {t['group_by']} '{first['name']}' and its total appear in the {'Report tab (goal figure)' if goal else 'app'}", f"{first['name']} {first['total']:,.0f}", "found" if in_text else "not found", in_text,
+                       "goal figure: searched in the Report tab text and key figures" if goal else "search of the visible text of all tabs", goal=goal))
 
     # distinct keys, only on the tables they come from
     dk = ans.get("distinct_key_counts", {})
@@ -784,7 +832,10 @@ def write_review(out: Path, d: dict, rec: dict, shots: dict | None) -> None:
                 A(f'  - **{sentences(i["title"], 1)[:110]}** {i["text"]}')
         A("")
 
+    cs = rec.get("chart_stats") or {}
     A("## 4. Every chart shown\n")
+    A("Charts per tab: " + " · ".join(f'{lbl} {cs.get("per_tab", {}).get(k, 0)}' for k, lbl, _ in NAV) + f' · duplicate charts (same type, measure and dimension): {cs.get("duplicates", 0)}'
+      f' · charts made for null results: {cs.get("null_charts", 0)} · left out (the number the Data tab shows): {rec.get("left_out_shown", 0)}\n')
     A(md_table(["tab", "title", "chart type", "subtitle"], [[c["tab"], c["title"][:90], c["type"], c["subtitle"][:140]] for k, _, _ in NAV for c in rec["tabs"][k]["charts"]]))
     if shots and shots.get("dom"):
         A("### As seen in the browser (1440 px)\n")
@@ -794,7 +845,7 @@ def write_review(out: Path, d: dict, rec: dict, shots: dict | None) -> None:
                 A(f'  - card: {c.get("title")} — {c.get("sub")}')
 
     A("## 5. Figures against pandas\n")
-    A(md_table(["", "figure", "pandas expected", "the app", "note"], [[("PASS" if f["ok"] else "FAIL") if f["scored"] else "INFO", f["label"], json.dumps(f["expected"], default=str)[:90], json.dumps(f["actual"], default=str)[:90], f["detail"]]
+    A(md_table(["", "figure", "pandas expected", "the app", "note"], [[(("PASS" if f["ok"] else "FAIL") + (" (goal)" if f.get("goal") else "")) if f["scored"] else "INFO", f["label"], json.dumps(f["expected"], default=str)[:90], json.dumps(f["actual"], default=str)[:90], f["detail"]]
                                                                    for f in rec["figures"]]))
     if rec.get("info_figures"):
         A("Other expected figures (not scored; found by searching the visible text for the number, so a hit can be a coincidence):\n")
@@ -841,21 +892,45 @@ def write_review(out: Path, d: dict, rec: dict, shots: dict | None) -> None:
 # ============================================================================ records: summary and scoreboard
 SCORE_HEAD = ["date_time", "dataset", "commit", "figures_passed", "figures_total", "percent_correct", "questions_asked", "questions_needed", "questions_not_needed", "connection_result",
               "tokens", "total_seconds", "seconds_without_limit_waiting", "ai_partly_unavailable_stages", "lens_pass", "lens_scored", "status", "ai_mode"]
+SCORE_EXTRA = ["charts_report", "charts_insights", "charts_ideas", "charts_dashboard", "charts_data", "duplicate_charts", "null_result_charts", "left_out_count"]
+SCORE_FULL = SCORE_HEAD + SCORE_EXTRA
+
+
+def score_extra(rec: dict) -> list:
+    cs = rec.get("chart_stats") or {}
+    pt = cs.get("per_tab", {})
+    return [pt.get(k, 0) for k, _, _ in NAV] + [cs.get("duplicates", 0), cs.get("null_charts", 0), rec.get("left_out_shown", 0)]
+
+
+def extend_header(path: Path, change, is_old) -> None:
+    """Add the new column names to an old header line only. Every earlier data row is left exactly as it was (it just has fewer cells)."""
+    lines = path.read_bytes().decode("utf-8").split("\n")
+    for n, ln in enumerate(lines):
+        bare = ln.rstrip("\r")
+        if is_old(bare):
+            lines[n] = change(bare) + ln[len(bare):]
+            path.write_bytes("\n".join(lines).encode("utf-8"))
+            return
 
 
 def append_scoreboard(out: Path, rec: dict) -> None:
     row = [rec["started"], rec["id"], rec["commit"], rec["passed"], rec["total"], f'{rec["pct"]:.1f}', rec["questions"]["asked"], rec["questions"]["needed"], rec["questions"]["not_needed"],
            (rec["connection"] or {}).get("text", "n/a (single file)"), rec["tokens"] + rec["lens_tokens"], f'{rec["total_s"]:.1f}', f'{rec["total_wo_limit_s"]:.1f}', rec["unavailable_count"],
-           rec["lens_pass"], rec["lens_scored"], rec["status"], rec["ai_mode"]]
+           rec["lens_pass"], rec["lens_scored"], rec["status"], rec["ai_mode"]] + score_extra(rec)
     csv_p, md_p = out / "scoreboard.csv", out / "scoreboard.md"
     new = not csv_p.exists()
+    if not new:
+        extend_header(csv_p, lambda ln: ln + "," + ",".join(SCORE_EXTRA), lambda ln: ln.startswith("date_time,") and "left_out_count" not in ln)
     with csv_p.open("a", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
         if new:
-            w.writerow(SCORE_HEAD)
+            w.writerow(SCORE_FULL)
         w.writerow(row)
     if not md_p.exists():
-        md_p.write_text("# Scoreboard (one row per run; never overwritten)\n\n| " + " | ".join(SCORE_HEAD) + " |\n|" + "|".join("---" for _ in SCORE_HEAD) + "|\n", encoding="utf-8")
+        md_p.write_text("# Scoreboard (one row per run; never overwritten)\n\n| " + " | ".join(SCORE_FULL) + " |\n|" + "|".join("---" for _ in SCORE_FULL) + "|\n", encoding="utf-8")
+    else:
+        extend_header(md_p, lambda ln: ln.rstrip(" |") + " | " + " | ".join(SCORE_EXTRA) + " |", lambda ln: ln.startswith("| date_time |") and "left_out_count" not in ln)
+        extend_header(md_p, lambda ln: ln + "|".join("---" for _ in SCORE_EXTRA) + "|", lambda ln: ln.startswith("|---|") and ln.count("---") == len(SCORE_HEAD))
     with md_p.open("a", encoding="utf-8") as f:
         f.write("| " + " | ".join(str(c).replace("|", "/") for c in row) + " |\n")
 
@@ -941,7 +1016,7 @@ def review_one(d: dict, args, out: Path, timing: Timing, budget: Budget, model, 
     rec["tokens"] = max(rec["tokens"], rec["tokens_in"] + rec["tokens_out"])
     for k in ("columns", "tabs", "figures", "info_figures", "connection_figures", "unavailable", "lens", "join_notes", "problems"):
         rec[k] = [] if k != "tabs" else {key: {"label": label, "headings": [], "charts": [], "insights": [], "numbers": []} for key, label, _ in NAV}
-    rec.update(connection=None, passed=0, total=0, pct=0.0, unavailable_count=0, lens_pass=0, lens_scored=0, lens_tokens=0, lens_time={"total": 0.0, "limit": 0.0})
+    rec.update(chart_stats={"per_tab": {}, "duplicates": 0, "null_charts": 0}, left_out_shown=0, connection=None, passed=0, total=0, pct=0.0, unavailable_count=0, lens_pass=0, lens_scored=0, lens_tokens=0, lens_time={"total": 0.0, "limit": 0.0})
     shots = None
     if status not in ("error", "ai-refused"):
         res = json.loads((wd / "result.json").read_text(encoding="utf-8"))
@@ -950,7 +1025,8 @@ def review_one(d: dict, args, out: Path, timing: Timing, budget: Budget, model, 
         rec["unavailable"] = unavailable(res)
         rec["unavailable_count"] = len(rec["unavailable"])
         text = visible_text(res)
-        figs = check_figures(exp, res, wd, text)
+        rec["chart_stats"], rec["left_out_shown"] = chart_stats(rec["tabs"]), left_out_shown(res)
+        figs = check_figures(exp, res, wd, text, report_text(res))
         cfigs, conn = check_connections(exp, res, wd)
         rec["figures"], rec["connection_figures"], rec["connection"] = figs, cfigs, conn
         scored = [f for f in figs + cfigs if f["scored"]]
@@ -973,7 +1049,7 @@ def review_one(d: dict, args, out: Path, timing: Timing, budget: Budget, model, 
             shots = screenshots(p["rid"], out / d["folder"], say)
         for f in figs + cfigs:
             if f["scored"] and not f["ok"]:
-                rec["problems"].append(f'{f["label"]}: expected {json.dumps(f["expected"], default=str)[:60]}, the app gave {json.dumps(f["actual"], default=str)[:60]}' + (f' ({f["detail"][:100]})' if f["detail"] else ""))
+                rec["problems"].append(("GOAL FIGURE MISSING: " if f.get("goal") else "") + f'{f["label"]}: expected {json.dumps(f["expected"], default=str)[:60]}, the app gave {json.dumps(f["actual"], default=str)[:60]}' + (f' ({f["detail"][:100]})' if f["detail"] else ""))
         for u in rec["unavailable"]:
             rec["problems"].append(f'AI {u["kind"]} in {u["stage"]}: {u["reason"][:100]}')
         rec["problems"] += [f'Lens Q{q["n"]} ({q["kind"]}) {q["status"]}: {q["detail"][:100]}' for q in rec["lens"] if q["status"] in ("FAIL", "ERROR", "NOT ANSWERED")]

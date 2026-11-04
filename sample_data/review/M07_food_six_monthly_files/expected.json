@@ -209,7 +209,8 @@
       "means": "revenue over all six months",
       "value": 348450.0,
       "rows_counted": 801,
-      "mean": 435.02
+      "mean": 435.02,
+      "goal": true
     },
     "top_3_main_category": {
       "file": "stacked",
@@ -228,7 +229,8 @@
           "name": "Sweets",
           "total": 81080.0
         }
-      ]
+      ],
+      "goal": true
     },
     "distinct_key_counts": {
       "stacked.order_id": 801,

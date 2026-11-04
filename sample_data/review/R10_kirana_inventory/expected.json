@@ -51,7 +51,8 @@
       "means": "units in stock (a quantity, not money)",
       "value": 8722.0,
       "rows_counted": 420,
-      "mean": 20.77
+      "mean": 20.77,
+      "goal": true
     },
     "top_3_main_category": {
       "file": "kirana_inventory.csv",
@@ -70,7 +71,8 @@
           "name": "Dairy",
           "total": 1506.0
         }
-      ]
+      ],
+      "goal": true
     },
     "distinct_key_counts": {
       "kirana_inventory.csv.item_code": 420,

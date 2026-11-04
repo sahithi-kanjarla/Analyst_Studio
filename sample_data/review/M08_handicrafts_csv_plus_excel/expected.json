@@ -79,7 +79,8 @@
       "means": "revenue",
       "value": 1136300.0,
       "rows_counted": 700,
-      "mean": 1623.29
+      "mean": 1623.29,
+      "goal": true
     },
     "top_3_main_category": {
       "file": "orders.csv",
@@ -98,7 +99,8 @@
           "name": "Woodcraft",
           "total": 230190.0
         }
-      ]
+      ],
+      "goal": true
     },
     "distinct_key_counts": {
       "orders.csv.order_id": 700,

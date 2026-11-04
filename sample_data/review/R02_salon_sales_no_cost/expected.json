@@ -55,7 +55,8 @@
       "means": "revenue after discount",
       "value": 1472990.0,
       "rows_counted": 820,
-      "mean": 1796.33
+      "mean": 1796.33,
+      "goal": true
     },
     "top_3_main_category": {
       "file": "salon_services.csv",
@@ -74,7 +75,8 @@
           "name": "Skin",
           "total": 94050.0
         }
-      ]
+      ],
+      "goal": true
     },
     "top_3_stylists_by_amount": {
       "file": "salon_services.csv",

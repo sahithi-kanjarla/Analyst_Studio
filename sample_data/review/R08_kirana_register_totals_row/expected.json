@@ -50,7 +50,8 @@
       "means": "revenue, with the TOTAL row excluded",
       "value": 580855.0,
       "rows_counted": 520,
-      "mean": 1117.03
+      "mean": 1117.03,
+      "goal": true
     },
     "top_3_main_category": {
       "file": "kirana_register.xlsx",
@@ -69,7 +70,8 @@
           "name": "Atta 5kg",
           "total": 46500.0
         }
-      ]
+      ],
+      "goal": true
     },
     "distinct_key_counts": {
       "kirana_register.xlsx.Bill No": 520,

@@ -76,7 +76,8 @@
       "means": "revenue",
       "value": 379040.0,
       "rows_counted": 900,
-      "mean": 421.16
+      "mean": 421.16,
+      "goal": true
     },
     "top_3_main_category": {
       "file": "orders.csv",
@@ -95,7 +96,8 @@
           "name": "Breads",
           "total": 36910.0
         }
-      ]
+      ],
+      "goal": true
     },
     "distinct_key_counts": {
       "orders.csv.order_id": 900,

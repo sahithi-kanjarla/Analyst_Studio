@@ -41,7 +41,8 @@
       "means": "revenue",
       "value": 276425.0,
       "rows_counted": 620,
-      "mean": 445.85
+      "mean": 445.85,
+      "goal": true
     },
     "top_3_main_category": {
       "file": "home_food_sales.csv",
@@ -60,7 +61,8 @@
           "name": "Mango Pickle 500g",
           "total": 29120.0
         }
-      ]
+      ],
+      "goal": true
     },
     "top_3_areas_by_amount": {
       "file": "home_food_sales.csv",

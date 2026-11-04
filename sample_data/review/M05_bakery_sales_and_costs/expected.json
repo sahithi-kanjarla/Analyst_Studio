@@ -74,7 +74,8 @@
       "means": "revenue",
       "value": 565305.0,
       "rows_counted": 880,
-      "mean": 642.39
+      "mean": 642.39,
+      "goal": true
     },
     "top_3_main_category": {
       "file": "sales.csv",
@@ -93,7 +94,8 @@
           "name": "Cookies",
           "total": 46265.0
         }
-      ]
+      ],
+      "goal": true
     },
     "distinct_key_counts": {
       "sales.csv.order_id": 880,

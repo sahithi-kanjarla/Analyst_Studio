@@ -55,7 +55,8 @@
       "means": "the gross revenue reading (one of two defensible readings - see ambiguities)",
       "value": 1414059.0,
       "rows_counted": 700,
-      "mean": 2020.08
+      "mean": 2020.08,
+      "goal": true
     },
     "top_3_main_category": {
       "file": "boutique_bills.csv",
@@ -74,7 +75,8 @@
           "name": "Bottoms",
           "total": 140280.0
         }
-      ]
+      ],
+      "goal": true
     },
     "distinct_key_counts": {
       "boutique_bills.csv.bill_no": 700,

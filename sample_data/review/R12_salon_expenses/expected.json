@@ -45,7 +45,8 @@
       "means": "money spent",
       "value": 13692253.3,
       "rows_counted": 900,
-      "mean": 15213.61
+      "mean": 15213.61,
+      "goal": true
     },
     "top_3_main_category": {
       "file": "salon_expenses.csv",
@@ -64,7 +65,8 @@
           "name": "Products and stock",
           "total": 1550854.2
         }
-      ]
+      ],
+      "goal": true
     },
     "top_3_by_category_as_written_WRONG": {
       "file": "salon_expenses.csv",

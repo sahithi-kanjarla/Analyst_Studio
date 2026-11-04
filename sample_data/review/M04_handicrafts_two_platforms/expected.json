@@ -75,7 +75,8 @@
       "means": "revenue on the craftbazaar platform",
       "value": 644990.0,
       "rows_counted": 520,
-      "mean": 1240.37
+      "mean": 1240.37,
+      "goal": true
     },
     "top_3_main_category": {
       "file": "platform_craftbazaar.csv",
@@ -94,7 +95,8 @@
           "name": "Hyderabad",
           "total": 60510.0
         }
-      ]
+      ],
+      "goal": true
     },
     "top_3_cities_on_shopline": {
       "file": "platform_shopline.csv",

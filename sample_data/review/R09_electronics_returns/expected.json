@@ -55,7 +55,8 @@
       "means": "gross order value, every status included",
       "value": 1530010.0,
       "rows_counted": 840,
-      "mean": 1821.44
+      "mean": 1821.44,
+      "goal": true
     },
     "top_3_main_category": {
       "file": "electronics_returns.csv",
@@ -74,7 +75,8 @@
           "name": "Computer",
           "total": 268327.0
         }
-      ]
+      ],
+      "goal": true
     },
     "top_3_return_reasons_by_amount": {
       "file": "electronics_returns.csv",

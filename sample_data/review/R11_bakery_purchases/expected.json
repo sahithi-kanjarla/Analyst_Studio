@@ -53,7 +53,8 @@
       "means": "money spent on purchases",
       "value": 5662764.92,
       "rows_counted": 700,
-      "mean": 8089.66
+      "mean": 8089.66,
+      "goal": true
     },
     "top_3_main_category": {
       "file": "bakery_purchases.csv",
@@ -72,7 +73,8 @@
           "name": "Sweet Supplies Co",
           "total": 1153091.21
         }
-      ]
+      ],
+      "goal": true
     },
     "top_3_items_by_spend": {
       "file": "bakery_purchases.csv",

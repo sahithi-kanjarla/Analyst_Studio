@@ -51,7 +51,8 @@
       "means": "lifetime spend per customer, not sales in a period",
       "value": 1652000.7,
       "rows_counted": 500,
-      "mean": 3304.0
+      "mean": 3304.0,
+      "goal": true
     },
     "top_3_main_category": {
       "file": "handicraft_grahak.csv",
@@ -70,7 +71,8 @@
           "name": "Mumbai",
           "total": 163739.27
         }
-      ]
+      ],
+      "goal": true
     },
     "top_3_favourite_items_by_lifetime_spend": {
       "file": "handicraft_grahak.csv",
