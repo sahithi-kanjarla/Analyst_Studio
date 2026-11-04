@@ -161,9 +161,16 @@ def check_titles(res: dict):
     titles += [(f.get("id"), (f.get("insight") or {}).get("headline")) for f in res.get("findings") or []]
     titles += [(s.get("id"), s.get("title")) for s in res.get("strategies") or []]
     bad = []
+    try:        # the page puts display names into saved titles (display.ts); und.readable is its Python twin: judge the title as it is SHOWN
+        sys.path.insert(0, str(ROOT / "backend"))
+        from app import understanding as und
+        shown = lambda t: und.readable(t, res)      # noqa: E731
+    except Exception:
+        shown = lambda t: t                          # noqa: E731
     for i, t in titles:
         if not t:
             continue
+        t = shown(t)
         raw = [c for c in cols if "_" in c and c in t]
         if raw:
             bad.append(f"{i}: raw column name '{raw[0]}' in title '{t}'")

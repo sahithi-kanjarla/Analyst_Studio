@@ -1,6 +1,6 @@
 import ReactMarkdown from "react-markdown";
 import { Finding } from "../api";
-import { plainTitle } from "../display";
+import { humanise, plainTitle } from "../display";
 import { takeaway } from "../insightwidget";
 import ChartFrame from "./ChartFrame";
 import HowSteps, { Step, TechDetail } from "./HowSteps";
@@ -34,7 +34,7 @@ export default function InsightCard({ f, index }: { f: Finding; index: number })
       <header className="insight-head">
         <div className="insight-title">
           <h4>{plainTitle(f.title)}</h4>
-          <p className="iw-line">{ins.headline}</p>
+          <p className="iw-line">{humanise(ins.headline)}</p>
           <div className="meta">
             <span className={LEVEL_CLASS[ins.confidence.level] ?? "tag"}>{ins.confidence.label} confidence</span>
             {ins.kpi_related && <span className="tag tag-kpi">your KPI</span>}

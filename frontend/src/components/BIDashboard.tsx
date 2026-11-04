@@ -427,7 +427,7 @@ export default function BIDashboard({ run }: { run: RunResult }) {
             {takeaways.map((x) => (
               <li key={x.id}><button onClick={() => setOpen(x.id)}>{humanise(x.insight!.headline, run.understanding)}<span className={`bi-tag ${x.insight!.confidence.level}`}>{x.insight!.confidence.level}</span></button></li>
             ))}
-            {topStrategy && <li className="bi-reco"><b>Recommended:</b> {topStrategy.title}</li>}
+            {topStrategy && <li className="bi-reco"><b>Recommended:</b> {humanise(topStrategy.title, run.understanding)}</li>}
           </ul>
         </section>
       )}

@@ -392,7 +392,7 @@ def outliers(df, ctx, col):
     pct = n_out / len(x)
     text = f"**{col}**: {n_out} of {len(x)} values ({pct:.1%}) fall outside the usual range ({_fmt(lo)} to {_fmt(hi)})."
     action = f"Check whether the extreme values of {col} are errors or genuinely important cases before drawing conclusions." if pct > 0.05 else None
-    return finding("outliers", f"Outliers in {col}", text, {"n": int(len(x)), "outliers": n_out, "outlier_pct": _f(pct)},
+    return finding("outliers", f"Outliers in {col}", text, {"n": int(len(x)), "outliers": n_out, "outlier_pct": _f(pct), "lower_fence": _f(lo), "upper_fence": _f(hi)},       # the two limits the caption quotes
                    _save(fig, ctx, _slug("out", col)), action=action)
 
 
@@ -721,7 +721,8 @@ def trend(df, ctx, target, date):
     action = (f"{target} is trending {direction} over time; find out what changed around the weakest {unit} ({series.idxmin().date()})." if sig else None)
     return finding("trend", f"{target} over time", text,
                    {"p": _f(lr.pvalue), "slope": _f(lr.slope), "relative_change": _f(change), "periods": int(len(series)), "empty_periods": int(len(gaps)), "freq": rule, "agg": agg, "n": int(len(d)),
-                    "first": _f(series.iloc[0]), "last": _f(series.iloc[-1]), "fit_end": _f(fit_end), **extra},
+                    "first": _f(series.iloc[0]), "last": _f(series.iloc[-1]), "fit_end": _f(fit_end),
+                    **({} if steep_fall else {"change_shown_pct": int(size.rstrip("%"))}), **extra},       # the whole-number percentage the caption says ("about -3%")
                    _save(fig, ctx, _slug("trend", target, date)), significant=bool(sig), action=action) | {
         "series": [[str(i.date()), _f(v)] for i, v in series.items()],           # the period totals (or averages), for the report card; kept out of `stats`, which the AI number check reads. The incomplete last period is not in it.
         "date_coverage": _f(float(pd.to_datetime(df[date], errors="coerce").notna().mean()))}

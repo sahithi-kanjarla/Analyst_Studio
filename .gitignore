@@ -25,3 +25,4 @@ Thumbs.db
 scripts/*_out.txt
 scripts/final_full_suite.txt
 backend/full_suite*.txt
+sample_data/demo/_new_run/

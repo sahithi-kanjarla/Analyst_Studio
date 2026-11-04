@@ -179,3 +179,32 @@ def test_the_detectors_catch_what_they_are_for():
     spec = {"dims": [{"col": "item"}, {"col": "item_code"}], "plan": {"tiles": [], "more": [], "filters": ["item", "item_code"]}}
     pair = pd.DataFrame({"item": ["a", "b", "c"], "item_code": ["x", "y", "z"]})
     assert len(find_twin_columns(pair, spec)) == 2 and not find_twin_columns(pd.DataFrame({"item": ["a", "a", "b"], "item_code": ["x", "y", "z"]}), spec)
+
+
+def test_the_five_demo_files_end_to_end(tmp_path, monkeypatch):
+    """The multi-file demo (keys with different names, an Excel file): all four links are used, product and return columns reach the analysis,
+    and the same scan finds no raw column name in anything shown, titles and headlines included."""
+    from pathlib import Path
+    files = sorted((Path(__file__).resolve().parents[2] / "sample_data" / "demo" / "files").iterdir())
+    monkeypatch.setenv("RUNS_DIR", str(tmp_path / "runs"))
+    monkeypatch.setenv("GLOSSARY_PATH", str(tmp_path / "g.json"))
+    rid = runner.create_run("", [(p.name, p.read_bytes()) for p in files])
+    runner._execute(rid)
+    wd = runner.run_dir(rid)
+    if (runner.read_status(rid) or {}).get("status") == "needs_input":
+        (wd / "answers.json").write_text(json.dumps({"answers": {}, "skip": True, "notes": ""}))
+        runner._execute(rid)
+    assert (runner.read_status(rid) or {}).get("status") == "done"
+    res = json.loads((wd / "result.json").read_text(encoding="utf-8"))
+    used = {(r["child_table"], r["child_col"], r["parent_table"], r["parent_col"]) for r in res["data_model"]["relationships"] if r["status"] == "used"}
+    assert len(used) == 4 and ("order_lines", "item_code", "products", "sku") in used and ("returns", "line_id", "order_lines", "line_id") in used, used
+    cols = [c["name"] for c in res["profile"]["columns"]]
+    assert "category" in cols and any(c.startswith("returns_") for c in cols)
+    texts, spec = collect_text(wd, res)
+    df = pd.DataFrame(columns=cols)
+    problems = find_raw_names(texts, df) + find_duplicate_charts(spec)
+    titles = [(f"findings[{f.get('id')}] title", und.readable(f.get("title") or "", res)) for f in res.get("findings") or []]
+    titles += [(f"findings[{f.get('id')}] headline", und.readable((f.get("insight") or {}).get("headline") or "", res)) for f in res.get("findings") or []]
+    titles += [(f"strategies[{s.get('id')}] title", und.readable(s.get("title") or "", res)) for s in res.get("strategies") or []]
+    problems += [f"{w}: underscore in shown title {t!r}" for w, t in titles if "_" in t]
+    assert not problems, f"{len(problems)} problem(s):\n" + "\n".join(problems)
