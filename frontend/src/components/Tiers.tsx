@@ -93,7 +93,7 @@ export default function Tiers({ view, goalAnswer, understanding }: { view: Repor
         {!view.evidence.length && !nullLines.length && <State kind="empty" title="No finding stood out">Nothing in this data was both reliable and big enough to call a finding. What was checked is listed below.</State>}
       </>
     ),
-    "insights:checked": view.checked.length > 0 ? (
+    "insights:checked": view.checked.length > 0 && nullLines.length === 0 ? (
       <section>
         {heading("insights:checked", "Checked, and nothing stood out")}
         <ul className="tight">

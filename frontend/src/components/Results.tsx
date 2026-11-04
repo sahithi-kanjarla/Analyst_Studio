@@ -379,7 +379,7 @@ export function TabBody({ run, tab, embedded = false, startChat = false, startPr
 
       {tab === "chat" && <><TabViewBar tab="chat" /><ViewItem id="chat:conversation" tag="section" className="view-section"><LensChat variant="tab" /></ViewItem></>}
 
-      {tab === "data" && <><TabViewBar tab="data" />{!embedded && <ColumnMeanings run={run} />}{run.report_view?.left_out_count ? <p className="muted small left-out-note">{run.report_view.left_out_count} minor {run.report_view.left_out_count === 1 ? "finding was" : "findings were"} left out of the report views because {run.report_view.left_out_count === 1 ? "it was" : "they were"} too small or too uncertain to act on. They stay in the full results.</p> : null}<ViewItem id="data:table:clean" tag="section" className="view-section"><DataViewer runId={run.run_id} log={run.cleaning_log} /></ViewItem></>}
+      {tab === "data" && <><TabViewBar tab="data" /><ViewItem id="data:table:clean" tag="section" className="view-section"><DataViewer runId={run.run_id} log={run.cleaning_log} after={<>{run.report_view?.left_out_count ? <p className="muted small left-out-note">{run.report_view.left_out_count} minor {run.report_view.left_out_count === 1 ? "finding was" : "findings were"} left out of the report views because {run.report_view.left_out_count === 1 ? "it was" : "they were"} too small or too uncertain to act on. They stay in the full results.</p> : null}{!embedded && <ColumnMeanings run={run} />}</>} /></ViewItem></>}
 
       {tab === "report" && <ReportPage run={run} embedded={embedded} startChat={startChat} startPrint={startPrint} />}
 

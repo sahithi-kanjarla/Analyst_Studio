@@ -5,7 +5,7 @@ import { api, CleaningStep, DataCompare, DataPage, DataSource } from "../api";
 const PAGE = 25;
 
 /** Lets the user inspect the data exactly as the analysis used it, compare with the original, and see what cleaning changed. */
-export default function DataViewer({ runId, log }: { runId: string; log?: CleaningStep[] }) {
+export default function DataViewer({ runId, log, after }: { runId: string; log?: CleaningStep[]; after?: React.ReactNode }) {
   const [source, setSource] = useState("clean");
   const [sources, setSources] = useState<DataSource[]>([]);
   const [offset, setOffset] = useState(0);
@@ -61,6 +61,7 @@ export default function DataViewer({ runId, log }: { runId: string; log?: Cleani
           {[rowsOut > 0 ? `${rowsOut.toLocaleString()} ${rowsOut === 1 ? "row" : "rows"} (removed while cleaning)` : "", colsOut.length ? `${colsOut.length === 1 ? "column" : "columns"} ${colsOut.join(", ")}` : ""].filter(Boolean).join(" and ")}. The original file is still there under Dataset.
         </p>
       )}
+      {after}
       <p className="muted read">Browse the cleaned table the charts use, the original, or any uploaded file.</p>
 
       {cmp && (

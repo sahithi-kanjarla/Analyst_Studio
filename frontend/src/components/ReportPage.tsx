@@ -166,7 +166,7 @@ export default function ReportPage({ run, embedded = false, startChat = false, s
                   })} />
                 </ol>
               ) : (
-                <p className="muted">{page.no_action[0] ?? "The data does not support a specific change yet."}</p>
+                <p className="muted">{plainLabel(page.no_action[0] ?? "The data does not support a specific change yet.")}</p>
               )}
               <Cautions run={run} trust={page.trust} />
             </section>

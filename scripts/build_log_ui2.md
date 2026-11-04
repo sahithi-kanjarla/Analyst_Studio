@@ -194,3 +194,38 @@ No horizontal scroll at 390px on landing, Report, Insights, Ideas, Dashboard and
 cut every animation and transition under `prefers-reduced-motion`; the dialog and fades use only
 those. Screenshots (not committed): `docs/screens/ui2/step4/` (1440, 390) and `step5/` (390).
 Not tested: the full suite, and the 1280 / 1920 widths for this part, as asked.
+
+# Part 2 — plain titles, fuller pages, short "How we got this"
+
+No number, trust label or verification changed. Fake AI only. Commits: `198999f` (steps 0, 1, 3), `76b1beb` (step 2), `2d095f3` (steps 4-6), plus the final one below.
+
+## Step 0 — Dashboard cards fill the row
+`.bi-flow` is now a wrapping flex row; each card is `flex: 1 1 340px`, so few cards grow and the last row stretches. Measured at 1440 px (1212 px grid): 2 cards 598 px each, 3 cards 393 px, 5 cards 3+2 (598 px on the second row), 8 cards 3+3+2 — right-edge gap 0 px in every row. A lone last card (e.g. 4 cards) takes the full row.
+
+## Step 1 — plain chart titles
+- Backend (`tools.py`): the title baked into each chart picture is now the plain name of the finding ("Revenue by Dept", "Revenue over time"), not the sentence. The sentence is unchanged and is still the finding's headline.
+- Frontend: `plainTitle()` (display.ts) builds the title from the finding's title and the display names ("profit by sub_category" -> "Profit by sub-category", "A × B" -> "by a and b", "(table)" dropped). Every card (Report "What matters", Insights, Dashboard tile, the full-size dialog) shows that title, with the headline sentence one line beneath it.
+- Tests: no Python test depended on the old titles, so none had to be relaxed. `test_text_scan.py` passes unchanged. Added 3 checks to `tests/ui/chartsize_check.mjs` (listed in `test_chartsize.py`'s "wording" group). The heatmap, seasonality and other chart titles are not covered by a text test: not tested beyond the screenshots.
+- Existing runs (the sample) keep their old pictures, with the old baked titles. New runs get the short ones.
+
+## Step 2 — Report
+One large answer sentence; key figures; "What matters" cards (lead figure with arrow, plain title, result line, small chart, one or two sentences); "What to do" as short actions with the support line folded; a calm data note (warnings the checks raised, or "Nothing to flag"). Two columns at 1100 px and up. "The evidence" is now "What matters" (also in `viewedit.py`, so Lens uses the same name). Nothing is added to the Lens view registry.
+
+## Step 3 — Insights
+Summary strip (the answer + the three top points; everything else under "More on the answer"), findings grouped as Top contributors / Trends over time / Comparisons, "Checked, and nothing found" as chips. `themeOf` is unchanged; a new `groupOf` does the grouping. The highest/lowest boxes were removed (the ranking list shows the same).
+
+## Step 4 — How we got this
+`HowSteps` (icons + one line each, 3-6 steps) and `TechDetail` ("Show technical detail", closed). Used by the Report (six steps built from the run's own counts), every finding card, the full-size dialog (`InsightCard`). The old content is all still there, inside the fold.
+
+## Step 5 — Data tab
+Tiles (rows kept, columns, fixes made, rows left out), a "left out" note, tables with sticky headers inside a scroll box, the cleaning log as a short list with plain verbs (the full table is under "Show technical detail").
+
+## Step 6 — loading, empty, error
+One `State` component (icon, title, plain message, what to try). Old class names (`error`, `empty-state`, `placeholder`) stay on it. Used in the run page, Dashboard, Data table, Export briefs, History, and the empty tabs.
+
+## Checks
+- Tests run (touched files only): `test_text_scan`, `test_display_names`, `test_new_tools_and_views`, `test_chartsize`, `test_context_insights`, `test_ui_widgets`, `test_ui_nav`, `test_nav`, `test_dashplan`, `test_dashboard`, `test_palette`, `test_ui_simplify`, `test_partb_view`, `test_main_view_polish`, `test_simplify`, `test_old_tab_names` — all passed. The full suite was not run (leave it to a cloud session).
+- `npx tsc -b` and `npm run build` clean (the build's two CSS warnings are old).
+- Screenshots (not committed) at 1440x900 and 390x844: `docs/screens/ui2/part2/sample/` (the stored sample run) and `docs/screens/ui2/part2/run/` (a fresh rules-only run of `sample_data/mall/sales.csv`, which uses the new chart titles). No horizontal scroll on any tab at either width; no console errors.
+- Not tested: a real-AI run, 1280 / 1920 widths, the Ideas to try tab beyond the shared empty state, and print/PDF output with the new Report layout.
+- Known: on the Report, "Ideas to try" stays full width at the bottom (the Lens view registry has no slot for the second column).

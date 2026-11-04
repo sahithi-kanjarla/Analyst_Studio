@@ -183,8 +183,10 @@
 
 /* Dashboard: a responsive grid with a minimum size per tile, so every chart is legible; the page scrolls like any other.
    Layout only: no colours here. */
-.bi-grid.bi-flow { grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr)); gap: var(--sp-4, 16px); align-items: stretch; grid-auto-flow: row dense; }
-.bi-flow > [data-kind="series"] { grid-column: 1 / -1; }
+/* a wrapping row of cards that grow to fill it: few cards get wider and the last row never leaves a gap on the right */
+.bi-grid.bi-flow { display: flex; flex-wrap: wrap; gap: var(--sp-4, 16px); align-items: stretch; }
+.bi-flow > * { flex: 1 1 min(340px, 100%); min-width: 0; }
+.bi-flow > [data-kind="series"] { flex-basis: 100%; }
 .bi-tile { display: flex; flex-direction: column; min-width: 0; }
 .bi-tile-body { flex: 1 1 auto; min-width: 0; }
 .bi-tile-wrap { display: flex; min-width: 0; }
@@ -287,3 +289,5 @@ section:has(> h3 > [data-view-id="insights:checked"]) ul, .iw-checked ul { colum
 .state.state-error { border-color: color-mix(in srgb, var(--err) 25%, transparent); background: var(--err-bg); }
 .state.state h3 { font-size: var(--fs-3); margin: 0 0 var(--sp-1); }
 .state.state-compact h3 { font-size: var(--fs-2); }
+.bi-loading > p[role="status"] { margin: 0 0 var(--sp-3); font-size: var(--fs-2); color: var(--muted); }
+.tile-compact .tile-img { margin-top: 0; flex: 1 1 auto; }
