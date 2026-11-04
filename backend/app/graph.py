@@ -27,7 +27,7 @@ from . import context as ctxmod
 from . import critic as critic_mod
 from . import grain as grainmod
 from . import understanding as undmod
-from . import insights, planner, polarity as polmod, powerbi, relations, reporter, signals, strategy, summary, tiering, tools
+from . import curate as curatemod, insights, planner, polarity as polmod, powerbi, relations, reporter, signals, strategy, summary, tiering, tools
 from .cleaner import add_derived, apply_directives, coerce_types, scoped_clean
 from .config import MAX_ITERATIONS
 from .events import emit, set_quiet
@@ -87,6 +87,7 @@ class RunState(TypedDict, total=False):
     ai_notes: list
     concerns: dict
     understanding: dict
+    curation: dict
 
 
 def _wd(state) -> Path:
@@ -732,6 +733,23 @@ def report_node(state: RunState) -> dict:
     return _report(state, get_llm()[0])
 
 
+def _curate(state: RunState, llm) -> dict:
+    rid = state["run_id"]
+    emit(rid, "Curator", "Selecting what matters most for each tab…")
+    with llmmod.capture() as cap:
+        curation = curatemod.curate(state, llm)
+    n_kept = len(curation.get("kept_ids") or [])
+    n_total = len(curation.get("candidates") or [])
+    emit(rid, "Curator", f"Selection done: {n_kept} of {n_total} items kept" + (f"; {curation['left_out_count']} left out" if curation.get("left_out_count") else "") + ".")
+    out = {"curation": curation}
+    return _ai_failed(state, out, "curation", llm, cap, "curation")
+
+
+@isolated("curate", rules=lambda st: _curate(st, None), empty={"curation": {}})
+def curate_node(state: RunState) -> dict:
+    return _curate(state, get_llm()[0])
+
+
 @isolated("powerbi", empty={"powerbi": {}})
 def powerbi_node(state: RunState) -> dict:
     rid = state["run_id"]
@@ -745,7 +763,7 @@ def powerbi_node(state: RunState) -> dict:
 def build_graph():
     g = StateGraph(RunState)
     for name, fn in (("profile", profile_node), ("relate", relate_node), ("brief", brief_node), ("understand", understand_node), ("clarify", clarify_node), ("plan", plan_node), ("clean", clean_node), ("analyze", analyze_node),
-                     ("critic", critic_node), ("insights", insights_node), ("strategy", strategy_node), ("report", report_node), ("powerbi", powerbi_node)):
+                     ("critic", critic_node), ("insights", insights_node), ("strategy", strategy_node), ("report", report_node), ("curate", curate_node), ("powerbi", powerbi_node)):
         g.add_node(name, fn)
     g.add_edge(START, "profile")
     g.add_edge("profile", "relate")
@@ -759,7 +777,8 @@ def build_graph():
     g.add_conditional_edges("critic", route_after_critic, {"analyze": "analyze", "insights": "insights"})
     g.add_edge("insights", "strategy")
     g.add_edge("strategy", "report")
-    g.add_edge("report", "powerbi")
+    g.add_edge("report", "curate")
+    g.add_edge("curate", "powerbi")
     g.add_edge("powerbi", END)
     return g.compile()
 
