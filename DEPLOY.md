@@ -34,7 +34,7 @@ Copy `.env.example` to `.env` (never commit it). The ones that matter for a publ
 | `PORT` | `8000` | no | the port the server listens on |
 | `APP_ENV` | `production` | no | no cross-origin site is allowed unless listed |
 | `DATA_DIR` | `/data` | no | where everything is stored (the image sets it); mount a volume here |
-| `SITE_ORIGIN` / `CORS_ORIGINS` | `https://studio.example.com` | no | only needed if the page and the API are on different origins |
+| `SITE_ORIGIN` / `CORS_ORIGINS` | `https://studio.example.com` | no | leave unset: deploy the page and the API on the same origin (see the note below) |
 | `TRUST_PROXY_HEADERS` | `1` | no | behind a proxy you control: believe `X-Forwarded-Proto` and `X-Forwarded-For` (HTTPS headers, per-visitor limits) |
 | `OWNER_SECRET` | `a-long-random-string` | **yes** | the server secret that hashes each visitor's browser id (see *Visitor separation*). If unset, one is generated once and kept in `/data/owner_secret`; set it to keep it under your control. Changing it makes every existing run unreachable to its owner |
 | `PUBLIC_DEMO` | `on` | no | runs kept 3 days, uploads and typed Lens questions need the code, low daily caps; the sample report stays open and makes no AI call |
@@ -62,6 +62,8 @@ DAILY_LENS_QUESTIONS=60
 ```
 
 Secrets are the access code and the provider key: set them in the host's secret store or an `.env` file the host keeps, never in the image or the repository.
+
+**Deploy same-origin.** The image serves the page and the API from one port, and that is the supported setup. The visitor cookie (see *Visitor separation*) is an HttpOnly browser cookie, and a page on another origin would only be sent it if every request used `credentials: "include"` and the API replied with `Access-Control-Allow-Credentials: true` and a named origin. The app sends neither, so `CORS_ORIGINS` / `SITE_ORIGIN` only let another site make plain calls and do not make a split deployment work: each visitor would look like a new person with no runs. Serve the page and the API from the same origin (one host name, behind one proxy if you use one).
 
 ## 4. The volume
 
