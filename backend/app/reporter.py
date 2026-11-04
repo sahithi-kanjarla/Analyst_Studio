@@ -15,7 +15,7 @@ from pathlib import Path
 
 from .llm import ask_json, capture
 from .insights import DATE_CAUTION, DATE_TAG, dates_unconfirmed
-from .propose import derive_mode
+from .propose import AI_SOURCES, derive_mode
 
 
 def _score(f: dict) -> float:
@@ -812,6 +812,23 @@ def build_report(state: dict, summary: str, recs: list[str], run_mode: str = "",
     return "\n".join(L)
 
 
+STAGE_NAMES = {"brief": "analysis brief", "understanding": "data understanding", "clarifier": "clarifying questions", "planner": "analysis plan", "critic": "critic", "polarity": "metric direction",
+               "insights": "insights", "strategy": "strategies", "report": "report summary", "summary_pick": "answer-to-question links", "curation": "chart ranking"}
+STAGE_REASONS = {"rules": "the AI's wording was not used, the rule-based text was kept", "mixed": "some AI sentences were dropped because a figure could not be checked"}
+
+
+def ai_partly(state: dict) -> list[str]:
+    """The stages whose AI answer was not (fully) used: those that fell back (named in the decisions), then any stage the run label counts as not AI,
+    each with the reason, so "AI-assisted (partly)" always says where. Nothing when the run used no AI at all (that is "Rules only", not "partly")."""
+    named = list(dict.fromkeys(re.sub(r"^AI unavailable:\s*", "", str(d.get("decision") or "")) for d in state.get("decisions") or [] if d.get("source") == "fallback"))
+    srcs = {k: v for k, v in (state.get("stage_sources") or {}).items() if v}
+    if not any(v in AI_SOURCES or v == "mixed" for v in srcs.values()):
+        return named
+    seen = {n.lower() for n in named}
+    extra = [f"{STAGE_NAMES.get(k, k.replace('_', ' '))} ({STAGE_REASONS[v]})" for k, v in srcs.items() if v in STAGE_REASONS and STAGE_NAMES.get(k, k).lower() not in seen]
+    return named + extra
+
+
 def _page(state: dict, run_mode: str, cs: list[dict], plan: dict, ts: list, answer_cards: list[dict], lines: list[str]) -> dict:
     """The main view as data, for the designed report page: the same cards, actions and figures the markdown shows, in the same words."""
     ctx = state.get("context") or {}
@@ -832,7 +849,7 @@ def _page(state: dict, run_mode: str, cs: list[dict], plan: dict, ts: list, answ
             seen.add(ch["path"])
             charts.append(ch)
     first = cards[0] if cards else {}
-    fell_back = list(dict.fromkeys(re.sub(r"^AI unavailable:\s*", "", str(d.get("decision") or "")) for d in state.get("decisions") or [] if d.get("source") == "fallback"))          # the stages whose AI answer was not used
+    fell_back = ai_partly(state)
     i = lines.index("**View more**") if "**View more**" in lines else len(lines)
     return {"title": "Analysis report", "company": ctx.get("company", ""), "date": time.strftime("%d %b %Y"), "mode": run_mode or derive_mode(state.get("stage_sources")),
             "goal": state.get("goal", ""), "trust": first.get("trust", ""), "ai_partly": fell_back, "headline": ans.get("sentence") or (first.get("lines") or [""])[0], "headline_more": ans.get("groups_sentence") or "",
