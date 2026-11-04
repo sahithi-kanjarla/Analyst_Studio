@@ -134,6 +134,7 @@ function How() {
         {STEPS.map((s, i) => (
           <li key={s.title} style={{ ["--i" as string]: i }}>
             <span className="lp-how-ico"><Icon d={s.icon} /></span>
+            <small className="lp-how-n">Step {i + 1}</small>
             <h3>{s.title}</h3>
             <p>{s.text}</p>
           </li>

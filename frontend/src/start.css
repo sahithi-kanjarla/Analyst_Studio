@@ -29,7 +29,10 @@
 
 /* how it works: four steps on one thin line */
 .lp-how { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--gutter); position: relative; }
-.lp-how::before { content: ""; position: absolute; top: 24px; left: 24px; right: 24px; height: 1px; background: var(--line); }
+.lp-how-n { font-size: var(--fs-1); font-weight: 600; color: var(--brand); letter-spacing: .02em; text-transform: uppercase; }
+/* an arrow from each step to the next */
+.lp-how li:not(:last-child)::after { content: ""; position: absolute; top: 24px; left: 60px; width: calc(100% + var(--gutter) - 76px); height: 1px; background: var(--line); }
+.lp-how li:not(:last-child)::before { content: ""; position: absolute; top: 21px; left: calc(100% + var(--gutter) - 22px); width: 7px; height: 7px; border-top: 1px solid var(--muted); border-right: 1px solid var(--muted); transform: rotate(45deg); }
 .lp-how li { position: relative; display: flex; flex-direction: column; gap: var(--sp-2); }
 .lp-how p, .lp-trust p { color: var(--muted); font-size: var(--fs-2); }
 .lp-how-ico, .lp-trust-ico { width: 48px; height: 48px; border-radius: 50%; border: var(--border); background: var(--card); color: var(--brand); display: grid; place-items: center; position: relative; z-index: 1; margin-bottom: var(--sp-2); }
@@ -66,7 +69,8 @@
   .lp-hero { grid-template-columns: minmax(0, 1fr); gap: var(--sp-5); }
   .lp-trust, .lp-feat { grid-template-columns: minmax(0, 1fr); }
   .lp-how { grid-template-columns: minmax(0, 1fr); row-gap: var(--sp-5); }
-  .lp-how::before { top: 24px; bottom: 24px; left: 24px; right: auto; width: 1px; height: auto; }
+  .lp-how li:not(:last-child)::after { top: 56px; left: 24px; width: 1px; height: calc(100% + var(--sp-5) - 64px); }
+  .lp-how li:not(:last-child)::before { top: auto; left: 20px; bottom: calc(-1 * var(--sp-5) + 6px); transform: rotate(135deg); }
   .lp-how li { padding-left: calc(48px + var(--sp-4)); min-height: 48px; }
   .lp-how-ico { position: absolute; left: 0; top: 0; margin: 0; }
 }
