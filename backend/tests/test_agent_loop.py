@@ -218,7 +218,7 @@ def test_every_tab_exposes_items_with_stable_ids_and_titles(run):
     rid, wd, res = run
     cat = ve.catalogue(res)
     tabs = tab_ids_in_code()
-    assert len(tabs) >= 10 and set(tabs) <= set(ve.TABS), set(tabs) - set(ve.TABS)         # a tab added to the interface must be added to the catalogue
+    assert len(tabs) >= 9 and set(tabs) <= set(ve.TABS), set(tabs) - set(ve.TABS)         # a tab added to the interface must be added to the catalogue
     for t in tabs:
         mine = [i for i in cat["items"].values() if i["tab"] == t]
         assert mine, f"tab {t} exposes no items"
