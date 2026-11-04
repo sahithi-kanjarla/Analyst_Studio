@@ -211,3 +211,27 @@ def test_print_report_and_power_bi_follow_the_selection():
     chosen, left = powerbi.selected_findings(res["findings"], res["curation"])
     assert left > 0 and not ({f["id"] for f in chosen} & set(res["curation"]["absorbed"]))
     assert powerbi.selected_findings(res["findings"], {})[1] == 0                  # an older run: everything, as before
+
+
+def test_a_merged_cards_measure_lines_use_display_names_even_for_a_run_saved_with_column_names():
+    fs = [_finding("c", "group_compare", "net_received", "channel", 7.0)]
+    merges = {"c": {"dimension": "channel", "leader": "Ethnic", "items": [{"id": "c", "measure": "net_received", "figure": 3447.0, "text": "net_received: Ethnic at 3,447"},
+                                                                         {"id": "d", "measure": "discount_amount", "figure": 248.0, "text": "discount_amount: Ethnic at 248"}]}}
+    res = _result(fs, ["c"], merges=merges)
+    res["profile"] = {"columns": [{"name": "net_received"}, {"name": "discount_amount"}, {"name": "channel"}]}
+    res["understanding"] = {"source": "llm", "columns": {"net_received": {"display_name": "Net Received"}, "discount_amount": {"display_name": "Discount Amount"}}}
+    plan = dashplan.build_plan(_dash(dims=("region",)), res)
+    tile = next(t for t in plan["tiles"] + plan["more"] if t.get("finding_id") == "c")
+    assert [i["text"] for i in tile["items"]] == ["Net Received: Ethnic at 3,447", "Discount Amount: Ethnic at 248"]
+    assert [i["measure"] for i in tile["items"]] == ["net_received", "discount_amount"]          # the ids stay
+
+
+def test_curate_writes_display_names_into_the_merged_lines():
+    from app import curate
+    from tests.test_curate import _cmp, _state
+    fs = [_cmp(1, "net_received", "area", "North", "South", score=9.0), _cmp(2, "discount_amount", "area", "North", "South", score=8.0)]
+    st = _state(findings=fs, goal="anything interesting")
+    st["profile"]["columns"] = [{"name": "net_received"}, {"name": "discount_amount"}]
+    st["understanding"] = {"source": "llm", "columns": {"net_received": {"display_name": "Net Received"}, "discount_amount": {"display_name": "Discount Amount"}}}
+    (info,) = curate.curate(st)["merges"].values()
+    assert [i["text"].split(":")[0] for i in info["items"]] == ["Net Received", "Discount Amount"]

@@ -18,6 +18,7 @@ import math
 import re
 from typing import Sequence
 
+from . import understanding as und
 from .clarify import named_in_goal
 from .insights import effect_label
 from .llm import ask_json, capture, note_failure
@@ -729,6 +730,9 @@ def curate(state: dict, llm=None) -> dict:
 
     # overlap: merge findings that say the same thing, reduce the score of repeats
     merges, absorbed = apply_overlap(candidates)
+    for info in merges.values():                       # a merged card's lines are read by people: column names become display names (the ids and measures stay as they are)
+        for it in info["items"]:
+            it["text"] = und.readable(it["text"], state)
 
     # assign candidates to (tab, kind) groups
     groups: dict[tuple[str, str], list[dict]] = {}
