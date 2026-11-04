@@ -18,9 +18,9 @@ import re
 
 from . import understanding as und
 
-TABS = ("report", "insights", "strategy", "dashboard", "data", "model", "cleaning", "plan", "powerbi", "chat")      # every tab of the results page (frontend/src/tabs.ts)
+TABS = ("report", "insights", "strategy", "dashboard", "data", "model", "cleaning", "plan", "chat")      # every tab of the results page (frontend/src/tabs.ts)
 TAB_NAMES = {"report": "Report", "insights": "Insights", "strategy": "Ideas to try", "dashboard": "Dashboard", "data": "Your data", "model": "How files connect", "cleaning": "What we cleaned",
-             "plan": "How we analysed", "powerbi": "Power BI files", "chat": "Lens"}
+             "plan": "How we analysed", "chat": "Lens"}
 DATA_VIEWS = ("data", "model", "cleaning", "plan")          # the four views of the Data tab (the interface's five tabs: Report, Insights, Ideas to try, Dashboard, Data)
 
 
@@ -28,8 +28,6 @@ def place(tab: str) -> str:
     """Where a tab's items are on the page, in the interface's own words: the five tabs, the views of the Data tab, the Export menu and the expanded Lens."""
     if tab in DATA_VIEWS:
         return f"the {TAB_NAMES[tab]} view of the Data tab"
-    if tab == "powerbi":
-        return "the Power BI files (Export menu)"
     if tab == "chat":
         return "the expanded Lens"
     return f"the {TAB_NAMES.get(tab, tab)} tab"
@@ -238,12 +236,6 @@ def _other_tabs(result: dict, items: dict, tabs: dict, section, add) -> None:
     for i, d in enumerate(result.get("applied_definitions") or []):
         add("plan", sd, "card", f"plan:definition:{i}", d.get("question") or f"Definition {i + 1}", text=_plain(f"{d.get('question')} {d.get('answer_label') or d.get('answer')}. {d.get('effect', '')}"))
     add("plan", ss, "card", "plan:setup", "How the data was set up", text=_plain(f"Number we focus on: {plan.get('target')}. Date used: {plan.get('date_col')}. Objective: {plan.get('objective')}"))
-    sec = section("powerbi", "pack", "Power BI pack")
-    pb = result.get("powerbi") or {}
-    add("powerbi", sec, "card", "powerbi:pack", "Power BI pack", text="Files: " + ", ".join(pb.get("files") or []))
-    for i, m in enumerate(pb.get("measures") or []):
-        iid = add("powerbi", sec, "card", f"powerbi:measure:{i}", str(m).split("=")[0].strip() or f"Measure {i + 1}", text=_plain(m))
-        tabs["powerbi"]["primary"].append(iid)
     sec = section("chat", "conversation", "Conversation")
     add("chat", sec, "card", "chat:conversation", "The conversation with Lens", text="The questions asked and the answers given in this run.")
 

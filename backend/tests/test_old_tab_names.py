@@ -23,13 +23,13 @@ def test_the_text_the_app_declares_has_no_old_tab_name():
     texts = list(records.TAB_HELP.values()) + list(ve.TAB_NAMES.values()) + [ve.place(t) for t in ve.TABS] + [viewchat.COMMAND_HELP]
     for t in texts:
         assert not OLD.search(t), clean(t)
-    assert "menu" in records.TAB_HELP["export"] and "Power BI files" in records.TAB_HELP["export"]
+    assert "menu" in records.TAB_HELP["export"] and "Power BI pack" in records.TAB_HELP["export"]
 
 
 def test_lens_answers_about_tabs_use_the_new_names(run):
     rid, wd, res = run
     for q, tab in (("what does each tab show", "Report"), ("what is the Dashboard tab", "Report"), ("what does What we cleaned show", "Report"), ("where is the Power BI export", "Report"), ("what does this tab show", "What we cleaned"),
-                   ("what does this tab show", "Power BI files"), ("what does this tab show", "Lens"), ("what does the data tab show", "Report")):
+                   ("what does this tab show", "Lens"), ("what does the data tab show", "Report")):
         a = chat.ask(wd, res, question=q, llm=FakeAI({"action": "app", "topic": "tab"}), allow_ai=True, tab=tab)["answer"]          # the app-explanation record, quoted
         shown = " ".join([str(a.get("text") or "")] + [str(x) for x in a.get("lines") or []] + [c["text"] for c in a.get("chips") or []])
         assert not OLD.search(shown), (q, tab, clean(shown))
@@ -46,7 +46,7 @@ def test_view_messages_use_the_new_names(run):
         for bad in (lambda: ve._tab({"cmd": "set_mode", "tab": t}, {"items": {}, "tabs": {t: {"sections": []}}}) if False else None,):
             bad()
     for q in ("hide the power bi export", "make the cleaning tab shorter", "make this tab shorter", "hide all the charts", "show the top 3 on the chat tab"):
-        for tab in ("Report", "What we cleaned", "Power BI files", "Lens", "Data"):
+        for tab in ("Report", "What we cleaned", "Lens", "Data"):
             a = chat.ask(wd, res, question=q, llm=None, allow_ai=False, tab=tab)["answer"]
             shown = " ".join([str(a.get("text") or "")] + [str(x) for x in a.get("lines") or []] + [c["text"] for c in a.get("chips") or []])
             assert not OLD.search(shown), (q, tab, clean(shown))

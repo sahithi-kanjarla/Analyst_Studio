@@ -62,7 +62,7 @@ const ok = (name, cond, detail) => { R[name] = { ok: !!cond, detail: detail === 
 
   // 3/4/7. chat edits are visible on every tab, through the slim bar, with Undo and Reset
   const edits = [['data', 'hide the cleaned table', 'Your data', 'data:table:clean'], ['cleaning', 'hide the cleaning log', 'What we cleaned', 'cleaning:steps'], ['plan', 'hide how we analysed', 'How we analysed', 'plan:questions'],
-                 ['powerbi', 'hide power bi export', 'Export:Power BI files', 'powerbi:pack'], ['chat', 'hide the conversation', 'Lens:expand', 'chat:conversation']];
+                 ['chat', 'hide the conversation', 'Lens:expand', 'chat:conversation']];
   for (const [key, phrase, where, id] of edits) {
     await ask(phrase);
     const inDialog = where.startsWith('Export:');

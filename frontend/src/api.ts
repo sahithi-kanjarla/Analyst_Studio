@@ -595,6 +595,7 @@ export const api = {
     fetch(`/api/runs/${id}/data?source=${source}&offset=${offset}&limit=${limit}&q=${encodeURIComponent(q)}&sort=${encodeURIComponent(sort)}&desc=${desc}`).then((r) => json<DataPage>(r)),
   getCompare: (id: string) => fetch(`/api/runs/${id}/data/compare`).then((r) => json<DataCompare>(r)),
   cleanedCsvUrl: (id: string) => `/api/runs/${id}/files/cleaned.csv`,
+  reportMdUrl: (id: string) => `/api/runs/${id}/files/report.md`,
   powerbiUrl: (id: string) => `/api/runs/${id}/powerbi`,
   eventsUrl: (id: string) => `/api/runs/${id}/events`,
   getQuestions: (id: string) => fetch(`/api/runs/${id}/questions`).then((r) => json<QuestionSet>(r)),

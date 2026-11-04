@@ -21,7 +21,7 @@ client = TestClient(app)
 def test_every_tab_opens_showing_everything(run):
     rid, wd, res = run
     r = view(rid)["resolved"]
-    for t in ("report", "insights", "dashboard", "strategy", "data", "cleaning", "plan", "powerbi", "chat"):
+    for t in ("report", "insights", "dashboard", "strategy", "data", "cleaning", "plan", "chat"):
         assert r["tabs"][t]["short"] is False and not r["tabs"][t]["folded"], t
     assert r["original"] and view(rid)["bar"]["show"] is False
 
@@ -63,7 +63,7 @@ def test_hide_and_show_by_name_without_an_ai():
 
 # phrase to type, the section or item id that must end up hidden, the tab it lives on
 EVERY_TAB = [("hide the cleaned table", "data:table:clean", "data"), ("hide the cleaning log", "cleaning:steps", "cleaning"), ("hide how we analysed", "plan:questions", "plan"),
-             ("hide power bi export", "powerbi:pack", "powerbi"), ("hide the conversation", "chat:conversation", "chat"), ("hide the appendix", "insights:appendix", "insights"),
+             ("hide the conversation", "chat:conversation", "chat"), ("hide the appendix", "insights:appendix", "insights"),
              ("hide the key figures", "report:numbers", "report"), ("hide what stands out", "dashboard:takeaways", "dashboard"), ("hide the ideas", "strategy:list", "strategy")]
 
 
@@ -86,7 +86,7 @@ def test_a_chat_hide_applies_on_every_tab_through_the_same_mechanism_and_a_chat_
     assert shown["answer"]["view"]["changed"] and view(rid)["resolved"]["original"]
 
 
-@pytest.mark.parametrize("tab", ["cleaning", "plan", "powerbi"])
+@pytest.mark.parametrize("tab", ["cleaning", "plan"])
 def test_a_short_view_on_a_tab_that_opens_full_folds_all_but_five_and_show_all_brings_them_back(run, tab):
     rid, wd, res = run
     cat = ve.catalogue(res)
@@ -102,12 +102,12 @@ def test_a_short_view_on_a_tab_that_opens_full_folds_all_but_five_and_show_all_b
 
 def test_the_ai_planner_edits_every_tab_with_the_same_commands(run):
     rid, wd, res = run
-    for tab, item in (("data", "data:table:clean"), ("cleaning", "cleaning:steps"), ("model", "model:summary"), ("plan", "plan:setup"), ("powerbi", "powerbi:pack"), ("chat", "chat:conversation")):
+    for tab, item in (("data", "data:table:clean"), ("cleaning", "cleaning:steps"), ("model", "model:summary"), ("plan", "plan:setup"), ("chat", "chat:conversation")):
         ai = FakeAI(P(("view_edit", {"commands": [{"cmd": "hide", "id": item}]})))
         a = chat.ask(wd, res, question=f"get rid of the {tab} part please", llm=ai, allow_ai=True, tab=ve.TAB_NAMES[tab])["answer"]
         assert a["view"]["changed"], tab
         assert item in view(rid)["resolved"]["tabs"][tab]["hidden"], tab
-    assert view(rid)["bar"]["text"] == "6 items hidden"
+    assert view(rid)["bar"]["text"] == "5 items hidden"
 
 
 # ------------------------------------------------------------------ briefs: rename and edit

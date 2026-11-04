@@ -98,7 +98,7 @@ export default function Results({ run, target }: { run: RunResult; target?: stri
     if (!t) return;
     setNav(t.nav);
     if (t.data) pickDataView(t.data);
-    if (t.exportItem === "powerbi" || t.exportItem === "print" || t.exportItem === "briefs") setDialog(t.exportItem);
+    if (t.exportItem === "print" || t.exportItem === "briefs") setDialog(t.exportItem);
     if (t.lens) { lens?.setExpanded(true); lens?.setOpen(false); }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [target]);
@@ -157,12 +157,6 @@ export default function Results({ run, target }: { run: RunResult; target?: stri
       <div className={`card results ${full ? "is-full" : ""}`} ref={card}>
         {review && <AnswersReview runId={run.run_id} onClose={() => setReview(false)} onDirty={(d) => { dirty.current = d; }} />}
         {dialog === "briefs" && <BriefsDialog runId={run.run_id} onClose={() => setDialog(null)} />}
-        {dialog === "powerbi" && (
-          <Dialog title="Power BI files" intro="Everything you need to rebuild the charts in Power BI." onClose={() => setDialog(null)} wide>
-            <p><a className="btn" href={api.powerbiUrl(run.run_id)}>Download Power BI pack</a></p>
-            <TabBody run={run} tab="powerbi" />
-          </Dialog>
-        )}
         <PrintPanel run={run} dialog open={dialog === "print"} onClose={() => setDialog(null)} />
         {confirmDelete && (
           <Dialog title="Delete my run?" intro="This removes the run, the files you uploaded, the results and your saved conversation from this server, now. It cannot be undone." onClose={() => setConfirmDelete(false)}>
@@ -371,7 +365,6 @@ export function PlanView({ run }: { run: RunResult }) {
 
 /** One tab's content. The results page and the start page tour both render it, so the tour always shows the real screen. */
 export function TabBody({ run, tab, embedded = false, startChat = false, startPrint = false }: { run: RunResult; tab: Tab; embedded?: boolean; startChat?: boolean; startPrint?: boolean }) {
-  const vw = useView();
   const ranked = [...(run.findings ?? [])].filter((f) => f.insight).sort((a, b) => (b.insight!.score - a.insight!.score));
   return (
     <>
@@ -404,31 +397,6 @@ export function TabBody({ run, tab, embedded = false, startChat = false, startPr
       {tab === "cleaning" && <CleaningLog run={run} />}
 
       {tab === "plan" && run.plan && <PlanView run={run} />}
-
-      {tab === "powerbi" && run.powerbi && (
-        <div className="powerbi">
-          <TabViewBar tab="powerbi" />
-          <ViewItem id="powerbi:pack" tag="section" className="view-section">
-          <p>
-            The pack contains <code>{run.powerbi.files.join("</code>, <code>")}</code>. Open <code>POWERBI_GUIDE.md</code> first: load the CSV in Power BI Desktop, paste the measures, apply the theme, then build the visuals below.
-          </p>
-          <h4>DAX measures</h4>
-          <pre>{run.powerbi.measures.filter((_, i) => !vw?.isHidden(`powerbi:measure:${i}`) && !vw?.isFolded(`powerbi:measure:${i}`)).join("\n\n")}</pre>
-          <h4>Suggested visuals</h4>
-          <table className="table">
-            <thead>
-              <tr><th>Visual</th><th>Axis</th><th>Values</th><th>Tip</th></tr>
-            </thead>
-            <tbody>
-              {run.powerbi.visuals.map((v, i) => (
-                <tr key={i}><td>{v.visual}</td><td>{v.axis}</td><td>{v.values}</td><td>{v.tip}</td></tr>
-              ))}
-            </tbody>
-          </table>
-          </ViewItem>
-          <ShowAllLink tab="powerbi" />
-        </div>
-      )}
     </>
   );
 }

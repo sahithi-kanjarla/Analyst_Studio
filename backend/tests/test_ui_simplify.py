@@ -65,7 +65,7 @@ GROUPS = {
     "click to focus": ["click_selects_and_opens_lens_with_chip", "selected_card_is_outlined", "click_elsewhere_clears_focus", "enter_selects_a_focused_card", "cards_are_keyboard_focusable", "removing_the_chip_clears_focus"],
     "few suggestions": ["first_open_chips_at_most_four_without_an_ai", "first_open_has_more_ideas_link", "more_ideas_reveals_more", "starters_removed_after_the_first_message", "at_most_three_next_chips"],
     "slim bar": ["undo_removes_the_bar", "bar_text_counts_hidden", "bar_gone_after_undo"],
-    "chat edits visible on every tab": [f"{k}_{t}" for t in ("data", "cleaning", "plan", "powerbi", "chat") for k in ("chat_hide_visible_on", "slim_bar_on", "reset_removes_bar", "reset_restores")] + ["model_tab_items_exist_in_the_catalogue", "short_view_on_cleaning", "show_all_brings_the_rest_back"],
+    "chat edits visible on every tab": [f"{k}_{t}" for t in ("data", "cleaning", "plan", "chat") for k in ("chat_hide_visible_on", "slim_bar_on", "reset_removes_bar", "reset_restores")] + ["model_tab_items_exist_in_the_catalogue", "short_view_on_cleaning", "show_all_brings_the_rest_back"],
     "brief": ["brief_shows_trust_and_quality_note_first", "brief_one_primary_one_secondary_at_rest", "brief_rename", "brief_edit_is_labelled", "brief_quality_note_survives_edit", "brief_saved_with_the_run"],
     "answer menu": ["answer_menu_closed_at_rest", "answer_menu_has_the_actions", "answer_keeps_thumbs_and_next_chips"],
     "no errors": ["no_page_errors"],

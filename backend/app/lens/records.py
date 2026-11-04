@@ -20,7 +20,7 @@ TAB_HELP = {
     "how files connect": "How your files were linked together, and how well they matched.",
     "what we cleaned": "Every change made to your data, with the rows it touched.",
     "how we analysed": "The questions we set out to answer, and the checks we ran.",
-    "export": "The menu next to the report name: Download PDF, Briefs, Power BI files (everything you need to rebuild the charts in Power BI) and Print.",
+    "export": "The menu next to the report name: Download PDF, Download report.md, Download cleaned data, Download Power BI pack (everything you need to rebuild the charts in Power BI), Briefs and Print.",
     "lens": "Ask Lens anything about your data. Expand opens the conversation full width.",
 }
 MAIN_TABS = ("report", "insights", "ideas to try", "dashboard", "data")          # the five tabs of a finished run, in order

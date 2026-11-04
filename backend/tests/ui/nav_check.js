@@ -64,16 +64,15 @@ const ok = (name, cond, detail) => { R[name] = { ok: !!cond, detail: detail === 
     }
   }
   ok('every_section_id_is_on_its_page', missing.length === 0, missing.join(','));
-  ok('the_catalogue_still_covers_all_ten_tabs', ['report', 'insights', 'strategy', 'dashboard', 'data', 'model', 'cleaning', 'plan', 'powerbi', 'chat'].every(t => (view.sections[t] || []).length >= 1), Object.keys(view.sections).join(','));
+  ok('the_catalogue_still_covers_all_nine_tabs', ['report', 'insights', 'strategy', 'dashboard', 'data', 'model', 'cleaning', 'plan', 'chat'].every(t => (view.sections[t] || []).length >= 1), Object.keys(view.sections).join(','));
 
   // 2. the Export menu
   await tab('Report');
   await p.getByRole('button', { name: /^Export/ }).click(); await p.waitForTimeout(200);
   const items = await p.locator('.export-menu [role=menuitem]').allInnerTexts();
-  ok('export_menu_has_the_four_items', JSON.stringify(items) === JSON.stringify(['Download PDF', 'Briefs', 'Power BI files', 'Print']), items.join('|'));
+  ok('export_menu_has_every_export', JSON.stringify(items) === JSON.stringify(['Download PDF', 'Download report.md', 'Download cleaned data', 'Download Power BI pack', 'Briefs', 'Print']), items.join('|'));
   ok('download_pdf_is_the_report_pdf', /\/export\/report$/.test(await p.getByRole('menuitem', { name: 'Download PDF' }).getAttribute('href')));
-  await p.getByRole('menuitem', { name: 'Power BI files' }).click(); await p.waitForTimeout(500);
-  ok('export_power_bi_files_opens_the_pack', (await p.getByRole('dialog').getByText('Download Power BI pack').isVisible()) && (await vis('.dialog [data-view-id="powerbi:pack"]')) === 1);
+  ok('power_bi_pack_and_the_other_downloads_are_direct_links', /\/powerbi$/.test(await p.getByRole('menuitem', { name: 'Download Power BI pack' }).getAttribute('href')) && /cleaned\.csv$/.test(await p.getByRole('menuitem', { name: 'Download cleaned data' }).getAttribute('href')) && /report\.md$/.test(await p.getByRole('menuitem', { name: 'Download report.md' }).getAttribute('href')));
   await p.keyboard.press('Escape'); await p.waitForTimeout(300);
   await p.getByRole('button', { name: /^Export/ }).click(); await p.getByRole('menuitem', { name: 'Briefs' }).click(); await p.waitForTimeout(700);
   ok('export_briefs_opens_the_briefs', (await p.getByRole('dialog', { name: /Briefs/ }).isVisible()));
@@ -161,7 +160,7 @@ const ok = (name, cond, detail) => { R[name] = { ok: !!cond, detail: detail === 
   ok('logo_returns_to_the_home_page', (await p.evaluate(() => location.hash)) === '#/' && (await p.locator('header.topbar').count()) === 1 && (await p.locator('.runbar').count()) === 0);
 
   // 7. old links
-  const old = { powerbi: async () => (await p.getByRole('dialog').getByText('Download Power BI pack').isVisible()),
+  const old = { powerbi: async () => (await p.getByRole('tab', { name: 'Report' }).getAttribute('aria-selected')) === 'true',
                 print: async () => (await p.getByRole('dialog', { name: /Print/ }).isVisible()),
                 chat: async () => (await p.locator('[data-view-id="chat:conversation"]').first().isVisible()),
                 cleaning: async () => (await p.getByRole('tab', { name: 'What we cleaned' }).getAttribute('aria-selected')) === 'true',
