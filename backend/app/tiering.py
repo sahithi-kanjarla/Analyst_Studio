@@ -386,3 +386,97 @@ def pretty_view(view: dict, state: dict) -> dict:
 def card_count(view: dict) -> int:
     """Full cards a reader can open: evidence plus appendix cards."""
     return len(view["evidence"]) + len(view["appendix"])
+
+
+# ------------------------------------------------------------------ curation
+MIN_REPORT_FINDINGS = 3    # floor: the Report tab always shows at least this many findings
+
+
+def _is_null_card(c: dict) -> bool:
+    return c.get("significant") is False or c.get("null_result") is True
+
+
+def apply_curation(view: dict, curation: dict) -> None:
+    """Post-process the view with curation decisions: re-partition findings
+    and strategies into kept / more / left-out for each tab.
+
+    Mutates *view* in place.  When *curation* is empty or missing the
+    required keys the view is left unchanged — the pre-curation layout
+    (the original tiering caps) remains the fallback.
+    """
+    tabs = curation.get("tabs")
+    if not tabs:
+        return
+
+    # --- Insights tab: re-partition evidence / appendix ---
+    ins_f = tabs.get("insights:finding") or {}
+    kept_ids = list(ins_f.get("kept") or [])
+    more_ids = list(ins_f.get("more") or [])
+
+    all_cards = list(view.get("evidence") or []) + list(view.get("appendix") or [])
+    card_by_id: dict[str, dict] = {c["id"]: c for c in all_cards}
+
+    if kept_ids or more_ids:
+        # Kept findings for Insights — null-result one-liners stay separate
+        evidence = []
+        for fid in kept_ids:
+            c = card_by_id.get(fid)
+            if c and not _is_null_card(c):
+                c["tier"] = 2
+                evidence.append(c)
+        view["evidence"] = evidence
+
+        # "More" findings (title + one line, chart lazy on open)
+        more = []
+        for fid in more_ids:
+            c = card_by_id.get(fid)
+            if c and not _is_null_card(c):
+                more.append(c)
+        view["more_findings"] = more
+
+        # Anything not kept or more goes to the appendix (hidden from
+        # report views; the Data tab reports the count)
+        shown = set(kept_ids) | set(more_ids)
+        view["appendix"] = [c for c in all_cards
+                            if c["id"] not in shown and not _is_null_card(c)]
+
+    view["null_lines"] = ins_f.get("null_lines") or []
+    view["null_counted"] = ins_f.get("null_counted", 0)
+
+    # --- Report tab: curated findings for the evidence section ---
+    rpt_f = tabs.get("report:finding") or {}
+    rpt_kept = list(rpt_f.get("kept") or [])
+    if rpt_kept:
+        rf = []
+        for fid in rpt_kept:
+            c = card_by_id.get(fid)
+            if c and not _is_null_card(c):
+                rf.append(c)
+        # Floor: never fewer than MIN_REPORT_FINDINGS when cards exist
+        if len(rf) < MIN_REPORT_FINDINGS:
+            already = {c["id"] for c in rf}
+            for c in all_cards:
+                if c["id"] not in already and not _is_null_card(c):
+                    rf.append(c)
+                    already.add(c["id"])
+                    if len(rf) >= MIN_REPORT_FINDINGS:
+                        break
+        view["report_findings"] = rf
+
+    # --- Ideas tab: re-partition strategies ---
+    ideas = tabs.get("ideas:idea") or {}
+    idea_kept = list(ideas.get("kept") or [])
+    idea_more = list(ideas.get("more") or [])
+    strats = view.get("strategies") or {}
+    all_strats = list(strats.get("strategies") or [])
+    strat_by_id: dict[str, dict] = {s["id"]: s for s in all_strats}
+    if idea_kept or idea_more:
+        strats["strategies"] = [strat_by_id[i] for i in idea_kept
+                                if i in strat_by_id]
+        strats["more"] = [strat_by_id[i] for i in idea_more
+                          if i in strat_by_id]
+        strats["dropped"] = ideas.get("left_out_count", 0)
+        view["strategies"] = strats
+
+    # --- Left-out count for the Data tab ---
+    view["left_out_count"] = curation.get("left_out_count", 0)

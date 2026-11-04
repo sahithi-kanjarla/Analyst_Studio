@@ -1,4 +1,4 @@
-import { RunResult } from "../api";
+import { ReportCard, RunResult } from "../api";
 import { humanise, plainLabel, Understanding } from "../display";
 import LensChat from "./lens/LensChat";
 import { LensProvider } from "./lens/LensContext";
@@ -27,6 +27,22 @@ const chartHeading = (title: string, und?: Understanding | null) => {
   return t.charAt(0).toUpperCase() + t.slice(1);
 };
 
+/** One curated finding in the Report evidence section: chart + headline + observation. */
+function ReportFinding({ c, und }: { c: ReportCard; und?: Understanding | null }) {
+  const say = (t: string) => humanise(t, und);
+  const cid = `report:finding:${c.id}`;
+  return (
+    <ViewItem id={cid} tag="article" className="rp-chart surface span-6" data-kind="chart">
+      <h3><ViewTitle id={cid} text={say(c.headline)} /></h3>
+      {c.chart_url && <ViewImg id={`report:chart:${c.id}`} src={c.chart_url} alt={say(c.title)} />}
+      <p data-kind="takeaway">{say(c.why_it_matters || c.observation)}</p>
+      {c.checks.length > 0 && (
+        <p className="muted small">{c.checks.map((ch) => say(ch)).join(" ")}</p>
+      )}
+    </ViewItem>
+  );
+}
+
 /** The report as a designed page: the short answer, the key figures, what to do, the evidence, and everything else folded away. */
 export default function ReportPage({ run, embedded = false, startChat = false, startPrint = false }: { run: RunResult; embedded?: boolean; startChat?: boolean; startPrint?: boolean }) {
   const page = run.report_view?.page;
@@ -42,10 +58,14 @@ export default function ReportPage({ run, embedded = false, startChat = false, s
     );
   }
   const title = page.company ? `${page.company} report` : "Your report";
-  // a seller's key figures: not the number of columns, and "records" rather than "rows"
   const tiles = page.tiles.map((t, i) => ({ ...t, i })).filter((t) => t.label !== "Columns").map((t) => (t.label === "Rows" ? { ...t, label: "Records in your file" } : t));
   const rows = run.profile?.rows;
   const cols = run.profile?.cols;
+
+  const reportFindings = run.report_view?.report_findings ?? [];
+  const hasFindings = reportFindings.length > 0;
+  const strategies = run.report_view?.strategies.strategies ?? [];
+
   return (
     <div className={`report-layout ${startChat ? "with-chat" : ""} ${embedded ? "embedded" : ""}`}>
       <article className="report-page" aria-label="Report">
@@ -64,7 +84,7 @@ export default function ReportPage({ run, embedded = false, startChat = false, s
         </header>
 
         <TabViewBar tab="report" />
-        <Sections tab="report" selfTitled={["report:actions", "report:evidence", "report:behind"]} nodes={{
+        <Sections tab="report" selfTitled={["report:actions", "report:evidence", "report:ideas", "report:behind"]} nodes={{
           "report:short": (
           <section className="rp-headline" data-kind="summary" aria-label="The short answer">
           <p className="rp-kicker">The short answer</p>
@@ -108,7 +128,14 @@ export default function ReportPage({ run, embedded = false, startChat = false, s
             </section>
           ),
           "report:evidence": (
-            page.charts.length > 0 ? (
+            hasFindings ? (
+              <section className="rp-section" data-kind="charts" aria-labelledby="rp-evidence">
+                <ViewTitle id="report:evidence" tag="h2" text="The evidence" />
+                <div className="grid">
+                  {reportFindings.map((c) => <ReportFinding key={c.id} c={c} und={run.understanding} />)}
+                </div>
+              </section>
+            ) : page.charts.length > 0 ? (
               <section className="rp-section" data-kind="charts" aria-labelledby="rp-evidence">
                 <ViewTitle id="report:evidence" tag="h2" text="The evidence" />
                 <div className="grid">
@@ -128,6 +155,19 @@ export default function ReportPage({ run, embedded = false, startChat = false, s
                       </ViewItem>) };
                   })} />
                 </div>
+              </section>
+            ) : <></>
+          ),
+          "report:ideas": (
+            strategies.length > 0 && !short ? (
+              <section className="rp-section" data-kind="summary" aria-labelledby="rp-ideas">
+                <ViewTitle id="report:ideas" tag="h2" text="Ideas to try" />
+                <ul className="tight">
+                  {strategies.slice(0, 4).map((s) => (
+                    <li key={s.id}><strong>{humanise(s.title, run.understanding)}</strong>{s.objective ? ` — ${humanise(s.objective, run.understanding)}` : ""}</li>
+                  ))}
+                </ul>
+                {strategies.length > 4 && <p className="muted small">and {strategies.length - 4} more on the Ideas to try tab.</p>}
               </section>
             ) : <></>
           ),

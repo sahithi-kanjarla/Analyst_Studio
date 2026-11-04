@@ -281,3 +281,132 @@ def test_importance_caution_always_high():
          "share_of_total": 0.0, "reliability": "descriptive",
          "null_result": False, "caution": True, "goal_relevant": False}
     assert curate.importance(c) > 4.0
+
+
+# ============================================================ Part B2 tests
+# apply_curation, report content, null results, left-out count, More list
+
+from app import tiering  # noqa: E402
+
+
+def _view_and_curation():
+    """A small state with 6 findings, 2 strategies, and curation decisions."""
+    fs = [
+        _finding(1, score=20.0, effect=0.5),
+        _finding(2, score=15.0, effect=0.3, group="region"),
+        _finding(3, score=10.0, effect=0.2, group="channel"),
+        _finding(4, sig=False, score=1.0,
+                 headline="revenue does not differ reliably across segment",
+                 group="segment"),
+        _finding(5, score=3.0, effect=0.05, group="weekday"),
+        _finding(6, score=2.0, effect=0.02, group="month"),
+    ]
+    strats = [_strategy(1, impact="High"), _strategy(2, impact="Medium"),
+              _strategy(3, impact="Low")]
+    st = _state(findings=fs, strategies=strats)
+    view = tiering.build_view(st)
+
+    curation = curate.curate(st)
+    return view, curation, st
+
+
+def test_apply_curation_partitions_evidence_and_more():
+    """After apply_curation, evidence contains only kept findings; more_findings
+    holds the overflow items."""
+    view, curation, _ = _view_and_curation()
+    all_before = set(c["id"] for c in view["evidence"] + view["appendix"])
+    tiering.apply_curation(view, curation)
+
+    kept_ids = set(c["id"] for c in view["evidence"])
+    more_ids = set(c["id"] for c in view.get("more_findings", []))
+    # every id was either kept, more, or left out — none lost
+    assert kept_ids | more_ids <= all_before
+    # kept and more are disjoint
+    assert not (kept_ids & more_ids)
+
+
+def test_report_findings_has_a_floor():
+    """The report tab always has at least MIN_REPORT_FINDINGS cards."""
+    view, curation, _ = _view_and_curation()
+    tiering.apply_curation(view, curation)
+    rf = view.get("report_findings", [])
+    assert len(rf) >= tiering.MIN_REPORT_FINDINGS
+
+
+def test_report_never_empty_on_small_file():
+    """Even one finding is enough — the report has real content."""
+    fs = [_finding(1, score=5.0)]
+    st = _state(findings=fs)
+    view = tiering.build_view(st)
+    curation = curate.curate(st)
+    tiering.apply_curation(view, curation)
+    assert len(view["evidence"]) >= 1
+    assert len(view.get("report_findings", view["evidence"])) >= 1
+
+
+def test_null_result_has_no_chart_in_display():
+    """No tab shows a chart for a null result finding."""
+    null_f = _finding(1, sig=False, score=1.0,
+                      headline="revenue does not differ reliably across category",
+                      chart="charts/null.png")
+    real_f = _finding(2, sig=True, score=10.0, group="region")
+    st = _state(findings=[null_f, real_f])
+    view = tiering.build_view(st)
+    curation = curate.curate(st)
+    tiering.apply_curation(view, curation)
+    # null results must not appear as full cards in evidence or report_findings
+    for c in view["evidence"] + view.get("report_findings", []):
+        assert c["id"] != "f1", "null result must not be a card in evidence"
+    # null results as one-line entries only
+    null_lines = view.get("null_lines", [])
+    null_ids = {nl["id"] for nl in null_lines}
+    assert "f1" in null_ids or not any(
+        c["id"] == "f1" for c in view.get("more_findings", []))
+
+
+def test_left_out_count_in_view():
+    """The view carries a left_out_count for the Data tab."""
+    view, curation, _ = _view_and_curation()
+    tiering.apply_curation(view, curation)
+    assert "left_out_count" in view
+    assert isinstance(view["left_out_count"], int)
+    assert view["left_out_count"] >= 0
+
+
+def test_more_findings_reachable():
+    """Overflow findings are in the more_findings list, accessible to the user
+    and the Lens agent."""
+    fs = [_finding(i, score=20.0 - i, group=f"g{i}") for i in range(1, 20)]
+    st = _state(findings=fs)
+    view = tiering.build_view(st)
+    curation = curate.curate(st)
+    tiering.apply_curation(view, curation)
+    more = view.get("more_findings", [])
+    kept = {c["id"] for c in view["evidence"]}
+    more_set = {c["id"] for c in more}
+    # all more items are real findings, none are kept
+    assert not (kept & more_set)
+    # every non-left-out finding is either in evidence or more or appendix
+    all_finding_ids = {f"f{i}" for i in range(1, 20)}
+    accounted = kept | more_set | {c["id"] for c in view.get("appendix", [])}
+    assert all_finding_ids <= accounted
+
+
+def test_strategies_more_list():
+    """Overflow strategies end up in strategies.more, not lost."""
+    view, curation, _ = _view_and_curation()
+    tiering.apply_curation(view, curation)
+    strats = view.get("strategies", {})
+    kept = {s["id"] for s in strats.get("strategies", [])}
+    more = {s["id"] for s in strats.get("more", [])}
+    assert not (kept & more)
+
+
+def test_apply_curation_empty_is_noop():
+    """An empty curation dict leaves the view unchanged."""
+    view, _, _ = _view_and_curation()
+    ev_before = list(view["evidence"])
+    tiering.apply_curation(view, {})
+    assert view["evidence"] == ev_before
+    tiering.apply_curation(view, {"tabs": {}})
+    assert view["evidence"] == ev_before

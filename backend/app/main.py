@@ -159,9 +159,16 @@ def get_run(run_id: str):
             for a in pg["actions"]:
                 a["chart_url"] = base + a["chart"] if a.get("chart") else ""
             pg["behind_md"] = pg["behind_md"].replace("](charts/", f"]({base}charts/")
-        for c in view["evidence"] + view["appendix"]:
+        for c in view.get("evidence", []) + view.get("appendix", []):
             if c.get("chart"):
                 c["chart_url"] = base + c["chart"]
+        # apply curation (computed after the report; restructures the view)
+        curation = data.get("curation")
+        if curation:
+            tiering.apply_curation(view, curation)
+            for c in view.get("report_findings", []) + view.get("more_findings", []):
+                if c.get("chart") and not c.get("chart_url"):
+                    c["chart_url"] = base + c["chart"]
         out.update(data)
         out["run_id"] = run_id      # the id in the URL, not the one the run was first saved under (a copied run keeps its original id inside result.json)
     return out

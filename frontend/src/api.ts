@@ -77,6 +77,8 @@ export interface ReportCard {
   stats: { n?: number; p?: number; p_adjusted?: number };
 }
 
+export interface NullLine { id: string; title: string; kind: string; reason: string }
+
 export interface ReportView {
   gallery?: { key: string[]; more: string[] };
   answers: { question: string; answer: string }[];
@@ -87,8 +89,13 @@ export interface ReportView {
   appendix: ReportCard[];
   checked: { id: string; line: string; check: string }[];
   profile: { distributions: { id: string; line: string }[]; outliers: { id: string; line: string }[]; composition: { id: string; line: string }[]; tables: CardTable[] };
-  strategies: { strategies: Strategy[]; foundation: { id: string; title: string; line: string }[]; dropped: number };
+  strategies: { strategies: Strategy[]; foundation: { id: string; title: string; line: string }[]; dropped: number; more?: Strategy[] };
   page?: ReportPageData;
+  report_findings?: ReportCard[];
+  more_findings?: ReportCard[];
+  null_lines?: NullLine[];
+  null_counted?: number;
+  left_out_count?: number;
 }
 
 /** The main view of the report as data: the same cards, actions and figures as the markdown, in the same words. */
