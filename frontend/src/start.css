@@ -98,3 +98,15 @@
 .start-form input[type="text"], .start-form input:not([type]), .start-form select, .start-form textarea { font: inherit; font-size: var(--fs-2); color: var(--ink); background: var(--bg); border: var(--border); border-radius: 10px; padding: var(--sp-3) var(--sp-4); width: 100%; }
 .start-form .primary { background: var(--brand); color: var(--brand-ink); border: 0; border-radius: 999px; padding: var(--sp-3) var(--sp-5); font: inherit; font-weight: 600; cursor: pointer; }
 .start-form .primary:disabled { opacity: .55; }
+
+/* phone: History, Glossary and New analysis sit behind three bars in the corner */
+.menu-bars { display: none; }
+@media (max-width: 600px) {
+  .shell > .topbar { position: relative; flex-wrap: nowrap; }
+  .topbar .menu-bars { display: inline-flex; flex-direction: column; justify-content: center; gap: 4px; width: 40px; height: 40px; padding: 0 10px; border: var(--border); border-radius: var(--radius); background: var(--card); cursor: pointer; }
+  .menu-bars i { display: block; height: 2px; border-radius: 2px; background: var(--ink); }
+  .topbar .topright { display: none; position: absolute; top: calc(100% + var(--sp-2)); right: 0; z-index: 30; flex-direction: column; align-items: stretch; gap: var(--sp-1); min-width: 200px; padding: var(--sp-2); border: var(--border); border-radius: var(--radius); background: var(--card); box-shadow: var(--shadow); }
+  .topbar .topright.topright-open { display: flex; }
+  .topbar .topright .navlink { padding: var(--sp-3) var(--sp-4); font-size: var(--fs-2); border-radius: var(--radius-sm); text-align: left; }
+  .topbar .topright .navlink-primary { text-align: center; margin-top: var(--sp-1); }
+}

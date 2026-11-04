@@ -27,10 +27,13 @@ export default function App() {
   const [runId, runTab, go] = useHashRun();
   const readPage = () => (window.location.hash === "#/glossary" ? "glossary" : window.location.hash === "#/history" ? "history" : window.location.hash === "#/new" ? "new" : "");
   const [page, setPage] = useState(readPage);
+  const [menu, setMenu] = useState(false);          // the phone menu (three bars)
   useEffect(() => {
-    const on = () => setPage(readPage());
+    const on = () => { setPage(readPage()); setMenu(false); };
+    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") setMenu(false); };
     window.addEventListener("hashchange", on);
-    return () => window.removeEventListener("hashchange", on);
+    window.addEventListener("keydown", esc);
+    return () => { window.removeEventListener("hashchange", on); window.removeEventListener("keydown", esc); };
   }, []);
   return (
     <div className="shell">
@@ -40,7 +43,8 @@ export default function App() {
           <Logo size={30} />
           Analyst Studio
         </a>
-        <div className="topright">
+        <button type="button" className="menu-bars" aria-label="Menu" aria-expanded={menu} aria-controls="top-links" onClick={() => setMenu((m) => !m)}><i /><i /><i /></button>
+        <div className={`topright ${menu ? "topright-open" : ""}`} id="top-links">
           <a className={`navlink ${page === "history" ? "navlink-on" : ""}`} href="#/history">History</a>
           <a className={`navlink ${page === "glossary" ? "navlink-on" : ""}`} href="#/glossary">Glossary</a>
           <a className="navlink navlink-primary" href="#/new">New analysis</a>
