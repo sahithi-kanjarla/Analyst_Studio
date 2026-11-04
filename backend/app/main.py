@@ -17,6 +17,7 @@ from .profiler import count_delimited_rows, too_many_rows_message
 from . import lens
 from .lens import chat as lenschat, howtext as lenshow, reports as lensreports, store as lensstore
 from .context import normalise_context
+from . import dashplan
 from .dashboard import build_dashboard, list_sources, source_path, valid_source
 from .events import get_events
 from .llm import get_llm
@@ -421,6 +422,21 @@ def dashboard_data(run_id: str):
     if not res.exists() or not (wd / "clean.pkl").exists():
         raise HTTPException(404, "Dashboard not ready")
     return build_dashboard(wd, json.loads(res.read_text()))
+
+
+@app.get("/api/runs/{run_id}/dashboard/layout")
+def dashboard_layout(run_id: str, tiles: str = ""):
+    """The tile sizes for the tiles the page can show now (a view edit may hide or fold some), so the grid still fills the window.
+    `tiles` is "id:importance,id:importance"; the answer is a pure function of it."""
+    _check_id(run_id)
+    items = []
+    for part in [p for p in tiles.split(",") if p][:dashplan.MAX_TILES]:
+        tid, _, imp = part.rpartition(":")
+        try:
+            items.append({"id": tid, "importance": float(imp)})
+        except ValueError:
+            raise HTTPException(400, "tiles must look like id:importance,id:importance")
+    return dashplan.arrange(items)
 
 
 @app.get("/api/runs/{run_id}/data/compare")
