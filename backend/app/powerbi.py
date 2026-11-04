@@ -5,11 +5,13 @@ everything needed to build the dashboard in a few minutes (Get Data > Text/CSV, 
 from __future__ import annotations
 
 import json
+import re
 import zipfile
 from pathlib import Path
 
 import pandas as pd
 
+from . import understanding as und
 from .measures import has_sum_word
 from .tools import to_binary
 
@@ -107,7 +109,7 @@ def build_visuals(findings: list[dict], plan: dict, curation: dict | None = None
     return out
 
 
-def build_pack(workdir: Path, df: pd.DataFrame, profile: dict, plan: dict, findings: list[dict], goal: str, data_model: dict | None = None, kinds: dict | None = None, curation: dict | None = None) -> dict:
+def build_pack(workdir: Path, df: pd.DataFrame, profile: dict, plan: dict, findings: list[dict], goal: str, data_model: dict | None = None, kinds: dict | None = None, curation: dict | None = None, names: dict | None = None) -> dict:
     pack = workdir / "powerbi"
     pack.mkdir(exist_ok=True)
     roles = {c["name"]: c["role"] for c in profile["columns"]}
@@ -143,15 +145,22 @@ The flat `cleaned_data.csv` already combines your tables (one row per `{data_mod
 
     measures = build_measures(df, plan, roles, kinds)
     (pack / "measures.dax").write_text("\n\n".join(f"// {x['note']}\n{x['dax']}" if x["note"] else x["dax"] for x in measures) + "\n", encoding="utf-8")
-    visuals = build_visuals(findings, plan, curation)
+    names = names or {}
+    visuals = []
+    for v in build_visuals(findings, plan, curation):
+        raw = " | ".join(str(v.get(k, "")) for k in ("from", "axis", "values"))
+        fields = [c for c in df.columns if re.search(r"(?<![A-Za-z0-9_])" + re.escape(str(c)) + r"(?![A-Za-z0-9_])", raw)]
+        visuals.append({**v, **{k: und.apply_names(str(v[k]), names) for k in ("from", "axis", "values") if k in v}, "fields": fields})      # the words are plain; `fields` keeps the exact names
     left_out = selected_findings(findings, curation)[1]
     (pack / "visuals.json").write_text(json.dumps(visuals, indent=2), encoding="utf-8")
     (pack / "theme.json").write_text(json.dumps(THEME, indent=2), encoding="utf-8")
 
+    used = [c for c in df.columns if any(c in v["fields"] for v in visuals)]
+    fields_md = "\n".join(f"| {und.apply_names(str(c), names)} | `{c}` |" for c in used)
     vis_md = "\n".join(f"| {v['visual']} | {v['axis']} | {v['values']} | {v['tip']} |" for v in visuals)
     guide = f"""# Build the dashboard in Power BI Desktop
 
-**Goal:** {goal}
+**Goal:** {goal or 'Overview of your data'}
 
 ## 1. Load the data (2 min)
 1. Home > Get data > Text/CSV > `cleaned_data.csv` > Load. (Or `cleaned_data.parquet` via Get data > Parquet.)
@@ -168,6 +177,13 @@ View > Themes > Browse for themes > `theme.json`.
 | Visual | Axis / Category | Values | Tip |
 |---|---|---|---|
 {vis_md}
+
+## Field names in Power BI
+The visuals above use plain names. Power BI lists each column under the exact name in the file, shown here:
+
+| Plain name | Field in Power BI |
+|---|---|
+{fields_md}
 
 ## 5. Tell the story
 Page title = the goal. Put KPI cards on top, then the trend, then the segment comparisons. Add slicers for the grouping columns used in analysis.

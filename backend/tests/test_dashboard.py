@@ -39,3 +39,37 @@ def test_all_uploaded_tables_are_listed_viewable_and_downloadable():
     assert dl.status_code == 200 and dl.content.startswith(bytes([0xEF, 0xBB, 0xBF])) and len(dl.text.splitlines()) == len(p) + 1
     assert cl.get(f"/api/runs/{rid}/data", params={"source": "tbl:../x"}).status_code == 400
     assert cl.get(f"/api/runs/{rid}/data", params={"source": "tbl:nope"}).status_code == 404
+
+
+def _twin_table():
+    n = 240
+    items = ["Bridal Lehenga", "Cotton Kurta", "Printed Dupatta", "Palazzo Pants"]
+    codes = {i: c for i, c in zip(items, ["BL-001", "CK-014", "PD-207", "PP-033"])}
+    rng = np.random.default_rng(1)
+    item = pd.Series(rng.choice(items, n))
+    return pd.DataFrame({"code": item.map(codes), "item": item, "region": rng.choice(["N", "S", "E"], n), "revenue": rng.uniform(10, 500, n)})     # "code" comes first on purpose
+
+
+def test_two_columns_that_group_the_rows_identically_give_one_filter_and_one_chart(tmp_path):
+    from app import dashboard
+    df = _twin_table()
+    df.to_pickle(tmp_path / "clean.pkl")
+    cols = [{"name": c, "role": "categorical" if c != "revenue" else "numeric"} for c in df.columns]
+    res = {"plan": {"target": "revenue", "relevant_columns": list(df.columns)}, "profile": {"columns": cols}, "context": {}, "findings": []}
+    d = dashboard.build_dashboard(tmp_path, res)
+    shown = [x["col"] for x in d["dims"]]
+    assert "item" in shown and "code" not in shown                    # the readable one stays, the code-like one goes
+    assert "code" not in d["columns"] and d["plan"]["filters"].count("item") <= 1 and "code" not in d["plan"]["filters"]
+    assert not any(t.get("col") == "code" for t in d["plan"]["tiles"] + d["plan"]["more"])
+    assert "region" in shown                                          # a column that only partly lines up is untouched
+
+
+def test_the_column_the_goal_names_is_the_one_kept_and_unrelated_columns_are_never_twins():
+    from app import dashboard
+    df = _twin_table()
+    dims = [{"col": "code", "unique": 4, "score": 0.1, "goal": True}, {"col": "item", "unique": 4, "score": 0.1}, {"col": "region", "unique": 3, "score": 0.0}]
+    kept, dropped = dashboard.drop_twin_dims(df, dims)
+    assert [d["col"] for d in kept] == ["code", "region"] and dropped == {"item": "code"}
+    df["other"] = np.random.default_rng(2).choice(["a", "b", "c", "d"], len(df))
+    kept, dropped = dashboard.drop_twin_dims(df, [{"col": "item", "unique": 4, "score": 0.1}, {"col": "other", "unique": 4, "score": 0.1}])
+    assert dropped == {} and len(kept) == 2

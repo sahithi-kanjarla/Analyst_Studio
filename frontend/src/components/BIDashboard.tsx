@@ -2,6 +2,7 @@ import { CSSProperties, ReactNode, useEffect, useMemo, useRef, useState } from "
 import { api, DashData, DashMeasure, DashRect, DashTile, Finding, RunResult } from "../api";
 import { planShare, planTable, plural, SHARE_SLICES, TABLE_ROWS } from "../chartsize";
 import { chartTitle, displayName, humanise, plainLabel } from "../display";
+import { latestChange } from "../periodchange";
 import FindingGallery, { Tile } from "./FindingGallery";
 import { useView } from "./view/ViewContext";
 import InsightCard from "./InsightCard";
@@ -230,7 +231,7 @@ export default function BIDashboard({ run }: { run: RunResult }) {
   const overall = total(rows, m);
   const now = total(filtered, m);
   const periods = group(filtered, period, m).sort((a, b) => (a.key < b.key ? -1 : 1));
-  const last = periods[periods.length - 1], prev = periods[periods.length - 2];
+  const last = periods[periods.length - 1];
   const lead = data.dims[0] ? group(filtered, (r) => r.d[data.dims[0].col], m).sort((a, b) => b.value - a.value)[0] : undefined;
   const kpis: { label: string; value: string; note?: string; tone?: "up" | "down" }[] = [
     { label: plainLabel(m.label), value: fmt(now), note: active && m.agg === "sum" && overall ? `${trim((now / overall) * 100, 0)}% of all` : m.note },
@@ -240,11 +241,18 @@ export default function BIDashboard({ run }: { run: RunResult }) {
   if (m.agg === "sum" && m.col !== "__count") kpis.push({ label: `Average per record`, value: fmt(filtered.length ? now / filtered.length : 0) });
   else if (other) kpis.push({ label: plainLabel(other.label), value: formatter(other, cur)(total(filtered, other)) });
   if (lead && data.dims[0]) kpis.push({ label: `Top ${label(data.dims[0].col).toLowerCase()}`, value: lead.key, note: m.agg === "sum" && now ? `${trim((lead.value / now) * 100, 0)}% of ${m.label.toLowerCase()}` : fmt(lead.value) });
-  if (last && prev && prev.value) {
-    const ch = (last.value - prev.value) / Math.abs(prev.value);
+  const lastDay = filtered.reduce<string | null>((mx, r) => (r.day && (!mx || r.day > mx) ? r.day : mx), null);
+  const lc = latestChange(periods.map((p) => ({ key: p.key, value: p.value })), grain, lastDay, m.agg === "sum");
+  if (lc) {
     // too few periods, or dates present on under 70% of the days, make the latest-vs-previous change unreliable: say so on the tile
     const partial = group(rows, period, m).length < 6 || (data.date_coverage != null && data.date_coverage < 0.7);
-    kpis.push({ label: `Latest ${grain} vs previous${partial ? " (partial data)" : ""}`, value: `${ch >= 0 ? "+" : ""}${trim(ch * 100, 1)}%`, tone: ch >= 0 ? "up" : "down", note: periodLabel(last.key, grain, years.length > 1) });
+    const cover = lc.days != null && lc.of != null && lc.days < lc.of ? `${lc.days} of ${lc.of} days` : "";
+    const when = [periodLabel(last.key, grain, years.length > 1), cover].filter(Boolean).join(" · ");
+    if (lc.kind === "too_few") kpis.push({ label: `Latest ${grain} vs previous`, value: "Too early", note: `${when}, too few days to compare` });
+    else if (lc.change !== null) {
+      const ch = lc.change;
+      kpis.push({ label: `Latest ${grain} vs previous${lc.kind === "per_day" ? ", per day" : partial ? " (partial data)" : ""}`, value: `${ch >= 0 ? "+" : ""}${trim(ch * 100, 1)}%`, tone: ch >= 0 ? "up" : "down", note: when });
+    }
   }
 
   // ---------------- visuals
@@ -396,7 +404,7 @@ export default function BIDashboard({ run }: { run: RunResult }) {
           </>
         ),
         "dashboard:gallery": (
-          <FindingGallery run={run} more={plan?.more ?? []} extra={
+          <FindingGallery run={run} more={plan?.more ?? []} extraCount={moreLive.filter((t) => liveTile(t, 300).node).length} extra={
             <>
               {moreLive.length > 0 && (
                 <div className="bi-grid">

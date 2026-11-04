@@ -12,6 +12,7 @@ spec.  No column name, example value or audience is written in this file.
 from __future__ import annotations
 
 from . import curate
+from . import understanding as und
 
 GRID_COLS = 24                 # the grid the tiles are cut from (units, not pixels)
 GRID_ROWS = 24
@@ -147,7 +148,7 @@ def build_plan(dash: dict, result: dict, pinned: list[str] | None = None) -> dic
                 "measure": (c or {}).get("measure", ""), "dimension": (c or {}).get("dimension", ""),
                 "direct": bool((c or {}).get("direct")), "core": bool((c or {}).get("core"))}
         if merges.get(fid):
-            tile["items"] = [{"measure": i.get("measure", ""), "text": i.get("text", "")} for i in merges[fid].get("items") or []]
+            tile["items"] = [{"measure": i.get("measure", ""), "text": und.readable(i.get("text", ""), result)} for i in merges[fid].get("items") or []]
         (fin_tiles if cid in kept_ids else fin_more).append(tile)
 
     # --- a chart the person asked for (pinned, or "show" on a More item) is on the dashboard whatever the cut said

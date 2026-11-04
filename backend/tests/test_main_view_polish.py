@@ -172,3 +172,16 @@ def test_a_kpi_the_plan_serves_with_another_column_is_not_reported_as_not_found(
     unserved = {"source": "llm", "columns": {}, "goal_columns": {"revenue": ["notes"]}, "unmapped": []}         # mapped to a column the plan does not use
     assert [g for g in insights.data_gaps(gap_state(unserved)) if "KPI 'revenue' was not found" in g["title"]]
     assert [g for g in insights.data_gaps(gap_state(None)) if "KPI 'revenue' was not found" in g["title"]]        # no record: the old rule stands
+
+
+def test_item_titles_keep_column_names_whole_and_use_display_names():
+    from app import viewedit
+    res = {"profile": {"columns": [{"name": "net_received"}, {"name": "discount_amount"}]},
+           "understanding": {"source": "llm", "columns": {"net_received": {"display_name": "Net Received"}, "discount_amount": {"display_name": "Discount Amount"}}},
+           "findings": [{"id": "f1", "chart": "charts/a.png", "tool": "group_compare", "insight": {"headline": "category = Ethnic averages 7.0× the net_received of Accessories"}, "title": "t"}],
+           "report_view": {}}
+    titles = [i["title"] for i in viewedit.catalogue(res)["items"].values() if i["kind"] == "chart"]
+    assert titles and all("netreceived" not in t and "net_received" not in t for t in titles)
+    assert any("Net Received" in t for t in titles)
+    # emphasis marks still go; an underscore inside an unknown name stays inside it
+    assert viewedit._plain("**bold** and _em_ and `code` and some_other_name") == "bold and em and code and some_other_name"

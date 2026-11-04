@@ -142,3 +142,19 @@ def test_the_stage_that_fell_back_is_named_in_the_pages_trust_label():
     page = reporter._page(state, "", [], {"actions": [], "none": {}}, [], [], [])
     assert page["ai_partly"] == ["data understanding", "the report summary"]
     assert reporter._page({"decisions": [], "context": {}}, "", [], {"actions": [], "none": {}}, [], [], [])["ai_partly"] == []
+
+
+def test_a_partly_run_names_every_stage_that_did_not_use_the_ai_and_why():
+    from app import reporter
+    # the shape of a real run: the AI answered for most stages, but insights kept the rule text and the report summary dropped sentences
+    src = {"brief": "llm", "planner": "llm", "insights": "rules", "strategy": "llm", "report": "mixed"}
+    state = {"decisions": [{"decision": "report_chart_caption", "source": "fallback"}], "stage_sources": src, "context": {}}
+    got = reporter.ai_partly(state)
+    assert got[0] == "report_chart_caption"
+    assert any(g.startswith("insights (") for g in got) and any(g.startswith("report summary (") for g in got)
+    assert len(got) == 3
+    # no unnamed gap: a partly run always names at least one stage
+    assert reporter.ai_partly({"decisions": [], "stage_sources": src})
+    # a stage already named by a fallback decision is not listed twice; a run with no AI at all is "Rules only", not partly
+    assert reporter.ai_partly({"decisions": [{"decision": "insights", "source": "fallback"}], "stage_sources": {"brief": "llm", "insights": "rules"}}) == ["insights"]
+    assert reporter.ai_partly({"decisions": [], "stage_sources": {"brief": "rules", "insights": "rules"}}) == []

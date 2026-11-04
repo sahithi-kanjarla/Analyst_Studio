@@ -16,6 +16,8 @@ import json
 import os
 import re
 
+from . import understanding as und
+
 TABS = ("report", "insights", "strategy", "dashboard", "data", "model", "cleaning", "plan", "powerbi", "chat")      # every tab of the results page (frontend/src/tabs.ts)
 TAB_NAMES = {"report": "Report", "insights": "Insights", "strategy": "Ideas to try", "dashboard": "Dashboard", "data": "Your data", "model": "How files connect", "cleaning": "What we cleaned",
              "plan": "How we analysed", "powerbi": "Power BI files", "chat": "Lens"}
@@ -82,7 +84,8 @@ def is_original(state: dict) -> bool:
 
 # ------------------------------------------------------------------ the run's items
 def _plain(t) -> str:
-    return " ".join(re.sub(r"[*_`]", "", str(t or "")).split())
+    """Text without markdown marks. An underscore inside a name (net_received) is kept: only emphasis marks (at the edge of a word) go, so a column name is never squashed into "netreceived"."""
+    return " ".join(re.sub(r"[*`]|(?<![A-Za-z0-9])_|_(?![A-Za-z0-9])", "", str(t or "")).split())
 
 
 def _clip(t, n=90) -> str:
@@ -133,7 +136,7 @@ def catalogue(result: dict) -> dict:
         return sid
 
     def add(tab, sec, kind, iid, title, **kw):
-        items[iid] = {"id": iid, "tab": tab, "kind": kind, "title": _clip(title), "section": sec, **kw}
+        items[iid] = {"id": iid, "tab": tab, "kind": kind, "title": _clip(und.readable(str(title or ""), result)), "section": sec, **kw}
         return iid
 
     def chart_item(tab, sec, iid, title, path, fids, tool=None):

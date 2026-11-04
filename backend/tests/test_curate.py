@@ -609,3 +609,17 @@ def test_overview_keeps_standard_findings_and_report_not_empty():
     tiering.apply_curation(view, cur)
     assert view["overview_note"] == cur["mode_note"] and view["overview_note"]
     assert len(view["report_findings"]) >= 1
+
+
+def test_a_slice_and_the_whole_table_are_never_merged():
+    # the shape of a real run: net_received by item over the whole table, and revenue by item within one category (4 of the items). The leader is the same, so they look alike.
+    fs = [_cmp(1, "net_received", "item", "Bridal", "Dupatta", score=9.0),
+          _cmp(2, "revenue", "item", "Bridal", "Kurta", score=8.0, within="category", within_value="Ethnic"),
+          _cmp(3, "discount", "item", "Bridal", "Dupatta", score=7.0, within="category", within_value="Ethnic")]     # a slice that even shares the last place with the whole-table finding
+    res = curate.curate(_state(findings=fs, goal="anything interesting"))
+    assert "f1" not in res["merges"] and "f1" not in set(res["absorbed"].values())       # no slice is folded into the whole-table card
+    assert res["absorbed"].get("f2") != "f1" and res["absorbed"].get("f3") != "f1"
+    # two findings of one slice still merge as before
+    fs2 = [_cmp(1, "revenue", "item", "Bridal", "Kurta", score=9.0, within="category", within_value="Ethnic"),
+           _cmp(2, "discount", "item", "Bridal", "Kurta", score=8.0, within="category", within_value="Ethnic")]
+    assert curate.curate(_state(findings=fs2, goal="anything interesting"))["absorbed"].get("f2") == "f1"

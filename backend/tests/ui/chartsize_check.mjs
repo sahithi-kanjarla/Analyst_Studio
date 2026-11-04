@@ -5,6 +5,8 @@ import {
   FEW, POINTS_MAX, SHARE_SLICES, TABLE_ROWS, planPoints, planRanked, planSeries, planShare, planTable, plural, rankedLimit, timeStep,
 } from '../../../frontend/src/chartsize.ts';
 import { chartTitle, displayName, humanise, looksInternal, plainLabel, prettify } from '../../../frontend/src/display.ts';
+import { moreChartCount } from '../../../frontend/src/morecharts.ts';
+import { latestChange } from '../../../frontend/src/periodchange.ts';
 import { bigNumber, direction, shareSlices, tableSeries, takeaway, themeOf, widgetKind } from '../../../frontend/src/insightwidget.ts';
 
 const R = {};
@@ -105,6 +107,23 @@ ok('widget_share_bar_is_five_slices_plus_other', shareSlices(sl).length === 6 &&
 ok('widget_themes_follow_the_analysis_type', themeOf('group_compare') === 'ranking' && themeOf('trend') === 'time' && themeOf('correlation') === 'link' && themeOf('outliers') === 'shape');
 ok('plain_label_drops_total_and_sum', plainLabel('Total revenue') === 'Revenue' && plainLabel('revenue (sum)') === 'Revenue' && plainLabel('Total Orders') === 'Orders');
 
+// ---------------------------------------------------------------- the Dashboard's "latest month vs previous": never a total over part of a month against a whole one
+const series = (last) => [{ key: '2026-10', value: 3100 }, { key: '2026-11', value: 3000 }, { key: '2026-12', value: last }];
+const d1 = latestChange(series(100), 'month', '2026-12-01', true);
+ok('latest_change_series_ending_on_day_1_shows_no_direction', d1 && d1.kind === 'too_few' && d1.change === null && d1.days === 1 && d1.of === 31, JSON.stringify(d1));
+const d10 = latestChange(series(1200), 'month', '2026-12-10', true);     // 1,200 over 10 days is 120 a day; November was 100 a day. Total against total would read -60%.
+ok('latest_change_series_ending_on_day_10_compares_per_day', d10 && d10.kind === 'per_day' && Math.abs(d10.change - 0.2) < 1e-9 && d10.days === 10 && d10.of === 31, JSON.stringify(d10));
+const d31 = latestChange(series(3100), 'month', '2026-12-31', true);
+ok('latest_change_series_ending_on_the_last_day_compares_the_totals', d31 && d31.kind === 'total' && Math.abs(d31.change - (100 / 3000)) < 1e-9, JSON.stringify(d31));
+const d25 = latestChange(series(2500), 'month', '2026-12-25', true);       // 25 of 31 days is 81%: complete enough, as in the report's partial-period rule
+ok('latest_change_just_over_80_percent_of_the_days_is_complete', d25 && d25.kind === 'total', JSON.stringify(d25));
+const d24 = latestChange(series(2400), 'month', '2026-12-24', true);       // 24 of 31 is 77%: incomplete
+ok('latest_change_just_under_80_percent_is_per_day', d24 && d24.kind === 'per_day' && Math.abs(d24.change - ((2400 / 24) / (3000 / 30) - 1)) < 1e-9, JSON.stringify(d24));
+const rate = latestChange(series(55), 'month', '2026-12-10', false);       // an average is not made smaller by an unfinished month: compared as it is, coverage still shown
+ok('latest_change_of_an_average_is_compared_as_it_is', rate && rate.kind === 'per_day' && Math.abs(rate.change - (55 / 3000 - 1)) < 1e-9 && rate.days === 10, JSON.stringify(rate));
+ok('latest_change_needs_two_periods_and_day_grain_is_unchanged', latestChange([{ key: '2026-12', value: 5 }], 'month', '2026-12-10', true) === null && latestChange([{ key: '2026-12-01', value: 5 }, { key: '2026-12-02', value: 10 }], 'day', '2026-12-02', true).change === 1);
+
+ok('more_charts_counts_finding_charts_and_drawn_live_charts_only', moreChartCount(5, 0) === 5 && moreChartCount(3, 2) === 5 && moreChartCount(0, 0) === 0, 'the table card adds nothing');
 const failed = Object.entries(R).filter(([, v]) => !v.ok);
 process.stdout.write(JSON.stringify(R) + '\n');
 if (failed.length) process.exitCode = 1;

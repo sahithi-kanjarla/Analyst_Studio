@@ -387,6 +387,24 @@ def cap_questions(questions: list[dict], limit: int = MAX_QUESTIONS) -> tuple[li
     return kept, dropped
 
 
+def _action_columns(q: dict, kind: str) -> set[str]:
+    return {o["action"]["column"] for o in q.get("options") or [] if (o.get("action") or {}).get("type") == kind and o["action"].get("column")}
+
+
+def drop_swap_when_order_asked(qs: list[dict]) -> tuple[list[dict], list[str]]:
+    """The answer to "day first or month first" for a date column settles whether its day and month are swapped, so a second "swap day and month in <that column>?" is not asked.
+    Returns (the questions without it, the columns it was dropped for)."""
+    asked = set().union(*(_action_columns(q, "set_date_order") for q in qs)) if qs else set()
+    out, settled = [], []
+    for q in qs:
+        cols = _action_columns(q, "swap_day_month")
+        if cols and cols <= asked:
+            settled += sorted(cols)
+            continue
+        out.append(q)
+    return out, settled
+
+
 def build_questions_and_ignored(df: pd.DataFrame, profile: dict, goal: str, ctx: dict | None, explore: bool, llm, saved: dict | None = None,
                                 skip_columns: set | None = None, dropped: list | None = None, raw: pd.DataFrame | None = None, raw_profile: dict | None = None,
                                 kinds: dict | None = None, brief: dict | None = None, concerns_out: dict | None = None) -> tuple[list[dict], list[dict]]:
@@ -419,6 +437,9 @@ def build_questions_and_ignored(df: pd.DataFrame, profile: dict, goal: str, ctx:
     qs = qs + [product_question(sg, taken) for sg in owned if sg["type"] == "product_basis"] + template_questions([sg for sg in owned if sg["type"] != "product_basis"], profile, goal, ctx, explore)
     have = {q["id"] for q in ai["questions"]}
     qs = ai["questions"] + [q for q in qs if q["id"] not in have]
+    qs, settled = drop_swap_when_order_asked(qs)
+    if concerns_out is not None and settled:
+        concerns_out["settled_by_date_order"] = settled
     if not any(q.get("strong") and not q.get("auto") for q in qs):
         qs = [q for q in qs if q.get("strong")]
     qs, over = cap_questions(qs)
