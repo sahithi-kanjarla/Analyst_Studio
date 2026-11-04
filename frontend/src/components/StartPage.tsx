@@ -3,21 +3,9 @@ import { api } from "../api";
 import Dialog from "./Dialog";
 import UploadForm from "./UploadForm";
 
-/* The landing page. Pictures are real screenshots of the Report, Dashboard and Insights tabs in
-   frontend/public/landing/ (report.png, dashboard.png, insights.png). Nothing here names a column,
-   a category or a figure: the words describe how the app works, not what one file contained. */
-
-const SHOTS = {
-  report: { src: "/landing/report.png", alt: "The Report tab: the answer in one sentence, a few key figures, charts and what to do next." },
-  dashboard: { src: "/landing/dashboard.png", alt: "The Dashboard tab: filters on top, key figures and charts that respond to a click." },
-  insights: { src: "/landing/insights.png", alt: "The Insights tab: each finding with how far to trust it." },
-} as const;
-
-const TOUR = [
-  { id: "report", label: "Report", line: "The answer in one sentence, the figures behind it, and what to do next.", shot: SHOTS.report },
-  { id: "dashboard", label: "Dashboard", line: "Click any bar or month to filter every chart at once.", shot: SHOTS.dashboard },
-  { id: "insights", label: "Insights", line: "Each finding, how far to trust it, and the actions it supports.", shot: SHOTS.insights },
-] as const;
+/* The landing page. No screenshots of the sample: the "What you get" cards are small pictures built
+   from page elements, with example figures that are labelled as examples. Nothing here names a column
+   or a category: the words describe how the app works, not what one file contained. */
 
 /* One icon set: 24px, 1.6 stroke, round caps. */
 const Icon = ({ d }: { d: string }) => (
@@ -47,6 +35,12 @@ const TRUST = [
   { icon: ICONS.source, title: "Every answer shows its source.", text: "Each finding and each answer says how it was worked out, so you can check it against your own data." },
 ];
 
+const HELPS = [
+  { title: "Hours back", text: "No formulas, pivots or chart-fiddling. Upload the file and read the answer." },
+  { title: "A clear next step", text: "Every report ends with what to do, ranked by how much it could help." },
+  { title: "Know how far to trust it", text: "Each finding carries a confidence label and the checks behind it, so you act on firm ground." },
+];
+
 /** Adds `in` to an element the first time it scrolls into view. Without IntersectionObserver it shows at once. */
 function useReveal<T extends HTMLElement>() {
   const ref = useRef<T>(null);
@@ -61,15 +55,6 @@ function useReveal<T extends HTMLElement>() {
   return [ref, seen] as const;
 }
 
-function Frame({ shot, eager = false }: { shot: { src: string; alt: string }; eager?: boolean }) {
-  return (
-    <figure className="lp-frame">
-      <div className="lp-frame-bar" aria-hidden="true"><i /><i /><i /></div>
-      <img src={shot.src} alt={shot.alt} width={1280} height={800} loading={eager ? "eager" : "lazy"} decoding="async" />
-    </figure>
-  );
-}
-
 /* VIDEO SLOT. To add the demo, put the file at frontend/public/landing/demo.mp4 (and, if you like, a
    still at frontend/public/landing/demo-poster.png). Until the file exists this renders nothing. */
 const VIDEO_SRC = "/landing/demo.mp4";
@@ -77,7 +62,7 @@ const VIDEO_POSTER = "/landing/demo-poster.png";
 
 function VideoSlot() {
   const [found, setFound] = useState(false);
-  const [poster, setPoster] = useState(VIDEO_POSTER);
+  const [poster, setPoster] = useState<string | null>(VIDEO_POSTER);
   const [open, setOpen] = useState(false);
   useEffect(() => {
     let live = true;
@@ -91,7 +76,7 @@ function VideoSlot() {
     <section className="lp-section lp-video" aria-labelledby="lp-video-title">
       <h2 id="lp-video-title">See it in action</h2>
       <button type="button" className="lp-poster" onClick={() => setOpen(true)} aria-label="Play the demo video">
-        <img src={poster} onError={() => setPoster(SHOTS.report.src)} alt="" width={1280} height={800} loading="lazy" />
+        {poster && <img src={poster} onError={() => setPoster(null)} alt="" width={1280} height={800} loading="lazy" />}
         <span className="lp-play" aria-hidden="true"><Icon d={ICONS.play} /></span>
       </button>
       {open && (
@@ -103,31 +88,63 @@ function VideoSlot() {
   );
 }
 
-function Tour() {
-  const [on, setOn] = useState<number>(0);
-  const refs = useRef<(HTMLButtonElement | null)[]>([]);
-  function onKey(e: React.KeyboardEvent, i: number) {
-    const move = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
-    if (!move) return;
-    e.preventDefault();
-    const next = (i + move + TOUR.length) % TOUR.length;
-    setOn(next);
-    refs.current[next]?.focus();
-  }
-  const cur = TOUR[on];
+/* Small pictures made of page elements. The figures are examples and say so. */
+function Mini({ kind }: { kind: "report" | "dashboard" | "insights" }) {
+  if (kind === "report") return (
+    <div className="lp-mini" aria-hidden="true">
+      <span className="lp-line lp-line-lg" /><span className="lp-line" />
+      <div className="lp-tiles">
+        <div><b>1,240</b><small>Total</small></div><div><b>+8%</b><small>Change</small></div><div><b>312</b><small>Records</small></div>
+      </div>
+    </div>
+  );
+  if (kind === "dashboard") return (
+    <div className="lp-mini" aria-hidden="true">
+      <div className="lp-chips"><span className="lp-chip lp-chip-on">All</span><span className="lp-chip">Group A</span><span className="lp-chip">Group B</span></div>
+      <div className="lp-bars"><i style={{ height: "88%" }} className="hi" /><i style={{ height: "62%" }} /><i style={{ height: "48%" }} /><i style={{ height: "34%" }} /></div>
+    </div>
+  );
   return (
-    <section className="lp-section" aria-labelledby="lp-tour-title">
-      <h2 id="lp-tour-title">A look inside</h2>
-      <div className="lp-tabs" role="tablist" aria-label="Screens of the app">
-        {TOUR.map((t, i) => (
-          <button key={t.id} ref={(el) => { refs.current[i] = el; }} type="button" role="tab" id={`lp-tab-${t.id}`} aria-selected={on === i} aria-controls="lp-tour-panel"
-            tabIndex={on === i ? 0 : -1} className={`lp-tab ${on === i ? "lp-tab-on" : ""}`} onClick={() => setOn(i)} onKeyDown={(e) => onKey(e, i)}>{t.label}</button>
+    <div className="lp-mini" aria-hidden="true">
+      <div className="lp-finding"><span className="lp-line lp-line-lg" /><span className="lp-badge">High confidence</span></div>
+      <div className="lp-finding"><span className="lp-line" /><span className="lp-badge lp-badge-mid">Medium</span></div>
+    </div>
+  );
+}
+
+function Gets() {
+  const items = [
+    { kind: "report" as const, title: "Report", text: "The answer in one sentence, the figures behind it, and what to do next." },
+    { kind: "dashboard" as const, title: "Dashboard", text: "Click any bar or month to filter every chart at once." },
+    { kind: "insights" as const, title: "Insights", text: "Each finding, how far to trust it, and the actions it supports." },
+  ];
+  return (
+    <section className="lp-section" aria-labelledby="lp-gets-title">
+      <h2 id="lp-gets-title">What you get</h2>
+      <ul className="lp-gets">
+        {items.map((it) => (
+          <li key={it.title}>
+            <Mini kind={it.kind} />
+            <h3>{it.title}</h3>
+            <p>{it.text}</p>
+          </li>
         ))}
-      </div>
-      <div id="lp-tour-panel" role="tabpanel" aria-labelledby={`lp-tab-${cur.id}`}>
-        <Frame shot={cur.shot} />
-        <p className="lp-tour-line">{cur.line}</p>
-      </div>
+      </ul>
+      <p className="lp-example">Figures in these pictures are examples.</p>
+    </section>
+  );
+}
+
+function Helps() {
+  const [ref, seen] = useReveal<HTMLUListElement>();
+  return (
+    <section className="lp-section" aria-labelledby="lp-helps-title">
+      <h2 id="lp-helps-title">How it helps</h2>
+      <ul className={`lp-helps ${seen ? "in" : ""}`} ref={ref}>
+        {HELPS.map((h, i) => (
+          <li key={h.title} style={{ ["--i" as string]: i }}><h3>{h.title}</h3><p>{h.text}</p></li>
+        ))}
+      </ul>
     </section>
   );
 }
@@ -192,12 +209,12 @@ export default function StartPage({ onOpenRun, openNew = false }: { onOpenRun: (
           {buttons}
           {error && <div className="error" role="alert">{error}</div>}
         </div>
-        <Frame shot={SHOTS.report} eager />
       </header>
 
       <How />
+      <Gets />
+      <Helps />
       <Trust />
-      <Tour />
       <VideoSlot />
 
       <section className="lp-closing" aria-labelledby="lp-closing-title">
