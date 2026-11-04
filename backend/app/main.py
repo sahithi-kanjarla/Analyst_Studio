@@ -84,6 +84,25 @@ def delete_run(run_id: str):
     return {"deleted": run_id, "files_removed": n}
 
 
+READ_CHUNK = 1024 * 1024
+
+
+async def _read_limited(up, total_so_far: int) -> tuple[bytes, int]:
+    """Read one upload in chunks and stop at once when the files together pass MAX_UPLOAD_MB, so an oversized file is never held in memory whole.
+    Returns the bytes and the running total."""
+    limit = MAX_UPLOAD_MB * 1024 * 1024
+    parts, total = [], total_so_far
+    while True:
+        chunk = await up.read(READ_CHUNK)
+        if not chunk:
+            break
+        total += len(chunk)
+        if total > limit:
+            raise HTTPException(413, f"The files together are larger than {MAX_UPLOAD_MB} MB.")
+        parts.append(chunk)
+    return b"".join(parts), total
+
+
 @app.post("/api/runs")
 async def new_run(request: Request, response: Response, goal: str = Form(""), company: str = Form(""), industry: str = Form(""), description: str = Form(""), kpis: str = Form(""),
                   audience: str = Form(""), notes: str = Form(""), currency: str = Form(""), explore: str = Form(""), review_saved: str = Form(""),
@@ -110,10 +129,7 @@ async def new_run(request: Request, response: Response, goal: str = Form(""), co
         ext = "." + up.filename.rsplit(".", 1)[-1].lower() if up.filename and "." in up.filename else ""
         if ext not in ALLOWED_EXT:
             raise HTTPException(400, f"Unsupported file type '{up.filename}'. Use one of: {', '.join(sorted(ALLOWED_EXT))}")
-        content = await up.read()
-        total += len(content)
-        if total > MAX_UPLOAD_MB * 1024 * 1024:
-            raise HTTPException(413, f"The files together are larger than {MAX_UPLOAD_MB} MB.")
+        content, total = await _read_limited(up, total)
         if ext in (".csv", ".tsv", ".txt"):
             rows = count_delimited_rows(content)
             if rows > MAX_ROWS:

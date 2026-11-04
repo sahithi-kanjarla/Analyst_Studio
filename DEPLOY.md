@@ -83,7 +83,7 @@ Logs go to standard output (`docker logs -f analyst-studio`, or the host's log v
 - [ ] `UPLOADS_REQUIRE_CODE` is set, long and random; a wrong code is refused.
 - [ ] `PUBLIC_DEMO=on` for a public site; `RETENTION_DAYS` is what you want to promise visitors (the privacy note on the upload panel states it).
 - [ ] HTTPS is terminated by the host or a proxy; `TRUST_PROXY_HEADERS=1` only if that proxy sets `X-Forwarded-*`.
-- [ ] The proxy does not buffer `/api/runs/*/events` (the app sends `X-Accel-Buffering: no` and a keep-alive every 15 s) and allows a request body of at least `MAX_UPLOAD_MB` (50 by default).
+- [ ] The proxy does not buffer `/api/runs/*/events` (the app sends `X-Accel-Buffering: no` and a keep-alive every 15 s) and allows a request body of at least `MAX_UPLOAD_MB` (50 by default). The app stops reading an upload as soon as it passes the limit, but the host should also cap the request body itself (for example nginx `client_max_body_size`, Caddy `request_body max_size`), so an oversized request is refused before it reaches the app.
 - [ ] The provider key has a spending or rate limit of its own; the daily caps are set.
 - [ ] You have read "Known limits" in the README and are happy with them.
 - [ ] Try "Delete my run" on a test upload and check it is gone.
