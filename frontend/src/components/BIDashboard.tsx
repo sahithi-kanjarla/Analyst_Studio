@@ -404,7 +404,7 @@ export default function BIDashboard({ run }: { run: RunResult }) {
           </>
         ),
         "dashboard:gallery": (
-          <FindingGallery run={run} more={plan?.more ?? []} extra={
+          <FindingGallery run={run} more={plan?.more ?? []} extraCount={moreLive.filter((t) => liveTile(t, 300).node).length} extra={
             <>
               {moreLive.length > 0 && (
                 <div className="bi-grid">

@@ -43,3 +43,26 @@ def test_every_category_ranked_and_dominant_named():
     assert next(r for r in facts if r["group"] == "region")["dominant"] is None
     heads = summary.headlines(st, {"rankings": facts}, [])
     assert any("dominant" in h["text"] for h in heads)
+
+
+def test_one_leader_for_three_measures_is_one_headline_that_names_the_others():
+    df = make_df()
+    df["net"] = df["amount"] * 0.8
+    df["fee"] = df["amount"] * 0.1
+    st = make_state()
+    st["goal"] = "Which kind sells most, in amount, net and fee?"
+    st["plan"]["relevant_columns"] = ["amount", "net", "fee", "kind"]
+    st["brief"]["roles"].update({"net": "measure", "fee": "measure"})
+    st["profile"]["columns"] += [{"name": "net", "role": "numeric", "unique": 1}, {"name": "fee", "role": "numeric", "unique": 1}]
+    facts = [r for r in summary.ranking_facts(st, df) if r["group"] == "kind" and r["measure"] in ("amount", "net", "fee")]
+    assert {r["measure"] for r in facts} == {"amount", "net", "fee"} and {r["dominant"] for r in facts} == {"big"}
+    heads = summary.headlines(st, {"rankings": facts}, [])
+    ranked = [h for h in heads if h["id"] in {r["id"] for r in facts}]
+    assert len(ranked) == 1                                                      # said once, not three times
+    h = ranked[0]
+    assert set(h["members"]) == {r["id"] for r in facts}                         # the other facts stay as evidence of this line
+    assert "Same leader for" in h["text"] and "net at 8,000 (50.0%)" in h["text"] and "fee at 1,000 (50.0%)" in h["text"]
+    assert "also" not in h
+    other_leader = [r for r in facts if r["measure"] == "net"]
+    other_leader[0] = {**other_leader[0], "dominant": "mid"}
+    assert len([h for h in summary.headlines(st, {"rankings": [facts[0]] + other_leader}, []) if "dominant" in h["text"] or "highest" in h["text"]]) == 2     # a different leader is its own line

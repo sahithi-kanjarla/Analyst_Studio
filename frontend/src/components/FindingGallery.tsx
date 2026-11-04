@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { api, DashTile, Finding, RunResult, isDemo } from "../api";
 import { humanise } from "../display";
+import { moreChartCount } from "../morecharts";
 import FindingTable from "./FindingTable";
 import InsightCard from "./InsightCard";
 import { ShowMore, ViewImg, ViewItem, ViewTitle } from "./view/ViewUI";
@@ -36,14 +37,14 @@ export function Tile({ f, onOpen, und, items }: { f: Finding; onOpen: () => void
 
 /** Below the dashboard grid: the answer to the goal in words, and "More charts" for everything the selection kept off the screen.
  *  Nothing here is drawn until opened, so a long list costs nothing. The charts on the dashboard itself are chosen by the saved selection (dashplan.py). */
-export default function FindingGallery({ run, more, extra }: { run: RunResult; more: DashTile[]; extra?: React.ReactNode }) {
+export default function FindingGallery({ run, more, extra, extraCount = 0 }: { run: RunResult; more: DashTile[]; extra?: React.ReactNode; extraCount?: number }) {
   const [open, setOpen] = useState<Finding | null>(null);
   const [busy, setBusy] = useState("");
   const [showMore, setShowMore] = useState(false);
   const all = (run.findings ?? []).filter((f) => f.insight);
   const ans = run.goal_answer;
   const moreFindings = more.filter((t) => t.kind === "finding").map((t) => ({ t, f: all.find((x) => x.id === t.finding_id) })).filter((x): x is { t: DashTile; f: Finding } => !!x.f);
-  const total = moreFindings.length + (more.length - moreFindings.length) + (extra ? 1 : 0);
+  const total = moreChartCount(moreFindings.length, extraCount);
   const dm = run.derived_metrics;
 
   const remove = async (name: string) => {
@@ -65,9 +66,9 @@ export default function FindingGallery({ run, more, extra }: { run: RunResult; m
         </section>
       )}
 
-      {total > 0 && (
+      {(total > 0 || !!extra) && (
         <details className="dash-section more-charts" onToggle={(e) => setShowMore((e.currentTarget as HTMLDetailsElement).open)}>
-          <summary><strong>More charts</strong> <span className="muted">· {moreFindings.length + more.filter((t) => t.kind !== "finding").length + (extra ? 1 : 0)} ranked lower</span></summary>
+          <summary><strong>More charts</strong> <span className="muted">· {total > 0 ? `${total} ranked lower` : "the full table"}</span></summary>
           {showMore && (
             <>
               {extra}

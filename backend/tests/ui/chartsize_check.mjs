@@ -5,6 +5,7 @@ import {
   FEW, POINTS_MAX, SHARE_SLICES, TABLE_ROWS, planPoints, planRanked, planSeries, planShare, planTable, plural, rankedLimit, timeStep,
 } from '../../../frontend/src/chartsize.ts';
 import { chartTitle, displayName, humanise, looksInternal, plainLabel, prettify } from '../../../frontend/src/display.ts';
+import { moreChartCount } from '../../../frontend/src/morecharts.ts';
 import { latestChange } from '../../../frontend/src/periodchange.ts';
 import { bigNumber, direction, shareSlices, tableSeries, takeaway, themeOf, widgetKind } from '../../../frontend/src/insightwidget.ts';
 
@@ -122,6 +123,7 @@ const rate = latestChange(series(55), 'month', '2026-12-10', false);       // an
 ok('latest_change_of_an_average_is_compared_as_it_is', rate && rate.kind === 'per_day' && Math.abs(rate.change - (55 / 3000 - 1)) < 1e-9 && rate.days === 10, JSON.stringify(rate));
 ok('latest_change_needs_two_periods_and_day_grain_is_unchanged', latestChange([{ key: '2026-12', value: 5 }], 'month', '2026-12-10', true) === null && latestChange([{ key: '2026-12-01', value: 5 }, { key: '2026-12-02', value: 10 }], 'day', '2026-12-02', true).change === 1);
 
+ok('more_charts_counts_finding_charts_and_drawn_live_charts_only', moreChartCount(5, 0) === 5 && moreChartCount(3, 2) === 5 && moreChartCount(0, 0) === 0, 'the table card adds nothing');
 const failed = Object.entries(R).filter(([, v]) => !v.ok);
 process.stdout.write(JSON.stringify(R) + '\n');
 if (failed.length) process.exitCode = 1;

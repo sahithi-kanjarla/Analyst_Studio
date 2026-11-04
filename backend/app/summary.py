@@ -706,6 +706,13 @@ def answers(state: dict, facts: dict | None) -> list[dict]:
     return out
 
 
+def _also_line(r: dict, state: dict) -> str:
+    cur = _cur(r["measure"], state)
+    top = r["bars"][0][1] if r.get("bars") else None
+    share = f" ({r['top_share']:.1%})" if r.get("top_share") is not None else ""
+    return f"{r['measure']}" + (f" at {full(top, cur)}{share}" if top is not None else "")
+
+
 def headlines(state: dict, facts: dict | None, answered: list[dict]) -> list[dict]:
     """Up to 5: what answers a goal question first (rankings before tests), then reliable large-effect (and, to fill the list, medium-effect) findings. Totals and ratios of sums before per-row averages."""
     from .insights import effect_label
@@ -714,12 +721,16 @@ def headlines(state: dict, facts: dict | None, answered: list[dict]) -> list[dic
     rankings = {r["id"]: r for r in (facts or {}).get("rankings") or []}
     ranked_cells = {(r["group"], r["measure"]) for r in rankings.values() if r.get("kind") != "growth"}
     seen, out = set(), []
+    led: dict[tuple, dict] = {}       # (group, leader) -> the headline that already names that leader
 
     def add(i: str):
         if i in seen or len(out) >= HEADLINES_MAX:
             return
         seen.add(i)
-        out.append({"id": i, "members": [i], "text": _text_of(i, by_id, rankings).rstrip(".")})
+        out.append({"id": i, "members": [i], "text": _text_of(i, by_id, rankings).rstrip("."), "also": []})
+        r = rankings.get(i)
+        if r and r.get("dominant"):
+            led.setdefault((r["group"], r["dominant"]), out[-1])
     asked = _asked_text(state)
     for a in answered:
         for i in a["ids"]:
@@ -736,11 +747,22 @@ def headlines(state: dict, facts: dict | None, answered: list[dict]) -> list[dic
     for r in rankings.values():       # a group holding more than DOMINANT_SHARE of the main KPI is worth a headline, unless its column has 2-3 groups, one holds nearly all and the goal does not name it
         trivial = r.get("groups_total", 99) <= TRIVIAL_GROUPS and (r.get("top_share") or 0) > TRIVIAL_SHARE and names(r["group"], asked) != 2
         if r.get("dominant") and not trivial:
-            add(r["id"])
+            lead = led.get((r["group"], r["dominant"]))
+            if lead is not None and lead["id"] != r["id"] and r["id"] not in seen:      # the same group led by the same value for another measure: said once, in the first line
+                seen.add(r["id"])
+                lead["members"].append(r["id"])
+                lead["also"].append(r)
+                continue
+            if r["id"] not in seen and len(out) < HEADLINES_MAX:
+                add(r["id"])
     size = {"large": 0, "medium": 1}
     strong = [f for f in state.get("findings") or [] if f["tool"] not in NOT_A_FINDING and reliable(f) and effect_label(f.get("stats") or {}) in size]
     for f in sorted(strong, key=lambda f: (size[effect_label(f.get("stats") or {})], basis(f) == "average", -((f.get("insight") or {}).get("score", 0)))):
         add(f["id"])
+    for h in out:      # the other measures with the same leader, with their own figures (code-built from the facts)
+        also = h.pop("also")
+        if also:
+            h["text"] += ". Same leader for " + "; ".join(_also_line(r, state) for r in also)
     return out
 
 
