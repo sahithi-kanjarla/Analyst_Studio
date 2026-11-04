@@ -818,3 +818,14 @@ def test_rules_still_work_with_no_llm():
     assert llm_mod.get_llm()[0] is None
     assert clarify.llm_questions(None, PROFILE, [], "g", {}, None) == (None, [])
     assert build(hospital_stays())[0]
+
+
+def test_swap_question_is_not_asked_for_a_column_that_already_has_a_date_order_question():
+    o = clarify._o
+    order = {"id": "q_order", "text": "Are the dates in when written day first or month first?", "options": [o("day", "Day first", type="set_date_order", column="when", dayfirst=True), o("month", "Month first", type="set_date_order", column="when", dayfirst=False)]}
+    swap = {"id": "q_swap", "text": "swap day and month in when?", "options": [o("keep", "No", type="note_only"), o("swap", "Yes, swap day and month in when", type="swap_day_month", column="when")]}
+    other = {"id": "q_other", "text": "swap day and month in shipped?", "options": [o("keep", "No", type="note_only"), o("swap", "Yes", type="swap_day_month", column="shipped")]}
+    kept, settled = clarify.drop_swap_when_order_asked([swap, order, other])
+    assert [q["id"] for q in kept] == ["q_order", "q_other"]          # the swap question for "when" is gone; the one for a column with no order question stays
+    assert settled == ["when"]
+    assert clarify.drop_swap_when_order_asked([swap, other])[0] == [swap, other]      # with no date-order question nothing is dropped
