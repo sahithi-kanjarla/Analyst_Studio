@@ -3,6 +3,7 @@ The route-table test below reads the app's own routes, so a route added later th
 import json
 import logging
 import os
+import sys
 import time
 
 os.environ["LLM_PROVIDER"] = "none"
