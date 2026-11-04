@@ -1,4 +1,5 @@
 import asyncio
+import os
 import json
 import re
 import time
@@ -22,10 +23,11 @@ from .dashboard import build_dashboard, list_sources, source_path, valid_source
 from .events import get_events
 from .llm import get_llm
 from .context import typed_goal
-from .runner import DEFAULT_EXPLORE_GOAL, RUN_ID_RE, create_run, ensure_demo_run, is_demo, purge_expired, read_status, rerun_with_answers, rerun_without_derived, resume_with_answers, run_dir, start_run
+from .runner import write_status, DEFAULT_EXPLORE_GOAL, RUN_ID_RE, create_run, ensure_demo_run, is_active, is_demo, mark_interrupted, purge_expired, read_status, rerun_with_answers, rerun_without_derived, resume_with_answers, run_dir, start_run
 
 @asynccontextmanager
 async def _lifespan(_app: FastAPI):
+    mark_interrupted()  # a run the last process left queued or running can never finish: mark it, so the page stops waiting and retention can delete it
     purge_expired()  # old runs are removed when the server starts, then again whenever a new run is created
     yield
 
@@ -479,16 +481,25 @@ def compare_data(run_id: str):
 KEEPALIVE_S = 15.0
 
 
+def stream_stale_s() -> float:
+    """Seconds a queued or running run may show no new event and no status change before the stream gives up on it (STREAM_STALE_S, default 900).
+    A run whose worker thread is still alive in this process is never given up on."""
+    try:
+        return max(1.0, float(os.environ.get("STREAM_STALE_S", "900")))
+    except ValueError:
+        return 900.0
+
+
 @app.get("/api/runs/{run_id}/events")
 async def stream_events(run_id: str):
     _check_id(run_id)
 
     async def gen():
-        idx, idle = 0, 0.0
+        idx, idle, quiet = 0, 0.0, 0.0          # idle restarts after each keep-alive; quiet only when an event arrives
         while True:
             evs = get_events(run_id, idx)
             if evs:
-                idle = 0.0
+                idle = quiet = 0.0
             for e in evs:
                 yield f"data: {json.dumps(e, default=str)}\n\n"
                 idx += 1
@@ -496,8 +507,15 @@ async def stream_events(run_id: str):
             if st in ("done", "error", "needs_input") and not get_events(run_id, idx):
                 yield "event: end\ndata: {}\n\n"
                 return
+            if st in ("queued", "running") and quiet >= stream_stale_s() and not is_active(run_id):
+                last = float((read_status(run_id) or {}).get("updated") or 0)
+                if time.time() - last >= stream_stale_s():          # nothing happened for a long time and nothing is working on it
+                    write_status(run_id, "error", error="The run stopped responding", message=None)
+                    yield "event: end\ndata: {}\n\n"          # the page then loads the run, sees the error and stops spinning
+                    return
             await asyncio.sleep(0.4)
             idle += 0.4
+            quiet += 0.4
             if idle >= KEEPALIVE_S:          # a comment line: ignored by the browser, but it keeps a proxy from closing a quiet stream
                 idle = 0.0
                 yield ": keep-alive\n\n"

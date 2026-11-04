@@ -129,7 +129,44 @@ def _reset_slots() -> None:
         _slots = None
 
 
+_active: set[str] = set()          # runs whose worker thread is alive in this process (waiting for a slot or working)
+
+
+def is_active(run_id: str) -> bool:
+    with _slots_lock:
+        return run_id in _active
+
+
+INTERRUPTED = "interrupted by a restart"
+
+
+def mark_interrupted() -> list[str]:
+    """At server start nothing can still be working: every run left "queued" or "running" by the previous process is marked as an error,
+    so the page stops waiting for it and the retention sweep can delete it. Returns the ids changed."""
+    changed = []
+    if not RUNS_DIR.exists():
+        return changed
+    for d in RUNS_DIR.iterdir():
+        if not re.match(RUN_ID_RE, d.name) or is_demo(d.name) or not d.is_dir():
+            continue
+        st = read_status(d.name)
+        if st and st.get("status") in ("queued", "running"):
+            write_status(d.name, "error", error=INTERRUPTED, message=None)
+            changed.append(d.name)
+    return changed
+
+
 def _execute(run_id: str) -> None:
+    with _slots_lock:
+        _active.add(run_id)
+    try:
+        _execute_queued(run_id)
+    finally:
+        with _slots_lock:
+            _active.discard(run_id)
+
+
+def _execute_queued(run_id: str) -> None:
     slots = _run_slots()
     if not slots.acquire(blocking=False):      # every slot is busy: say so, then wait for one
         write_status(run_id, "queued", message=QUEUED_MESSAGE)
