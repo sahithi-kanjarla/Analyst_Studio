@@ -299,5 +299,6 @@ def test_the_server_secret_comes_from_the_environment_or_is_generated_and_kept(t
     assert len(s1) >= 32 and (tmp_path / "owner_secret").read_text().strip().encode() == s1
     owner._secret_cache.clear()
     assert owner.server_secret() == s1                      # read back, not regenerated
-    assert oct((tmp_path / "owner_secret").stat().st_mode & 0o777) == oct(0o600)
+    if sys.platform != "win32":      # Windows has no 0o600 file mode; the rest of this test still runs there
+        assert oct((tmp_path / "owner_secret").stat().st_mode & 0o777) == oct(0o600)
     owner._secret_cache.clear()
