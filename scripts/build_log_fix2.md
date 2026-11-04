@@ -97,4 +97,4 @@ Findings of review runs on a clean bakery file (900 rows, one row per order). Ru
 | **all** | 97 | **1321 passed, 1 failed, 26 skipped** | about 18.5 min |
 
 - The one failure is `test_owner.py::test_the_server_secret_comes_from_the_environment_or_is_generated_and_kept`: it asserts the secret file has Unix mode 0o600 and Windows reports 0o666. `owner.py` was not changed in this round; the test cannot pass on Windows. The other 17 tests in that file pass.
-- The 25 skipped browser tests did not run: they skip without a built `frontend/dist` (not built here). So the UI was not exercised in a browser in this round. Not tested.
+- The 25 skipped browser tests did not run: their own skip message is "needs node with playwright and a built frontend" (a `frontend/dist` folder exists, but the check did not pass here; I did not find out which part is missing). So the UI was not exercised in a browser in this round. Not tested.
