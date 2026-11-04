@@ -128,6 +128,17 @@ const undTitles = { columns: { sub_category: { display_name: 'Sub-category' }, p
 ok('plain_title_names_the_measure_and_the_split_from_display_names', plainTitle('profit by sub_category', undTitles) === 'Profit by sub-category', plainTitle('profit by sub_category', undTitles));
 ok('plain_title_drops_the_table_and_aggregation_words', plainTitle('revenue by Segment (table)') === 'Revenue by segment' && plainTitle('Total revenue by region (sum)') === 'Revenue by region', plainTitle('revenue by Segment (table)'));
 ok('plain_title_turns_a_cross_into_and', plainTitle('revenue: Segment × region') === 'Revenue by segment and region', plainTitle('revenue: Segment × region'));
+{
+  const keep = ['Sub-Category mix across category', 'Tax by box', 'Index by max', 'Max tax per box'];
+  const got = keep.map((x) => plainTitle(x));
+  ok('plain_title_keeps_x_inside_words', got[0] === 'Sub-Category mix by category' && got[1] === 'Tax by box' && got[2] === 'Index by max' && got[3] === 'Max tax per box', JSON.stringify(got));
+  const mult = plainTitle('Revenue 47.2x higher by region');
+  ok('plain_title_still_removes_a_real_multiplier', !/47|\dx/.test(mult) && /region/.test(mult), mult);
+  const sym = plainTitle('Profit = revenue (p<0.001) by region');
+  ok('plain_title_has_no_symbols_or_p_values', !/[=()<>]|p</.test(sym) && /by region/.test(sym), sym);
+  const long = plainTitle('Revenue by region and category and segment and channel and more');
+  ok('plain_title_is_at_most_six_words', long.split(' ').length <= 6, long);
+}
 const failed = Object.entries(R).filter(([, v]) => !v.ok);
 process.stdout.write(JSON.stringify(R) + '\n');
 if (failed.length) process.exitCode = 1;

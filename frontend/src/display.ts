@@ -95,13 +95,25 @@ export function plainLabel(label: string): string {
  *  The sentence that states the result is the headline and goes under the title; this only names what is measured and by what. */
 export function plainTitle(title: string, und?: Understanding | null): string {
   let t = humanise(String(title ?? ""), und)
-    .replace(/\s*\((?:table|sum|avg|average|mean|count)\)\s*/gi, " ")
+    .replace(/\s*\([^)]*\)\s*/g, " ")                                    // no parentheses: "(table)", "(sum)", "(p=0.01)"
+    .replace(/\bp\s*[<=>≤≥]+\s*[\d.]+/gi, " ")                           // no p-values
+    .replace(/(?:^|\s)[\d.,]+\s*[x×](?=\s|$|[.,;:])/gi, " ")              // no multipliers: "47.2x" (a digit must come first, so "mix", "tax" and "box" are safe)
+    .replace(/\s*[=≈≠<>≤≥±%]+\s*[\d.,]*/g, " ")                          // no symbols or the figure after them
     .replace(/^\s*(total|sum of)\s+/i, "")
-    .replace(/\s*[×x]\s+/g, " and ")                     // "A × B" is "A and B"
-    .replace(/^(.+?):\s+(.+ and .+)$/, "$1 by $2")       // "Revenue: A and B" is "Revenue by A and B"
+    .replace(/\s+[x×]\s+|\s*×\s*/g, " and ")                            // "A × B" and "A x B" (spaces both sides) are "A and B"
+    .replace(/^(.+?):\s+(.+ and .+)$/, "$1 by $2")                        // "Revenue: A and B" is "Revenue by A and B"
+    .replace(/\bacross\b/gi, "by")                                       // "mix across category" is "mix by category"
+    .replace(/[:;,\-]+\s*$/g, "")
     .replace(/\s+/g, " ")
     .trim();
-  // words after "by" / "and" / "across" read as plain words, not as headings
-  t = t.replace(/\b(by|and|across|vs|in|of)\s+([A-Z])(?=[a-z])/g, (_m, w: string, c: string) => `${w} ${c.toLowerCase()}`);
+  // words after "by" / "and" read as plain words, not as headings
+  t = t.replace(/\b(by|and|vs|in|of)\s+([A-Z])(?=[a-z])/g, (_m, w: string, c: string) => `${w} ${c.toLowerCase()}`);
+  // at most six words; never end on a joining word
+  const words = t.split(" ").filter(Boolean);
+  if (words.length > 6) {
+    let cut = words.slice(0, 6);
+    while (cut.length > 1 && /^(by|and|vs|in|of|per|to|the|a)$/i.test(cut[cut.length - 1])) cut = cut.slice(0, -1);
+    t = cut.join(" ");
+  }
   return t ? t.charAt(0).toUpperCase() + t.slice(1) : t;
 }
