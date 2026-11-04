@@ -5,8 +5,10 @@ Each tool returns a Finding dict:
 so the LLM never has to invent a statistic."""
 from __future__ import annotations
 
+import functools
 import json
 import re
+import threading
 from pathlib import Path
 
 import matplotlib
@@ -24,6 +26,28 @@ from . import partial as partmod
 from .measures import measure_kind
 from .config import CHART_DPI
 from .profiler import safe_skew
+
+
+# matplotlib's pyplot keeps one global current figure and one global settings table, and the runner starts one thread per run.
+# Every function that draws takes this one lock (re-entrant, so a drawing tool may call another), and the outermost call closes any figure still open.
+RENDER_LOCK = threading.RLock()
+_render_depth = threading.local()
+
+
+def rendering(fn):
+    """Run fn holding the shared drawing lock; the outermost call always closes every open figure, even on an error."""
+    @functools.wraps(fn)
+    def wrapper(*a, **k):
+        with RENDER_LOCK:
+            depth = getattr(_render_depth, "n", 0)
+            _render_depth.n = depth + 1
+            try:
+                return fn(*a, **k)
+            finally:
+                _render_depth.n = depth
+                if depth == 0:
+                    plt.close("all")
+    return wrapper
 
 # The first colour is the app accent (the highlight); other bars are a neutral warm grey, so the highlight is the one colour that stands out.
 PALETTE = ["#A4461F", "#6B675E", "#9A9486", "#8D887C", "#B8B1A3", "#7A4C0C", "#2D6A3E", "#D4CEC2"]
@@ -306,6 +330,7 @@ def ranked_bars(labels, values, ns, fmt, other_at=None, xlabel="", ylabel="", no
 
 
 # ---------------------------------------------------------------- tools
+@rendering
 def distribution(df, ctx, col):
     """Histogram. All values feed the statistics; the picture is cut at the 99th percentile (and says how many values are beyond it), or drawn on a log axis when the skew is extreme."""
     x = pd.to_numeric(df[col], errors="coerce").dropna()
@@ -346,6 +371,7 @@ def distribution(df, ctx, col):
                    _save(fig, ctx, _slug("dist", col)))
 
 
+@rendering
 def outliers(df, ctx, col):
     x = pd.to_numeric(df[col], errors="coerce").dropna()
     if len(x) < 8:
@@ -370,6 +396,7 @@ def outliers(df, ctx, col):
                    _save(fig, ctx, _slug("out", col)), action=action)
 
 
+@rendering
 def category_share(df, ctx, col):
     """How often each value occurs: all values if there are at most 7, else the top 7 plus one 'Other' bar."""
     vc = df[col].astype(str).value_counts()
@@ -401,6 +428,7 @@ def _group_frame(df, target, group):
     return d, kind, pos
 
 
+@rendering
 def group_compare(df, ctx, target, group, within=None, within_value=None):
     """`within` + `within_value` limit the comparison to the rows of one parent value (a drill-down into one category)."""
     if within is not None:
@@ -510,6 +538,7 @@ def group_compare(df, ctx, target, group, within=None, within_value=None):
                    significant=bool(p < 0.05), action=action)
 
 
+@rendering
 def outcome_compare(df, ctx, target, col):
     """Binary outcome (e.g. churn yes/no) vs a numeric driver (e.g. tenure): Mann-Whitney U + rank-biserial effect."""
     y, kind, pos = target_values(df[target])
@@ -545,6 +574,7 @@ def _has_tick_labels() -> bool:
     return "tick_labels" in inspect.signature(plt.Axes.boxplot).parameters
 
 
+@rendering
 def robust_compare(df, ctx, target, group):
     d, kind, _ = _group_frame(df, target, group)
     if kind == "binary":
@@ -577,6 +607,7 @@ def robust_compare(df, ctx, target, group):
                    _save(fig, ctx, _slug("rob", target, group)), significant=bool(p < 0.05))
 
 
+@rendering
 def pareto(df, ctx, target, group):
     y = pd.to_numeric(df[target], errors="coerce")
     d = pd.DataFrame({"g": df[group].astype(str), "y": y}).dropna()
@@ -610,6 +641,7 @@ def pareto(df, ctx, target, group):
                    _save(fig, ctx, _slug("par", target, group)), action=action)
 
 
+@rendering
 def trend(df, ctx, target, date):
     y, kind, _ = target_values(df[target])
     d = pd.DataFrame({"t": pd.to_datetime(df[date], errors="coerce"), "y": y}).dropna().set_index("t").sort_index()
@@ -695,6 +727,7 @@ def trend(df, ctx, target, date):
         "date_coverage": _f(float(pd.to_datetime(df[date], errors="coerce").notna().mean()))}
 
 
+@rendering
 def correlation(df, ctx, cols=None):
     cols = [c for c in (cols or []) if c in df.columns]
     num = df[cols].apply(pd.to_numeric, errors="coerce") if cols else df.select_dtypes("number")
@@ -732,6 +765,7 @@ def correlation(df, ctx, cols=None):
                    _save(fig, ctx, "correlation"), action=action)
 
 
+@rendering
 def heatmap(df, ctx, target, group_a, group_b):
     """Target by every combination of two categorical columns. Cells with fewer than 10 rows are blanked, not guessed.
     The best and weakest cells are found over ALL cells; only the top 6 x 6 by size are drawn (always including the rows and columns of those two cells).
@@ -796,6 +830,7 @@ def heatmap(df, ctx, target, group_a, group_b):
                    _save(fig, ctx, _slug("heat", target, group_a, group_b)), significant=None)
 
 
+@rendering
 def segment_trend(df, ctx, target, date, group):
     """Target over time for each group. Every group with enough data is tested (p-values Bonferroni-corrected across all of them);
     only the 5 biggest are drawn, always including the fastest and slowest."""
@@ -875,6 +910,7 @@ def segment_trend(df, ctx, target, date, group):
 
 
 # ---------------------------------------------------------------- scatter, composition, seasonality, tables
+@rendering
 def scatter(df, ctx, x, y):
     """Two numeric columns against each other: Spearman rank correlation (robust to outliers) plus a fitted line."""
     if x == y or dcols.pair_reason(df, x, y):
@@ -918,6 +954,7 @@ def scatter(df, ctx, x, y):
                    _save(fig, ctx, _slug("sc", x, y)), significant=sig, action=action)
 
 
+@rendering
 def composition(df, ctx, group, by):
     """How the mix of one category changes across another (100% stacked bars) with a chi-square test and Cramer's V.
     The test uses every row; the picture shows the 7 biggest values of each column plus one pooled 'Other'."""
@@ -1004,6 +1041,7 @@ def _ratio_obs(d: pd.DataFrame, name: str) -> pd.DataFrame | None:
     return pd.DataFrame({"key": np.asarray(key), "y": (s["x"] / s["w"]).values})
 
 
+@rendering
 def seasonality(df, ctx, target, date):
     """Does the target follow a weekday or month-of-year pattern? Tests each available cycle and corrects for testing two.
     Additive measures (amounts, counts, profit) are tested on period totals (month totals averaged across years, day totals by weekday), because a per-row average

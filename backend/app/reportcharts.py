@@ -21,7 +21,7 @@ import pandas as pd  # noqa: E402
 from . import summary  # noqa: E402
 from . import understanding as und  # noqa: E402
 from .config import CHART_DPI  # noqa: E402
-from .tools import NEUTRAL, PALETTE  # noqa: E402
+from .tools import NEUTRAL, PALETTE, rendering  # noqa: E402
 
 MAX_CHARTS = 8          # distinct charts on the page
 PER_CARD = 2
@@ -115,6 +115,7 @@ def draw_path(spec: dict) -> str:
     return f"charts/chart_{hashlib.md5(spec['id'].encode()).hexdigest()[:10]}.png"
 
 
+@rendering
 def draw(spec: dict, charts_dir) -> str:
     """Draw one spec to <charts_dir>/<hash>.png and return the page-relative path. The file name is a hash of the spec id, so a chart is drawn once however often it is used."""
     name = draw_path(spec)[len("charts/"):-len(".png")]
