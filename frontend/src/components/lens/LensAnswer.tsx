@@ -154,8 +154,8 @@ function Thumbs({ turnId, runId, initial }: { turnId: string; runId: string; ini
   };
   return (
     <div className="lens-thumbs no-print" role="group" aria-label="Was this answer useful?">
-      <button className={`chip ${vote === "up" ? "chip-on" : ""}`} aria-pressed={vote === "up"} aria-label="This answer helped" onClick={() => send("up")}>👍</button>
-      <button className={`chip ${vote === "down" ? "chip-on" : ""}`} aria-pressed={vote === "down"} aria-label="This answer did not help" onClick={() => send("down")}>👎</button>
+      <button className={`chip ${vote === "up" ? "chip-on" : ""}`} aria-pressed={vote === "up"} aria-label="This answer helped" onClick={() => send("up")}>Helpful</button>
+      <button className={`chip ${vote === "down" ? "chip-on" : ""}`} aria-pressed={vote === "down"} aria-label="This answer did not help" onClick={() => send("down")}>Not helpful</button>
     </div>
   );
 }

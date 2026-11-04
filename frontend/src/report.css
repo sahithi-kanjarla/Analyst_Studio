@@ -1,4 +1,4 @@
-/* The report as a designed page. Everything sits on the 12-column grid inside the 1120px column; reading text stops at 720px. */
+﻿/* The report as a designed page. Everything sits on the 12-column grid inside the 1120px column; reading text stops at 720px. */
 .report-layout { display: block; }
 .report-layout.with-chat { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: var(--gutter); align-items: start; }
 .report-page { display: grid; gap: var(--sp-7); min-width: 0; }
@@ -7,7 +7,7 @@
 .rp-meta { margin: 0; display: flex; gap: var(--sp-3); align-items: center; flex-wrap: wrap; color: var(--muted); font-size: var(--fs-2); }
 .rp-buttons { display: flex; gap: var(--sp-2); flex-wrap: wrap; align-items: center; position: relative; }
 .rp-headline { max-width: var(--read); }
-.rp-kicker { margin: 0 0 var(--sp-2); font-size: var(--fs-1); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--brand); }
+.rp-kicker { margin: 0 0 var(--sp-2); font-size: var(--fs-1); font-weight: 600; color: var(--muted); }
 .rp-big { margin: 0; font-size: var(--fs-4); line-height: 1.3; font-weight: 600; letter-spacing: -.01em; }
 .rp-more { margin: var(--sp-3) 0 0; color: var(--muted); font-size: var(--fs-3); }
 .rp-tiles { margin: 0; }

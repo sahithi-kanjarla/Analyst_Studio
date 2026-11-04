@@ -12,6 +12,7 @@ import threading
 from pathlib import Path
 
 import matplotlib
+import matplotlib.colors  # noqa: F401
 import matplotlib.ticker  # noqa: F401
 
 matplotlib.use("Agg")
@@ -20,7 +21,7 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
-from . import derived, wording
+from . import derived, palette, wording
 from . import derived_cols as dcols
 from . import partial as partmod
 from .measures import measure_kind
@@ -49,17 +50,14 @@ def rendering(fn):
                     plt.close("all")
     return wrapper
 
-# The first colour is the app accent (the highlight); other bars are a neutral warm grey, so the highlight is the one colour that stands out.
-PALETTE = ["#A4461F", "#6B675E", "#9A9486", "#8D887C", "#B8B1A3", "#7A4C0C", "#2D6A3E", "#D4CEC2"]
-NEUTRAL = "#CFC7B9"      # every bar that is not the highlight
-plt.rcParams.update({
-    "axes.spines.top": False, "axes.spines.right": False, "axes.grid": True, "axes.grid.axis": "y", "grid.alpha": 0.25,
-    "font.size": 10, "axes.titlesize": 12, "axes.titleweight": "bold", "axes.titlelocation": "left", "figure.dpi": 100,
-    "axes.prop_cycle": matplotlib.cycler(color=PALETTE),
-    # fallbacks so non-English column names (Hindi, Tamil, Chinese, Arabic...) render wherever the system has such a font
-    "font.family": "sans-serif",
-    "font.sans-serif": ["Inter", "DejaVu Sans", "Noto Sans", "Noto Sans Devanagari", "Nirmala UI", "Segoe UI", "Arial Unicode MS", "Noto Sans CJK SC", "Arial"],
-})
+# Every colour comes from app.palette, which is generated from the chart-tokens block of
+# frontend/src/tokens.css, so a picture and the page around it can never disagree.
+# The first colour is the app accent (the highlight); every other mark is a quiet neutral.
+PALETTE = palette.PALETTE
+NEUTRAL = palette.NEUTRAL      # every bar that is not the highlight
+plt.rcParams.update({**palette.rc(), "axes.prop_cycle": matplotlib.cycler(color=PALETTE)})
+# a sequential ramp from the panel to the accent, for the one chart that shades cells by size
+HEAT = matplotlib.colors.LinearSegmentedColormap.from_list("studio", [palette.PANEL, palette.ACCENT])
 
 
 def additive(name: str, ctx: dict | None = None) -> bool:
@@ -223,7 +221,7 @@ TABLE_ROWS = 10     # table rows shown before "Show all"
 MONTH_CYCLE_MIN_DAYS = 700   # under two years of dates a month-of-year pattern cannot be told apart from a trend
 TABLE_CAP = 500     # most rows a table finding carries
 LONG_LABEL = 12     # labels longer than this switch ranking bars to horizontal
-OTHER_COLOR = "#D4CEC2"
+OTHER_COLOR = palette.NEUTRAL_SOFT      # the pooled 'Other' bar: quieter still than a plain neutral
 
 
 def pick_shown(order: list, must: list, n: int) -> list:
@@ -321,7 +319,7 @@ def _vbars(labels, values, texts, colors, xlabel="", ylabel="", note="", err=Non
 def ranked_bars(labels, values, ns, fmt, other_at=None, xlabel="", ylabel="", note="", err=None, percent=False):
     """Pick the layout from the data: horizontal when there are more than 6 bars or long labels. The best bar is dark, others light, 'Other' grey."""
     texts = [f"{fmt(v)}  (n={int(n):,})" for v, n in zip(values, ns)]
-    colors = [PALETTE[0] if i == 0 else "#CFC7B9" for i in range(len(labels))]
+    colors = [palette.ACCENT if i == 0 else NEUTRAL for i in range(len(labels))]
     if other_at is not None:
         colors[other_at] = OTHER_COLOR
     if len(labels) > 6 or max((len(str(l)) for l in labels), default=0) > LONG_LABEL:
@@ -624,7 +622,7 @@ def pareto(df, ctx, target, group):
     rest = g.iloc[n_shown:]
     labels, values = [str(i) for i in g.index[:n_shown]], [float(v) for v in g.values[:n_shown]]
     texts = [f"{share.iloc[i]:.0%}  (cum. {cum.iloc[i]:.0%})" for i in range(n_shown)]
-    colors = [PALETTE[1] if i < k else "#BFE3DE" for i in range(n_shown)]
+    colors = [palette.ACCENT if i < k else NEUTRAL for i in range(n_shown)]       # the top k carry the point; the tail recedes
     if len(rest):
         labels.append(other_label(len(rest)))
         values.append(float(rest.sum()))
@@ -802,7 +800,7 @@ def heatmap(df, ctx, target, group_a, group_b):
     note = (f"showing the {len(rs)} biggest of {len(rows_by_size)} {group_a} values and {len(cs)} of {len(cols_by_size)} {group_b} values; best and weakest cells use all data"
             if trimmed else "")
     fig, ax = plt.subplots(figsize=(max(5.6, 1.05 * shown.shape[1] + 3.2), max(3.4, 0.6 * shown.shape[0] + 2.2)))
-    cmap = matplotlib.colormaps["Blues"].with_extremes(bad="#EEF0F4")
+    cmap = HEAT.with_extremes(bad=palette.NEUTRAL_SOFT)
     ax.imshow(np.ma.masked_invalid(shown.values.astype(float)), cmap=cmap, aspect="auto")
     ax.set_xticks(range(shown.shape[1]), [_shorten(c, 16) for c in shown.columns], rotation=30 if shown.shape[1] > 4 else 0, ha="right" if shown.shape[1] > 4 else "center")
     ax.set_yticks(range(shown.shape[0]), [_shorten(r, 20) for r in shown.index])
@@ -813,10 +811,10 @@ def heatmap(df, ctx, target, group_a, group_b):
         for j in range(shown.shape[1]):
             v = shown.values[i, j]
             if pd.isna(v):
-                ax.text(j, i, "n<10", ha="center", va="center", fontsize=7, color="#9AA3B2")
+                ax.text(j, i, "n<10", ha="center", va="center", fontsize=7, color=palette.MUTED)
             else:
                 ax.text(j, i, f"{fmt(v)}\nn={int(cnt.values[i, j])}", ha="center", va="center", fontsize=8,
-                        color="white" if (v - lo) / span > 0.6 else "#1F2937")
+                        color="white" if (v - lo) / span > 0.55 else palette.INK)
     _title(ax, f"Best: {a_hi} × {b_hi} ({fmt(hi)}). Weakest: {a_lo} × {b_lo} ({fmt(lo)})")
     gap = f", a {hi / lo:.1f}× gap" if kind != "binary" and lo > 0 else ""
     text = (f"Across **{group_a}** and **{group_b}**, {'the rate of ' + str(pos) + ' for ' if kind == 'binary' else ''}**{target}** is highest for **{a_hi} × {b_hi}** ({fmt(hi)}{_loss_note(hi, target, pct)}) "
@@ -989,7 +987,7 @@ def composition(df, ctx, group, by):
         ax.barh(ys, shown_share[col].values, left=left, color=OTHER_COLOR if other else PALETTE[i % len(PALETTE)], label=_shorten(col, 22), edgecolor="white", linewidth=0.6)
         for j, val in enumerate(shown_share[col].values):
             if val >= 0.08:
-                ax.text(left[j] + val / 2, j, f"{val:.0%}", ha="center", va="center", fontsize=7.5, color="#1F2937" if other else "white")
+                ax.text(left[j] + val / 2, j, f"{val:.0%}", ha="center", va="center", fontsize=7.5, color=palette.INK if other else "white")
         left += shown_share[col].values
     ax.set_xlim(0, 1)
     ax.xaxis.set_major_formatter(matplotlib.ticker.PercentFormatter(1.0))

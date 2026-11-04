@@ -16,6 +16,7 @@ import time
 import zipfile
 from pathlib import Path
 
+from .. import palette
 from .. import understanding as und
 from . import briefs as bf
 from . import records
@@ -82,15 +83,16 @@ def html_to_pdf(page_html: str) -> bytes:
     raise ExportError("The PDF could not be made.")
 
 
-CSS = """body{font:14px/1.5 -apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:#1d1b17;margin:0;padding:0}
-main{max-width:760px;margin:0 auto;padding:8px 4px}
-h1{font-size:24px;margin:0 0 4px}h2{font-size:16px;margin:22px 0 6px;border-bottom:1px solid #d9d4c8;padding-bottom:3px}
-.meta{color:#6b665c;font-size:12px;margin-bottom:14px}.pill{display:inline-block;border:1px solid #d9d4c8;border-radius:999px;padding:1px 10px;font-size:12px;margin-left:6px}
-.headline{font-size:18px;font-weight:600;margin:10px 0}.fig{margin:4px 0}.rec{margin:6px 0}.edited{color:#6b665c;font-size:11px;margin-left:6px}
-.quality{background:#f6f3ec;border:1px solid #d9d4c8;border-radius:8px;padding:8px 12px;margin-top:18px}.quality li{margin:2px 0}
-figure{margin:12px 0;page-break-inside:avoid}img{max-width:100%}figcaption{font-size:12px;color:#6b665c}
-.tiles{display:flex;gap:10px;flex-wrap:wrap}.tile{border:1px solid #d9d4c8;border-radius:8px;padding:6px 12px}.tile b{display:block;font-size:18px}
-@page{margin:16mm}"""
+# The exported page uses the app's own colours, from the one shared palette (app/palette.py).
+CSS = f"""body{{font:14px/1.5 'IBM Plex Sans',-apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:{palette.INK};margin:0;padding:0;font-variant-numeric:tabular-nums}}
+main{{max-width:760px;margin:0 auto;padding:8px 4px}}
+h1{{font-size:24px;margin:0 0 4px;letter-spacing:-.02em}}h2{{font-size:16px;margin:22px 0 6px;border-bottom:1px solid {palette.LINE};padding-bottom:3px}}
+.meta{{color:{palette.MUTED};font-size:12px;margin-bottom:14px}}.pill{{display:inline-block;border:1px solid {palette.LINE};border-radius:999px;padding:1px 10px;font-size:12px;margin-left:6px}}
+.headline{{font-size:18px;font-weight:600;margin:10px 0}}.fig{{margin:4px 0}}.rec{{margin:6px 0}}.edited{{color:{palette.MUTED};font-size:11px;margin-left:6px}}
+.quality{{background:{palette.GRID};border:1px solid {palette.LINE};border-radius:8px;padding:8px 12px;margin-top:18px}}.quality li{{margin:2px 0}}
+figure{{margin:12px 0;page-break-inside:avoid}}img{{max-width:100%}}figcaption{{font-size:12px;color:{palette.MUTED}}}
+.tiles{{display:flex;gap:10px;flex-wrap:wrap}}.tile{{border:1px solid {palette.LINE};border-radius:8px;padding:6px 12px}}.tile b{{display:block;font-size:18px}}
+@page{{margin:16mm}}"""
 
 
 def _readable(text, result: dict) -> str:

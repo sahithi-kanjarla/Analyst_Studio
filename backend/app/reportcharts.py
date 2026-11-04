@@ -18,10 +18,11 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import pandas as pd  # noqa: E402
 
+from . import palette  # noqa: E402
 from . import summary  # noqa: E402
 from . import understanding as und  # noqa: E402
 from .config import CHART_DPI  # noqa: E402
-from .tools import NEUTRAL, PALETTE, rendering  # noqa: E402
+from .tools import NEUTRAL, rendering  # noqa: E402
 
 MAX_CHARTS = 8          # distinct charts on the page
 PER_CARD = 2
@@ -29,9 +30,9 @@ CAPTION_WORDS = 20
 LABELS_MAX = 12          # a series with more bars than this is not labelled bar by bar
 NAME_CHARS = 22
 FREQ = {"D": "D", "W": "W", "MS": "MS"}
-# The app's own look (frontend styles.css: its ink and line colours; the font is the one tools.py sets from the app's font list). The picture carries its own white panel,
-# so dark text on it reads the same on the light page and the dark page.
-INK, MUTED, LINE, PANEL = "#0f172a", "#5b667a", "#dfe4ec", "#ffffff"
+# The app's own look, from the one shared palette (app/palette.py, generated from tokens.css).
+# The picture carries its own white panel, so dark text on it reads the same on the light page and the dark page.
+INK, MUTED, LINE, PANEL = palette.INK, palette.MUTED, palette.LINE, palette.PANEL
 
 
 def _spec(sid: str, fact: str, kind: str, title: str, data: list, **extra) -> dict:
@@ -132,13 +133,13 @@ def draw(spec: dict, charts_dir) -> str:
             s = s.reindex(pd.date_range(idx.min(), idx.max(), freq=spec.get("freq", "MS")))          # periods with no rows become NaN: blank, never zero
             if monthly:
                 peak = s.max()
-                bars = ax.bar(range(len(s)), s.values, color=[PALETTE[0] if v == peak else NEUTRAL for v in s.values], width=0.7)          # a month with no data has no bar
+                bars = ax.bar(range(len(s)), s.values, color=[palette.ACCENT if v == peak else NEUTRAL for v in s.values], width=0.7)          # a month with no data has no bar
                 step = max(1, len(s) // 8)
                 ax.set_xticks(range(0, len(s), step), [d.strftime("%Y-%m") for d in s.index[::step]], rotation=30, ha="right", fontsize=8)
                 if len(s) <= LABELS_MAX:
                     ax.bar_label(bars, labels=["" if v != v else label(v) for v in s.values], fontsize=7, color=INK, padding=2)
             else:
-                ax.plot(s.index, s.values, color=PALETTE[0], marker="o", ms=3, lw=1.6)         # NaN breaks the line: an empty period stays blank
+                ax.plot(s.index, s.values, color=palette.ACCENT, marker="o", ms=3, lw=1.6)       # NaN breaks the line: an empty period stays blank
                 fig.autofmt_xdate()
             ax.yaxis.set_major_formatter(fmt)
             ax.set_ylabel(spec.get("value_label") or "", fontsize=9)
@@ -146,7 +147,7 @@ def draw(spec: dict, charts_dir) -> str:
         else:
             labels = [str(g) for g, _ in spec["data"]][::-1]
             vals = [v for _, v in spec["data"]][::-1]
-            bars = ax.barh(labels, vals, color=[PALETTE[0] if v == max(vals) else NEUTRAL for v in vals])
+            bars = ax.barh(labels, vals, color=[palette.ACCENT if v == max(vals) else NEUTRAL for v in vals])
             ax.bar_label(bars, labels=[label(v) for v in vals], fontsize=8, color=INK, padding=3)          # the value at the end of each bar
             ax.xaxis.set_major_formatter(fmt)
             ax.tick_params(axis="y", labelsize=8)

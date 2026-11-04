@@ -4,14 +4,20 @@ from __future__ import annotations
 import hashlib
 from pathlib import Path
 
+import matplotlib
 from matplotlib.figure import Figure
 
+from .. import palette
+
+matplotlib.rcParams.update(palette.rc())      # the same look whether or not tools.py has been imported
 from ..config import CHART_DPI
 from . import query as qmod
 from .engine import Result
 
-ACCENT, GREY, INK = "#a4461f", "#cfc7b9", "#2b2723"
-SERIES = ["#a4461f", "#2f6f8f", "#7a8f2f", "#8a5a9a", "#d19a2b", "#3f8f78", "#b2566b", "#6d6d6d"]
+# One shared palette (app/palette.py, generated from the chart-tokens block of tokens.css).
+ACCENT, GREY, INK = palette.ACCENT, palette.NEUTRAL, palette.INK
+SERIES = palette.CATEGORICAL
+GRID, PANEL, MARK = palette.GRID, palette.PANEL, palette.BAD
 
 
 def _style(ax, title: str) -> None:
@@ -88,7 +94,7 @@ def draw(R: Result, path: Path) -> bool:
             if n > 1:
                 ax.legend(fontsize=9, frameon=False, ncol=min(n, 4))
         _style(ax, P["title"])
-        ax.grid(axis="x" if horizontal else "y", color="#eee8dc", linewidth=0.8)
+        ax.grid(axis="x" if horizontal else "y", color=GRID, linewidth=0.8)
         ax.set_axisbelow(True)
     elif kind == "series":
         x = list(range(len(P["x"])))
@@ -114,8 +120,8 @@ def draw(R: Result, path: Path) -> bool:
                         ax.annotate(fmt(vals[i]), (x[i], vals[i]), textcoords="offset points", xytext=(0, 6), ha="center", fontsize=8.5, color=INK)
         for i in P.get("marks") or []:
             v = P["series"][0]["values"][i]
-            ax.scatter([x[i]], [v], s=110, facecolors="none", edgecolors="#c0392b", linewidths=2, zorder=5)
-            ax.annotate(P["x"][i], (x[i], v), textcoords="offset points", xytext=(0, 11), ha="center", fontsize=8.5, color="#c0392b", fontweight="bold")
+            ax.scatter([x[i]], [v], s=110, facecolors="none", edgecolors=MARK, linewidths=2, zorder=5)
+            ax.annotate(P["x"][i], (x[i], v), textcoords="offset points", xytext=(0, 11), ha="center", fontsize=8.5, color=MARK, fontweight="bold")
         step = max(1, len(x) // 10)
         ax.set_xticks(x[::step])
         ax.set_xticklabels(P["x"][::step], rotation=40 if len(x) > 6 else 0, ha="right" if len(x) > 6 else "center")
@@ -123,7 +129,7 @@ def draw(R: Result, path: Path) -> bool:
         if len(P["series"]) > 1:
             ax.legend(fontsize=9, frameon=False, ncol=min(len(P["series"]), 4))
         _style(ax, P["title"])
-        ax.grid(axis="y", color="#eee8dc", linewidth=0.8)
+        ax.grid(axis="y", color=GRID, linewidth=0.8)
         ax.set_axisbelow(True)
     elif kind == "hist":
         e, c = P["edges"], P["counts"]
@@ -141,7 +147,7 @@ def draw(R: Result, path: Path) -> bool:
         _style(ax, P["title"])
     fig.tight_layout()
     path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(path, dpi=CHART_DPI, facecolor="#ffffff")
+    fig.savefig(path, dpi=CHART_DPI, facecolor=PANEL)
     return True
 
 

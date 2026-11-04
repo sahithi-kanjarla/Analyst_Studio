@@ -1,10 +1,26 @@
 import { useEffect, useRef, useState } from "react";
 
-/** One chart style everywhere: the accent for the highlight, warm neutral greys for everything else. */
-export const ACCENT = "#a4461f";
-export const NEUTRAL = "#b8b1a3";
-export const PALETTE = [ACCENT, "#6b675e", "#8d887c", "#b8b1a3", "#d4cec2", "#a4461f"];
-export const NEG = "#7a4c0c";
+import { ACCENT, BAD, NEUTRAL, NEUTRAL_SOFT, PANEL } from "../palette";
+
+/** One chart style everywhere, from the one shared palette (src/palette.ts, generated from the
+ *  chart-tokens block of tokens.css, so these charts and the PNGs the backend draws match exactly).
+ *  The rule: the highlighted or selected mark carries the accent, every other mark a muted neutral. */
+export { ACCENT, NEUTRAL, NEUTRAL_SOFT };
+export const NEG = BAD;
+
+function mix(a: string, b: string, t: number) {
+  const n = (h: string, i: number) => parseInt(h.slice(1 + i * 2, 3 + i * 2), 16);
+  const c = [0, 1, 2].map((i) => Math.round(n(a, i) * (1 - t) + n(b, i) * t));
+  return `#${c.map((x) => x.toString(16).padStart(2, "0")).join("")}`;
+}
+
+/** Shade `i` of `n` for a chart whose parts all need their own identity (a share ring, a legend).
+ *  One hue, ordered by lightness, so it reads the same with any kind of colour-blindness. */
+export function shade(i: number, n: number) {
+  return mix(ACCENT, PANEL, n < 2 ? 0 : Math.min(i, n - 1) / (n - 1) * 0.7);
+}
+/** Kept for older call sites: the first six shades of the accent ramp. */
+export const PALETTE = [0, 1, 2, 3, 4, 5].map((i) => shade(i, 6));
 
 export interface Item {
   key: string;
@@ -36,7 +52,8 @@ function useWidth(): [React.RefObject<HTMLDivElement>, number] {
   return [ref, w];
 }
 
-const dim = (on: boolean, anySel: boolean) => (anySel && !on ? 0.3 : 1);
+/** With something selected, the rest of the chart fades right back so the selection is the only thing read. */
+const dim = (on: boolean, anySel: boolean) => (anySel && !on ? 0.25 : 1);
 
 /** Horizontal bars, one colour per category (like the reference), click to filter. */
 export function HBar({ items, selected, onToggle, fmt }: ChartProps) {
@@ -59,7 +76,7 @@ export function HBar({ items, selected, onToggle, fmt }: ChartProps) {
                 <title>{`${it.label}: ${fmt(it.value)}${it.n !== undefined ? ` (n=${it.n.toLocaleString()})` : ""}`}</title>
                 <rect x={0} y={0} width={w} height={row - 4} fill="transparent" />
                 <text x={labelW - 8} y={(row - 4) / 2 + 4} textAnchor="end" className="c-label">{clip(it.label, Math.floor(labelW / 6.0))}</text>
-                <rect x={labelW} y={3} width={bw} height={row - 10} rx={4} fill={it.other ? "#d4cec2" : i === 0 ? ACCENT : NEUTRAL} className="bar" />
+                <rect x={labelW} y={3} width={bw} height={row - 10} rx={4} fill={it.other ? NEUTRAL_SOFT : i === 0 ? ACCENT : NEUTRAL} className="bar" />
                 <text x={labelW + bw + 6} y={(row - 4) / 2 + 4} className="c-value">{fmt(it.value)}{it.n !== undefined && <tspan className="c-axis" dx={6}>n={it.n.toLocaleString()}</tspan>}</text>
               </g>
             );
@@ -133,7 +150,7 @@ export function Donut({ items, selected, onToggle, fmt, maxSize }: ChartProps & 
     const p = (a: number, rad: number) => `${c + rad * Math.cos(a)} ${c + rad * Math.sin(a)}`;
     const d = `M ${p(a0, r)} A ${r} ${r} 0 ${large} 1 ${p(a1, r)} L ${p(a1, ir)} A ${ir} ${ir} 0 ${large} 0 ${p(a0, ir)} Z`;
     a0 += frac * Math.PI * 2;
-    return { it, d, frac, color: PALETTE[i % PALETTE.length] };
+    return { it, d, frac, color: it.other ? NEUTRAL_SOFT : shade(i, items.length) };
   });
   return (
     <div ref={ref} className="chart donut-wrap">
