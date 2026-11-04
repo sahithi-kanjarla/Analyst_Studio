@@ -107,6 +107,7 @@ async def _read_limited(up, total_so_far: int) -> tuple[bytes, int]:
 
 
 @app.post("/api/runs")
+@guard.gives_back_slot_on_failure
 async def new_run(request: Request, response: Response, goal: str = Form(""), company: str = Form(""), industry: str = Form(""), description: str = Form(""), kpis: str = Form(""),
                   audience: str = Form(""), notes: str = Form(""), currency: str = Form(""), explore: str = Form(""), review_saved: str = Form(""),
                   access_code: str = Form(""), files: list[UploadFile] = File(default=[]), file: UploadFile | None = File(default=None)):
@@ -295,6 +296,7 @@ class RerunAnswersIn(BaseModel):
 
 
 @app.post("/api/runs/{run_id}/rerun-answers")
+@guard.gives_back_slot_on_failure
 def rerun_answers(run_id: str, body: RerunAnswersIn, request: Request):
     """Change answers of a finished run and re-run it from the cleaning step. A changed answer replaces the saved one; a question in `ask_again` is forgotten and asked again.
     Returns the id of the new run."""
@@ -332,6 +334,7 @@ class RemoveDerivedIn(BaseModel):
 
 
 @app.post("/api/runs/{run_id}/remove-derived")
+@guard.gives_back_slot_on_failure
 def remove_derived(run_id: str, body: RemoveDerivedIn, request: Request):
     """Re-run the analysis without the derived metrics the user removed. Returns the id of the new run."""
     _check_id(run_id)

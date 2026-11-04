@@ -68,3 +68,57 @@ def test_xlsx_and_csv_are_still_accepted(monkeypatch):
     client = TestClient(main.app)
     r = client.post("/api/runs", data={"goal": "Which segment earns the most?"}, files=[("files", ("d.csv", b"a,b\n1,2\n3,4\n"))])
     assert r.status_code == 200 and "run_id" in r.json()
+
+
+# ------------------------------------------------------------------ a failed request gives its daily AI slot back
+def _with_ai(monkeypatch):
+    monkeypatch.setattr(main, "get_llm", lambda: (object(), "fake"))      # a model is "configured", so a run counts against the cap
+    monkeypatch.setattr(main, "start_run", lambda rid: None)
+
+
+def test_an_upload_that_fails_after_the_slot_was_taken_gives_it_back(monkeypatch):
+    from fastapi.testclient import TestClient
+    from app import guard
+    _with_ai(monkeypatch)
+    def boom(*a, **k):
+        raise RuntimeError("disk full")
+    monkeypatch.setattr(main, "create_run", boom)
+    client = TestClient(main.app, raise_server_exceptions=False)
+    before = guard.used("ai_runs")
+    r = client.post("/api/runs", data={"goal": "Which segment earns the most?"}, files=[("files", ("d.csv", b"a,b\n1,2\n"))])
+    assert r.status_code == 500
+    assert guard.used("ai_runs") == before                                  # not burned
+
+
+def test_a_successful_upload_keeps_its_slot(monkeypatch):
+    from fastapi.testclient import TestClient
+    from app import guard
+    _with_ai(monkeypatch)
+    client = TestClient(main.app)
+    before = guard.used("ai_runs")
+    r = client.post("/api/runs", data={"goal": "Which segment earns the most?"}, files=[("files", ("d.csv", b"a,b\n1,2\n"))])
+    assert r.status_code == 200
+    assert guard.used("ai_runs") == before + 1
+
+
+def test_the_slot_decorator_works_for_plain_endpoints_and_never_goes_below_zero():
+    from app import guard
+
+    @guard.gives_back_slot_on_failure
+    def bad():
+        guard.reserve_ai_run()
+        raise HTTPException(400, "nope")
+
+    @guard.gives_back_slot_on_failure
+    def good():
+        guard.reserve_ai_run()
+        return "ok"
+
+    base = guard.used("ai_runs")
+    with pytest.raises(HTTPException):
+        bad()
+    assert guard.used("ai_runs") == base
+    assert good() == "ok" and guard.used("ai_runs") == base + 1
+    for _ in range(base + 3):
+        guard.release_ai_run()
+    assert guard.used("ai_runs") == 0

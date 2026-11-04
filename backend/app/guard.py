@@ -10,7 +10,10 @@ PUBLIC_DEMO=on        a public sample site: runs are kept 3 days (RETENTION_DAYS
 The day is the UTC day. Counts are saved in usage_daily.json next to the runs folder so a restart does not reset the cap."""
 from __future__ import annotations
 
+import contextvars
+import functools
 import hmac
+import inspect
 import json
 import os
 import threading
@@ -151,3 +154,58 @@ def reserve_ai_run() -> None:
             _usage_path().write_text(json.dumps(d), encoding="utf-8")
         except OSError:
             pass
+    held = _slot_holder.get()
+    if held is not None:
+        held.append(1)          # this request holds a slot: it is given back if the request fails before a run is made
+
+
+_slot_holder: contextvars.ContextVar[list | None] = contextvars.ContextVar("ai_slot_holder", default=None)
+
+
+def release_ai_run() -> None:
+    """Give one slot of today's AI-run count back (never below zero)."""
+    with _lock:
+        d = _load()
+        d["ai_runs"] = max(0, int(d.get("ai_runs", 0)) - 1)
+        try:
+            _usage_path().write_text(json.dumps(d), encoding="utf-8")
+        except OSError:
+            pass
+
+
+def gives_back_slot_on_failure(fn):
+    """For an endpoint that calls reserve_ai_run(): if the endpoint then raises (a bad file, a rejected answer, a run that could not be created),
+    the slot is given back, so a failed request never uses up one of today's AI runs. A request that succeeds keeps its slot."""
+    def start():
+        holder: list = []
+        return holder, _slot_holder.set(holder)
+
+    def finish(holder, token, failed):
+        _slot_holder.reset(token)
+        if failed and holder:
+            release_ai_run()
+
+    if inspect.iscoroutinefunction(fn):
+        @functools.wraps(fn)
+        async def awrapper(*a, **k):
+            holder, token = start()
+            failed = True
+            try:
+                out = await fn(*a, **k)
+                failed = False
+                return out
+            finally:
+                finish(holder, token, failed)
+        return awrapper
+
+    @functools.wraps(fn)
+    def wrapper(*a, **k):
+        holder, token = start()
+        failed = True
+        try:
+            out = fn(*a, **k)
+            failed = False
+            return out
+        finally:
+            finish(holder, token, failed)
+    return wrapper
