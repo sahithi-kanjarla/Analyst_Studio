@@ -8,7 +8,9 @@ import { LensProvider } from "./lens/LensContext";
 import LensPins from "./lens/LensPins";
 import Md from "./Md";
 import PrintPanel from "./PrintPanel";
-import { Sections, ShowAllLink, ShowMore, TabViewBar, ViewImg, ViewItem, ViewTitle } from "./view/ViewUI";
+import ExportMenu, { ExportItem } from "./nav/ExportMenu";
+import Menu from "./nav/Menu";
+import { Sections, ShowAllLink, ShowMore, ViewImg, ViewItem, ViewTitle } from "./view/ViewUI";
 import { useView } from "./view/ViewContext";
 import { ReportBody } from "./Results";
 
@@ -98,8 +100,41 @@ function ReportFinding({ c, und }: { c: ReportCard; und?: Understanding | null }
   );
 }
 
+/** The confidence chip: a short plain label; the explanation opens on hover (title) and on tap or Enter. */
+function ConfidenceChip({ trust, why }: { trust: string; why: string }) {
+  const [open, setOpen] = useState(false);
+  const word = trust.toLowerCase();
+  const text = `Confidence in the answer and the key figures on this page.${why ? ` Why: ${why}.` : ""}`;
+  return (
+    <span className="rp-conf">
+      <button type="button" className="rp-pill rp-conf-chip" title={text} aria-expanded={open} aria-label={`Confidence: ${word}. ${text}`} onClick={() => setOpen((o) => !o)}>Confidence: {word}</button>
+      {open && <span className="rp-conf-pop" role="note">{text}</span>}
+    </span>
+  );
+}
+
+/** Edit view: the short or full view, Undo, Reset and the hidden items (Restore each), all in one menu. */
+function EditViewMenu() {
+  const v = useView();
+  if (!v || !v.data.resolved.tabs["report"]) return null;
+  const hidden = v.data.state.hidden.filter((id) => v.data.items[id]);
+  const short = v.isShort("report");
+  return (
+    <Menu label="Edit view" className="edit-view-menu">
+      {(close) => (
+        <>
+          <button role="menuitem" type="button" className="menu-item" disabled={v.busy} onClick={() => { close(); void v.run({ cmd: "set_mode", tab: "report", mode: short ? "full" : "short" }); }}>{short ? "Show the full view" : "Show the short view"}</button>
+          {v.data.can_undo && <button role="menuitem" type="button" className="menu-item" disabled={v.busy} onClick={() => { close(); void v.undo(); }}>Undo last change</button>}
+          <button role="menuitem" type="button" className="menu-item" disabled={v.busy || !v.data.bar?.show} onClick={() => { close(); void v.reset(); }}>Reset the view</button>
+          {hidden.map((id) => <button key={id} role="menuitem" type="button" className="menu-item" onClick={() => { close(); void v.show(id); }}>Restore: {v.title(id, v.data.items[id].title)}</button>)}
+        </>
+      )}
+    </Menu>
+  );
+}
+
 /** The report as a designed page: the short answer, the key figures, what to do, the evidence, and everything else folded away. */
-export default function ReportPage({ run, embedded = false, startChat = false, startPrint = false }: { run: RunResult; embedded?: boolean; startChat?: boolean; startPrint?: boolean }) {
+export default function ReportPage({ run, embedded = false, startChat = false, startPrint = false, onExport }: { run: RunResult; embedded?: boolean; startChat?: boolean; startPrint?: boolean; onExport?: (item: ExportItem) => void }) {
   const page = run.report_view?.page;
   const view = useView();
   const short = !!view?.isShort("report");
@@ -112,7 +147,9 @@ export default function ReportPage({ run, embedded = false, startChat = false, s
       </>
     );
   }
-  const title = page.company ? `${page.company} report` : "Your report";
+  const title = page.built_title || (page.company ? `${page.company} report` : "Report");
+  const tag = page.built_tag ?? (run.report_view?.overview_note ? "Overview, no goal given" : "");
+  const note = view?.data.bar?.show ? view.data.bar.text : "";
   const tiles = page.tiles.map((t, i) => ({ ...t, i })).filter((t) => t.label !== "Columns").map((t) => (t.label === "Rows" ? { ...t, label: "Records in your file" } : t));
 
   const reportFindings = run.report_view?.report_findings ?? [];
@@ -122,25 +159,29 @@ export default function ReportPage({ run, embedded = false, startChat = false, s
     <div className={`report-layout ${startChat ? "with-chat" : ""} ${embedded ? "embedded" : ""}`}>
       <article className="report-page" aria-label="Report">
         <header className="rp-head">
-          <div>
+          <div className="rp-head-text">
             <h1 className="rp-title">{title}</h1>
-            <p className="rp-meta">
-              <span>{page.date}</span>
-              {page.trust && <span className="rp-pill">How sure we are: {page.trust}</span>}
-            </p>
+            {page.scope && <p className="rp-scope" data-kind="scope">{page.scope.replace(/^Based on\s+/, "").replace(/,\s*from\s+/, ", ").replace(/,\s/g, " · ")}</p>}
           </div>
-          {embedded && <div className="rp-buttons no-print">
-            <PrintPanel run={run} startOpen={startPrint} />
-          </div>}
+          <div className="rp-head-side">
+            <p className="rp-meta">
+              <span>Generated {page.date}</span>
+              {page.trust && <ConfidenceChip trust={page.trust} why={page.cards[0]?.trust_why ?? ""} />}
+            </p>
+            <div className="rp-toolbar no-print">
+              {view && <button type="button" className="btn-quiet details-toggle" aria-pressed={view.details} onClick={() => void view.setDetails(!view.details)}>{view.details ? "Collapse details" : "Expand all details"}</button>}
+              <EditViewMenu />
+              {onExport ? <ExportMenu run={run} onPick={onExport} /> : embedded && <PrintPanel run={run} startOpen={startPrint} />}
+            </div>
+          </div>
         </header>
 
-        {page.scope && <p className="rp-scope" data-kind="scope">{page.scope}</p>}
-        {run.report_view?.overview_note && <p className="muted" data-kind="overview-note">{run.report_view.overview_note}</p>}
-        <TabViewBar tab="report" />
+        {note && <p className="view-note no-print" role="status">{note}</p>}
         <Sections tab="report" selfTitled={["report:actions", "report:evidence"]} nodes={{
           "report:short": (
           <section className="rp-headline" data-kind="summary" aria-label="The short answer">
-          <p className="rp-big">{humanise(plainStats(page.headline), run.understanding)}</p>
+          <p className="rp-big rp-answer">{page.built_answer || humanise(plainStats(page.headline), run.understanding)}</p>
+          {tag && <span className="rp-tag" data-kind="overview-note">{tag}</span>}
           {page.headline_more && <p className="rp-more">{humanise(page.headline_more, run.understanding)}</p>}
         </section>
 

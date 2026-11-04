@@ -148,7 +148,7 @@ export default function Results({ run, target }: { run: RunResult; target?: stri
       : id === "report" && warns > 0 ? warns : undefined,
     warn: id === "report" && warns > 0,
   }));
-  const name = run.report_view?.page?.company ? `${run.report_view.page.company} report` : run.context?.company ? `${run.context.company} report` : "Your report";
+  const name = run.report_view?.page?.built_title || (run.report_view?.page?.company ? `${run.report_view.page.company} report` : run.context?.company ? `${run.context.company} report` : "Report");
 
   return (
     <>
@@ -187,12 +187,12 @@ export default function Results({ run, target }: { run: RunResult; target?: stri
                 ))}
               </div>
             )}
-            <div className="page-tools no-print">
+            {nav !== "report" && <div className="page-tools no-print">
               <button type="button" className="btn-quiet details-toggle" aria-pressed={expanded} disabled={folds === 0 && !expanded} onClick={() => setExpanded(!expanded)}
                 title={folds === 0 && !expanded ? "Nothing is folded away on this page" : expanded ? "Fold the supporting detail away again" : "Open every folded section on this page"}>
                 {expanded ? "Collapse details" : "Expand all details"}
               </button>
-            </div>
+            </div>}
             {backend === "insights" && run.key_metrics && run.key_metrics.length > 0 && (
               <div className="kpi-strip">
                 {run.key_metrics.map((m) => (
@@ -204,7 +204,7 @@ export default function Results({ run, target }: { run: RunResult; target?: stri
               </div>
             )}
             <div ref={body} role={nav === "data" ? "tabpanel" : undefined} className="page-body">
-              <TabBody run={run} tab={backend} />
+              <TabBody run={run} tab={backend} onExport={(item) => setDialog(item)} />
             </div>
           </>
         )}
@@ -375,7 +375,7 @@ export function PlanView({ run }: { run: RunResult }) {
 }
 
 /** One tab's content. The results page and the start page tour both render it, so the tour always shows the real screen. */
-export function TabBody({ run, tab, embedded = false, startChat = false, startPrint = false }: { run: RunResult; tab: Tab; embedded?: boolean; startChat?: boolean; startPrint?: boolean }) {
+export function TabBody({ run, tab, embedded = false, startChat = false, startPrint = false, onExport }: { run: RunResult; tab: Tab; embedded?: boolean; startChat?: boolean; startPrint?: boolean; onExport?: (item: ExportItem) => void }) {
   const ranked = [...(run.findings ?? [])].filter((f) => f.insight).sort((a, b) => (b.insight!.score - a.insight!.score));
   return (
     <>
@@ -385,7 +385,7 @@ export function TabBody({ run, tab, embedded = false, startChat = false, startPr
 
       {tab === "data" && <><TabViewBar tab="data" /><ViewItem id="data:table:clean" tag="section" className="view-section"><DataViewer runId={run.run_id} log={run.cleaning_log} after={<>{run.report_view?.left_out_count ? <p className="muted small left-out-note">{run.report_view.left_out_count} minor {run.report_view.left_out_count === 1 ? "finding was" : "findings were"} left out of the report views because {run.report_view.left_out_count === 1 ? "it was" : "they were"} too small or too uncertain to act on. They stay in the full results.</p> : null}{!embedded && <ColumnMeanings run={run} />}</>} /></ViewItem></>}
 
-      {tab === "report" && <ReportPage run={run} embedded={embedded} startChat={startChat} startPrint={startPrint} />}
+      {tab === "report" && <ReportPage run={run} embedded={embedded} startChat={startChat} startPrint={startPrint} onExport={onExport} />}
 
       {tab === "insights" && (
         <div className="insights">

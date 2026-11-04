@@ -9,7 +9,7 @@ import re
 import pandas as pd
 
 from . import labels
-from . import aicache, cited, context as ctxmod, mainview, reportcharts, strategy as strat_mod, summary as summary_mod, tiering, wording
+from . import aicache, cited, headline, context as ctxmod, mainview, reportcharts, strategy as strat_mod, summary as summary_mod, tiering, wording
 from . import understanding as und
 from .clarify import named_in_goal
 from pathlib import Path
@@ -927,7 +927,7 @@ def _page(state: dict, run_mode: str, cs: list[dict], plan: dict, ts: list, answ
     return {"title": "Analysis report", "company": ctx.get("company", ""), "date": time.strftime("%d %b %Y"), "mode": run_mode or derive_mode(state.get("stage_sources")),
             "goal": state.get("goal", ""), "trust": first.get("trust", ""), "ai_partly": fell_back, "headline": ans.get("sentence") or (first.get("lines") or [""])[0], "headline_more": ans.get("groups_sentence") or "",
             "tiles": [{"label": l, "value": v} for l, v in ts][:4], "cards": cards, "actions": actions, "charts": charts,
-            "scope": _scope_line(state), "footnotes": _footnotes(state),
+            "scope": _scope_line(state), **{f"built_{k}": v for k, v in headline.build(state).items()}, "footnotes": _footnotes(state),
             "no_action": [r for n, r in sorted(plan["none"].items()) if num.get(n)], "behind_md": "\n".join(lines[i + 1:]).strip()}
 
 

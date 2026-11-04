@@ -124,6 +124,9 @@ export interface ReportPageData {
   behind_md: string;
   more?: { title: string; md: string }[];
   scope?: string;
+  built_title?: string;
+  built_answer?: string;
+  built_tag?: string;
   footnotes?: string[];
 }
 

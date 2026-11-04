@@ -100,3 +100,21 @@
 .rp-matter .rp-viz-drawn .c-axis { font-size: 12px; } .rp-matter .rp-viz-drawn .c-value { font-size: 12px; }
 .rp-action h3 { font-weight: 700; }
 .rp-action-line { font-weight: 400; color: var(--ink); }
+
+/* Report header: title and scope on the left; generated date, confidence and toolbar on the right; tighter rhythm. */
+.report-page { row-gap: var(--sp-5); gap: var(--sp-5); }
+.rp-head { align-items: flex-end; gap: var(--sp-3) var(--sp-5); }
+.rp-title { margin: 0 0 var(--sp-1); }
+.rp-head-side { display: grid; gap: var(--sp-2); justify-items: end; }
+.rp-head-side .rp-meta { justify-content: flex-end; }
+.rp-toolbar { display: flex; gap: var(--sp-2); align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+.rp-conf { position: relative; display: inline-block; }
+.rp-conf-chip { cursor: pointer; font: inherit; font-size: var(--fs-1); font-weight: 600; }
+.rp-conf-pop { position: absolute; right: 0; top: calc(100% + var(--sp-1)); z-index: 5; width: min(300px, 80vw); background: var(--card); border: var(--border); border-radius: var(--radius); padding: var(--sp-3); font-size: var(--fs-1); font-weight: 400; color: var(--ink); box-shadow: 0 4px 16px rgba(0, 0, 0, .12); }
+.rp-answer { max-width: 72ch !important; font-size: var(--fs-4); line-height: 1.35; }
+.rp-tag { display: inline-block; margin-top: var(--sp-2); font-size: var(--fs-1); color: var(--muted); border: var(--border); border-radius: 999px; padding: 1px var(--sp-3); }
+.view-note { margin: calc(-1 * var(--sp-2)) 0 0; font-size: var(--fs-1); color: var(--muted); }
+.rp-headline { margin: 0; }
+.rp-section h2 { margin-bottom: var(--sp-3); }
+@media (max-width: 700px) { .rp-head-side { justify-items: start; } .rp-head-side .rp-meta, .rp-toolbar { justify-content: flex-start; } }
+@media print { .view-note { display: none !important; } }
