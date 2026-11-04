@@ -48,3 +48,23 @@ def test_the_limit_counts_all_files_together(monkeypatch):
 def test_a_file_under_the_limit_comes_back_whole(monkeypatch):
     data, total = asyncio.run(main._read_limited(FakeStream(3 * 1024 * 1024 + 7, []), 0))
     assert len(data) == total == 3 * 1024 * 1024 + 7
+
+
+# ------------------------------------------------------------------ .xls is refused up front
+def test_an_xls_upload_is_refused_at_once_with_a_clear_sentence(monkeypatch):
+    from fastapi.testclient import TestClient
+    client = TestClient(main.app)
+    before = len(list(main.RUNS_DIR.iterdir())) if main.RUNS_DIR.exists() else 0
+    r = client.post("/api/runs", data={"goal": "Which segment earns the most?"}, files=[("files", ("old.xls", b"\xd0\xcf\x11\xe0 fake", "application/vnd.ms-excel"))])
+    assert r.status_code == 400
+    assert "Please save it as .xlsx or .csv" in r.json()["detail"]
+    after = len(list(main.RUNS_DIR.iterdir())) if main.RUNS_DIR.exists() else 0
+    assert after == before                                        # no run folder was made
+
+
+def test_xlsx_and_csv_are_still_accepted(monkeypatch):
+    from fastapi.testclient import TestClient
+    monkeypatch.setattr(main, "start_run", lambda rid: None)         # accept the upload without running the pipeline
+    client = TestClient(main.app)
+    r = client.post("/api/runs", data={"goal": "Which segment earns the most?"}, files=[("files", ("d.csv", b"a,b\n1,2\n3,4\n"))])
+    assert r.status_code == 200 and "run_id" in r.json()

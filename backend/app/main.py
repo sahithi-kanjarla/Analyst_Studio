@@ -87,6 +87,7 @@ def delete_run(run_id: str):
 
 
 READ_CHUNK = 1024 * 1024
+XLS_MESSAGE = "Please save it as .xlsx or .csv. The old .xls format cannot be read."
 
 
 async def _read_limited(up, total_so_far: int) -> tuple[bytes, int]:
@@ -129,6 +130,8 @@ async def new_run(request: Request, response: Response, goal: str = Form(""), co
     items, total = [], 0
     for up in uploads:
         ext = "." + up.filename.rsplit(".", 1)[-1].lower() if up.filename and "." in up.filename else ""
+        if ext == ".xls":          # the old Excel format needs a reader that is not installed: say so now, not in the middle of a run
+            raise HTTPException(400, XLS_MESSAGE)
         if ext not in ALLOWED_EXT:
             raise HTTPException(400, f"Unsupported file type '{up.filename}'. Use one of: {', '.join(sorted(ALLOWED_EXT))}")
         content, total = await _read_limited(up, total)
