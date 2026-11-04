@@ -15,6 +15,8 @@ containing only the whitelisted parameters (or None and a reason). `cleaner.appl
     set_date_order          {column, dayfirst}                       how the day and month of d/m/y dates are read
     swap_day_month          {column}                                 the day and month of every date that can be swapped (day 12 or less) trade places
     merge_labels            {column, mapping{label: label}}          rare labels are renamed to the common label they abbreviate
+    set_order_key           {column}                                 the column that identifies one order (checked against the data before any value is blanked)
+    set_data_end            {column}                                 the data really ends at its last date (it was not cut off by the export): a lower last period is read as real
     note_only               {}                                       recorded as context for the LLM, the data is not touched
 """
 from __future__ import annotations
@@ -26,7 +28,7 @@ DERIVED_KINDS = ("ratio_of_sums", "difference", "product")
 NEG_MODES = ("keep", "exclude", "net_against_column")
 MERGE_HOW = ("first_non_null", "sum")
 ACTION_TYPES = ("set_date_column", "set_measures", "define_derived_metric", "filter_rows", "treat_value_as_missing",
-                "handle_negatives", "drop_column", "merge_columns", "fill_missing", "set_date_order", "swap_day_month", "merge_labels", "note_only")
+                "handle_negatives", "drop_column", "merge_columns", "fill_missing", "set_date_order", "swap_day_month", "merge_labels", "set_order_key", "set_data_end", "note_only")
 MAX_LIST = 20
 
 # A default answer must leave the data exactly as it is, so that "Skip, use defaults" never changes a number.
@@ -151,6 +153,12 @@ def validate_action(action, roles: dict[str, str], taken_names: set[str] | None 
         if not c or not pairs or len(pairs) > MAX_LIST or any(v is None for v in pairs.values()):
             return None, "merge_labels needs an existing column and a short mapping of label to label"
         return {"type": t, "column": c, "mapping": pairs}, ""
+    if t == "set_data_end":
+        c = col("column", "date")
+        return ({"type": t, "column": c}, "") if c else (None, "set_data_end needs an existing date column")
+    if t == "set_order_key":
+        c = col("column")
+        return ({"type": t, "column": c}, "") if c else (None, "set_order_key needs an existing column")
     if t == "merge_columns":
         cs = col_list("columns")
         how = action.get("how") or "first_non_null"

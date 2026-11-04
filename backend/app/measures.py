@@ -10,6 +10,9 @@ LOCAL_AVG = r"(?<![a-z])(?:dar|bhav|chhoot|chut|pratishat|pratishath)(?![a-z])"
 SUM_WORDS = re.compile(r"revenue|sales|amount|total|count|qty|quantity|spend|cost|profit|units|orders|" + LOCAL_SUM, re.I)
 AVG_WORDS = re.compile(r"pct|percent|rate|ratio|discount|avg|average|score|margin|price|per_|_per|age$|" + LOCAL_AVG, re.I)  # never add these up
 
+COST_WORDS = re.compile(r"cost|cogs|expense", re.I)                                  # used only when the understanding record does not label a column
+REVENUE_WORDS = re.compile(r"revenue|sales|income|turnover|amount", re.I)
+
 ROWS_LABEL = "records"         # what a share of rows is a share of, and what any share falls back to when the kind of the measure is unknown
 
 KINDS = ("additive", "rate", "other")

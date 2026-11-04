@@ -1,9 +1,9 @@
 """One row per line item, not per order: files where an order, an invoice or a settlement spans several rows.
 
-A column whose name says it identifies an order, invoice, bill, voucher, receipt, transaction or settlement, and whose values repeat across rows, is the file's order key. Then
+The order key is NEVER inferred from how values repeat. Evidence, in order: the user's answer, the AI's understanding record (the column it names as the order or transaction identifier), and, when there is no AI answer, the column's name (order, invoice, bill, transaction...). The data only verifies the candidate (`verify`) and reports what it found (`decide`). With no AI answer, or when the AI and the data disagree, every value is kept and one question is asked. Then
   * the file's order count is the number of different keys, never the number of rows (`detect`), and
   * an amount that every row of an order repeats (an order total written on each line item) is counted once per order (`count_order_amounts_once`), so a total is not multiplied by the number of lines.
-Nothing here knows a platform or a column's exact name: the key is found from words in its name and from how its values repeat."""
+Nothing here knows a platform or a column's exact name."""
 from __future__ import annotations
 
 import re
@@ -18,60 +18,37 @@ MIN_KEYS = 5
 MIN_REPEAT = 1.15            # rows per key
 
 
-def key_columns(df: pd.DataFrame) -> list[tuple[str, str]]:
-    """[(column, plural label)] for the columns named like an order key whose values repeat across rows, best first."""
+def name_candidates(df: pd.DataFrame) -> list[str]:
+    """Columns whose NAME says they identify an order, invoice, bill... (evidence from the name only; repeated or not). Used only when the AI gave no answer."""
     out = []
     for c in df.columns:
-        m = KEY_NAME.search(" ".join(str(c).replace("_", " ").replace("-", " ").split()))
-        if not m:
+        if not KEY_NAME.search(" ".join(str(c).replace("_", " ").replace("-", " ").split())):
             continue
         if pd.api.types.is_numeric_dtype(df[c]) and not bool((df[c].dropna() % 1 == 0).all()):
             continue                                       # an amount, not a label
-        s = df[c].dropna()
-        if len(s) < 20:
-            continue
-        u = s.nunique()
-        if u >= MIN_KEYS and len(s) / u >= MIN_REPEAT:
-            word = re.match(r"[a-z]+", str(c).strip().lower()).group(0).rstrip("s") if re.match(r"[a-z]+", str(c).strip().lower()) else ""
-            word = next((w for w in KEY_WORDS if str(c).lower().startswith(w)), word)
-            out.append((c, KEY_WORDS[word], len(s) / u))
-    return [(c, label) for c, label, _ in sorted(out, key=lambda x: -x[2])]
+        if df[c].notna().sum() >= 2:
+            out.append(c)
+    return out
+
+
+def label_for(col: str) -> str:
+    low = str(col).strip().lower()
+    return KEY_WORDS[next((w for w in KEY_WORDS if low.startswith(w)), "order")]
 
 
 MAX_STRUCT_COLS = 80
 CONSTANT_SHARE = 0.95          # of the orders with several rows, this share carry one value (or none) of the column: it describes the order
 VARYING_SHARE = 0.5            # of the orders with several rows, at least this share have more than one value of the column: it describes the line
+MAX_ATTR_SHARE = 0.5           # a column with more distinct values than this share of the rows is not a product or a category
+MAX_QUESTION_OPTIONS = 4
 
 
 def _is_date(s: pd.Series, role: str | None) -> bool:
     return role == "date" or pd.api.types.is_datetime64_any_dtype(s)
 
 
-def structural_key(df: pd.DataFrame, roles: dict | None = None) -> tuple[str, list[str], list[str]] | None:
-    """(key column, order-level columns, line-level columns) found from how the values repeat, not from any name: a column whose values repeat across rows, where a date or an additive amount stays the same
-    on every row of the same value (the order's date and total) while at least two other columns change from row to row (the lines). The first such column when several qualify."""
-    roles = roles or {}
-    n = len(df)
-    if n < 20 or df.shape[1] > MAX_STRUCT_COLS:
-        return None
-    cands = []
-    for c in df.columns:
-        s = df[c]
-        if roles.get(c) in ("numeric", "date", "binary") or pd.api.types.is_datetime64_any_dtype(s) or (pd.api.types.is_float_dtype(s) and not bool((s.dropna() % 1 == 0).all())):
-            continue
-        k = s.dropna()
-        u = k.nunique()
-        if len(k) >= 0.9 * n and u >= MIN_KEYS and len(k) / u >= MIN_REPEAT and u <= 0.9 * len(k):
-            cands.append(c)
-    for c in cands:
-        split = split_columns(df, c)
-        if split is None:
-            continue
-        const, vary = split
-        anchor = [o for o in const if _is_date(df[o], roles.get(o)) or (pd.api.types.is_numeric_dtype(df[o]) and not pd.api.types.is_bool_dtype(df[o]) and measure_kind(str(o)) == "additive")]
-        if anchor and len(vary) >= 2:
-            return c, const, vary
-    return None
+def _is_amount(s: pd.Series) -> bool:
+    return pd.api.types.is_numeric_dtype(s) and not pd.api.types.is_bool_dtype(s)
 
 
 def split_columns(df: pd.DataFrame, key: str) -> tuple[list[str], list[str]] | None:
@@ -95,37 +72,137 @@ def split_columns(df: pd.DataFrame, key: str) -> tuple[list[str], list[str]] | N
     return const, vary
 
 
-def detect(df: pd.DataFrame, roles: dict | None = None) -> dict | None:
-    """{"key", "label", "orders", "rows", "per_order", "order_columns", "line_columns"} when the table has several rows per order, else None. The key is a column named like an order key whose values repeat,
-    or, from the way the values repeat (see `structural_key`), a column that behaves like one."""
-    keys = key_columns(df)
-    c, label, const, vary = None, "Orders", [], []
-    if keys:
-        c, label = keys[0]
-        const, vary = split_columns(df, c) or ([], [])
-    else:
-        found = structural_key(df, roles)
-        if found:
-            c, const, vary = found
-    if c is None:
+def is_item_attribute(df: pd.DataFrame, c: str, key: str) -> bool:
+    """True when column `c` is constant within a column that groups the rows into products or categories (a product's price or cost): it describes the item, so it is never order-level data and never blanked.
+    The grouping column repeats (it is no identifier of one order) and is not just the key again."""
+    s = df[c]
+    if s.nunique(dropna=True) < 2:
+        return False
+    n_keys = df[key].nunique(dropna=True)
+    for d in df.columns:
+        if d in (c, key):
+            continue
+        t = df[d]
+        if pd.api.types.is_datetime64_any_dtype(t) or (pd.api.types.is_float_dtype(t) and not bool((t.dropna() % 1 == 0).all())):
+            continue
+        u = t.nunique(dropna=True)
+        if u < 2 or u > MAX_ATTR_SHARE * len(df) or u >= 0.5 * n_keys:
+            continue
+        both = df[[d, c]].dropna()
+        if len(both) >= 0.8 * len(df) and (both.groupby(d)[c].nunique() <= 1).mean() >= CONSTANT_SHARE and both.groupby(d).size().mean() >= 2:
+            return True
+    return False
+
+
+def verify(df: pd.DataFrame, col: str, roles: dict | None = None) -> dict:
+    """What the data says about a candidate order key. {"ok": False, "why"} when it cannot be one; otherwise {"ok": True, "unique": bool, "orders", "rows", "per_order", "order_columns", "line_columns", "amount_columns"}.
+    Unique per row: the file is already at order grain. Repeated: it must be a real order key, meaning a date or an amount that is NOT a product's attribute stays the same within each value while other columns change."""
+    roles = roles or {}
+    if col not in df.columns:
+        return {"ok": False, "why": f"'{col}' is not in the data"}
+    s = df[col]
+    nn = s.dropna()
+    if pd.api.types.is_numeric_dtype(s) and not bool((nn % 1 == 0).all()):
+        return {"ok": False, "why": f"'{col}' holds amounts with decimals, not labels"}
+    if len(nn) < 2 or len(nn) < 0.9 * len(df):
+        return {"ok": False, "why": f"'{col}' is blank in too many rows"}
+    u = int(nn.nunique())
+    base = {"ok": True, "orders": u, "rows": int(len(nn)), "per_order": round(len(nn) / u, 2), "order_columns": [], "line_columns": [], "amount_columns": []}
+    if u == len(nn):
+        return {**base, "unique": True}
+    if u < MIN_KEYS:
+        return {"ok": False, "why": f"'{col}' has only {u} different values, too few to be one per order"}
+    split = split_columns(df, col)
+    if split is None:
+        return {"ok": False, "why": f"'{col}' does not repeat"}
+    const, vary = split
+    attrs = {o for o in const if _is_amount(df[o]) and is_item_attribute(df, o, col)}
+    const = [o for o in const if o not in attrs]
+    vary = vary + [o for o in attrs if o not in vary]
+    dates = [o for o in df.columns if o != col and _is_date(df[o], roles.get(o))]
+    if dates and not any(o in const for o in dates):          # an order happens on one day: when every date changes within a value of the column, its rows are not one order
+        return {"ok": False, "why": f"the date changes within one value of '{col}', so its rows are not one order"}
+    anchor = [o for o in const if _is_date(df[o], roles.get(o)) or (_is_amount(df[o]) and measure_kind(str(o)) == "additive")]
+    if not anchor or len(vary) < 1:
+        return {"ok": False, "why": f"within one value of '{col}' no date or amount stays the same, so it does not behave like an order"}
+    amounts = [o for o in const if _is_amount(df[o]) and measure_kind(str(o)) == "additive"]
+    return {**base, "unique": False, "order_columns": const, "line_columns": vary, "amount_columns": amounts}
+
+
+def ai_order_key(rec: dict | None) -> tuple[str | None, str]:
+    """(column, state) from the understanding record: state "named" (the AI named the column that identifies one order), "none" (it said no column does) or "unsure" (no usable record, or no answer)."""
+    if not rec or rec.get("source") != "llm":
+        return None, "unsure"
+    k = rec.get("order_key")
+    if isinstance(k, str) and k in (rec.get("columns") or {}):
+        return k, "named"
+    return (None, "none") if k == "none" else (None, "unsure")
+
+
+def question_candidates(df: pd.DataFrame, roles: dict | None, first: list[str]) -> list[str]:
+    """Columns to offer when asking which one identifies an order: those named like a key, the AI's pick, then id-role columns (the user chooses; nothing is decided from values)."""
+    roles = roles or {}
+    out = list(dict.fromkeys([c for c in first if c in df.columns] + name_candidates(df) + [c for c in df.columns if roles.get(c) == "id"]))
+    return [c for c in out if verify(df, c, roles).get("ok") or c in first or c in name_candidates(df)][:MAX_QUESTION_OPTIONS]
+
+
+def decide(df: pd.DataFrame, roles: dict | None = None, rec: dict | None = None, answered: str | None = None) -> dict:
+    """The order key and what was found about it.
+    Order of evidence: (1) the user's answer; (2) the understanding record's pick; (3) with no AI answer, columns named like an order key. The data only VERIFIES the candidate.
+    verdict: "verified" (several rows per order), "order_grain" (one row per order: nothing to deduplicate), "ask" (no AI answer, or the AI and the data disagree: keep every value and ask which column identifies one order), "none"."""
+    roles = roles or {}
+    out = {"verdict": "none", "key": None, "source": None, "found": "", "candidates": []}
+    if answered == "none":
+        return {**out, "source": "answer", "found": "You said no column identifies one order."}
+    key, state = (answered, "named") if answered else ai_order_key(rec)
+    src = "answer" if answered else "ai"
+    if state == "none":
+        return {**out, "source": "ai", "found": "The AI found no column that identifies one order."}
+    if key:
+        v = verify(df, key, roles)
+        if v.get("ok"):
+            found = (f"'{key}' has {v['orders']:,} different values in {v['rows']:,} rows: one row per order, so nothing is repeated." if v["unique"] else
+                     f"'{key}' has {v['orders']:,} different values in {v['rows']:,} rows ({v['per_order']:g} rows per order); {len(v['amount_columns'])} order-level amount(s) repeat on every row.")
+            return {**out, **v, "verdict": "order_grain" if v["unique"] else "verified", "key": key, "source": src, "label": label_for(key), "found": found}
+        return {**out, "verdict": "ask", "key": key, "source": src, "found": f"{'You' if answered else 'The AI'} named '{key}' as the order key, but the data disagrees: {v['why']}.",
+                "candidates": question_candidates(df, roles, [key])}
+    cands = question_candidates(df, roles, [])
+    if not cands:
+        return out
+    for c in cands:
+        v = verify(df, c, roles)
+        if v.get("ok") and v.get("unique"):
+            found = f"'{c}' has {v['orders']:,} different values in {v['rows']:,} rows: one row per order, so nothing is repeated."
+            return {**out, **v, "verdict": "order_grain", "key": c, "source": "name", "label": label_for(c), "found": found}
+    return {**out, "verdict": "ask", "source": "name" if name_candidates(df) else "data", "found": "The AI gave no answer about which column identifies an order." if rec and rec.get("source") == "llm" else "No AI answer about which column identifies an order.", "candidates": cands}
+
+
+def grain_of(decision: dict | None) -> dict | None:
+    """The report-facing part of a decision (only when the key is verified), else None."""
+    d = decision or {}
+    if d.get("verdict") not in ("verified", "order_grain"):
         return None
-    n = int(df[c].nunique(dropna=True))
-    return {"key": c, "label": label, "orders": n, "rows": int(df[c].notna().sum()), "per_order": round(float(df[c].notna().sum()) / n, 2), "order_columns": const, "line_columns": vary}
+    return {k: d[k] for k in ("key", "label", "orders", "rows", "per_order", "order_columns", "line_columns", "amount_columns", "source", "verdict", "found")}
 
 
-def count_order_amounts_once(df: pd.DataFrame, log: list[dict], roles: dict | None = None) -> pd.DataFrame:
-    """Where nearly every order's rows carry the same amount (an order total repeated on each line), keep it on the first row of the order and blank it on the others."""
-    g0 = detect(df, roles)
-    if not g0:
+def detect(df: pd.DataFrame, roles: dict | None = None, key: str | None = None) -> dict | None:
+    """The grain of a table whose order key is already known (`key`): {"key", "label", ...} when the data verifies it, else None. Never looks for a key by itself."""
+    if not key:
+        return None
+    d = decide(df, roles, None, key)
+    return grain_of(d)
+
+
+def count_order_amounts_once(df: pd.DataFrame, log: list[dict], roles: dict | None = None, key: str | None = None) -> pd.DataFrame:
+    """Only for a verified order key with several rows per order: an order-level amount repeated on (nearly) every row of its order stays on the first row and is blanked on the others.
+    A value that is constant within a product or category (a price, a cost) is an attribute of the item and is never blanked. A key that is unique per row blanks nothing."""
+    g0 = detect(df, roles, key)
+    if not g0 or g0["verdict"] != "verified":
         return df
     key = g0["key"]
     multi = df[df.duplicated(key, keep=False) & df[key].notna()]
-    if multi.empty:
-        return df
     fixed = []
-    for c in df.columns:
-        if c == key or not pd.api.types.is_numeric_dtype(df[c]) or pd.api.types.is_bool_dtype(df[c]) or measure_kind(str(c)) != "additive":
-            continue
+    for c in g0["amount_columns"]:
         g = multi.groupby(key)[c]
         filled = g.count()
         distinct = g.nunique()
@@ -144,11 +221,11 @@ def count_order_amounts_once(df: pd.DataFrame, log: list[dict], roles: dict | No
     return df
 
 
-def fill_order_details(df: pd.DataFrame, log: list[dict], roles: dict | None = None) -> pd.DataFrame:
+def fill_order_details(df: pd.DataFrame, log: list[dict], roles: dict | None = None, key: str | None = None) -> pd.DataFrame:
     """Where an order's own details (its status, date, city) are written on its first row only, every row of the order gets them, so a line's value can be split by what its order is. Words and dates only:
     an order's amounts are not copied (they are counted once, see `count_order_amounts_once`)."""
-    g = detect(df, roles)
-    if not g:
+    g = detect(df, roles, key)
+    if not g or g["verdict"] != "verified":
         return df
     key = g["key"]
     cols = [c for c in g["order_columns"] if c in df.columns and not (pd.api.types.is_numeric_dtype(df[c]) and not pd.api.types.is_bool_dtype(df[c])) and df[c].isna().any()]

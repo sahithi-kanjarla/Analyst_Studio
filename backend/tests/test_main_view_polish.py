@@ -132,12 +132,12 @@ def named_state():
     return st
 
 
-def test_the_main_view_uses_display_names_and_the_details_keep_the_internal_ones():
+def test_the_main_view_and_the_details_both_use_display_names():
     md = render(named_state())
     main, details = md.split("<details>", 1)
     assert "Profit margin" in main and "profit_to_amount_ratio" not in main
     assert "| Profit margin (total profit over total amount)" in main                       # the key-number tile
-    assert "profit_to_amount_ratio" in details
+    assert "profit_to_amount_ratio" not in details and "Profit margin" in details           # Fix E: the details name it the same way
 
 
 def test_display_names_come_from_the_record_then_the_kpi_then_the_code():

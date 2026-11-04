@@ -21,9 +21,11 @@ import pandas as pd
 from langgraph.graph import END, START, StateGraph
 
 from . import aicache, brief as briefmod, clarify, derived, derived_check as derivedcheck, glossary, placeholders
+from . import derived_cols as dcols
 from . import goal as goalmod
 from . import context as ctxmod
 from . import critic as critic_mod
+from . import grain as grainmod
 from . import understanding as undmod
 from . import insights, planner, polarity as polmod, powerbi, relations, reporter, signals, strategy, summary, tiering, tools
 from .cleaner import add_derived, apply_directives, coerce_types, scoped_clean
@@ -71,6 +73,7 @@ class RunState(TypedDict, total=False):
     review_saved: bool
     remove_derived: list
     derived_metrics: dict
+    derived_columns: dict
     goal_answer: dict
     summary_facts: dict
     polarity: dict
@@ -355,8 +358,35 @@ def understand_node(state: RunState) -> dict:
              + "; goal words: " + ("; ".join(f"{t} -> {', '.join(c) or 'no column'}" for t, c in rec["goal_columns"].items()) or "none") + ".")
     elif rec["source"] == "fallback":
         emit(rid, "Data understanding", f"The AI answer was unusable ({rec['error']}), so the word-matching rules decide.")
-    return {"understanding": rec, "decisions": decisions, "ai_notes": list(dict.fromkeys(notes)),
+    prof, decision = _order_key(state, rec)
+    emit(rid, "Data understanding", decision["found"] or "No column identifies one order.")
+    return {"understanding": rec, "profile": prof, "decisions": decisions, "ai_notes": list(dict.fromkeys(notes)),
             "stage_sources": {**(state.get("stage_sources") or {}), "understanding": {"llm": "llm", "fallback": "fallback"}.get(rec["source"], "rules")}}
+
+
+def _order_key(state: RunState, rec: dict) -> tuple[dict, dict]:
+    """(profile with the order key and its decision, the decision). The key comes from the user's answer, else the understanding record, else the column name; the data only verifies it (grain.decide)."""
+    wd = _wd(state)
+    raw = pd.read_pickle(wd / "raw.pkl")
+    typed, _ = coerce_types(raw, state["profile"])
+    answered = None          # the order-key question's answer: a column, "none", or None when it was never asked
+    qf, af = wd / "questions.json", wd / "answers.json"
+    if qf.exists() and af.exists():
+        try:
+            qs = json.loads(qf.read_text(encoding="utf-8"))["questions"]
+            given = json.loads(af.read_text(encoding="utf-8"))
+            answered = clarify.order_key_answer(qs, {} if given.get("skip") else (given.get("answers") or {}))
+        except Exception:
+            answered = None
+    roles = {c["name"]: c["role"] for c in state["profile"]["columns"]}
+    decision = grainmod.decide(typed, roles, rec, answered)
+    prof = {k: v for k, v in state["profile"].items() if k != "grain"}
+    g = grainmod.grain_of(decision)
+    if g:
+        rows = int(raw[g["key"]].notna().sum()) if g["key"] in raw.columns else g["rows"]          # the rows that carry a key, as loaded
+        prof["grain"] = {**g, "rows": rows, "per_order": round(rows / g["orders"], 2)}
+    prof["grain_decision"] = decision
+    return prof, decision
 
 
 SOURCE_WORDS = {"user": "your answers", "default": "defaults", "glossary": "the saved glossary", "goal": "your goal", "data": "the data itself"}
@@ -384,6 +414,7 @@ def clarify_node(state: RunState) -> dict:
         typed, _ = coerce_types(raw, state["profile"])
         # the signals read the cleaned values, so the roles come from the cleaned table (a price stored as "Rs. 1,299" is a number here), with the brief's corrections on top
         typed_profile = briefmod.apply_roles(profile_df(typed), (state.get("brief") or {}).get("roles") or {})
+        typed_profile["grain_decision"] = (state.get("profile") or {}).get("grain_decision")          # the order-key question comes from the one decision made in the understanding stage
         pq = state.get("placeholder_questions") or []
         skip = {c for q in pq for c in (q["columns"][0], f"{q['table']}_{q['columns'][0]}")}
         with llmmod.capture() as cap:
@@ -497,7 +528,7 @@ def plan_node(state: RunState) -> dict:
             emit(rid, "Planner", f"Also analysing {d['name']} = {d['a']} / {d['b']} as a ratio of sums: {d['meaning']}")
     extra["derived_metrics"] = {"created": kept, "rejected": rejected, "removed": [{"name": d["name"], "a": d["a"], "b": d["b"], "meaning": d["meaning"]} for d in dropped]}
     if new_cols:
-        prof = {**prof, "columns": prof["columns"] + [profile_df(typed[[c]])["columns"][0] for c in new_cols], "cols": prof["cols"] + len(new_cols)}
+        prof = {**prof, "columns": prof["columns"] + [{**profile_df(typed[[c]])["columns"][0], "role": "numeric"} if pd.api.types.is_numeric_dtype(typed[c]) else profile_df(typed[[c]])["columns"][0] for c in new_cols], "cols": prof["cols"] + len(new_cols)}          # a derived number is never typed as a category
         extra["profile"] = prof
     ov = {**ov, "brief_roles": (state.get("brief") or {}).get("roles") or {}}
     und = state.get("understanding")
@@ -537,7 +568,8 @@ def clean_node(state: RunState) -> dict:
     clean, log2 = scoped_clean(typed, state["profile"], state["plan"], state.get("brief"))
     clean.to_pickle(_wd(state) / "clean.pkl")
     clean.to_csv(_wd(state) / "cleaned.csv", index=False, encoding="utf-8-sig")
-    log = state.get("pre_clean_log", []) + log1 + log_def + log2
+    log_rej = [{"step": "Derived measure rejected", "detail": f"{r.get('a')} / {r.get('b')} was not created: {r['reason']}", "count": 0} for r in (state.get("derived_metrics") or {}).get("rejected") or []]
+    log = state.get("pre_clean_log", []) + log1 + log_def + log_rej + log2
     for s in log:
         emit(rid, "Cleaner", f"{s['step']}: {s['detail']}")
     if not log:
@@ -553,9 +585,17 @@ def analyze_node(state: RunState) -> dict:
     todo = state["plan"]["analyses"] if it == 0 else state["critique"]["followups"]
     findings = list(state.get("findings", []))
     ctx = {"charts_dir": _wd(state) / "charts", "currency": (state.get("context") or {}).get("currency", ""), "kinds": briefmod.kinds(state.get("brief")), "money": undmod.money_columns(state.get("understanding")),
-           "derived": {d["name"]: d for d in state["plan"].get("derived") or []}}
+           "derived": {d["name"]: d for d in state["plan"].get("derived") or []}, "display_names": undmod.display_names(state)}
     emit(rid, "Analyst", f"{'Running the planned analyses' if it == 0 else 'Running follow-up checks requested by the Critic'} ({len(todo)})…")
+    calc = dcols.derived_columns(df)
+    cats = [c for c in df.columns if not pd.api.types.is_numeric_dtype(df[c]) and not pd.api.types.is_datetime64_any_dtype(df[c]) and 2 <= df[c].nunique() <= 200]
+    todo, repeats = dcols.collapse_specs(todo, dcols.canonical_dimensions(df, cats), {dcols.spec_key(f["tool"], f.get("params")) for f in findings})
+    for spec, same in repeats:
+        emit(rid, "Analyst", f"Skipped {spec['tool']} {spec['params']}: it asks about the same thing as {same} (each value of one matches exactly one value of the other), so it is analysed once as {same}.")
     for spec in todo:
+        if spec["tool"] == "scatter" and (why := dcols.pair_reason(df, spec["params"].get("x"), spec["params"].get("y"))):
+            emit(rid, "Analyst", f"Skipped scatter {spec['params']}: {why}.")
+            continue
         try:
             f = tools.REGISTRY[spec["tool"]](df, ctx, **spec["params"])
         except Exception as e:  # one bad analysis must not kill the run
@@ -567,7 +607,7 @@ def analyze_node(state: RunState) -> dict:
         f.update({"id": f"f{len(findings) + 1}", "params": spec["params"], "why": spec.get("why", ""), "round": it, "origin": spec.get("origin")})
         findings.append(f)
         emit(rid, "Analyst", f"{f['title']}: " + f["text"].replace("**", ""), finding=f["id"], chart=f.get("chart"))
-    return {"findings": findings, "iteration": it + 1}
+    return {"findings": findings, "iteration": it + 1, "derived_columns": calc}
 
 
 def _critic(state: RunState, llm) -> dict:

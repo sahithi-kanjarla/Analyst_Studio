@@ -18,11 +18,12 @@ import pandas as pd
 from scipy import stats
 
 from . import derived, wording
+from . import derived_cols as dc
 from . import understanding as und
 from .brief import hierarchy_pairs, kinds
 from .clarify import named_in_goal
 from .llm import ask_json, capture, note_failure
-from .measures import ROWS_LABEL, measure_kind
+from .measures import COST_WORDS, REVENUE_WORDS, ROWS_LABEL, measure_kind
 from .retail_roles import is_quantity
 from .tools import _fmt
 
@@ -125,19 +126,60 @@ def _ratios(state: dict) -> dict[str, dict]:
 def kpi_measures(state: dict, df) -> tuple[list[str], dict[str, dict]]:
     """(additive KPI columns, ratio KPI specs) present in the cleaned data: the target, the measures of the brief, the parts of every ratio and the measures of the findings."""
     ratios = {n: s for n, s in _ratios(state).items() if n in df.columns and s.get("a") in df.columns and s.get("b") in df.columns}
+    rev, cost = revenue_cost_sets(state, df)
+    if rev and cost:          # revenue over cost is a markup multiple, never a margin: gross margin is shown instead
+        ratios = {n: s for n, s in ratios.items() if not (s["a"] in rev and s["b"] in cost)}
+    rates = rate_columns(df, state)
     ov = kinds(state.get("brief"))
     roles = (state.get("brief") or {}).get("roles") or {}
     used = [(state.get("plan") or {}).get("target")] + [c for c, r in roles.items() if r == "measure"] + [x for s in ratios.values() for x in (s["a"], s["b"])] \
         + [(f.get("params") or {}).get("target") for f in state.get("findings") or []]
     cols: list[str] = []
     for c in used:
-        if c and c in df.columns and c not in cols and c not in ratios and measure_kind(c, overrides=ov) == "additive":
+        if c and c in df.columns and c not in cols and c not in ratios and c not in rates and measure_kind(c, overrides=ov) == "additive":
             cols.append(c)
     return cols[:MAX_ADDITIVE], ratios
 
 
 def _cur(col: str, state: dict) -> str:
     return (state.get("context") or {}).get("currency", "") if col in und.money_columns(state.get("understanding")) else ""
+
+
+def rate_columns(df, state: dict) -> set[str]:
+    """Columns that are a rate (unit price, unit cost, a percentage, a ratio): by the brief's or the record's label, or because the data shows them as a per-unit factor of a total. A sum of these means nothing."""
+    rec, ov = state.get("understanding"), kinds(state.get("brief"))
+    hints = {c: und.measure_kind_of(rec, c) for c in df.columns}
+    out = {c for c in df.columns if ov.get(c) == "rate" or hints.get(c) == "rate"}
+    return out | (dc.per_unit_factors(df, hints) & {c for c in df.columns if hints.get(c) != "quantity" and hints.get(c) != "count"})
+
+
+def revenue_cost_sets(state: dict, df) -> tuple[set[str], set[str]]:
+    """(revenue-like, cost-like) additive numeric columns present in the data. The record's labels decide; without a label the name decides. A rate is never either."""
+    rec = state.get("understanding")
+    rates = rate_columns(df, state)
+    num = {c for c in df.columns if pd.api.types.is_numeric_dtype(df[c]) and not pd.api.types.is_bool_dtype(df[c]) and c not in rates}
+    cost = und.cost_columns(rec) & num or {c for c in num if COST_WORDS.search(str(c))}
+    rev = (und.money_columns(rec) - und.cost_columns(rec)) & num or {c for c in num if REVENUE_WORDS.search(str(c)) and c not in cost}
+    return rev - cost, cost
+
+
+def profit_figures(state: dict, df) -> list[dict]:
+    """Gross profit (revenue minus cost) and gross margin (that over revenue), computed on the rows that have both. Nothing when there is no revenue-like and cost-like column."""
+    rev, cost = revenue_cost_sets(state, df)
+    if not rev or not cost:
+        return []
+    target = (state.get("plan") or {}).get("target")
+    r = target if target in rev else max(rev, key=lambda c: float(pd.to_numeric(df[c], errors="coerce").sum()))
+    k = max(cost, key=lambda c: (int(df[c].notna().sum()), float(pd.to_numeric(df[c], errors="coerce").sum())))
+    both = df[[r, k]].apply(pd.to_numeric, errors="coerce").dropna()
+    if len(both) < 2:
+        return []
+    rs, ks = float(both[r].sum()), float(both[k].sum())
+    cur = _cur(r, state)
+    out = [{"label": "Gross profit", "value": full(rs - ks, cur), "note": f"{r} minus {k}"}]
+    if rs > 0:
+        out.append({"label": "Gross margin", "value": f"{(rs - ks) / rs:.1%}", "note": f"gross profit divided by {r}"})
+    return out
 
 
 # ------------------------------------------------------------------ the question list

@@ -254,18 +254,18 @@ def test_several_rows_per_order_are_counted_by_order_and_repeated_totals_once():
         for k in range(1 + o % 3):
             rows.append({"Order ID": f"A{o:03d}", "Order Total": 100 + o, "Line price": 10 + k, "Qty": 1 + k})
     df = pd.DataFrame(rows)
-    g = grain.detect(df)
+    assert grain.detect(df) is None          # nothing is inferred from how values repeat: a key must be named (answer, AI record or, with no AI, a column name)
+    g = grain.detect(df, None, "Order ID")
     assert g["orders"] == 50 and g["rows"] == len(df) and g["label"] == "Orders"
     log = []
-    out = grain.count_order_amounts_once(df, log)
+    out = grain.count_order_amounts_once(df, log, None, "Order ID")
     assert out["Order Total"].sum() == sum(100 + o for o in range(50)) and df["Order Total"].sum() > out["Order Total"].sum()
     assert out["Qty"].sum() == df["Qty"].sum() and out["Line price"].sum() == df["Line price"].sum()          # line-level figures are untouched
     assert "Order ID" in log[0]["detail"] and log[0]["step"] == "Counted order amounts once"
     one = pd.DataFrame({"Order ID": [f"A{i}" for i in range(60)], "Order Total": range(60)})
-    assert grain.detect(one) is None and grain.count_order_amounts_once(one, []) is one
-    assert grain.key_columns(pd.DataFrame({"Net Settlement": [1, 1, 2, 2, 3, 3] * 5, "Order Date": ["a", "a", "b", "b", "c", "c"] * 5})) == []          # a name that only contains a key word is not a key
-    prof = profiler.profile_df(df)
-    assert prof["grain"]["orders"] == 50
+    assert grain.count_order_amounts_once(one, [], None, "Order ID") is one          # one row per order: nothing to count once
+    assert grain.name_candidates(pd.DataFrame({"Net Settlement": [1, 1, 2, 2, 3, 3] * 5, "Order Date": ["a", "a", "b", "b", "c", "c"] * 5})) == []          # a name that only contains a key word is not a key
+    assert "grain" not in profiler.profile_df(df)          # the profile no longer guesses an order key
 
 
 def test_the_report_names_the_orders_when_a_file_has_several_rows_per_order():
@@ -298,6 +298,8 @@ def shopify_run():
     tmp = tempfile.mkdtemp()
     os.environ.update(RUNS_DIR=tmp + "/runs", AI_CACHE_DIR=tmp + "/c", CHART_DPI="50", GLOSSARY_PATH=tmp + "/g.json")
     from app import runner
+    mp = pytest.MonkeyPatch()
+    mp.setattr(grain, "ai_order_key", lambda rec: ("Name", "named"))          # a fake understanding record names the order column (the order key never comes from how values repeat)
     f = FIX / "a_shopify_orders.csv"
     rid = runner.create_run("", [(f.name, f.read_bytes())])
     runner._execute(rid)
@@ -306,19 +308,21 @@ def shopify_run():
         qs = json.loads((wd / "questions.json").read_text(encoding="utf-8"))["questions"]
         (wd / "answers.json").write_text(json.dumps({"answers": {q["id"]: q["default"] for q in qs}, "skip": False, "notes": ""}))
         runner._execute(rid)
+    mp.undo()
     return wd, json.loads((wd / "result.json").read_text())
 
 
-def test_the_order_key_is_found_from_how_values_repeat_not_from_its_name(shopify_run):
+def test_the_order_key_comes_from_the_record_and_the_data_only_verifies_it(shopify_run):
     wd, result = shopify_run
     g = result["profile"]["grain"]
     assert g["key"] == "Name" and g["orders"] == 320 and g["rows"] == 640 and g["per_order"] == 2.0 and g["label"] == "Orders"
     assert "Lineitem quantity" in g["line_columns"] and "Email" in g["order_columns"]
     renamed = pd.read_csv(FIX / "a_shopify_orders.csv").rename(columns={"Name": "Ref", "Lineitem quantity": "Units", "Lineitem price": "Each", "Lineitem name": "Item", "Lineitem sku": "Code"})
-    g2 = grain.detect(renamed, {})
+    assert grain.detect(renamed, {}) is None          # renamed columns: nothing is found from the values alone
+    g2 = grain.detect(renamed, {}, "Ref")          # ...but a named key is verified against the data
     assert g2 and g2["key"] == "Ref" and g2["orders"] == 320
     customers = pd.DataFrame({"Customer": [f"C{i % 40}" for i in range(200)], "Date": pd.date_range("2024-01-01", periods=200), "Amount": range(200), "Item": list("abcde") * 40})
-    assert grain.detect(customers, {"Date": "date", "Amount": "numeric"}) is None          # a customer's rows differ in date and amount: it is not an order
+    assert grain.detect(customers, {"Date": "date", "Amount": "numeric"}, "Customer") is None          # a customer's rows differ in date and amount: it is not an order
 
 
 def test_the_report_shows_the_distinct_order_count_as_a_tile(shopify_run):
@@ -359,7 +363,7 @@ def test_an_orders_details_written_on_its_first_row_reach_every_line():
             rows.append({"Order ID": f"A{o:03d}", "Status": ["paid", "pending"][o % 2] if k == 0 else None, "Date": f"2024-01-{o % 28 + 1:02d}" if k == 0 else None, "Order Total": 100 + o if k == 0 else None, "Qty": 1 + k, "Item": f"p{k}", "Each": 10.0 + k})
     df = pd.DataFrame(rows)
     log = []
-    out = grain.fill_order_details(df, log, {"Date": "date"})
+    out = grain.fill_order_details(df, log, {"Date": "date"}, "Order ID")
     assert out["Status"].notna().all() and out["Date"].notna().all() and out["Order Total"].isna().sum() == df["Order Total"].isna().sum()          # words and dates fill down, amounts do not
     assert out.groupby("Order ID")["Status"].nunique().max() == 1 and log[0]["step"] == "Filled order details down"
-    assert grain.fill_order_details(pd.DataFrame({"Order ID": [f"A{i}" for i in range(60)], "Status": ["x"] * 60}), [], {}) is not None
+    assert grain.fill_order_details(pd.DataFrame({"Order ID": [f"A{i}" for i in range(60)], "Status": ["x"] * 60}), [], {}, "Order ID") is not None

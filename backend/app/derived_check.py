@@ -7,6 +7,8 @@ from __future__ import annotations
 
 import pandas as pd
 
+from . import derived_cols as dc
+from .derived import looks_like_count
 from .measures import measure_kind
 from .profiler import id_like
 
@@ -72,6 +74,10 @@ def judge(proposals: list[dict], already_total, typed: pd.DataFrame, rule_roles:
             exempt = any(k.lower() == p["name"].lower() and kpi_map.get(k) is None for k in kpis)      # the user's KPI map says no column holds it, so this one is the KPI
             if p["op"] != "div" and top and abs(total) > TOTAL_LIMIT * abs(base[top]) and not exempt:
                 verdict(p, False, f"its total ({total:,.0f}) is more than {TOTAL_LIMIT}x the largest additive column '{top}' ({base[top]:,.0f})")
+            elif (same := next((c for c in dc.numeric_columns(typed) if c not in (a, b) and dc.is_close_to(series, typed[c])), None)):
+                verdict(p, False, f"it gives the same values as the column '{same}', so it adds nothing new")
+            elif looks_like_count(series):
+                verdict(p, False, "its values are whole numbers with few different values, which is a count, not a measure")
             elif p["op"] != "mul" and p["confidence"] == "low":
                 verdict(p, False, "low confidence and there is no question to settle it")
             else:
