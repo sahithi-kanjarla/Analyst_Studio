@@ -17,9 +17,11 @@ from .profiler import count_delimited_rows, too_many_rows_message
 from . import lens
 from .lens import chat as lenschat, howtext as lenshow, reports as lensreports, store as lensstore
 from .context import normalise_context
+from . import dashplan
 from .dashboard import build_dashboard, list_sources, source_path, valid_source
 from .events import get_events
 from .llm import get_llm
+from .context import typed_goal
 from .runner import DEFAULT_EXPLORE_GOAL, RUN_ID_RE, create_run, ensure_demo_run, is_demo, purge_expired, read_status, rerun_with_answers, rerun_without_derived, resume_with_answers, run_dir, start_run
 
 @asynccontextmanager
@@ -133,7 +135,7 @@ def list_runs(request: Request):
     for d in RUNS_DIR.iterdir():
         st = read_status(d.name) if re.match(RUN_ID_RE, d.name) else None
         if st and owner.can_access(d.name, caller):
-            items.append({"run_id": d.name, "goal": st.get("goal"), "status": st.get("status"), "created": st.get("created"), "filename": st.get("filename")})
+            items.append({"run_id": d.name, "goal": typed_goal(st.get("goal")), "status": st.get("status"), "created": st.get("created"), "filename": st.get("filename")})
     return sorted(items, key=lambda x: x.get("created") or 0, reverse=True)[:20]
 
 
@@ -141,7 +143,7 @@ def list_runs(request: Request):
 def get_run(run_id: str):
     _check_id(run_id)
     st = read_status(run_id) or {}
-    out = {"run_id": run_id, "status": st.get("status"), "goal": st.get("goal"), "error": st.get("error")}
+    out = {"run_id": run_id, "status": st.get("status"), "goal": typed_goal(st.get("goal")), "error": st.get("error")}
     res = run_dir(run_id) / "result.json"
     if st.get("status") == "done" and res.exists():
         data = json.loads(res.read_text())
@@ -159,9 +161,16 @@ def get_run(run_id: str):
             for a in pg["actions"]:
                 a["chart_url"] = base + a["chart"] if a.get("chart") else ""
             pg["behind_md"] = pg["behind_md"].replace("](charts/", f"]({base}charts/")
-        for c in view["evidence"] + view["appendix"]:
+        for c in view.get("evidence", []) + view.get("appendix", []):
             if c.get("chart"):
                 c["chart_url"] = base + c["chart"]
+        # apply curation (computed after the report; restructures the view)
+        curation = data.get("curation")
+        if curation:
+            tiering.apply_curation(view, curation)
+            for c in view.get("report_findings", []) + view.get("more_findings", []):
+                if c.get("chart") and not c.get("chart_url"):
+                    c["chart_url"] = base + c["chart"]
         out.update(data)
         out["run_id"] = run_id      # the id in the URL, not the one the run was first saved under (a copied run keeps its original id inside result.json)
     return out
@@ -412,7 +421,19 @@ def dashboard_data(run_id: str):
     res = wd / "result.json"
     if not res.exists() or not (wd / "clean.pkl").exists():
         raise HTTPException(404, "Dashboard not ready")
-    return build_dashboard(wd, json.loads(res.read_text()))
+    return build_dashboard(wd, json.loads(res.read_text()), list((lensstore.get_view_state(wd) or {}).get("pinned") or []))
+
+
+@app.get("/api/runs/{run_id}/dashboard/layout")
+def dashboard_layout(run_id: str, importance: str = ""):
+    """The tile sizes for the tiles the page can show now (a view edit may hide or fold some), so the grid still fills the window.
+    `importance` is the comma-separated importance of each tile, in the page's order; the answer is one rectangle per tile, same order, id = position."""
+    _check_id(run_id)
+    try:
+        vals = [float(p) for p in importance.split(",") if p][:dashplan.MAX_TILES]
+    except ValueError:
+        raise HTTPException(400, "importance must be a comma-separated list of numbers")
+    return dashplan.arrange([{"id": str(i), "importance": v} for i, v in enumerate(vals)])
 
 
 @app.get("/api/runs/{run_id}/data/compare")

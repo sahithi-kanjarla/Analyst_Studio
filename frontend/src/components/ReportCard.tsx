@@ -156,6 +156,12 @@ export default function ReportCard({ c, index, compact = false, understanding }:
               <ReactMarkdown>{say(a.observation)}</ReactMarkdown>
             </section>
           ))}
+          {c.merged && c.merged.items.length > 1 && (
+            <section>
+              <h5>Same leader on {c.merged.items.length} measures</h5>
+              <ul>{c.merged.items.map((it) => <li key={it.id}>{say(it.text)}</li>)}</ul>
+            </section>
+          )}
           {[...c.tables, ...c.also.flatMap((a) => a.tables)].map((t) => <Table key={t.id} t={t} und={und} />)}
           {working && <Working c={c} say={say} />}
         </div>}

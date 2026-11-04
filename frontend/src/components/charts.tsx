@@ -119,10 +119,10 @@ export function Columns({ items, selected, onToggle, fmt, height = 230 }: ChartP
 }
 
 /** Donut with its own legend (name, share) so no label ever overlaps. */
-export function Donut({ items, selected, onToggle, fmt }: ChartProps) {
+export function Donut({ items, selected, onToggle, fmt, maxSize }: ChartProps & { maxSize?: number }) {
   const [ref, w] = useWidth();
   const total = items.reduce((s, i) => s + Math.max(i.value, 0), 0) || 1;
-  const size = Math.min(170, Math.max(120, w * 0.4));
+  const size = Math.max(72, Math.min(maxSize ?? 170, 170, Math.max(120, w * 0.4)));      // a tile that is short gets a smaller ring, never a cut-off one
   const r = size / 2 - 6, ir = r * 0.62, c = size / 2;
   const anySel = selected.length > 0;
   let a0 = -Math.PI / 2;

@@ -1,14 +1,13 @@
 import { useState } from "react";
-import { api, Finding, RunResult, isDemo } from "../api";
+import { api, DashTile, Finding, RunResult, isDemo } from "../api";
 import { humanise } from "../display";
 import FindingTable from "./FindingTable";
 import InsightCard from "./InsightCard";
 import { ShowMore, ViewImg, ViewItem, ViewTitle } from "./view/ViewUI";
 
-const TOP = 4;
 const LEVEL: Record<string, string> = { high: "tag tag-ok", medium: "tag tag-mid", low: "tag tag-warn", exploratory: "tag tag-info", descriptive: "tag" };
 
-function Tile({ f, onOpen, und }: { f: Finding; onOpen: () => void; und?: RunResult["understanding"] }) {
+export function Tile({ f, onOpen, und, items }: { f: Finding; onOpen: () => void; und?: RunResult["understanding"]; items?: { measure: string; text: string }[] }) {
   const ins = { ...f.insight!, headline: humanise(f.insight!.headline, und) };
   const id = `dashboard:chart:${f.id}`;
   return (
@@ -20,6 +19,7 @@ function Tile({ f, onOpen, und }: { f: Finding; onOpen: () => void; und?: RunRes
           {f.chart_type && <span className="muted" title={f.chart_why}>{f.chart_type}</span>}
         </div>
       </header>
+      {items && items.length > 1 && <ul className="tile-measures small">{items.map((i) => <li key={i.measure + i.text}>{i.text}</li>)}</ul>}
       {f.chart_url ? (
         <button className="tile-img" onClick={onOpen} aria-label={`Open details: ${ins.headline}`}>
           <ViewImg id={id} src={f.chart_url} alt={humanise(f.title, und)} />
@@ -34,21 +34,16 @@ function Tile({ f, onOpen, und }: { f: Finding; onOpen: () => void; und?: RunRes
   );
 }
 
-/** Under the interactive dashboard: the answer to the goal, the highest-value charts first (by insight score), everything else under "More charts". */
-export default function FindingGallery({ run }: { run: RunResult }) {
+/** Below the dashboard grid: the answer to the goal in words, and "More charts" for everything the selection kept off the screen.
+ *  Nothing here is drawn until opened, so a long list costs nothing. The charts on the dashboard itself are chosen by the saved selection (dashplan.py). */
+export default function FindingGallery({ run, more, extra }: { run: RunResult; more: DashTile[]; extra?: React.ReactNode }) {
   const [open, setOpen] = useState<Finding | null>(null);
   const [busy, setBusy] = useState("");
+  const [showMore, setShowMore] = useState(false);
   const all = (run.findings ?? []).filter((f) => f.insight);
   const ans = run.goal_answer;
-  const answerIds = new Set(ans?.finding_ids ?? []);
-  const answerCharts = all.filter((f) => answerIds.has(f.id) && f.chart_url).sort((a) => (a.tool === "segment_trend" ? -1 : 1));
-  const shownInAnswer = new Set(answerCharts.map((f) => f.id));
-  const order = run.report_view?.gallery;       // goal-named findings first; a small or negligible effect, or a weak correlation, is never a key finding
-  const byScore = (a: Finding, b: Finding) => b.insight!.score - a.insight!.score;
-  const rest = all.filter((f) => !shownInAnswer.has(f.id));
-  const keyIds = order ? order.key.filter((id) => !shownInAnswer.has(id)) : [];
-  const top = order ? keyIds.map((id) => rest.find((f) => f.id === id)).filter((f): f is Finding => !!f) : rest.sort(byScore).slice(0, TOP);
-  const more = order ? rest.filter((f) => !keyIds.includes(f.id)).sort(byScore) : rest.slice(TOP);
+  const moreFindings = more.filter((t) => t.kind === "finding").map((t) => ({ t, f: all.find((x) => x.id === t.finding_id) })).filter((x): x is { t: DashTile; f: Finding } => !!x.f);
+  const total = moreFindings.length + (more.length - moreFindings.length) + (extra ? 1 : 0);
   const dm = run.derived_metrics;
 
   const remove = async (name: string) => {
@@ -67,24 +62,19 @@ export default function FindingGallery({ run }: { run: RunResult }) {
       {ans && (
         <section className="callout goal-answer">
           <strong>Answer to your goal:</strong> {ans.sentence} {ans.groups_sentence}
-          {answerCharts.length > 0 && (
-            <div className="tile-grid" style={{ marginTop: 12 }}>
-              <ShowMore tab="dashboard" items={answerCharts.map((f) => ({ id: `dashboard:chart:${f.id}`, node: <Tile key={f.id} f={f} und={run.understanding} onOpen={() => setOpen(f)} /> }))} />
-            </div>
-          )}
         </section>
       )}
 
-      <section className="dash-section">
-        <h4>Key findings <span className="muted">· highest value first</span></h4>
-        <div className="tile-grid"><ShowMore tab="dashboard" items={top.map((f) => ({ id: `dashboard:chart:${f.id}`, node: <Tile key={f.id} f={f} und={run.understanding} onOpen={() => setOpen(f)} /> }))} /></div>
-      </section>
-
-      {more.length > 0 && (
-        <section className="dash-section more-charts">
-          <h4>More charts <span className="muted">· {more.length}</span></h4>
-          <div className="tile-grid"><ShowMore tab="dashboard" items={more.map((f) => ({ id: `dashboard:chart:${f.id}`, node: <Tile key={f.id} f={f} und={run.understanding} onOpen={() => setOpen(f)} /> }))} /></div>
-        </section>
+      {total > 0 && (
+        <details className="dash-section more-charts" onToggle={(e) => setShowMore((e.currentTarget as HTMLDetailsElement).open)}>
+          <summary><strong>More charts</strong> <span className="muted">· {moreFindings.length + more.filter((t) => t.kind !== "finding").length + (extra ? 1 : 0)} ranked lower</span></summary>
+          {showMore && (
+            <>
+              {extra}
+              <div className="tile-grid"><ShowMore tab="dashboard" items={moreFindings.map(({ t, f }) => ({ id: `dashboard:chart:${f.id}`, node: <Tile key={f.id} f={f} items={t.items} und={run.understanding} onOpen={() => setOpen(f)} /> }))} /></div>
+            </>
+          )}
+        </details>
       )}
 
       {dm && (dm.created.length > 0 || dm.rejected.length > 0) && (

@@ -75,7 +75,11 @@ export interface ReportCard {
   hypotheses: string[];
   check_next: string[];
   stats: { n?: number; p?: number; p_adjusted?: number };
+  /** Several findings with the same leading group, merged by the selection step; every figure is the original finding's own. */
+  merged?: { dimension: string; leader: string; items: { id: string; measure: string; figure: number | null; text: string }[] };
 }
+
+export interface NullLine { id: string; title: string; kind: string; reason: string }
 
 export interface ReportView {
   gallery?: { key: string[]; more: string[] };
@@ -87,8 +91,16 @@ export interface ReportView {
   appendix: ReportCard[];
   checked: { id: string; line: string; check: string }[];
   profile: { distributions: { id: string; line: string }[]; outliers: { id: string; line: string }[]; composition: { id: string; line: string }[]; tables: CardTable[] };
-  strategies: { strategies: Strategy[]; foundation: { id: string; title: string; line: string }[]; dropped: number };
+  strategies: { strategies: Strategy[]; foundation: { id: string; title: string; line: string }[]; dropped: number; more?: Strategy[] };
   page?: ReportPageData;
+  report_findings?: ReportCard[];
+  more_findings?: ReportCard[];
+  null_lines?: NullLine[];
+  null_counted?: number;
+  left_out_count?: number;
+  /** Set when no goal (or a vague one) was given: the Report says it is an overview. */
+  overview_note?: string;
+  main_measure?: string;
 }
 
 /** The main view of the report as data: the same cards, actions and figures as the markdown, in the same words. */
@@ -455,6 +467,28 @@ export interface DashData {
   rows: (string | number | null)[][];
   total_rows: number;
   sampled: boolean;
+  plan: DashPlan;
+}
+
+/** Which charts the dashboard shows (chosen by the saved selection), the filters worth showing, and where each tile sits on a 24 x 24 grid that is fully covered. */
+export interface DashTile {
+  id: string;
+  kind: "trend" | "dim" | "finding";
+  col?: string;
+  finding_id: string;
+  importance: number;
+  title: string;
+  items?: { measure: string; text: string }[];
+}
+export interface DashRect { id: string; x: number; y: number; w: number; h: number }
+export interface DashPlan {
+  curated: boolean;
+  tiles: DashTile[];
+  more: DashTile[];
+  filters: string[];
+  layout: { cols: number; rows: number; tiles: DashRect[] };
+  objective: string;
+  mode: "goal" | "overview";
 }
 
 export interface DataSource {
@@ -550,6 +584,8 @@ export const api = {
   getAnswersReview: (id: string) => fetch(`/api/runs/${id}/answers-review`).then((r) => json<{ workspace: string; status: string; answers: AnswerRow[] }>(r)),
   rerunWithAnswers: (id: string, answers: Record<string, string>, ask_again: string[]) =>
     fetch(`/api/runs/${id}/rerun-answers`, { method: "POST", headers: JSON_HEADERS(), body: JSON.stringify({ answers, ask_again }) }).then((r) => json<{ run_id: string }>(r)),
+  getDashboardLayout: (id: string, importance: number[]) =>
+    fetch(`/api/runs/${id}/dashboard/layout?importance=${importance.join(",")}`).then((r) => json<{ cols: number; rows: number; tiles: DashRect[] }>(r)),
   getDashboard: (id: string) => fetch(`/api/runs/${id}/dashboard`).then((r) => json<DashData>(r)),
   getSources: (id: string) => fetch(`/api/runs/${id}/sources`).then((r) => json<DataSource[]>(r)),
   downloadUrl: (id: string, source: string) => `/api/runs/${id}/data/download?source=${encodeURIComponent(source)}`,

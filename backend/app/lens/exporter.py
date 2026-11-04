@@ -4,6 +4,7 @@ find theirs: BROWSER_PATH, then the usual Chrome, Chromium and Edge locations.""
 from __future__ import annotations
 
 import base64
+import copy
 import html
 import io
 import os
@@ -135,6 +136,19 @@ def brief_html(b: dict, result: dict, wd: Path) -> str:
     return _page(body)
 
 
+def curated_cards(result: dict) -> list[dict] | None:
+    """The findings the Report tab shows (the saved selection, merged findings once), or None for a run made before the selection existed.
+    Built the same way the page is: the stored view with the selection applied, so the print/PDF report and the screen agree."""
+    cur = result.get("curation") or {}
+    rv = result.get("report_view") or {}
+    if not cur.get("tabs") or not rv:
+        return None
+    from .. import tiering
+    view = copy.deepcopy(rv)
+    tiering.apply_curation(view, cur)
+    return view.get("report_findings")
+
+
 def report_html(result: dict, wd: Path, short: bool = False) -> str:
     page = (result.get("report_view") or {}).get("page") or {}
     trust = records.trust_of(result)
@@ -148,10 +162,19 @@ def report_html(result: dict, wd: Path, short: bool = False) -> str:
     acts = (page.get("actions") or [])[: (3 if short else 12)]
     if acts:
         body += "<h2>What to do</h2><ol>" + "".join(f"<li class='rec'>{_readable(a.get('text'), result)}</li>" for a in acts) + "</ol>"
-    for c in (page.get("charts") or [])[: (2 if short else 6)]:
-        src = _img(wd, c.get("path", ""))
-        if src:
-            body += f"<figure><img src='{src}' alt=''><figcaption><b>{_readable(c.get('title'), result)}</b>. {_readable(c.get('caption'), result)}</figcaption></figure>"
+    cards = curated_cards(result)
+    if cards is not None:                                  # the same findings the Report tab shows, one card for a merged group
+        for c in cards[: (2 if short else None)]:
+            lines = "".join(f"<li>{_readable(i.get('text'), result)}</li>" for i in ((c.get("merged") or {}).get("items") or [])) if len(((c.get("merged") or {}).get("items") or [])) > 1 else ""
+            src = _img(wd, c.get("chart") or "")
+            img = f"<img src='{src}' alt=''>" if src else ""
+            cap = f"<b>{_readable(c.get('headline'), result)}</b>. {_readable(c.get('why_it_matters') or c.get('observation'), result)}" + (f"<ul>{lines}</ul>" if lines else "")
+            body += f"<figure>{img}<figcaption>{cap}</figcaption></figure>"
+    else:
+        for c in (page.get("charts") or [])[: (2 if short else 6)]:
+            src = _img(wd, c.get("path", ""))
+            if src:
+                body += f"<figure><img src='{src}' alt=''><figcaption><b>{_readable(c.get('title'), result)}</b>. {_readable(c.get('caption'), result)}</figcaption></figure>"
     notes = bf.quality_note(result, [])["notes"]
     body += "<div class='quality'><b>Data quality and how sure we are</b><ul>" + f"<li>How sure we are: {html.escape(trust)}</li>" + "".join(f"<li>{_readable(n, result)}</li>" for n in notes) + "</ul></div>"
     return _page(body)

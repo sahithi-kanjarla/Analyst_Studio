@@ -10,6 +10,17 @@ from __future__ import annotations
 
 import re
 
+# What create_run stores as the goal when the person ticks "explore". It is a placeholder, not their words:
+# it is never matched against columns and never shown as their goal (typed_goal() turns it back into "").
+DEFAULT_EXPLORE_GOAL = "Explore this data and surface the most important insights and opportunities for the business."
+
+
+def typed_goal(goal: str | None) -> str:
+    """The goal the person actually typed: "" when the stored goal is the explore placeholder."""
+    g = (goal or "").strip()
+    return "" if g == DEFAULT_EXPLORE_GOAL else (goal or "")
+
+
 STOP = {"the", "and", "for", "with", "that", "this", "from", "our", "are", "was", "were", "have", "has", "had", "you", "your", "their", "its",
         "but", "not", "all", "any", "can", "will", "per", "how", "what", "why", "who", "which", "more", "most", "into", "over", "about",
         "data", "dataset", "analysis", "analyse", "analyze", "insights", "want", "need", "know", "find", "out", "get", "use", "using", "also"}

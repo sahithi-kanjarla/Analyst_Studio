@@ -36,7 +36,7 @@ function Matrix({ items }: { items: Strategy[] }) {
   );
 }
 
-export default function StrategyView({ strategies, summary, gaps, findings, understanding, foundation = [], dropped = 0 }: { strategies: Strategy[]; summary: string; gaps: DataGap[]; findings: Finding[]; understanding?: Understanding | null; foundation?: { id: string; line: string }[]; dropped?: number }) {
+export default function StrategyView({ strategies, summary, gaps, findings, understanding, foundation = [], dropped = 0, more = [] }: { strategies: Strategy[]; summary: string; gaps: DataGap[]; findings: Finding[]; understanding?: Understanding | null; foundation?: { id: string; line: string }[]; dropped?: number; more?: Strategy[] }) {
   const view = useView();
   const short = !!view?.isShort("strategy");
   const backed = strategies.filter((s) => s.kind === "data");
@@ -127,6 +127,19 @@ export default function StrategyView({ strategies, summary, gaps, findings, unde
         })} />
       </div>
       <ShowAllLink tab="strategy" />
+
+      {more.length > 0 && (
+        <details className="fold fold-more">
+          <summary>More ({more.length} {more.length === 1 ? "idea" : "ideas"} that ranked lower)</summary>
+          <ul className="tight">
+            {more.map((s) => (
+              <ViewItem key={s.id} id={`strategy:${s.id}`} tag="li" data-kind="idea">
+                <strong>{say(s.title)}</strong>{s.objective ? ` — ${clip(say(s.objective), 130)}` : ""}
+              </ViewItem>
+            ))}
+          </ul>
+        </details>
+      )}
 
       {dropped > 0 && <p className="muted small">{dropped} lower-ranked {dropped === 1 ? "idea is" : "ideas are"} not shown.</p>}
       {foundation.length > 0 && (
