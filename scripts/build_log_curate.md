@@ -267,3 +267,25 @@ Not tested: Lens choosing that command from a typed sentence with a real model (
 Tile sizes leave no gap or overlap for 1, 2, 3, 6, 10 and 12 tiles; the top tile is the largest; 3 tiles are each bigger than 10; a repeated chart is never a second tile; with one important item the plan has
 1-3 tiles and no filler; merged cards are one tile with their measures (also on the live tile); filters are few; explore objective is "Overview of your data" (unit and end-to-end); More item shown on request;
 PDF and Power BI follow the selection. Old tests changed in B3: **none**.
+
+### Step 5 - the whole suite, in chunks (one pytest process at a time, this laptop, fake AI)
+| group | files | passed | skipped | failed | time |
+|---|---|---|---|---|---|
+| 1 | 10 | 174 | 0 | 0 | 1:33 |
+| 2 | 10 | 225 | 1 | 0 | 2:28 |
+| 3 | 10 | 95 | 0 | 0 | 1:47 |
+| 4 | 10 | 69 | 0 | 0 | 0:39 |
+| 5 | 10 | 165 | 0 | 0 | 1:33 |
+| 6 | 10 | 88 | 0 | **1** | 2:37 |
+| 7 | 10 | 109 | 0 | 0 | 0:50 |
+| 8 | 10 | 135 | 0 | 0 | 0:17 |
+| 9 | 10 | 208 | 0 | 0 | 1:20 |
+| 10 | 7 | 110 | 0 | 0 | 8:11 |
+| 11 (browser: test_ui_nav, test_ui_simplify, test_ui_widgets) | 3 | 25 | 0 | 0 | 3:02 |
+| **total** | 100 | **1403** | **1** | **1** | about 25:20 |
+
+- The one failure is `test_owner.py::test_the_server_secret_comes_from_the_environment_or_is_generated_and_kept`: it asserts the `owner_secret` file mode is 0o600, and Windows reports 0o666 (no POSIX modes). Not caused by this branch (confirmed by re-running the file alone: same failure); it should pass on Linux/Docker. Not changed.
+- The one skip is `test_constraints.py:35`: the pip dry-run needs the network (`RUN_PIP_RESOLVE=1`).
+- The browser tests did **not** skip: `frontend/dist` was built and Chromium was found. They run against the built page, which does include the B3 Dashboard.
+- Not run: any real-AI call, a browser check of a *curated* Dashboard (the browser check I did was on the sample run, which has no curation, so it used the older-run fallback), the page at phone width, hiding a tile with a view edit in the browser (the layout endpoint is tested, the browser path is not), `python scripts/check_constraints.py`, the Docker image.
+- Old tests changed: **B2: none. B3: none. B4: `test_curate.py::test_empty_and_vague_goal_give_overview_mode` was rewritten as `test_explore_flag_is_the_only_trigger_for_overview_mode`** (its text-based overview cases now expect goal mode); 3 tests were added in `test_curate.py` and a new file `test_explore_placeholder.py`.
