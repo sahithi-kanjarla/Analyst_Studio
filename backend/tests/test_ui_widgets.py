@@ -3,6 +3,7 @@
 import json
 import os
 import socket
+import shutil
 import subprocess
 import sys
 import time
@@ -34,7 +35,7 @@ def results(tmp_path_factory):
                 break
             except Exception:
                 time.sleep(0.5)
-        out = subprocess.run(["node", str(SCRIPT), f"http://127.0.0.1:{port}"], env=env, capture_output=True, text=True, timeout=300)
+        out = subprocess.run([shutil.which("node"), str(SCRIPT), f"http://127.0.0.1:{port}"], env=env, capture_output=True, text=True, timeout=300)
         line = [x for x in out.stdout.splitlines() if x.startswith("{")]
         assert line, out.stdout + out.stderr
         yield json.loads(line[-1])

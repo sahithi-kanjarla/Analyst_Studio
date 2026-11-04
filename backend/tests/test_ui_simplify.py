@@ -17,10 +17,11 @@ SCRIPT = Path(__file__).parent / "ui" / "simplify_check.js"
 
 
 def node_path() -> str | None:
-    if not shutil.which("node"):
+    npm = shutil.which("npm")
+    if not shutil.which("node") or not npm:
         return None
     try:
-        g = subprocess.run(["npm", "root", "-g"], capture_output=True, text=True, timeout=20).stdout.strip()
+        g = subprocess.run([npm, "root", "-g"], capture_output=True, text=True, timeout=20).stdout.strip()
     except Exception:
         return None
     return g if g and (Path(g) / "playwright").exists() else None
@@ -46,7 +47,7 @@ def results(tmp_path_factory):
             except Exception:
                 time.sleep(0.5)
         shots = os.environ.get("UI_SHOTS", "")
-        out = subprocess.run(["node", str(SCRIPT), f"http://127.0.0.1:{port}", shots], env=env, capture_output=True, text=True, timeout=300)
+        out = subprocess.run([shutil.which("node"), str(SCRIPT), f"http://127.0.0.1:{port}", shots], env=env, capture_output=True, text=True, timeout=300)
         line = [x for x in out.stdout.splitlines() if x.startswith("{")]
         assert line, out.stdout + out.stderr
         yield json.loads(line[-1])
