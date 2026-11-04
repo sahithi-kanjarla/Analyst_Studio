@@ -45,6 +45,7 @@ Copy `.env.example` to `.env` (never commit it). The ones that matter for a publ
 | `UPLOAD_RATE_LIMIT`, `UPLOAD_RATE_WINDOW_S` | `10`, `3600` | no | uploads one visitor may start per window |
 | `GROQ_API_KEY` | `gsk_...` | **yes** | the AI provider key (or `GOOGLE_API_KEY`); with none, the app runs on rules only |
 | `LLM_PROVIDER`, `LLM_MODEL` | `groq`, ... | no | which model; `none` turns the AI off |
+| `MAX_CONCURRENT_RUNS` | `2` | no | how many analyses work at the same time (default 2). Extra runs wait with the status `queued` and the message "Waiting for other runs to finish" (shown by the status API and the progress stream), then start in turn. Each run uses memory and CPU, so keep this low on a small host |
 | `AI_TPM_LIMIT` | `6000` | no | tokens per minute to stay inside (the free Groq tier) |
 
 Example for a public demo:

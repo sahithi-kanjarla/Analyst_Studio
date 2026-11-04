@@ -144,6 +144,8 @@ def get_run(run_id: str):
     _check_id(run_id)
     st = read_status(run_id) or {}
     out = {"run_id": run_id, "status": st.get("status"), "goal": typed_goal(st.get("goal")), "error": st.get("error")}
+    if st.get("status") == "queued" and st.get("message"):
+        out["message"] = st["message"]          # "Waiting for other runs to finish"
     res = run_dir(run_id) / "result.json"
     if st.get("status") == "done" and res.exists():
         data = json.loads(res.read_text())

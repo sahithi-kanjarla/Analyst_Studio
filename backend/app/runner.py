@@ -10,7 +10,7 @@ import traceback
 import uuid
 from pathlib import Path
 
-from .config import DEMO_DIR, RUNS_DIR, retention_days
+from .config import DEMO_DIR, RUNS_DIR, max_concurrent_runs, retention_days
 from . import reporter
 from .events import emit, set_quiet
 
@@ -108,7 +108,40 @@ def _owner_kw(src_id: str) -> dict:
     return {"owner": o} if o else {}
 
 
+QUEUED_MESSAGE = "Waiting for other runs to finish"
+_slots: threading.BoundedSemaphore | None = None
+_slots_lock = threading.Lock()
+
+
+def _run_slots() -> threading.BoundedSemaphore:
+    """The semaphore that limits simultaneous runs, made on first use from MAX_CONCURRENT_RUNS."""
+    global _slots
+    with _slots_lock:
+        if _slots is None:
+            _slots = threading.BoundedSemaphore(max_concurrent_runs())
+        return _slots
+
+
+def _reset_slots() -> None:
+    """Forget the semaphore so the next run reads MAX_CONCURRENT_RUNS again (tests)."""
+    global _slots
+    with _slots_lock:
+        _slots = None
+
+
 def _execute(run_id: str) -> None:
+    slots = _run_slots()
+    if not slots.acquire(blocking=False):      # every slot is busy: say so, then wait for one
+        write_status(run_id, "queued", message=QUEUED_MESSAGE)
+        emit(run_id, "System", QUEUED_MESSAGE, queued=True)
+        slots.acquire()
+    try:
+        _execute_scoped(run_id)
+    finally:
+        slots.release()
+
+
+def _execute_scoped(run_id: str) -> None:
     from . import glossary, owner
     tok = glossary.set_scope(owner.scope_of(run_id))        # the run reads and saves the glossary of its own owner only
     try:
@@ -121,7 +154,7 @@ def _execute_in_scope(run_id: str) -> None:
     from .graph import GRAPH  # imported lazily so the API starts fast
     wd = run_dir(run_id)
     meta = json.loads((wd / "input.json").read_text())
-    write_status(run_id, "running")
+    write_status(run_id, "running", message=None)
     from . import llm as llm_mod
     llm_mod.begin_run(cache=True)
     if (wd / "answers.json").exists():

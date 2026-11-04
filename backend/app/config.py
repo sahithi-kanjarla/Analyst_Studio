@@ -16,6 +16,16 @@ DATA_DIR = Path(os.environ.get("DATA_DIR") or ROOT / "data")
 RUNS_DIR = Path(os.environ.get("RUNS_DIR") or DATA_DIR / "runs")
 MAX_UPLOAD_MB = int(os.environ.get("MAX_UPLOAD_MB", "50"))  # total across all files of one run
 MAX_FILES = int(os.environ.get("MAX_FILES", "8"))
+
+
+def max_concurrent_runs() -> int:
+    """How many runs may work at the same time (default 2, at least 1). Extra runs wait with the status "queued"."""
+    try:
+        return max(1, int(os.environ.get("MAX_CONCURRENT_RUNS", "2")))
+    except ValueError:
+        return 2
+
+
 MAX_ROWS = int(os.environ.get("MAX_ROWS", "500000"))  # rows in one table; a larger file is rejected at upload with a clear message
 # Runs (and their uploads) older than this many days are deleted at start-up and when a new run is created. 0 keeps everything.
 def on(name: str) -> bool:
