@@ -528,7 +528,7 @@ def plan_node(state: RunState) -> dict:
             emit(rid, "Planner", f"Also analysing {d['name']} = {d['a']} / {d['b']} as a ratio of sums: {d['meaning']}")
     extra["derived_metrics"] = {"created": kept, "rejected": rejected, "removed": [{"name": d["name"], "a": d["a"], "b": d["b"], "meaning": d["meaning"]} for d in dropped]}
     if new_cols:
-        prof = {**prof, "columns": prof["columns"] + [profile_df(typed[[c]])["columns"][0] for c in new_cols], "cols": prof["cols"] + len(new_cols)}
+        prof = {**prof, "columns": prof["columns"] + [{**profile_df(typed[[c]])["columns"][0], "role": "numeric"} if pd.api.types.is_numeric_dtype(typed[c]) else profile_df(typed[[c]])["columns"][0] for c in new_cols], "cols": prof["cols"] + len(new_cols)}          # a derived number is never typed as a category
         extra["profile"] = prof
     ov = {**ov, "brief_roles": (state.get("brief") or {}).get("roles") or {}}
     und = state.get("understanding")
@@ -568,7 +568,8 @@ def clean_node(state: RunState) -> dict:
     clean, log2 = scoped_clean(typed, state["profile"], state["plan"], state.get("brief"))
     clean.to_pickle(_wd(state) / "clean.pkl")
     clean.to_csv(_wd(state) / "cleaned.csv", index=False, encoding="utf-8-sig")
-    log = state.get("pre_clean_log", []) + log1 + log_def + log2
+    log_rej = [{"step": "Derived measure rejected", "detail": f"{r.get('a')} / {r.get('b')} was not created: {r['reason']}", "count": 0} for r in (state.get("derived_metrics") or {}).get("rejected") or []]
+    log = state.get("pre_clean_log", []) + log1 + log_def + log_rej + log2
     for s in log:
         emit(rid, "Cleaner", f"{s['step']}: {s['detail']}")
     if not log:

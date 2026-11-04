@@ -11,7 +11,7 @@ Findings of review runs on a clean bakery file (900 rows, one row per order). Ru
 | C. Partial periods | done |
 | D. Derived columns, one-to-one categories | done |
 | E. Display names | done |
-| F. AI-proposed derived measures checked in code | left to do |
+| F. AI-proposed derived measures checked in code | done |
 | G. Short titles | left to do |
 
 ## Fix A: order key (done)
@@ -64,3 +64,11 @@ Findings of review runs on a clean bakery file (900 rows, one row per order). Ru
 - `tiering.pretty_view` renames the text fields of the whole view (answers, headlines, rankings' sentences, actions, evidence and appendix cards with their tables, checked lines, profile lines, number notes) on copies; ids, `group` / `measure` / `target` parameters, stats and key-number labels keep the internal names because other code matches on them. `reporter` applies `readable_md` to the whole report markdown and to the page's chart titles and captions. `tools._save` renames every text on a chart figure (title, axis labels, legend, notes); file names keep the internal names.
 - Joined names with no AI display name (rules-only run on a file whose headers are already joined) cannot be split by code; they stay as they are. Not tested with a real AI.
 - Test `test_main_view_polish` changed on purpose: it said the details keep the internal names; they now use display names. New: `tests/test_display_names.py` (5), including a full fake-AI bakery run (no internal name in the report, image links still point at real files). Related files re-run: 81 + 158 + 132 + 54 passed.
+
+## Fix F: AI-proposed derived measures (done)
+
+- `derived.check_proposal` (used for the AI's ratio proposals) adds value-only checks to the old ones: reject a ratio that equals, within rounding, an existing column (amount / unit_price = quantity) or a simple product, sum or difference or ratio of two other columns (on the bakery, amount / cost_amount is just unit_price / unit_cost, so it is rejected too); reject a total divided by one of its own factors or by a per-unit rate; reject values that are whole numbers with few distinct values (a count). `derived_check.judge` (the brief's mul / div / sub / add proposals) gets the same "same as an existing column" and "looks like a count" checks.
+- Ratios the user names as a KPI (`kpi_ratios`) are not put through these checks: the user asked for them by name.
+- Every rejection is now a cleaning-log row "Derived measure rejected" (`graph` clean step), besides the timeline line it already had.
+- A derived numeric column is always given the role `numeric` in the profile, never `categorical`.
+- Tests: `tests/test_derived_proposals.py` (8; bakery shape and the ratio cases, the cleaning-log row). Re-run with it: brief, derived_and_display, kpi_ratio_determinism, negative_ratio_and_id_like, plan_proposal, propose, goal_question_links, goal_questions_and_outside_rate, ai_concerns, token_budget: 105 passed.
