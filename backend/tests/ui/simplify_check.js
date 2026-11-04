@@ -10,7 +10,7 @@ const ok = (name, cond, detail) => { R[name] = { ok: !!cond, detail: detail === 
   const errs = []; p.on('pageerror', e => errs.push(String(e)));
   const shot = async (n) => { if (shots) await p.screenshot({ path: `${shots}/simplify-after-${n}.png` }); };
   await p.goto(base); await p.evaluate(() => localStorage.clear());
-  await p.getByRole('button', { name: /Try with sample data/i }).first().click(); await p.waitForSelector('.report-page'); await p.waitForTimeout(800);
+  await p.getByRole('button', { name: /See a sample/i }).first().click(); await p.waitForSelector('.report-page'); await p.waitForTimeout(800);
   const SUB = ['Your data', 'How files connect', 'What we cleaned', 'How we analysed'];
   const tab = async (name) => {          // the five tabs of the bar; the former setup tabs are sub-views of Data
     if (SUB.includes(name)) { await p.getByRole('tab', { name: /^Data/ }).first().click(); await p.waitForTimeout(300); await p.getByRole('tab', { name: new RegExp('^' + name) }).first().click(); }

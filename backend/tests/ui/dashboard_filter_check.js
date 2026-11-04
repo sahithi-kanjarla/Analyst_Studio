@@ -10,7 +10,7 @@ const ok = (name, cond, detail) => { R[name] = { ok: !!cond, detail: detail === 
   const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
   const errs = []; p.on('pageerror', e => errs.push(String(e)));
   await p.goto(base); await p.evaluate(() => localStorage.clear());
-  await p.getByRole('button', { name: /Try with sample data/i }).first().click(); await p.waitForSelector('.report-page'); await p.waitForTimeout(500);
+  await p.getByRole('button', { name: /See a sample/i }).first().click(); await p.waitForSelector('.report-page'); await p.waitForTimeout(500);
   await p.getByRole('tab', { name: /^Dashboard/ }).first().click(); await p.waitForSelector('.bi-tile .chart svg', { timeout: 15000 }); await p.waitForTimeout(600);
   const kinds = [['columns', 'svg[aria-label^="Columns"]'], ['donut', 'svg[aria-label^="Share ring"]'], ['bars', 'svg[aria-label^="Bars"]']];
   const snapshot = () => p.evaluate(() => ({ kpis: [...document.querySelectorAll('.bi-kpi')].map(e => e.textContent).join('|'), tiles: [...document.querySelectorAll('.bi-tile')].map(e => e.querySelector('svg') ? e.innerText + [...e.querySelectorAll('svg [role=button]')].map(x => x.getAttribute('aria-label')).join(',') : '').join('||'), showing: (document.querySelector('.bi-chips') || {}).textContent || '' }));

@@ -7,7 +7,7 @@ const base = process.argv[2], phase = process.argv[3] || 'after', out = process.
   for (const w of [1280, 1440]) {
     const p = await b.newPage({ viewport: { width: w, height: 800 } });
     await p.goto(base); await p.evaluate(() => localStorage.clear());
-    await p.getByRole('button', { name: /Try with sample data/i }).first().click(); await p.waitForSelector('.report-page'); await p.waitForTimeout(900);
+    await p.getByRole('button', { name: /See a sample/i }).first().click(); await p.waitForSelector('.report-page'); await p.waitForTimeout(900);
     const shot = async (n) => { await p.waitForTimeout(500); await p.screenshot({ path: `${out}/nav-${phase}-${n}-${w}.png` }); };
     const tab = async (name) => { await p.getByRole(phase === 'after' ? 'tab' : 'button', { name: new RegExp('^' + name) }).first().click(); await p.waitForTimeout(700); };
     const sub = async (name) => { if (phase === 'before' && !(await p.getByRole('button', { name: new RegExp('^' + name) }).count())) return false; if (phase === 'after') { await p.getByRole('tab', { name: new RegExp('^' + name) }).first().click(); await p.waitForTimeout(600); } else await tab(name); };

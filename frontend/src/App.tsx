@@ -41,9 +41,9 @@ export default function App() {
           Analyst Studio
         </a>
         <div className="topright">
-          <a className={`navlink ${page === "new" ? "navlink-on" : ""}`} href="#/new">New analysis</a>
           <a className={`navlink ${page === "history" ? "navlink-on" : ""}`} href="#/history">History</a>
           <a className={`navlink ${page === "glossary" ? "navlink-on" : ""}`} href="#/glossary">Glossary</a>
+          <a className="navlink navlink-primary" href="#/new">New analysis</a>
         </div>
       </header>
       )}

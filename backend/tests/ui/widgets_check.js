@@ -10,7 +10,7 @@ const ok = (name, cond, detail) => { R[name] = { ok: !!cond, detail: detail === 
   const p = await b.newPage({ viewport: { width: 1280, height: 900 } });
   const errs = []; p.on('pageerror', e => errs.push(String(e)));
   await p.goto(base); await p.evaluate(() => localStorage.clear());
-  await p.getByRole('button', { name: /Try with sample data/i }).first().click(); await p.waitForSelector('.report-page'); await p.waitForTimeout(800);
+  await p.getByRole('button', { name: /See a sample/i }).first().click(); await p.waitForSelector('.report-page'); await p.waitForTimeout(800);
   const tab = async (name) => { await p.getByRole('tab', { name: new RegExp('^' + name) }).first().click(); await p.waitForTimeout(900); };
   const vis = (sel) => p.locator(sel).evaluateAll(els => els.filter(e => e.offsetParent !== null && e.getBoundingClientRect().height > 0).length);
   const inView = async (sel) => { const l = p.locator(sel).filter({ visible: true }).first(); return (await l.count()) ? l.isVisible() : false; };

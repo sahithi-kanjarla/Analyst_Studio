@@ -1,130 +1,148 @@
 import { useEffect, useRef, useState } from "react";
-import { AgentEvent, api, RunResult } from "../api";
-import { DATA_LABEL, DATA_VIEWS, NAV_LABEL, NAV_TABS, NavTab, Tab, TAB_LINE } from "../tabs";
+import { api } from "../api";
 import Dialog from "./Dialog";
-import Logo from "./Logo";
-import { TabBody } from "./Results";
-import ReportPage from "./ReportPage";
-import Timeline from "./Timeline";
 import UploadForm from "./UploadForm";
 
-/** A screen of the app: one of its tabs, or the report with the chat or the print panel open. */
-export type SampleView = Tab | "ask" | "print";
-const TOUR_TABS: NavTab[] = NAV_TABS;          // the five real tabs, in the app's order
-const isDataView = (v: SampleView) => (DATA_VIEWS as string[]).includes(v);
-const tabOf = (v: SampleView): Tab => (v === "ask" || v === "print" ? "report" : v);                 // the screen shown (for its one-line description)
-const navOf = (v: SampleView): NavTab => (isDataView(v) ? "data" : v === "ask" || v === "print" ? "report" : (v as NavTab));          // the tab it belongs to
+/* The landing page. Pictures are real screenshots of the Report, Dashboard and Insights tabs in
+   frontend/public/landing/ (report.png, dashboard.png, insights.png). Nothing here names a column,
+   a category or a figure: the words describe how the app works, not what one file contained. */
 
-const STORY: { view: SampleView; title: string; text: string }[] = [
-  { view: "plan", title: "It asks before it assumes", text: "When something is unclear, like two date columns or a value such as 999 that may mean “missing”, it asks you a short question. It never guesses quietly." },
-  { view: "data", title: "Every figure is calculated by code", text: "The AI helps read your columns and word the report. The numbers come from code, on every row of your file, so you can check them in your own data." },
-  { view: "report", title: "Only what matters", text: "You get the short answer, a few key figures and what to do. Tables, cleaning notes and settings stay folded away until you want them." },
-  { view: "ask", title: "Ask Lens about your data", text: "Pick a suggested question, such as which segment earns the most. The answer, the chart and how it was worked out all come from your data, never from the AI." },
-  { view: "print", title: "Print or save as PDF", text: "Choose what to include, add a title and a note, and pick the paper size. Charts and cards never split across two pages." },
+const SHOTS = {
+  report: { src: "/landing/report.png", alt: "The Report tab: the answer in one sentence, a few key figures, charts and what to do next." },
+  dashboard: { src: "/landing/dashboard.png", alt: "The Dashboard tab: filters on top, key figures and charts that respond to a click." },
+  insights: { src: "/landing/insights.png", alt: "The Insights tab: each finding with how far to trust it." },
+} as const;
+
+const TOUR = [
+  { id: "report", label: "Report", line: "The answer in one sentence, the figures behind it, and what to do next.", shot: SHOTS.report },
+  { id: "dashboard", label: "Dashboard", line: "Click any bar or month to filter every chart at once.", shot: SHOTS.dashboard },
+  { id: "insights", label: "Insights", line: "Each finding, how far to trust it, and the actions it supports.", shot: SHOTS.insights },
+] as const;
+
+/* One icon set: 24px, 1.6 stroke, round caps. */
+const Icon = ({ d }: { d: string }) => (
+  <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>
+);
+const ICONS = {
+  upload: "M12 15V4.5M7.5 9 12 4.5 16.5 9M4.5 15v3.5a1 1 0 0 0 1 1h13a1 1 0 0 0 1-1V15",
+  link: "M12 4 3.5 8.5 12 13l8.5-4.5L12 4ZM3.5 12.5 12 17l8.5-4.5M3.5 16.5 12 21l8.5-4.5",
+  check: "M12 3.5a8.5 8.5 0 1 0 0 17 8.5 8.5 0 0 0 0-17ZM8.3 12.4l2.5 2.5 4.9-5.3",
+  report: "M6 3.5h12a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-15a1 1 0 0 1 1-1ZM9 16v-3M12 16V9M15 16v-5",
+  play: "M8 5.5v13l11-6.5-11-6.5Z",
+  lock: "M7 11V8a5 5 0 0 1 10 0v3M6 11h12a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1Z",
+  calc: "M5 4.5h14v15H5zM8 8.5h8M8 12.5h2M14 12.5h2M8 16h2M14 16h2",
+  source: "M5 5.5h14M5 10h14M5 14.5h8M16 15.5l2 2 3-3.5",
+};
+
+const STEPS = [
+  { icon: ICONS.upload, title: "Upload files", text: "CSV, Excel or JSON. One file or several that belong together." },
+  { icon: ICONS.link, title: "We connect and clean them", text: "Files are linked, columns are understood, and every fix is written down." },
+  { icon: ICONS.check, title: "AI plans, code computes", text: "Code calculates and checks every number on all of your rows." },
+  { icon: ICONS.report, title: "Report, Dashboard, Insights", text: "The answer, the charts and the findings, ready to read and share." },
 ];
 
-/** Renders its children at a fixed design width and zooms them down to fit a narrower window (not on a phone, where they simply reflow). */
-function Scaled({ children, design = 1040, height }: { children: React.ReactNode; design?: number; height: number | string }) {
-  const box = useRef<HTMLDivElement>(null);
-  const [zoom, setZoom] = useState(1);
+const TRUST = [
+  { icon: ICONS.lock, title: "The AI never receives your rows.", text: "It sees column names, types and summary figures. The values in your file stay in your file." },
+  { icon: ICONS.calc, title: "Code computes every figure.", text: "Totals, rankings and charts are calculated by code on your whole cleaned table, then checked." },
+  { icon: ICONS.source, title: "Every answer shows its source.", text: "Each finding and each answer says how it was worked out, so you can check it against your own data." },
+];
+
+/** Adds `in` to an element the first time it scrolls into view. Without IntersectionObserver it shows at once. */
+function useReveal<T extends HTMLElement>() {
+  const ref = useRef<T>(null);
+  const [seen, setSeen] = useState(false);
   useEffect(() => {
-    const el = box.current;
-    if (!el || typeof ResizeObserver === "undefined") return;
-    const ro = new ResizeObserver(() => {
-      const w = el.clientWidth;
-      setZoom(w >= 520 && w < design ? w / design : 1);
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [design]);
+    const el = ref.current;
+    if (!el || typeof IntersectionObserver === "undefined") { setSeen(true); return; }
+    const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { setSeen(true); io.disconnect(); } }, { rootMargin: "0px 0px -12% 0px" });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  return [ref, seen] as const;
+}
+
+function Frame({ shot, eager = false }: { shot: { src: string; alt: string }; eager?: boolean }) {
   return (
-    <div className="scaled" ref={box} style={{ height }}>
-      <div style={zoom !== 1 ? { zoom, width: design } : undefined}>{children}</div>
-    </div>
+    <figure className="lp-frame">
+      <div className="lp-frame-bar" aria-hidden="true"><i /><i /><i /></div>
+      <img src={shot.src} alt={shot.alt} width={1280} height={800} loading={eager ? "eager" : "lazy"} decoding="async" />
+    </figure>
   );
 }
 
-function SampleWindow({ run, view, title, onPick }: { run: RunResult; view: SampleView; title: string; onPick: (v: Tab) => void }) {
+/* VIDEO SLOT. To add the demo, put the file at frontend/public/landing/demo.mp4 (and, if you like, a
+   still at frontend/public/landing/demo-poster.png). Until the file exists this renders nothing. */
+const VIDEO_SRC = "/landing/demo.mp4";
+const VIDEO_POSTER = "/landing/demo-poster.png";
+
+function VideoSlot() {
+  const [found, setFound] = useState(false);
+  const [poster, setPoster] = useState(VIDEO_POSTER);
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    let live = true;
+    fetch(VIDEO_SRC, { method: "HEAD" })
+      .then((r) => { if (live && r.ok && (r.headers.get("content-type") || "").startsWith("video/")) setFound(true); })
+      .catch(() => {});
+    return () => { live = false; };
+  }, []);
+  if (!found) return null;
   return (
-    <div className="window" role="group" aria-label="The app, running on a sample report">
-      <div className="window-bar"><span className="window-dots" aria-hidden><i /><i /><i /></span><span className="window-title">{title}</span></div>
-      <Scaled height="min(60vh, 560px)" key={view}>
-        <div className="window-body">
-          {isDataView(view) && (
-            <div className="dv" role="tablist" aria-label="Data views">
-              {DATA_VIEWS.map((v) => <button key={v} role="tab" type="button" aria-selected={view === v} className={`dv-item ${view === v ? "dv-on" : ""}`} onClick={() => onPick(v)}>{DATA_LABEL[v]}</button>)}
-            </div>
-          )}
-          {view === "ask" ? <ReportPage run={run} embedded startChat /> : view === "print" ? <ReportPage run={run} embedded startPrint /> : <TabBody run={run} tab={view} embedded />}
-        </div>
-      </Scaled>
-    </div>
+    <section className="lp-section lp-video" aria-labelledby="lp-video-title">
+      <h2 id="lp-video-title">See it in action</h2>
+      <button type="button" className="lp-poster" onClick={() => setOpen(true)} aria-label="Play the demo video">
+        <img src={poster} onError={() => setPoster(SHOTS.report.src)} alt="" width={1280} height={800} loading="lazy" />
+        <span className="lp-play" aria-hidden="true"><Icon d={ICONS.play} /></span>
+      </button>
+      {open && (
+        <Dialog title="Demo" onClose={() => setOpen(false)} wide>
+          <video className="lp-video-el" src={VIDEO_SRC} controls autoPlay playsInline />
+        </Dialog>
+      )}
+    </section>
   );
 }
 
-function Tabs({ view, onPick }: { view: SampleView; onPick: (v: Tab) => void }) {          // a click on a tab opens its first screen
-  const refs = useRef<Record<string, HTMLButtonElement | null>>({});
-  const current = navOf(view);
+function Tour() {
+  const [on, setOn] = useState<number>(0);
+  const refs = useRef<(HTMLButtonElement | null)[]>([]);
   function onKey(e: React.KeyboardEvent, i: number) {
     const move = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
     if (!move) return;
     e.preventDefault();
-    const next = TOUR_TABS[(i + move + TOUR_TABS.length) % TOUR_TABS.length];
-    onPick(next);
+    const next = (i + move + TOUR.length) % TOUR.length;
+    setOn(next);
     refs.current[next]?.focus();
   }
+  const cur = TOUR[on];
   return (
-    <div className="tour-tabs" role="tablist" aria-label="Screens of the app">
-      {TOUR_TABS.map((t, i) => (
-        <button key={t} ref={(el) => { refs.current[t] = el; }} role="tab" id={`tour-${t}`} aria-selected={current === t} aria-controls="tour-window" tabIndex={current === t ? 0 : -1}
-          className={`tour-tab ${current === t ? "tour-tab-on" : ""}`} onClick={() => onPick(t)} onKeyDown={(e) => onKey(e, i)}>
-          {NAV_LABEL[t]}
-        </button>
-      ))}
-    </div>
+    <section className="lp-section" aria-labelledby="lp-tour-title">
+      <h2 id="lp-tour-title">A look inside</h2>
+      <div className="lp-tabs" role="tablist" aria-label="Screens of the app">
+        {TOUR.map((t, i) => (
+          <button key={t.id} ref={(el) => { refs.current[i] = el; }} type="button" role="tab" id={`lp-tab-${t.id}`} aria-selected={on === i} aria-controls="lp-tour-panel"
+            tabIndex={on === i ? 0 : -1} className={`lp-tab ${on === i ? "lp-tab-on" : ""}`} onClick={() => setOn(i)} onKeyDown={(e) => onKey(e, i)}>{t.label}</button>
+        ))}
+      </div>
+      <div id="lp-tour-panel" role="tabpanel" aria-labelledby={`lp-tab-${cur.id}`}>
+        <Frame shot={cur.shot} />
+        <p className="lp-tour-line">{cur.line}</p>
+      </div>
+    </section>
   );
 }
 
-function useSampleEvents(runId: string | undefined) {
-  const [events, setEvents] = useState<AgentEvent[]>([]);
-  useEffect(() => {
-    if (!runId) return;
-    const es = new EventSource(api.eventsUrl(runId));
-    es.onmessage = (m) => setEvents((p) => [...p, JSON.parse(m.data) as AgentEvent]);
-    es.addEventListener("end", () => es.close());
-    es.onerror = () => es.close();
-    return () => es.close();
-  }, [runId]);
-  return events;
-}
-
-/** A small, inert look at a real piece of the app. */
-function Preview({ children, label }: { children: React.ReactNode; label: string }) {
-  return <div className="preview" role="img" aria-label={label}><div className="preview-in" aria-hidden>{children}</div></div>;
-}
-
-function HowItWorks({ run }: { run: RunResult | null }) {
-  const events = useSampleEvents(run?.run_id);
-  const steps = [
-    { title: "Upload", text: "Drop in your sales file. CSV, Excel and JSON all work.",
-      preview: <div className="drop drop-has"><span className="up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 16V4M7 9l5-5 5 5M5 20h14" /></svg></span><strong>Drag files here or click to browse</strong></div> },
-    { title: "Answer a few simple questions", text: "Tell us what you want to know. We ask only when an answer changes a number.",
-      preview: run?.plan ? <div className="plan"><h4>Questions asked</h4><ul>{run.plan.questions.slice(0, 2).map((q) => <li key={q}>{q}</li>)}</ul></div> : null },
-    { title: "We analyse", text: "The AI suggests what to look at. Code does every calculation.",
-      preview: <Timeline events={events.slice(0, 6)} running={false} /> },
-    { title: "Get a short report", text: "The answer, the key figures and what to do, on one page.",
-      preview: run ? <ReportPage run={run} embedded /> : null },
-  ];
+function How() {
+  const [ref, seen] = useReveal<HTMLOListElement>();
   return (
-    <section className="how" aria-labelledby="how-title">
-      <h2 id="how-title">How it works</h2>
-      <ol className="how-flow">
-        {steps.map((s, i) => (
-          <li key={s.title}>
-            <span className="how-n">{i + 1}</span>
+    <section className="lp-section" aria-labelledby="lp-how-title">
+      <h2 id="lp-how-title">How it works</h2>
+      <ol className={`lp-how ${seen ? "in" : ""}`} ref={ref}>
+        {STEPS.map((s, i) => (
+          <li key={s.title} style={{ ["--i" as string]: i }}>
+            <span className="lp-how-ico"><Icon d={s.icon} /></span>
             <h3>{s.title}</h3>
             <p>{s.text}</p>
-            <Preview label={`Preview: ${s.title}`}>{s.preview}</Preview>
           </li>
         ))}
       </ol>
@@ -132,105 +150,58 @@ function HowItWorks({ run }: { run: RunResult | null }) {
   );
 }
 
-function Story({ onView, run, view }: { onView: (v: SampleView) => void; run: RunResult; view: SampleView }) {
-  const refs = useRef<(HTMLLIElement | null)[]>([]);
-  useEffect(() => {
-    if (typeof IntersectionObserver === "undefined") return;
-    const io = new IntersectionObserver((entries) => {
-      for (const e of entries) if (e.isIntersecting) onView(STORY[refs.current.indexOf(e.target as HTMLLIElement)].view);
-    }, { rootMargin: "-40% 0px -40% 0px" });
-    refs.current.forEach((el) => el && io.observe(el));
-    return () => io.disconnect();
-  }, [onView]);
+function Trust() {
+  const [ref, seen] = useReveal<HTMLUListElement>();
   return (
-    <section className="story" aria-label="What makes it different">
-      <div className="story-window"><SampleWindow run={run} view={view} title="Sample Store" onPick={onView} /></div>
-      <ol className="story-steps">
-        {STORY.map((s, i) => (
-          <li key={s.title} ref={(el) => { refs.current[i] = el; }} className={view === s.view ? "story-on" : ""}>
-            <h3>{s.title}</h3>
-            <p>{s.text}</p>
+    <section className="lp-section" aria-labelledby="lp-trust-title">
+      <h2 id="lp-trust-title">Why you can trust it</h2>
+      <ul className={`lp-trust ${seen ? "in" : ""}`} ref={ref}>
+        {TRUST.map((t, i) => (
+          <li key={t.title} style={{ ["--i" as string]: i }}>
+            <span className="lp-trust-ico"><Icon d={t.icon} /></span>
+            <h3>{t.title}</h3>
+            <p>{t.text}</p>
           </li>
         ))}
-      </ol>
+      </ul>
     </section>
   );
 }
 
 export default function StartPage({ onOpenRun, openNew = false }: { onOpenRun: (id: string) => void; openNew?: boolean }) {
-  const [run, setRun] = useState<RunResult | null>(null);
-  const [view, setView] = useState<SampleView>("report");
   const [dialog, setDialog] = useState(openNew);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  useEffect(() => {
-    setDialog(openNew);
-  }, [openNew]);
-  useEffect(() => {
-    api.openDemo().then((d) => api.getRun(d.run_id)).then(setRun).catch(() => setError("The sample could not be loaded."));
-  }, []);
+  useEffect(() => { setDialog(openNew); }, [openNew]);
   async function sample() {
     setBusy(true);
     try { onOpenRun((await api.openDemo()).run_id); } catch { setError("The sample could not be opened."); setBusy(false); }
   }
   const buttons = (
-    <div className="hero-buttons">
-      <button className="btn-primary btn-lg" onClick={() => setDialog(true)}>Try it yourself</button>
-      <button className="btn btn-lg" disabled={busy} onClick={sample}>Try with sample data</button>
+    <div className="lp-buttons">
+      <button type="button" className="btn-primary lp-btn" onClick={() => setDialog(true)}>Try it</button>
+      <button type="button" className="btn-quiet lp-btn lp-btn-quiet" disabled={busy} onClick={sample}>See a sample</button>
     </div>
   );
   return (
-    <div className="start">
-      <header className="hero">
-        <Logo size={56} title="Analyst Studio" />
-        <h1>Know your sales. Trust every number.</h1>
-        <p className="hero-sub">Upload a sales file, answer a few simple questions, and get a short report that says what to do next.</p>
-        {buttons}
-        {error && <div className="error">{error}</div>}
+    <div className="start lp">
+      <header className="lp-hero">
+        <div className="lp-hero-text">
+          <h1>Know your sales. Trust every number.</h1>
+          <p className="lp-sub">Upload your sales files and get a short, checked report that says what to do next.</p>
+          {buttons}
+          {error && <div className="error" role="alert">{error}</div>}
+        </div>
+        <Frame shot={SHOTS.report} eager />
       </header>
 
-      <section className="tour" aria-label="The app, on a sample report">
-        <Tabs view={view} onPick={setView} />
-        {run ? <div id="tour-window" role="tabpanel" aria-labelledby={`tour-${navOf(view)}`}><SampleWindow run={run} view={view} title="Sample Store" onPick={setView} /></div> : <div className="window window-loading" aria-live="polite">Loading the sample…</div>}
-        <p className="tour-line">{TAB_LINE[tabOf(view)]}</p>
-      </section>
+      <How />
+      <Trust />
+      <Tour />
+      <VideoSlot />
 
-      <HowItWorks run={run} />
-      {run && <Story run={run} view={view} onView={setView} />}
-
-      <section className="trust" aria-labelledby="trust-title">
-        <h2 id="trust-title" className="sr-only">Why you can trust it</h2>
-        <div><h3>The AI suggests. Code calculates.</h3><p>The AI helps read your columns and word the report. Every number comes from code that you can check against your own file.</p></div>
-        <div><h3>Nothing is changed in secret.</h3><p>Every fix to your data is written down. When something is unclear, we ask you instead of guessing.</p></div>
-        <div><h3>Your file stays on this computer.</h3><p>Runs are stored here and deleted after 30 days. If an AI is used, it sees summaries, never your raw rows.</p></div>
-      </section>
-
-      <section className="limits" aria-labelledby="limits-title">
-        <h2 id="limits-title">What it can and can’t do</h2>
-        <div className="limits-cols">
-          <div>
-            <h3>It can</h3>
-            <ul>
-              <li>Read CSV, Excel and JSON files of up to 500,000 rows.</li>
-              <li>Link several related files together.</li>
-              <li>Answer your question and say how sure it is.</li>
-              <li>Show you the data and every change made to it.</li>
-            </ul>
-          </div>
-          <div>
-            <h3>It can’t</h3>
-            <ul>
-              <li>Prove that one thing causes another. It shows patterns, not causes.</li>
-              <li>Handle very large files, or filter its charts like Power BI does.</li>
-              <li>Keep separate accounts. It is made for one person on one computer.</li>
-              <li>Be perfect with ambiguous dates. It tells you what it assumed.</li>
-            </ul>
-          </div>
-        </div>
-      </section>
-
-      <section className="closing" aria-labelledby="closing-title">
-        <h2 id="closing-title">See it on your own numbers.</h2>
+      <section className="lp-closing" aria-labelledby="lp-closing-title">
+        <h2 id="lp-closing-title">See it on your own numbers.</h2>
         {buttons}
       </section>
 
