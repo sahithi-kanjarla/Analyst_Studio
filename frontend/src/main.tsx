@@ -15,6 +15,7 @@ import "./start.css";
 import "./theme.css";
 import "./nav.css";
 import "./widgets.css";
+import "./chartframe.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

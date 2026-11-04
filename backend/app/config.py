@@ -49,7 +49,7 @@ def retention_days() -> float:
 RETENTION_DAYS = retention_days()          # the value at start-up (kept for callers that import it)
 # How many critic -> analyst follow-up rounds are allowed after the first pass.
 MAX_ITERATIONS = int(os.environ.get("MAX_ITERATIONS", "1"))
-CHART_DPI = int(os.environ.get("CHART_DPI", "140"))  # lower it (the tests use 50) to render charts faster
+CHART_DPI = int(os.environ.get("CHART_DPI", "192"))  # lower it (the tests use 50) to render charts faster
 ALLOWED_EXT = {".csv", ".tsv", ".txt", ".xlsx", ".xls", ".json"}
 FRONTEND_DIST = ROOT.parent / "frontend" / "dist"
 DEMO_DIR = ROOT.parent / "sample_data" / "demo" / "sales_run"   # a finished run shipped with the repo: read-only, no AI calls, no uploads

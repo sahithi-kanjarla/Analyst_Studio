@@ -25,6 +25,7 @@ from . import derived, palette, wording
 from . import derived_cols as dcols
 from . import partial as partmod
 from .measures import measure_kind
+from . import chartfinish
 from .config import CHART_DPI
 from .profiler import safe_skew
 
@@ -55,7 +56,7 @@ def rendering(fn):
 # The first colour is the app accent (the highlight); every other mark is a quiet neutral.
 PALETTE = palette.PALETTE
 NEUTRAL = palette.NEUTRAL      # every bar that is not the highlight
-plt.rcParams.update({**palette.rc(), "axes.prop_cycle": matplotlib.cycler(color=PALETTE)})
+plt.rcParams.update({**palette.rc(), **chartfinish.RC, "axes.prop_cycle": matplotlib.cycler(color=PALETTE)})
 # a sequential ramp from the panel to the accent, for the one chart that shades cells by size
 HEAT = matplotlib.colors.LinearSegmentedColormap.from_list("studio", [palette.PANEL, palette.ACCENT])
 
@@ -149,7 +150,7 @@ def _slug(*parts) -> str:
     return re.sub(r"[^a-zA-Z0-9]+", "_", "_".join(str(p) for p in parts)).strip("_").lower()[:70]
 
 
-def _save(fig, ctx, name: str) -> str:
+def _save(fig, ctx, name: str, compact: bool = False) -> str:
     charts = Path(ctx["charts_dir"])
     charts.mkdir(parents=True, exist_ok=True)
     names = ctx.get("display_names")
@@ -158,6 +159,7 @@ def _save(fig, ctx, name: str) -> str:
         for t in fig.findobj(matplotlib.text.Text):          # titles, axis labels, legends and notes show the display names, never the internal ones
             if t.get_text():
                 t.set_text(apply_names(t.get_text(), names))
+    chartfinish.finish(fig, chartfinish.COMPACT_HEIGHT if compact else chartfinish.MAX_HEIGHT)
     fig.savefig(charts / f"{name}.png", dpi=CHART_DPI, bbox_inches="tight", facecolor="white")
     plt.close(fig)
     return f"charts/{name}.png"
@@ -985,14 +987,14 @@ def composition(df, ctx, group, by):
         other = str(col).startswith("Other (")
         ax.barh(ys, shown_share[col].values, left=left, color=OTHER_COLOR if other else PALETTE[i % len(PALETTE)], label=_shorten(col, 22), edgecolor="white", linewidth=0.6)
         for j, val in enumerate(shown_share[col].values):
-            if val >= 0.08:
-                ax.text(left[j] + val / 2, j, f"{val:.0%}", ha="center", va="center", fontsize=7.5, color=palette.INK if other else "white")
+            if val >= 0.10:          # a segment narrower than this cannot hold a readable label
+                ax.text(left[j] + val / 2, j, f"{val:.0%}", ha="center", va="center", fontsize=11, color=palette.INK if other else "white")
         left += shown_share[col].values
     ax.set_xlim(0, 1)
     ax.xaxis.set_major_formatter(matplotlib.ticker.PercentFormatter(1.0))
     ax.invert_yaxis()
     ax.grid(False)
-    ax.legend(title=by, frameon=False, bbox_to_anchor=(1.01, 1), loc="upper left", fontsize=8, title_fontsize=8)
+    ax.legend(title=by, frameon=False, bbox_to_anchor=(0.5, -0.12), loc="upper center", ncol=min(len(shown_share.columns), 3))
     notes = [n for n in (f"{group}: top {len(rs)} of {len(rows_by_size)}" if rest_r else "", f"{by}: top {len(cs)} of {len(cols_by_size)}" if rest_c else "") if n]
     note = "showing " + "; ".join(notes) + "; the test uses all rows" if notes else ""
     if note:
@@ -1006,7 +1008,7 @@ def composition(df, ctx, group, by):
                    {"p": _f(p), "effect": _f(v), "effect_name": "cramers_v", "n": int(len(d)), "min_group_n": int(ct.sum(axis=1).min()),
                     "group": group, "by": by, "biggest": [str(big_g), str(big_b), _f(big_diff)],
                     "shown_rows": [str(r) for r in rs], "shown_cols": [str(c) for c in cs], "total_rows": len(rows_by_size), "total_cols": len(cols_by_size)},
-                   _save(fig, ctx, _slug("comp", group, by)), significant=sig,
+                   _save(fig, ctx, _slug("comp", group, by), compact=True), significant=sig,
                    action=(f"The {by} mix depends on {group}; tailor offers or channels by {group} rather than using one approach for all." if sig and v >= 0.2 else None))
 
 

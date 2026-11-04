@@ -2,6 +2,7 @@ import ReactMarkdown from "react-markdown";
 import { Finding } from "../api";
 import { plainTitle } from "../display";
 import { takeaway } from "../insightwidget";
+import ChartFrame from "./ChartFrame";
 import HowSteps, { Step, TechDetail } from "./HowSteps";
 import FindingTable from "./FindingTable";
 
@@ -43,7 +44,7 @@ export default function InsightCard({ f, index }: { f: Finding; index: number })
       </header>
 
       <div className="insight-body">
-        {f.chart_url ? <img src={f.chart_url} alt={f.title} loading="lazy" /> : <FindingTable f={f} />}
+        {f.chart_url ? <ChartFrame src={f.chart_url} alt={f.title} title={plainTitle(f.title)} /> : <FindingTable f={f} />}
         <div className="insight-text">
           {sees && <p className="rp-why">{sees}</p>}
           <details className="fold fold-working">

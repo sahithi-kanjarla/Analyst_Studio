@@ -7,9 +7,9 @@ from pathlib import Path
 import matplotlib
 from matplotlib.figure import Figure
 
-from .. import palette
+from .. import chartfinish, palette
 
-matplotlib.rcParams.update(palette.rc())      # the same look whether or not tools.py has been imported
+matplotlib.rcParams.update({**palette.rc(), **chartfinish.RC})      # the same look whether or not tools.py has been imported
 from ..config import CHART_DPI
 from . import query as qmod
 from .engine import Result
@@ -145,6 +145,7 @@ def draw(R: Result, path: Path) -> bool:
         ax.xaxis.set_major_formatter(lambda v, _: _short(v))
         ax.yaxis.set_major_formatter(lambda v, _: _short(v))
         _style(ax, P["title"])
+    chartfinish.finish(fig)
     fig.tight_layout()
     path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(path, dpi=CHART_DPI, facecolor=PANEL)

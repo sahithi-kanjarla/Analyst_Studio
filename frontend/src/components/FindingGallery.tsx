@@ -22,9 +22,7 @@ export function Tile({ f, onOpen, und, items }: { f: Finding; onOpen: () => void
       <p className="tile-take">{ins.headline}</p>
       {items && items.length > 1 && <ul className="tile-measures small">{items.map((i) => <li key={i.measure + i.text}>{i.text}</li>)}</ul>}
       {f.chart_url ? (
-        <button className="tile-img" onClick={onOpen} aria-label={`Open full size: ${title}`}>
-          <ViewImg id={id} src={f.chart_url} alt={title} />
-        </button>
+        <ViewImg id={id} src={f.chart_url} alt={title} onOpen={onOpen} />
       ) : (
         <button className="tile-img tile-table" onClick={onOpen} aria-label={`Open full size: ${title}`}><FindingTable f={f} /></button>
       )}

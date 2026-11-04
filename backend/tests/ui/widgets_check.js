@@ -62,8 +62,8 @@ const ok = (name, cond, detail) => { R[name] = { ok: !!cond, detail: detail === 
   t = await titles(); const bad4 = clean(t);
   ok('dashboard_titles_are_plain', bad4.length === 0, bad4.join(' | '));
   // a finding card opens a dialog at full size; Esc closes it and the page below is unchanged
-  if (await p.locator('.tile-img').count()) {
-    await p.locator('.tile-img').first().click();
+  if (await p.locator('.tile-compact .chart-frame-img, .tile-img').count()) {
+    await p.locator('.tile-compact .chart-frame-img, .tile-img').first().click();
     const opened = (await p.locator('[role=dialog]').count()) === 1;
     await p.keyboard.press('Escape');
     ok('dashboard_card_opens_a_dialog_and_esc_closes_it', opened && (await p.locator('[role=dialog]').count()) === 0);

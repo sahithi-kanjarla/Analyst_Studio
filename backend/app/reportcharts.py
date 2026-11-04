@@ -21,6 +21,7 @@ import pandas as pd  # noqa: E402
 from . import palette  # noqa: E402
 from . import summary  # noqa: E402
 from . import understanding as und  # noqa: E402
+from . import chartfinish  # noqa: E402
 from .config import CHART_DPI  # noqa: E402
 from .tools import NEUTRAL, rendering  # noqa: E402
 
@@ -158,6 +159,7 @@ def draw(spec: dict, charts_dir) -> str:
         ax.set_title(spec["title"], fontsize=10, loc="left", fontweight="bold", color=INK)
         for side in ("top", "right"):
             ax.spines[side].set_visible(False)
+        chartfinish.finish(fig)
         fig.savefig(path / f"{name}.png", dpi=CHART_DPI, bbox_inches="tight", facecolor=PANEL)
         plt.close(fig)
     return f"charts/{name}.png"

@@ -1,3 +1,4 @@
+import ChartFrame from "../ChartFrame";
 import { Fragment, ReactNode, useState } from "react";
 import { useLens } from "../lens/LensContext";
 import { useView } from "./ViewContext";
@@ -12,12 +13,12 @@ export function ViewTitle({ id, text, tag: Tag = "span" }: { id: string; text: s
 }
 
 /** An item's picture: the report's own, or the one Lens redrew when the user changed its type, time grain or top N (asked for in chat). */
-export function ViewImg({ id, src, alt }: { id: string; src: string; alt: string }) {
+export function ViewImg({ id, src, alt, onOpen }: { id: string; src: string; alt: string; onOpen?: () => void }) {
   const v = useView();
   const r = v?.data.redrawn[id];
   return (
     <>
-      <img src={r?.url ?? src} alt={alt} loading="lazy" />
+      <ChartFrame src={r?.url ?? src} alt={alt} onOpen={onOpen} />
       {r && <p className="view-note muted small">{r.note}</p>}
     </>
   );
