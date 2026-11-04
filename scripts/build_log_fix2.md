@@ -12,7 +12,7 @@ Findings of review runs on a clean bakery file (900 rows, one row per order). Ru
 | D. Derived columns, one-to-one categories | done |
 | E. Display names | done |
 | F. AI-proposed derived measures checked in code | done |
-| G. Short titles | left to do |
+| G. Short titles | done |
 
 ## Fix A: order key (done)
 
@@ -72,3 +72,9 @@ Findings of review runs on a clean bakery file (900 rows, one row per order). Ru
 - Every rejection is now a cleaning-log row "Derived measure rejected" (`graph` clean step), besides the timeline line it already had.
 - A derived numeric column is always given the role `numeric` in the profile, never `categorical`.
 - Tests: `tests/test_derived_proposals.py` (8; bakery shape and the ratio cases, the cleaning-log row). Re-run with it: brief, derived_and_display, kpi_ratio_determinism, negative_ratio_and_id_like, plan_proposal, propose, goal_question_links, goal_questions_and_outside_rate, ai_concerns, token_budget: 105 passed.
+
+## Fix G: short titles (done)
+
+- `strategy.refine_with_llm`: an AI title over 12 words is cut by `short_title` at the last clause break (colon, semicolon, comma, dash; a comma inside a number is not one) that fits, else at 12 words without a dangling connecting word. The rest is not dropped: it goes, whole, to the front of the idea's objective (body text), so the figures stay. The fact-id and figure checks run before this, so the moved text already passed them.
+- Rule-written titles are not touched (they are short templates). The action sentences on the report page (`"title: objective"`) still join the two, as before.
+- Tests: `tests/test_short_titles.py` (4). Strategy-related files re-run: 77 passed.

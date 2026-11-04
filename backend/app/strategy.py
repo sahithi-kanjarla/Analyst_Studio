@@ -341,6 +341,28 @@ Keep each action concrete and specific; do not claim cause and effect.
 Return JSON: {"strategies": [{"id": "...", "title": "...", "objective": "...", "actions": ["..."], "risks": ["..."], "kpis": ["..."], "how_to_test": "..."}]}""".replace("{rule}", CONCENTRATION_RULE)
 
 
+MAX_TITLE_WORDS = 12
+TITLE_BREAK = re.compile(r"\s*(?::|;|(?<!\d),|,(?!\d)|\s[–—-]\s)\s*")          # a comma inside a number (8,216) is no clause break
+TRAILING = {"and", "or", "the", "a", "an", "of", "to", "for", "in", "on", "with", "by", "that", "which", "because", "so", "as", "at", "from", "is", "are"}
+
+
+def short_title(title: str) -> tuple[str, str]:
+    """(title of at most MAX_TITLE_WORDS words, the rest or ""). The cut is the last clause break (colon, semicolon, comma, dash) inside the limit, else the limit itself minus any dangling connecting word.
+    Nothing is dropped: the rest is returned so the caller can move it into the body text."""
+    words = title.split()
+    if len(words) <= MAX_TITLE_WORDS:
+        return title.strip(), ""
+    head = " ".join(words[:MAX_TITLE_WORDS])
+    cuts = [m for m in TITLE_BREAK.finditer(head + " ") if len(head[:m.start()].split()) >= 3]
+    if cuts:
+        cut = cuts[-1].start()
+        return head[:cut].strip(), title[cut:].lstrip(" :;,-–—").strip()
+    keep = words[:MAX_TITLE_WORDS]
+    while len(keep) > 3 and keep[-1].lower().strip(",;:") in TRAILING:
+        keep.pop()
+    return " ".join(keep).rstrip(",;:"), " ".join(words[len(keep):])
+
+
 def refine_with_llm(llm, state: dict, strategies: list[dict]) -> int:
     if llm is None:
         return 0
@@ -391,6 +413,10 @@ def refine_with_llm(llm, state: dict, strategies: list[dict]) -> int:
             lst = [t for x in (item.get(key) or []) if (t := clean_text(x)) is not None][:mx]
             if len(lst) >= (2 if key != "kpis" else 1):
                 s[key], changed = lst, True
+        if changed and len(s["title"].split()) > MAX_TITLE_WORDS:          # a title is a label: what does not fit moves, whole, to the front of the body text
+            s["title"], rest = short_title(s["title"])
+            if rest:
+                s["objective"] = f"{rest[:1].upper()}{rest[1:]}{'' if rest.endswith(('.', '!', '?')) else '.'} {s['objective']}"
         if changed and (pushes_both_ways(s["title"] + " " + s["objective"], *s["actions"]) or blocked(" ".join([s["title"], s["objective"], *s["actions"]]), s["evidence"], state)):
             s.update({k: v for k, v in before.items()})        # reducing and promoting the same thing in one strategy: keep the rule-based wording
             changed = False
