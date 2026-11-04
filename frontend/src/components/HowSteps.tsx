@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import { RunResult } from "../api";
 
 /** Small line icons for the "How we got this" steps. They carry no meaning on their own: every step also says it in words. */
 const PATH: Record<string, string> = {
@@ -39,4 +40,22 @@ export function TechDetail({ children, label = "Show technical detail" }: { chil
       <div className="hs-tech-body">{children}</div>
     </details>
   );
+}
+
+/** The path from the file to this page in a few plain steps. Every count comes from the run's own record; nothing is recalculated. */
+export function howSteps(run: RunResult, mode: string): Step[] {
+  const rows = run.profile?.rows, cols = run.profile?.cols;
+  const log = run.cleaning_log ?? [];
+  const fixes = log.filter((s) => s.count > 0).length;
+  const checks = run.plan?.analyses.length;
+  const found = run.findings?.length;
+  const ai = !/rules/i.test(mode);
+  return [
+    { icon: "file", text: rows ? <>Read your file: {rows.toLocaleString()} rows and {cols} columns.</> : "Read your file." },
+    { icon: "columns", text: "Worked out what each column holds, such as a date, an amount or a category." },
+    { icon: "broom", text: fixes ? <>Cleaned the data: {fixes} {fixes === 1 ? "fix" : "fixes"}, each one logged on the Data tab.</> : "Checked the data. Nothing needed fixing." },
+    { icon: "list", text: checks ? <>Chose {checks} checks that fit your question.</> : "Chose the checks that fit your question." },
+    { icon: "scale", text: found ? <>Ran them on every row and tested whether each result could be chance: {found} results.</> : "Ran them on every row and tested whether each result could be chance." },
+    { icon: "doc", text: ai ? "Wrote this page. Code worked out every figure; the AI only helped with wording." : "Wrote this page from fixed rules. Code worked out every figure." },
+  ];
 }

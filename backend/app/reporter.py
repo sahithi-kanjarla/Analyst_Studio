@@ -3,9 +3,10 @@ The LLM (if available) only writes the executive summary and top recommendations
 from __future__ import annotations
 
 import time
-
 import json
 import re
+
+import pandas as pd
 
 from . import labels
 from . import aicache, cited, context as ctxmod, mainview, reportcharts, strategy as strat_mod, summary as summary_mod, tiering, wording
@@ -829,6 +830,50 @@ def ai_partly(state: dict) -> list[str]:
     return named + extra
 
 
+def _scope_line(state: dict) -> str:
+    """One line, built by code from the run's own record, that says what the report covers: "Based on 608 records, 01 Jan 2025 to 25 Nov 2025, from 1 file".
+    A count of orders is used only when the data verified an order key; nothing else is guessed."""
+    prof = state.get("profile") or {}
+    g = prof.get("grain") or {}
+    n = g.get("orders") or prof.get("rows")
+    if not n:
+        return ""
+    noun = "orders" if g.get("orders") else "records"
+    parts = [f"Based on {int(n):,} {noun}"]
+    span = None
+    for c in prof.get("columns") or []:
+        st = c.get("stats") or {}
+        if c.get("role") == "date" and st.get("min") and st.get("max"):
+            try:
+                a, b = pd.Timestamp(st["min"]), pd.Timestamp(st["max"])
+                span = f"{a:%d %b %Y} to {b:%d %b %Y}" if a.year != b.year or a.month != b.month else f"{a:%b %Y}"
+            except (ValueError, TypeError):
+                span = None
+            break
+    if span:
+        parts.append(span)
+    nf = len(state.get("tables") or []) or 1
+    parts.append(f"from {nf} file{'s' if nf != 1 else ''}")
+    return ", ".join(parts)
+
+
+def _footnotes(state: dict) -> list[str]:
+    """Short caveats that change how a number should be read, from the findings' own saved facts: a last period with only some of its days, or one the
+    person said really ended there. One line each, no repeats; nothing about how the data was organised or cleaned."""
+    out, seen = [], set()
+    for f in state.get("findings") or []:
+        pt = (f.get("stats") or {}).get("partial")
+        if not isinstance(pt, dict) or not pt.get("days_in_period") or (pt["label"], bool(pt.get("really_ended"))) in seen:
+            continue
+        seen.add((pt["label"], bool(pt.get("really_ended"))))
+        unit = "month" if pt["days_in_period"] >= 28 else "week" if pt["days_in_period"] == 7 else "period"
+        if pt.get("really_ended"):
+            out.append(f"You said the data ends where it does, so the last {unit} (from {pt['label']}) is counted as it stands: {pt['days']} of {pt['days_in_period']} days.")
+        elif pt.get("partial"):
+            out.append(f"The last {unit} (from {pt['label']}) covers only {pt['days']} of {pt['days_in_period']} days, so trends use the complete {unit}s.")
+    return out[:3]
+
+
 def _page(state: dict, run_mode: str, cs: list[dict], plan: dict, ts: list, answer_cards: list[dict], lines: list[str]) -> dict:
     """The main view as data, for the designed report page: the same cards, actions and figures the markdown shows, in the same words."""
     ctx = state.get("context") or {}
@@ -854,6 +899,7 @@ def _page(state: dict, run_mode: str, cs: list[dict], plan: dict, ts: list, answ
     return {"title": "Analysis report", "company": ctx.get("company", ""), "date": time.strftime("%d %b %Y"), "mode": run_mode or derive_mode(state.get("stage_sources")),
             "goal": state.get("goal", ""), "trust": first.get("trust", ""), "ai_partly": fell_back, "headline": ans.get("sentence") or (first.get("lines") or [""])[0], "headline_more": ans.get("groups_sentence") or "",
             "tiles": [{"label": l, "value": v} for l, v in ts][:4], "cards": cards, "actions": actions, "charts": charts,
+            "scope": _scope_line(state), "footnotes": _footnotes(state),
             "no_action": [r for n, r in sorted(plan["none"].items()) if num.get(n)], "behind_md": "\n".join(lines[i + 1:]).strip()}
 
 

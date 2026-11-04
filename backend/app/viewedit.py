@@ -146,7 +146,7 @@ def catalogue(result: dict) -> dict:
     # ---- report
     if page:
         s_short, s_num = section("report", "short", "The short answer"), section("report", "numbers", "Key figures")
-        s_act, s_ev, s_beh = section("report", "actions", "What to do"), section("report", "evidence", "What matters"), section("report", "behind", "Behind the numbers")
+        s_act, s_ev = section("report", "actions", "What to do"), section("report", "evidence", "What matters")
         items[s_short]["text"] = _plain(page.get("headline"))
         for i, t in enumerate(page.get("tiles") or []):
             add("report", s_num, "card", f"report:tile:{i}", t.get("label", "Figure"), text=f"{t.get('label')}: {t.get('value')}")
@@ -159,7 +159,6 @@ def catalogue(result: dict) -> dict:
             fids = by_chart.get(path, [])
             ch = chart_item("report", s_ev, f"report:chart:{base}", c.get("title", "Chart"), path, fids)
             items[ch]["text"] = _plain(c.get("caption"))
-        items[s_beh]["text"] = ""
     # ---- insights
     if rv:
         a_sec, e_sec = section("insights", "answer", "The answer"), section("insights", "evidence", "Evidence")
@@ -298,8 +297,6 @@ def resolve(result: dict, state: dict, cat: dict | None = None) -> dict:
             folded |= {i for i in live if i not in keep}
         if short and tab == "insights":
             folded |= {i for i in mine if items[i].get("section") in ("insights:checked", "insights:appendix")}
-        if short and tab == "report":
-            folded |= {s for s in ("report:behind",) if s in items}
         folded -= hid
         out["tabs"][tab] = {"order": order, "hidden": sorted(hid), "folded": sorted(folded), "short": short, "top_n": st["top_n"].get(tab), "only_supporting": bool(st["only_supporting"].get(tab)),
                             "items": [i for i in mine if items[i]["kind"] != "section"], "sections": sections}
@@ -610,8 +607,6 @@ def item_context(result: dict, item_id: str, cat: dict | None = None) -> dict | 
         parts = [s.get("title", ""), s.get("objective", ""), s.get("rationale", ""), "Actions: " + "; ".join(s.get("actions") or []), f"Impact {s.get('impact')}, confidence {s.get('confidence')}, effort {s.get('effort')}."]
     else:
         parts = [it.get("text") or it["title"]]
-        if it["kind"] == "section" and it["tab"] == "report" and it["id"].endswith(":behind"):
-            parts = ["Behind the numbers: how the data was set up, what was cleaned and how things were calculated."]
     text = _plain(" ".join(p for p in parts if p))[:1200]
     return {"id": item_id, "title": it["title"], "kind": it["kind"], "tab": it["tab"], "text": text, "fact_ids": fids}
 

@@ -68,7 +68,7 @@
   .report-page { grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr); column-gap: var(--sp-6); row-gap: var(--sp-6); }
   .report-page > * { grid-column: 1 / -1; }
   .report-page > [data-view-id="report:evidence"] { grid-column: 1; grid-row: span 3; }
-  .report-page > [data-view-id="report:actions"], .report-page > [data-view-id="report:ideas"] { grid-column: 2; }
+  .report-page > [data-view-id="report:actions"] { grid-column: 2; }
   .report-page { grid-auto-flow: row dense; }
 }
 .rp-big { max-width: 36ch; }
@@ -76,3 +76,7 @@
 .rp-chart details.fold-working > summary { padding: 0; font-weight: 500; font-size: var(--fs-1); color: var(--muted); }
 .rp-cap { font-size: var(--fs-2) !important; color: var(--ink) !important; line-height: var(--lh-body); }
 @media (min-width: 1100px) { .report-page > [data-view-id="report:actions"] { align-self: start; position: sticky; top: 72px; } }
+
+.rp-scope { margin: 0; color: var(--muted); font-size: var(--fs-2); }
+.rp-notes { flex-direction: column; gap: var(--sp-1); }
+.rp-notes p { margin: 0; max-width: 80ch; }

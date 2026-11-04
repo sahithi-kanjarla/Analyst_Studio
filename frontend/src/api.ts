@@ -120,6 +120,8 @@ export interface ReportPageData {
   charts: { title: string; path: string; caption: string; details: string[]; url?: string }[];
   no_action: string[];
   behind_md: string;
+  scope?: string;
+  footnotes?: string[];
 }
 
 export interface LensTable { columns: string[]; rows: (string | number | null)[][]; shown: string[][]; total_rows: number; truncated: boolean }
