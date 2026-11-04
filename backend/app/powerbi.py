@@ -57,9 +57,25 @@ def build_measures(df: pd.DataFrame, plan: dict, roles: dict, kinds: dict | None
     return m
 
 
-def build_visuals(findings: list[dict], plan: dict) -> list[dict]:
+def selected_findings(findings: list[dict], curation: dict | None) -> tuple[list[dict], int]:
+    """The findings whose visual belongs in the pack: the ones the Dashboard keeps (the same saved selection), merged ones once.
+    With no selection (an older run) every finding is used.  Returns (findings, how many were left out)."""
+    tabs = (curation or {}).get("tabs") or {}
+    if not tabs:
+        return findings, 0
+    absorbed = set((curation or {}).get("absorbed") or {})
+    keep = set()
+    for key in ("dashboard:finding", "dashboard:chart"):
+        for i in (tabs.get(key) or {}).get("kept") or []:
+            keep.add(i[3:] if i.startswith("ch_") else i)
+    chosen = [f for f in findings if f["id"] in keep and f["id"] not in absorbed]
+    return chosen, len([f for f in findings if f["tool"] not in ("robust_compare",)]) - len(chosen)
+
+
+def build_visuals(findings: list[dict], plan: dict, curation: dict | None = None) -> list[dict]:
     t = plan.get("target")
     out = []
+    findings, _ = selected_findings(findings, curation)
     for f in findings:
         p, tool = f.get("params", {}), f["tool"]
         if tool == "group_compare":
@@ -91,7 +107,7 @@ def build_visuals(findings: list[dict], plan: dict) -> list[dict]:
     return out
 
 
-def build_pack(workdir: Path, df: pd.DataFrame, profile: dict, plan: dict, findings: list[dict], goal: str, data_model: dict | None = None, kinds: dict | None = None) -> dict:
+def build_pack(workdir: Path, df: pd.DataFrame, profile: dict, plan: dict, findings: list[dict], goal: str, data_model: dict | None = None, kinds: dict | None = None, curation: dict | None = None) -> dict:
     pack = workdir / "powerbi"
     pack.mkdir(exist_ok=True)
     roles = {c["name"]: c["role"] for c in profile["columns"]}
@@ -127,7 +143,8 @@ The flat `cleaned_data.csv` already combines your tables (one row per `{data_mod
 
     measures = build_measures(df, plan, roles, kinds)
     (pack / "measures.dax").write_text("\n\n".join(f"// {x['note']}\n{x['dax']}" if x["note"] else x["dax"] for x in measures) + "\n", encoding="utf-8")
-    visuals = build_visuals(findings, plan)
+    visuals = build_visuals(findings, plan, curation)
+    left_out = selected_findings(findings, curation)[1]
     (pack / "visuals.json").write_text(json.dumps(visuals, indent=2), encoding="utf-8")
     (pack / "theme.json").write_text(json.dumps(THEME, indent=2), encoding="utf-8")
 

@@ -365,7 +365,7 @@ export function TabBody({ run, tab, embedded = false, startChat = false, startPr
 
       {tab === "chat" && <><TabViewBar tab="chat" /><ViewItem id="chat:conversation" tag="section" className="view-section"><LensChat variant="tab" /></ViewItem></>}
 
-      {tab === "data" && <><TabViewBar tab="data" />{!embedded && <ColumnMeanings run={run} />}<ViewItem id="data:table:clean" tag="section" className="view-section"><DataViewer runId={run.run_id} /></ViewItem></>}
+      {tab === "data" && <><TabViewBar tab="data" />{!embedded && <ColumnMeanings run={run} />}{run.report_view?.left_out_count ? <p className="muted small left-out-note">{run.report_view.left_out_count} minor {run.report_view.left_out_count === 1 ? "finding was" : "findings were"} left out of the report views because {run.report_view.left_out_count === 1 ? "it was" : "they were"} too small or too uncertain to act on. They stay in the full results.</p> : null}<ViewItem id="data:table:clean" tag="section" className="view-section"><DataViewer runId={run.run_id} /></ViewItem></>}
 
       {tab === "report" && <ReportPage run={run} embedded={embedded} startChat={startChat} startPrint={startPrint} />}
 
@@ -379,7 +379,7 @@ export function TabBody({ run, tab, embedded = false, startChat = false, startPr
 
       {tab === "strategy" && !run.strategies && <p className="lead">No ideas to try were produced for this report.</p>}
       {tab === "strategy" && run.strategies && (
-        <StrategyView strategies={run.report_view?.strategies.strategies ?? run.strategies} foundation={run.report_view?.strategies.foundation} dropped={run.report_view?.strategies.dropped ?? 0} summary={run.strategy_summary ?? ""} gaps={run.data_gaps ?? []} findings={run.findings ?? []} understanding={run.understanding} />
+        <StrategyView strategies={run.report_view?.strategies.strategies ?? run.strategies} foundation={run.report_view?.strategies.foundation} dropped={run.report_view?.strategies.dropped ?? 0} more={run.report_view?.strategies.more} summary={run.strategy_summary ?? ""} gaps={run.data_gaps ?? []} findings={run.findings ?? []} understanding={run.understanding} />
       )}
 
       {tab === "model" && run.data_model && <><TabViewBar tab="model" /><ViewItem id="model:links" tag="section" className="view-section"><DataModel model={run.data_model} /></ViewItem></>}

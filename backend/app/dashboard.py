@@ -12,7 +12,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from . import insights, understanding as und
+from . import dashplan, insights, understanding as und
 from .measures import measure_kind
 from .tools import to_binary
 
@@ -53,7 +53,7 @@ def _measure(df: pd.DataFrame, col: str, currency: str, kinds: dict | None = Non
                "fmt": "money" if money else "num", "note": ""}
 
 
-def build_dashboard(wd: Path, result: dict) -> dict:
+def build_dashboard(wd: Path, result: dict, pinned: list[str] | None = None) -> dict:
     df = pd.read_pickle(wd / "clean.pkl")
     plan, prof = result.get("plan") or {}, result.get("profile") or {}
     roles = {c["name"]: c["role"] for c in prof.get("columns", [])}
@@ -121,10 +121,12 @@ def build_dashboard(wd: Path, result: dict) -> dict:
     columns = list(out.columns)
     rows = [[(v.item() if hasattr(v, "item") else v) for v in r] for r in out.itertuples(index=False, name=None)]
 
-    return {"title": (result.get("context") or {}).get("company") or "", "objective": plan.get("objective", ""),
+    spec = {"title": (result.get("context") or {}).get("company") or "", "objective": dashplan.objective_line(result),
             "currency": currency, "date": "__date" if date else None, "date_label": date, "date_coverage": insights.coverage_fraction(df[date]) if date else None,
             "measures": [{k: v for k, v in m.items() if k != "den_col"} for m in measures], "dims": [{"col": d["col"], "unique": d["unique"], "score": round(d["score"], 3), **({"top": d["top"]} if d.get("top") else {})} for d in dims],
             "columns": columns, "rows": rows, "total_rows": total, "sampled": total > MAX_ROWS}
+    spec["plan"] = dashplan.build_plan(spec, result, pinned)      # which charts and filters, and how big each tile is, from the saved selection
+    return spec
 
 
 def list_sources(wd: Path) -> list[dict]:

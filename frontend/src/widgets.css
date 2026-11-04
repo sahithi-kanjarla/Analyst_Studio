@@ -180,3 +180,19 @@
 
 /* badges sit together at the left of a card, never spread across it */
 .iw-head .meta { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: var(--sp-2); }
+
+/* Dashboard tiles fill the window: the grid is 24 x 24 units, every tile has an exact rectangle (backend/app/dashplan.py), nothing is padded.
+   Layout only: no colours here. A narrow screen stacks the tiles in one column instead. */
+.bi-grid.is-fit { grid-template-columns: repeat(24, minmax(0, 1fr)); grid-template-rows: repeat(24, minmax(0, 1fr)); gap: var(--sp-3, 10px); }
+.bi-tile { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+.bi-tile-body { flex: 1 1 auto; min-height: 0; overflow: hidden; }
+.bi-tile-wrap { display: flex; min-width: 0; min-height: 0; }
+.bi-tile-wrap > .tile { flex: 1 1 auto; min-height: 0; overflow: hidden; }
+.bi-tile-wrap .tile-img { flex: 1 1 auto; min-height: 0; display: flex; }
+.bi-tile-wrap .tile-img img { width: 100%; height: 100%; object-fit: contain; }
+.tile-measures { margin: 0; padding-left: 1.1em; }
+@media (max-width: 759px) {
+  .bi-grid.is-fit { grid-template-rows: none; }
+  .bi-tile { min-height: 300px; }
+  .bi-tile-wrap { min-height: 320px; }
+}

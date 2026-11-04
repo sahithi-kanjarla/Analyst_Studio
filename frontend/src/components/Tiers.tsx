@@ -1,16 +1,16 @@
-import { GoalAnswer, ReportView } from "../api";
+import { GoalAnswer, NullLine, ReportView } from "../api";
 import { humanise, Understanding } from "../display";
 import { useState } from "react";
 import { ReportCard as Card } from "../api";
 import { themeOf, THEMES, Theme } from "../insightwidget";
 import InsightWidget from "./InsightWidget";
-import { Sections, ShowAllLink, ShowMore, TabViewBar, ViewItem, ViewTitle } from "./view/ViewUI";
+import { Sections, ShowAllLink, ShowMore, TabViewBar, ViewImg, ViewItem, ViewTitle } from "./view/ViewUI";
 import { useView } from "./view/ViewContext";
 
-/** The Insights tab in three tiers: the answer, the evidence (full cards, each with its chart and sentence open), and the
- *  lower-ranked findings with the data profile in one clearly named section at the end.
- *  Short view (only when asked for): each insight is one line plus its chart, the top 5 first, the rest under "Show all". */
-const MORE_ROWS = 4;           // lower-ranked findings visible before "Show all (n)"
+/** The Insights tab: the answer, the evidence (full cards, each with its chart and sentence open),
+ *  a collapsed "More" list of lower-ranked findings (title + one line, chart draws on open),
+ *  and the data profile.
+ *  Short view (only when asked for): each insight is one line plus its chart, the top 5 first. */
 
 export default function Tiers({ view, goalAnswer, understanding }: { view: ReportView; goalAnswer?: GoalAnswer | null; understanding?: Understanding | null }) {
   const v = useView();
@@ -18,21 +18,23 @@ export default function Tiers({ view, goalAnswer, understanding }: { view: Repor
   const say = (t: string) => humanise(t, understanding);
   const p = view.profile;
   const profileLines = p.distributions.length + p.outliers.length + p.composition.length;
-  const [moreAll, setMoreAll] = useState(false);
-  // an action chip on a finding when one of the report's actions rests on it
   const actionFor = (c: Card): string | undefined => {
     const a = view.actions.find((x) => x.evidence.some((e) => c.members.includes(e) || e === c.id));
     if (!a) return undefined;
     const t = a.text; const i = t.indexOf(":");
     return say(i > 0 ? t.slice(0, i) : t);
   };
-  // findings grouped by theme; themes ordered by their most important finding, findings keep the report's own order inside a theme
   const themed = (cards: Card[]): [Theme, { c: Card; i: number }[]][] => {
     const by = new Map<Theme, { c: Card; i: number }[]>();
     cards.forEach((c, i) => { const t = themeOf(c.tool); by.set(t, [...(by.get(t) ?? []), { c, i }]); });
     return [...by.entries()];
   };
   const heading = (id: string, text: string, extra?: React.ReactNode) => <h3><ViewTitle id={id} text={text} />{extra}</h3>;
+
+  const curated = !!(view.more_findings);
+  const moreFindings = view.more_findings ?? view.appendix;
+  const nullLines = view.null_lines ?? [];
+
   const nodes: Record<string, React.ReactNode> = {
     "insights:answer": (
       <section className="tier1">
@@ -75,7 +77,15 @@ export default function Tiers({ view, goalAnswer, understanding }: { view: Repor
             </div>
           </section>
         ))}
-        {!view.evidence.length && <p className="empty-state">Nothing in this data was both reliable and big enough to call a finding. What was checked is listed below.</p>}
+        {nullLines.length > 0 && (
+          <section className="iw-null-lines">
+            <h5>Checked, no reliable difference</h5>
+            <ul className="tight">
+              {nullLines.map((nl: NullLine) => <li key={nl.id}><span className="muted">{say(nl.title)}</span></li>)}
+            </ul>
+          </section>
+        )}
+        {!view.evidence.length && !nullLines.length && <p className="empty-state">Nothing in this data was both reliable and big enough to call a finding. What was checked is listed below.</p>}
       </>
     ),
     "insights:checked": view.checked.length > 0 ? (
@@ -89,18 +99,10 @@ export default function Tiers({ view, goalAnswer, understanding }: { view: Repor
     ) : <></>,
     "insights:appendix": (
       <section className="iw-theme" aria-label="More findings">
-        {view.appendix.length > 0 && (
-          <>
-            {heading("insights:appendix", "More findings", <> <span className="muted small">{view.appendix.length} that ranked lower</span></>)}
-            <div className="iw-grid">
-              {(moreAll ? view.appendix : view.appendix.slice(0, MORE_ROWS)).map((c, i) => (
-                <ViewItem key={c.id} id={`insights:card:${c.id}`} className="view-card"><InsightWidget c={c} index={view.evidence.length + i + 1} compact={short} understanding={understanding} action={actionFor(c)} /></ViewItem>
-              ))}
-            </div>
-            {view.appendix.length > MORE_ROWS && (
-              <p className="no-print"><button type="button" className="chip" aria-expanded={moreAll} onClick={() => setMoreAll(!moreAll)}>{moreAll ? `Show ${MORE_ROWS}` : `Show all (${view.appendix.length})`}</button></p>
-            )}
-          </>
+        {moreFindings.length > 0 && (
+          curated
+            ? <MoreFindingsList findings={moreFindings} say={say} understanding={understanding} offset={view.evidence.length} />
+            : <LegacyAppendix findings={moreFindings} view={view} short={short} understanding={understanding} actionFor={actionFor} />
         )}
         {profileLines > 0 && (
           <details className="fold fold-working">
@@ -123,5 +125,63 @@ export default function Tiers({ view, goalAnswer, understanding }: { view: Repor
       <Sections tab="insights" selfTitled={["insights:answer", "insights:evidence", "insights:checked", "insights:appendix"]} nodes={nodes} />
       <ShowAllLink tab="insights" />
     </div>
+  );
+}
+
+/** Curated "More" list: one collapsed block, each item shows title + one line; chart draws only when opened. */
+function MoreFindingsList({ findings, say, understanding, offset }: { findings: Card[]; say: (t: string) => string; understanding?: Understanding | null; offset: number }) {
+  return (
+    <details className="fold fold-more">
+      <summary>More ({findings.length} {findings.length === 1 ? "finding" : "findings"} that ranked lower)</summary>
+      <div className="iw-more-list">
+        {findings.map((c, i) => (
+          <MoreFindingItem key={c.id} c={c} index={offset + i + 1} say={say} understanding={understanding} />
+        ))}
+      </div>
+    </details>
+  );
+}
+
+/** One item in the "More" list: title and one line; chart draws when the details element is opened. */
+function MoreFindingItem({ c, index, say, understanding }: { c: Card; index: number; say: (t: string) => string; understanding?: Understanding | null }) {
+  const [opened, setOpened] = useState(false);
+  const line = say(c.why_it_matters || c.observation || c.headline);
+  return (
+    <ViewItem id={`insights:card:${c.id}`} tag="article" className="iw-more-item" data-kind="insight">
+      <details onToggle={(e) => { if ((e.target as HTMLDetailsElement).open) setOpened(true); }}>
+        <summary>
+          <span className="insight-num">{index}</span>
+          <div>
+            <ViewTitle id={`insights:card:${c.id}`} tag="h4" text={say(c.headline)} />
+            <p className="muted small">{line.length > 140 ? line.slice(0, 137).replace(/[\s,;:]+\S*$/, "") + "…" : line}</p>
+          </div>
+        </summary>
+        {opened && (
+          <div className="iw-more-body">
+            {c.chart_url && <ViewImg id={`insights:chart:${c.id}`} src={c.chart_url} alt={say(c.title)} />}
+            <InsightWidget c={c} index={index} compact understanding={understanding} />
+          </div>
+        )}
+      </details>
+    </ViewItem>
+  );
+}
+
+/** Pre-curation fallback: the old appendix rendering (full cards, "Show all" button). */
+function LegacyAppendix({ findings, view, short, understanding, actionFor }: { findings: Card[]; view: ReportView; short: boolean; understanding?: Understanding | null; actionFor: (c: Card) => string | undefined }) {
+  const [moreAll, setMoreAll] = useState(false);
+  const MORE_ROWS = 4;
+  return (
+    <>
+      <h3>More findings <span className="muted small">{findings.length} that ranked lower</span></h3>
+      <div className="iw-grid">
+        {(moreAll ? findings : findings.slice(0, MORE_ROWS)).map((c, i) => (
+          <ViewItem key={c.id} id={`insights:card:${c.id}`} className="view-card"><InsightWidget c={c} index={view.evidence.length + i + 1} compact={short} understanding={understanding} action={actionFor(c)} /></ViewItem>
+        ))}
+      </div>
+      {findings.length > MORE_ROWS && (
+        <p className="no-print"><button type="button" className="chip" aria-expanded={moreAll} onClick={() => setMoreAll(!moreAll)}>{moreAll ? `Show ${MORE_ROWS}` : `Show all (${findings.length})`}</button></p>
+      )}
+    </>
   );
 }
