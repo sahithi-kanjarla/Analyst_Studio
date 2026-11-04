@@ -1,4 +1,4 @@
-# Analyst Studio
+<img src="frontend/public/logo-wordmark.svg" alt="Analyst Studio" height="40">
 
 **Upload a sales file, answer a few simple questions, get a short report you can trust.** The AI proposes; code does every calculation and every check.
 

@@ -113,3 +113,42 @@ Run here: `test_palette.py`, `test_report_page_polish.py`, `test_chartsize.py`, 
 is too heavy for this laptop and has **not** been run here.
 
 Screenshots reviewed at all four widths: no horizontal scroll at 390px, no console errors.
+
+Commit `a00a403`.
+
+---
+
+## Step 2 — an original mark and wordmark
+
+**The concept: a spreadsheet column that has been worked out.** Three columns stand side by side
+on a marine plate. The two outer ones are still cells — each split once, the way a column of a
+table looks. The middle one has resolved into a single solid figure.
+
+It is the app's own rule drawn as a shape: *the one thing being pointed at is solid, everything
+beside it stays quiet*. It reads as a table and as a bar chart at the same time, which is exactly
+what the product turns one into. It is also a drawing of the promise in the strapline — the
+spreadsheet goes in, one answer comes out — without a magnifier, a swoosh, a speech bubble or the
+zigzag line chart that the old mark was (that zigzag is the most-used analytics glyph there is, and
+it said nothing about this product).
+
+Five rectangles and nothing else, so it survives 16px: at that size the solid middle bar and the
+two split columns are still three distinct shapes. It is not a letterform, so it needs no
+hinting; it has no gradient, no shadow and no detail that disappears when it is small.
+
+- `frontend/src/components/Logo.tsx` — the mark in the app. The plate takes `var(--brand)` and the
+  shapes `var(--brand-ink)`, so it inverts correctly in dark mode without a second file.
+- `frontend/public/logo-mark.svg` — the mark on its own.
+- `frontend/public/logo-wordmark.svg` — mark plus "Analyst Studio" set in IBM Plex Sans 600 at
+  −0.38 tracking, used in the README.
+- `frontend/public/favicon.ico` (16/32/48), `favicon-32.png`, `favicon-180.png` (iOS home screen),
+  `favicon-512.png` and `site.webmanifest`, all written by **`scripts/gen_favicons.py`** from the
+  same numbers as the SVG and the shared palette — drawn with Pillow rather than rasterised, so
+  the edges are exact at every size.
+
+Used in: the landing header and hero (`StartPage.tsx`), the analysis view's thin bar
+(`nav/RunBar.tsx`), the landing page header (`App.tsx`), the browser tab, and the README.
+The old `.logo-mark` plate in `polish.css`, `theme.css` and `nav.css` is gone — the mark carries
+its own plate now.
+
+`npx tsc -b` and `npm run build` clean; `test_ui_nav.py` (the real-browser navigation suite,
+which drives the mark as the "back to home" control) → **10 passed**.

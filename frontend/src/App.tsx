@@ -3,6 +3,7 @@ import StartPage from "./components/StartPage";
 import RunView from "./components/RunView";
 import Glossary from "./components/Glossary";
 import History from "./components/History";
+import Logo from "./components/Logo";
 
 /** The open run and, for an old link (#/run/<id>/powerbi, /chat, /cleaning ...), the name of the tab it points to. */
 function useHashRun(): [string | null, string | null, (id: string | null) => void] {
@@ -36,9 +37,7 @@ export default function App() {
       {runId ? <div id="runbar-slot" className="runbar-slot" /> : (
       <header className="topbar">
         <a className="brand" href="#/" onClick={() => go(null)}>
-          <span className="logo-mark">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M4 17l5-7 4 4 7-9" /></svg>
-          </span>
+          <Logo size={30} />
           Analyst Studio
         </a>
         <div className="topright">

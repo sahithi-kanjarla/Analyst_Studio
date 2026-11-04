@@ -18,8 +18,8 @@ body::after { content: ""; position: fixed; inset: 0; z-index: -1; pointer-event
 .topbar { position: sticky; top: 10px; z-index: 20; margin: 12px 0 28px; padding: 10px 14px 10px 16px; border-radius: 16px;
   background: var(--card); border: 1px solid var(--line); box-shadow: var(--shadow); }
 .brand { display: inline-flex; align-items: center; gap: 10px; letter-spacing: -.01em; }
-.logo-mark { width: 30px; height: 30px; border-radius: 8px; background: var(--brand); display: grid; place-items: center; box-shadow: var(--shadow); }
-.logo-mark svg { width: 18px; height: 18px; }
+/* the mark carries its own plate (components/Logo.tsx), so nothing is drawn behind it */
+.logo-svg { display: block; flex: none; }
 .brand small { font-weight: 500; font-size: 11px; color: var(--muted); padding-left: 10px; border-left: 1px solid var(--line); }
 @media (max-width: 560px) { .brand small { display: none; } }
 .navlink { padding: 6px 12px; border-radius: 9px; font-weight: 500; transition: .15s; }

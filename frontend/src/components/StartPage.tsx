@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { AgentEvent, api, RunResult } from "../api";
 import { DATA_LABEL, DATA_VIEWS, NAV_LABEL, NAV_TABS, NavTab, Tab, TAB_LINE } from "../tabs";
 import Dialog from "./Dialog";
+import Logo from "./Logo";
 import { TabBody } from "./Results";
 import ReportPage from "./ReportPage";
 import Timeline from "./Timeline";
@@ -181,6 +182,7 @@ export default function StartPage({ onOpenRun, openNew = false }: { onOpenRun: (
   return (
     <div className="start">
       <header className="hero">
+        <Logo size={56} title="Analyst Studio" />
         <h1>Know your sales. Trust every number.</h1>
         <p className="hero-sub">Upload a sales file, answer a few simple questions, and get a short report that says what to do next.</p>
         {buttons}

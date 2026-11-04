@@ -4,6 +4,7 @@
 .start > section > h2 { font-size: var(--fs-5); font-weight: 650; margin: 0 0 var(--sp-5); }
 .how-flow h3, .trust h3, .limits h3, .story-steps h3 { margin: 0; font-size: var(--fs-3); font-weight: 600; }
 .hero { text-align: center; padding: var(--sp-6) 0 0; display: flex; flex-direction: column; align-items: center; gap: var(--sp-4); }
+.hero > .logo-svg { margin-bottom: calc(-1 * var(--sp-1)); }
 .hero h1 { font-size: var(--fs-6); font-weight: 650; margin: 0; letter-spacing: -.025em; line-height: var(--lh-tight); max-width: none; text-wrap: balance; }
 .hero-sub { font-size: var(--fs-3); color: var(--muted); max-width: 52ch; margin: 0; }
 .hero-buttons { display: flex; gap: var(--sp-3); flex-wrap: wrap; justify-content: center; margin-top: var(--sp-2); }

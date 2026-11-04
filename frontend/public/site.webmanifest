@@ -1,0 +1,15 @@
+{
+  "name": "Analyst Studio",
+  "short_name": "Analyst Studio",
+  "description": "Upload a sales file and get a short report that says what to do next. The AI suggests; code calculates.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f6f7",
+  "theme_color": "#15567f",
+  "icons": [
+    { "src": "/logo-mark.svg", "type": "image/svg+xml", "sizes": "any" },
+    { "src": "/favicon-32.png", "type": "image/png", "sizes": "32x32" },
+    { "src": "/favicon-180.png", "type": "image/png", "sizes": "180x180" },
+    { "src": "/favicon-512.png", "type": "image/png", "sizes": "512x512", "purpose": "any maskable" }
+  ]
+}
