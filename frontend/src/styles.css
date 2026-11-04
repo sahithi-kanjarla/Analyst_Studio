@@ -295,3 +295,9 @@ textarea:disabled { opacity: .55; }
 
 .access-code { display: flex; flex-direction: column; gap: 4px; margin: 12px 0; font-size: 14px; }
 .access-code input { padding: 8px 10px; border: 1px solid var(--line, #d9d4c8); border-radius: 8px; font: inherit; }
+
+/* What was clicked, written out, above the chart; it goes when the selection is cleared */
+.chart-pick { flex: 1 0 100%; margin: 0 0 6px; font-size: 13px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.chart-pick b { font-weight: 600; color: var(--brand); }
+.chart-pick-hint { color: var(--muted); font-size: 12px; }
+.bar-g:focus-visible, .chart path.bar:focus-visible, .legend li:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }

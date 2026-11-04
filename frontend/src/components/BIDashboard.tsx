@@ -271,21 +271,21 @@ export default function BIDashboard({ run }: { run: RunResult }) {
     if (t.kind === "trend") {
       return { title: chartTitle(m.label, undefined, run.understanding) + ` per ${grain}`,
         sub: trend.length > 1 ? `All ${trend.length} ${plural(grain)}, ${trend[0].label} to ${trend[trend.length - 1].label} · click one to filter` : "",
-        node: trend.length > 1 ? <Columns items={trend} selected={f.time} onToggle={(k) => setF((p) => ({ ...p, time: toggle(p.time, k) }))} fmt={fmt} height={Math.max(120, h)} /> : null };
+        node: trend.length > 1 ? <Columns items={trend} selected={f.time} onToggle={(k) => setF((p) => ({ ...p, time: toggle(p.time, k) }))} fmt={fmt} share={m.agg === "sum"} height={Math.max(120, h)} /> : null };
     }
     const col = t.col as string;
     const values = dimValues(col);
     const share = values.length >= 2 && values.length <= SHARE_SLICES ? planShare(values, { measure: measureKind, group: label(col), measureLabel: m.label }) : null;
     if (share?.suitable) {
       return { title: `Share of ${chartTitle(m.label, undefined, run.understanding).toLowerCase()} by ${label(col).toLowerCase()}`, sub: share.subtitle,
-        node: <Donut items={share.items as Item[]} selected={f.dims[col] ?? []} onToggle={(k) => toggleDim(col, k)} fmt={fmt} maxSize={h - 8} /> };
+        node: <Donut items={share.items as Item[]} selected={f.dims[col] ?? []} onToggle={(k) => toggleDim(col, k)} fmt={fmt} share={m.agg === "sum"} maxSize={h - 8} /> };
     }
     const fits = Math.max(3, Math.floor((h - 4) / BAR_ROW));
     const shown = values.slice(0, fits);
     const what = plural(label(col).toLowerCase());
     return { title: chartTitle(m.label, col, run.understanding),
       sub: values.length > shown.length ? `Top ${shown.length} of ${values.length} ${what} by ${m.label.toLowerCase()}` : `All ${values.length} ${what} by ${m.label.toLowerCase()}`,
-      node: <HBar items={shown} selected={f.dims[col] ?? []} onToggle={(k) => toggleDim(col, k)} fmt={fmt} /> };
+      node: <HBar items={shown} selected={f.dims[col] ?? []} onToggle={(k) => toggleDim(col, k)} fmt={fmt} share={m.agg === "sum"} whole={values.reduce((a, v) => a + Math.max(v.value, 0), 0)} /> };
   };
   const findingOf = (t: DashTile) => (run.findings ?? []).find((x) => x.id === t.finding_id);
   const tableDim = data.dims[0];
