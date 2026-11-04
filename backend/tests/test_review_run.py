@@ -77,3 +77,31 @@ def test_scoreboard_keeps_old_rows_and_adds_columns(tmp_path):
     rr.extend_header(tmp_path / "scoreboard.csv", lambda ln: ln + ",left_out_count", lambda ln: ln.startswith("date_time,") and "left_out_count" not in ln)
     got = (tmp_path / "scoreboard.csv").read_bytes().decode()
     assert got == "date_time,dataset,left_out_count\r\n2026-11-03,R01,x\r\n"
+
+
+def _call(stage, ok, reason=""):
+    return {"stage": stage, "ok": ok, "reason": reason}
+
+
+def test_a_failed_call_answered_on_the_retry_does_not_make_the_run_partly():
+    calls = [_call("strategy.refine", False, "provider error"), _call("strategy.refine", True), _call("critic.review", True)]
+    assert rr.recovered_failures(calls) == 1
+    stages = {"strategy": {"calls": 2, "failed": 1, "recovered": 1}, "critic": {"calls": 1, "failed": 0, "recovered": 0}}
+    assert rr.ai_mode(False, stages, 0) == "real"
+    # a failure with no answer after it still makes the run partly, and is named as a stage
+    calls2 = [_call("strategy.refine", False, "provider error"), _call("critic.review", True)]
+    assert rr.recovered_failures(calls2) == 0
+    stages2 = {"strategy": {"calls": 1, "failed": 1, "recovered": 0}, "critic": {"calls": 1, "failed": 0, "recovered": 0}}
+    assert rr.ai_mode(False, stages2, 0) == "partly"
+    named = rr.unrecovered_stages(stages2, [])
+    assert [u["stage"] for u in named] == ["strategy"] and "not answered" in named[0]["reason"]
+    assert rr.unrecovered_stages(stages2, [{"stage": "strategy", "kind": "unavailable", "reason": ""}]) == []      # already named by the run's own decisions
+
+
+def test_the_dashboard_counts_its_planned_tiles_not_every_chart_in_the_data():
+    findings = [{"id": "f1", "chart_type": "group_compare", "title": "t", "insight": {"headline": "Revenue by item"}, "measure": "revenue", "dimension": "item"}]
+    catalogue = [{"tab": "Dashboard", "title": f"chart {i}", "type": "group_compare", "subtitle": "", "measure": "m", "dimension": "d", "null_result": False} for i in range(27)]
+    plan = {"tiles": [{"kind": "dim", "col": "item"}, {"kind": "finding", "finding_id": "f1"}, {"kind": "trend"}], "more": [{"kind": "finding", "finding_id": "f2"}] * 5}
+    tiles = rr.planned_tiles(plan, catalogue, {"findings": findings}, "Dashboard")
+    assert len(tiles) == 3 != len(catalogue)
+    assert rr.chart_stats({"dashboard": {"charts": tiles}})["per_tab"]["dashboard"] == 3

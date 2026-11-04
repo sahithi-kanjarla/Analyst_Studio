@@ -80,8 +80,29 @@ def ai_mode(fake: bool, stages: dict, unavailable_count: int) -> str:
     answered = sum(s["calls"] - s["failed"] for s in stages.values())
     if answered == 0:
         return "rules-only"
-    failed = sum(s["failed"] for s in stages.values())
+    failed = sum(s["failed"] - s.get("recovered", 0) for s in stages.values())      # a call that failed and was answered on the retry did not leave the stage without the AI
     return "partly" if failed or unavailable_count else "real"
+
+
+def recovered_failures(calls: list[dict]) -> int:
+    """Failed calls whose next call for the same stage was answered: the app retried and got an answer, so the stage still used the AI."""
+    n = 0
+    for i, r in enumerate(calls):
+        if r["ok"]:
+            continue
+        nxt = next((x for x in calls[i + 1:] if x["stage"] == r["stage"]), None)
+        n += bool(nxt and nxt["ok"])
+    return n
+
+
+def unrecovered_stages(stages: dict, known: list[dict]) -> list[dict]:
+    """Stages with an AI call that failed and was not answered on a retry, when the run's own decisions did not already name the stage: so "partly" always says where."""
+    out = []
+    for name, s in stages.items():
+        n = s.get("failed", 0) - s.get("recovered", 0)
+        if n > 0 and not any(name in u["stage"] or u["stage"] in name for u in known):
+            out.append({"stage": name, "kind": "call failed", "reason": f"{n} AI call(s) in this stage failed and were not answered on a retry"})
+    return out
 
 
 def counted_modes(out: Path) -> tuple[str, ...]:
@@ -129,11 +150,11 @@ class Timing:
         tokens = sum(r["input_tokens"] + r["output_tokens"] for r in sent)
         self.local.acc = None
         self.tokens_total += tokens
-        return {"total": total, "ai": ai, "limit": acc["limit"], "own": max(0.0, total - ai - acc["limit"]), "calls": len(sent), "failed": sum(1 for r in sent if not r["ok"]), "tokens": tokens, "auth": sum(1 for r in sent if not r["ok"] and r["reason"] == "auth")}
+        return {"total": total, "ai": ai, "limit": acc["limit"], "own": max(0.0, total - ai - acc["limit"]), "calls": len(sent), "failed": sum(1 for r in sent if not r["ok"]), "recovered": recovered_failures(sent), "tokens": tokens, "auth": sum(1 for r in sent if not r["ok"] and r["reason"] == "auth")}
 
     def add_stage(self, name: str, m: dict) -> None:
-        s = self.stages.setdefault(name, {"total": 0.0, "ai": 0.0, "limit": 0.0, "own": 0.0, "calls": 0, "failed": 0, "tokens": 0, "passes": 0})
-        for k in ("total", "ai", "limit", "own", "calls", "failed", "tokens"):
+        s = self.stages.setdefault(name, {"total": 0.0, "ai": 0.0, "limit": 0.0, "own": 0.0, "calls": 0, "failed": 0, "recovered": 0, "tokens": 0, "passes": 0})
+        for k in ("total", "ai", "limit", "own", "calls", "failed", "recovered", "tokens"):
             s[k] += m[k]
         s["passes"] += 1
 
@@ -340,6 +361,25 @@ def chart_stats(tabs: dict) -> dict:
     return {"per_tab": per_tab, "duplicates": dup, "null_charts": null}
 
 
+def planned_tiles(plan: dict, catalogue_charts: list[dict], res: dict, label: str) -> list[dict]:
+    """The charts the Dashboard actually draws (dashplan's tiles), not every chart the data holds. A finding tile is the finding's own chart; a live tile (the trend,
+    ranked bars for one column) is drawn in the browser."""
+    from app import understanding as und
+    findings = {f.get("id"): f for f in res.get("findings") or []}
+    nulls = null_ids(res)
+    out = []
+    for t in plan.get("tiles") or []:
+        if t.get("kind") == "finding":
+            f = findings.get(t.get("finding_id")) or {}
+            title = und.readable((f.get("insight") or {}).get("headline") or f.get("title", ""), res)
+            out.append({"tab": label, "title": title, "type": f.get("chart_type") or "image", "subtitle": sentences(f.get("chart_why") or "", 1), "measure": str(t.get("measure") or ""),
+                        "dimension": str(t.get("dimension") or ""), "null_result": t.get("finding_id") in nulls})
+        else:
+            what = {"trend": "trend over time", "dim": f'ranked bars by {und.readable(str(t.get("col", "")), res)}'}.get(t.get("kind"), t.get("kind") or "tile")
+            out.append({"tab": label, "title": what, "type": "drawn in the browser", "subtitle": "exact title and subtitle: run with --screenshots", "measure": "", "dimension": str(t.get("col") or ""), "null_result": False})
+    return out
+
+
 def left_out_shown(res: dict) -> int:
     """The number the Data tab shows as 'minor findings left out' (0 when the run has no curation)."""
     return int((res.get("curation") or {}).get("left_out_count") or 0)
@@ -370,7 +410,12 @@ def tab_view(res: dict, wd: Path) -> dict:
             try:
                 dash = build_dashboard(wd, res)
                 v["numbers"] = [f'{m["label"]} ({m["agg"]})' for m in dash.get("measures", [])] + [f'{dash.get("total_rows")} rows in the dashboard slice']
-                for m in dash.get("measures", [])[:1]:
+                plan = dash.get("plan") or {}
+                v["in_data"] = len(v["charts"])                       # every chart the data holds for this tab, shown or not
+                v["planned"], v["more"] = len(plan.get("tiles") or []), len(plan.get("more") or [])
+                if plan:                                                # the Dashboard draws its planned tiles; the rest sit under "More charts"
+                    v["charts"] = planned_tiles(plan, v["charts"], res, label)
+                for m in dash.get("measures", [])[:0 if plan else 1]:
                     v["charts"].insert(0, {"tab": label, "title": f'{m["label"]} per period (trend)', "type": "line (drawn in the browser)", "subtitle": "exact title and subtitle: run with --screenshots"})
                     v["charts"].insert(1, {"tab": label, "title": f'share of {m["label"]} by a category', "type": "share (drawn in the browser)", "subtitle": "exact title and subtitle: run with --screenshots"})
                     for dm in dash.get("dims", [])[:3]:
@@ -803,7 +848,7 @@ def write_review(out: Path, d: dict, rec: dict, shots: dict | None) -> None:
     A(f'- Goal given: "{rec["goal"]}"')
     A(f'- Files: {", ".join(d["files"])}')
     A(f'- Figures: **{rec["passed"]}/{rec["total"]} correct ({rec["pct"]:.0f}%)** · questions asked {rec["questions"]["asked"]} (needed {rec["questions"]["needed"]}, not needed {rec["questions"]["not_needed"]}) · '
-      f'AI partly unavailable in {rec["unavailable_count"]} stage(s) · tokens {rec["tokens"]:,} · time {fmt_s(rec["total_s"])} s ({fmt_s(rec["total_wo_limit_s"])} s without limit waiting)')
+      f'AI partly unavailable in {rec["unavailable_count"]} stage(s)' + (f' ({rec["retried_ok"]} call(s) failed once and were answered on the retry, not counted)' if rec.get("retried_ok") else "") + f' · tokens {rec["tokens"]:,} · time {fmt_s(rec["total_s"])} s ({fmt_s(rec["total_wo_limit_s"])} s without limit waiting)')
     if rec.get("connection"):
         A(f'- Connections: {rec["connection"]["text"]}')
     A(f'- What this dataset tests: {rec["what_it_tests"]}\n- What the app should do: {rec["app_should"]}\n')
@@ -834,6 +879,9 @@ def write_review(out: Path, d: dict, rec: dict, shots: dict | None) -> None:
 
     cs = rec.get("chart_stats") or {}
     A("## 4. Every chart shown\n")
+    dv = rec["tabs"].get("dashboard") or {}
+    if "planned" in dv:
+        A(f'Dashboard: **{dv["planned"]} planned tiles** drawn on the page, {dv["more"]} more under "More charts", and {dv["in_data"]} charts of this kind held in the data (the number used before this fix; it is not what the page draws).\n')
     A("Charts per tab: " + " · ".join(f'{lbl} {cs.get("per_tab", {}).get(k, 0)}' for k, lbl, _ in NAV) + f' · duplicate charts (same type, measure and dimension): {cs.get("duplicates", 0)}'
       f' · charts made for null results: {cs.get("null_charts", 0)} · left out (the number the Data tab shows): {rec.get("left_out_shown", 0)}\n')
     A(md_table(["tab", "title", "chart type", "subtitle"], [[c["tab"], c["title"][:90], c["type"], c["subtitle"][:140]] for k, _, _ in NAV for c in rec["tabs"][k]["charts"]]))
@@ -1023,7 +1071,9 @@ def review_one(d: dict, args, out: Path, timing: Timing, budget: Budget, model, 
         rec["columns"] = column_rows(res)
         rec["tabs"] = tab_view(res, wd)
         rec["unavailable"] = unavailable(res)
+        rec["unavailable"] += unrecovered_stages(rec["stages"], rec["unavailable"])
         rec["unavailable_count"] = len(rec["unavailable"])
+        rec["retried_ok"] = sum(s.get("recovered", 0) for s in rec["stages"].values())
         text = visible_text(res)
         rec["chart_stats"], rec["left_out_shown"] = chart_stats(rec["tabs"]), left_out_shown(res)
         figs = check_figures(exp, res, wd, text, report_text(res))
