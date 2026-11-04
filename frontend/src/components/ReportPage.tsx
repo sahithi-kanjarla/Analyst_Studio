@@ -1,4 +1,5 @@
 import { ReportCard, RunResult } from "../api";
+import { bigNumber, direction, takeaway } from "../insightwidget";
 import { humanise, plainLabel, plainTitle, Understanding } from "../display";
 import LensChat from "./lens/LensChat";
 import { LensProvider } from "./lens/LensContext";
@@ -27,23 +28,42 @@ const chartHeading = (title: string, und?: Understanding | null) => {
   return t.charAt(0).toUpperCase() + t.slice(1);
 };
 
-/** One curated finding in the Report evidence section: chart + headline + observation. */
+/** One curated finding in "What matters": a lead figure, a plain title, a small chart, the result in one line and one or two sentences on why it matters. */
 function ReportFinding({ c, und }: { c: ReportCard; und?: Understanding | null }) {
   const say = (t: string) => humanise(t, und);
   const cid = `report:finding:${c.id}`;
+  const big = bigNumber(c.headline, c.tool);
+  const dir = direction(c.headline, c.tool, big?.sign ?? 0);
+  const why = takeaway(say(c.why_it_matters), say(c.observation), 190);
   return (
-    <ViewItem id={cid} tag="article" className="rp-chart surface span-6" data-kind="chart">
+    <ViewItem id={cid} tag="article" className="rp-chart rp-matter" data-kind="chart">
+      {big ? (
+        <p className={`rp-lead ${dir ? `rp-${dir}` : ""}`}><b>{dir === "up" ? "▲ " : dir === "down" ? "▼ " : ""}{big.value}</b><span>{big.label}</span></p>
+      ) : (
+        <p className="rp-lead"><span className={`rp-trust rp-trust-${c.confidence.level}`}>{c.confidence.label} confidence</span></p>
+      )}
       <h3><ViewTitle id={cid} text={plainTitle(c.title, und)} /></h3>
       <p className="iw-line" data-kind="takeaway">{say(c.headline)}</p>
       {c.chart_url && <ViewImg id={`report:chart:${c.id}`} src={c.chart_url} alt={say(c.title)} />}
-      <p className="rp-why" data-kind="reason">{say(c.why_it_matters || c.observation)}</p>
+      {why && <p className="rp-why" data-kind="reason">{why}</p>}
       {c.merged && c.merged.items.length > 1 && (
         <ul className="muted small">{c.merged.items.map((it) => <li key={it.id}>{say(it.text)}</li>)}</ul>
       )}
-      {c.checks.length > 0 && (
-        <p className="muted small">{c.checks.map((ch) => say(ch)).join(" ")}</p>
-      )}
     </ViewItem>
+  );
+}
+
+/** Data cautions in one calm note: the warnings the checks raised, or a plain line saying there were none. */
+function Cautions({ run, trust }: { run: RunResult; trust?: string }) {
+  const notes = [
+    ...(run.critique?.issues ?? []).filter((i) => i.severity === "warn").map((i) => i.text),
+  ].map((t) => humanise(t, run.understanding));
+  return (
+    <aside className={`rp-note ${notes.length ? "rp-note-warn" : ""}`} aria-label="Cautions about the data" data-kind="caution">
+      <b>{notes.length ? "Worth knowing about the data" : "Nothing to flag"}</b>
+      {notes.length > 0 ? <ul>{notes.slice(0, 3).map((n, i) => <li key={i}>{n}</li>)}</ul>
+        : <p>The checks raised no warnings{trust ? `, and overall confidence is ${trust.toLowerCase()}` : ""}. Findings still show associations, not causes.</p>}
+    </aside>
   );
 }
 
@@ -92,7 +112,6 @@ export default function ReportPage({ run, embedded = false, startChat = false, s
         <Sections tab="report" selfTitled={["report:actions", "report:evidence", "report:ideas", "report:behind"]} nodes={{
           "report:short": (
           <section className="rp-headline" data-kind="summary" aria-label="The short answer">
-          <p className="rp-kicker">The short answer</p>
           <p className="rp-big">{humanise(plainStats(page.headline), run.understanding)}</p>
           {page.headline_more && <p className="rp-more">{humanise(page.headline_more, run.understanding)}</p>}
         </section>
@@ -122,7 +141,7 @@ export default function ReportPage({ run, embedded = false, startChat = false, s
                         <div>
                           <h3><ViewTitle id={`report:action:${i}`} text={humanise(t, run.understanding)} /></h3>
                           {why && !short && <p>{humanise(why, run.understanding)}</p>}
-                          {a.figure && !short && <p className="rp-support" data-kind="evidence">{humanise(a.figure.replace(/^Supported by:\s*/i, ""), run.understanding)}</p>}
+                          {a.figure && !short && <details className="rp-support"><summary>What this rests on</summary><p data-kind="evidence">{humanise(a.figure.replace(/^Supported by:\s*/i, ""), run.understanding)}</p></details>}
                         </div>
                       </ViewItem>) };
                   })} />
@@ -130,27 +149,28 @@ export default function ReportPage({ run, embedded = false, startChat = false, s
               ) : (
                 <p className="muted">{page.no_action[0] ?? "The data does not support a specific change yet."}</p>
               )}
+              <Cautions run={run} trust={page.trust} />
             </section>
           ),
           "report:evidence": (
             hasFindings ? (
-              <section className="rp-section" data-kind="charts" aria-labelledby="rp-evidence">
-                <ViewTitle id="report:evidence" tag="h2" text="The evidence" />
-                <div className="grid">
+              <section className="rp-section" data-kind="charts" aria-label="What matters">
+                <ViewTitle id="report:evidence" tag="h2" text="What matters" />
+                <div className="rp-matters">
                   {reportFindings.map((c) => <ReportFinding key={c.id} c={c} und={run.understanding} />)}
                 </div>
               </section>
             ) : page.charts.length > 0 ? (
-              <section className="rp-section" data-kind="charts" aria-labelledby="rp-evidence">
-                <ViewTitle id="report:evidence" tag="h2" text="The evidence" />
-                <div className="grid">
+              <section className="rp-section" data-kind="charts" aria-label="What matters">
+                <ViewTitle id="report:evidence" tag="h2" text="What matters" />
+                <div className="rp-matters">
                   <ShowMore tab="report" items={page.charts.slice(0, 6).map((c) => {
                     const cid = `report:chart:${c.path.split("/").pop()!.replace(/\.\w+$/, "")}`;
                     return { id: cid, node: (
-                      <ViewItem key={c.path} id={cid} tag="article" className="rp-chart surface span-6" data-kind="chart">
+                      <ViewItem key={c.path} id={cid} tag="article" className="rp-chart rp-matter" data-kind="chart">
                         <h3><ViewTitle id={cid} text={chartHeading(c.title, run.understanding)} /></h3>
                         <ViewImg id={cid} src={c.url ?? ""} alt={c.title} />
-                        <figcaption data-kind="takeaway"><strong>What this means:</strong> {humanise(meaning(c.caption), run.understanding)}</figcaption>
+                        <figcaption className="iw-line rp-cap" data-kind="takeaway">{humanise(meaning(c.caption), run.understanding)}</figcaption>
                         {c.details.length > 0 && (
                           <details className="fold fold-working">
                             <summary>How we got this</summary>

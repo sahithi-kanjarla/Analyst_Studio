@@ -146,7 +146,7 @@ def catalogue(result: dict) -> dict:
     # ---- report
     if page:
         s_short, s_num = section("report", "short", "The short answer"), section("report", "numbers", "Key figures")
-        s_act, s_ev, s_beh = section("report", "actions", "What to do"), section("report", "evidence", "The evidence"), section("report", "behind", "Behind the numbers")
+        s_act, s_ev, s_beh = section("report", "actions", "What to do"), section("report", "evidence", "What matters"), section("report", "behind", "Behind the numbers")
         items[s_short]["text"] = _plain(page.get("headline"))
         for i, t in enumerate(page.get("tiles") or []):
             add("report", s_num, "card", f"report:tile:{i}", t.get("label", "Figure"), text=f"{t.get('label')}: {t.get('value')}")
