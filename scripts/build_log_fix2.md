@@ -78,3 +78,23 @@ Findings of review runs on a clean bakery file (900 rows, one row per order). Ru
 - `strategy.refine_with_llm`: an AI title over 12 words is cut by `short_title` at the last clause break (colon, semicolon, comma, dash; a comma inside a number is not one) that fits, else at 12 words without a dangling connecting word. The rest is not dropped: it goes, whole, to the front of the idea's objective (body text), so the figures stay. The fact-id and figure checks run before this, so the moved text already passed them.
 - Rule-written titles are not touched (they are short templates). The action sentences on the report page (`"title: objective"`) still join the two, as before.
 - Tests: `tests/test_short_titles.py` (4). Strategy-related files re-run: 77 passed.
+
+## Full suite, run in chunks on this laptop (one pytest process at a time, 4 browser files last)
+
+| group | files | result | time |
+|---|---|---|---|
+| 1 | 10 | 174 passed | 37 s |
+| 2 | 10 | 199 passed, 1 skipped | 87 s |
+| 3 | 10 | 82 passed | 66 s |
+| 4 | 10 | 124 passed | 78 s |
+| 5 | 10 | 103 passed | 77 s |
+| 6 | 10 | 99 passed, **1 failed** | 126 s |
+| 7 | 10 | 107 passed | 65 s |
+| 8 | 10 | 131 passed | 40 s |
+| 9 | 10 | 200 passed | 135 s |
+| 10 | 3 | 84 passed | 304 s |
+| 11 (browser: deploy, ui_nav, ui_simplify, ui_widgets) | 4 | 18 passed, **25 skipped** | 41 s |
+| **all** | 97 | **1321 passed, 1 failed, 26 skipped** | about 18.5 min |
+
+- The one failure is `test_owner.py::test_the_server_secret_comes_from_the_environment_or_is_generated_and_kept`: it asserts the secret file has Unix mode 0o600 and Windows reports 0o666. `owner.py` was not changed in this round; the test cannot pass on Windows. The other 17 tests in that file pass.
+- The 25 skipped browser tests did not run: they skip without a built `frontend/dist` (not built here). So the UI was not exercised in a browser in this round. Not tested.
