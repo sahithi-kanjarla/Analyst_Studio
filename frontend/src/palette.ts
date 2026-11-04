@@ -25,6 +25,13 @@ export const CATEGORICAL = [
   "#d1760c",      // cat-2
   "#2e7d32",      // cat-3
   "#c77aa6",      // cat-4
-  "#4d9fd6",      // cat-5
+  "#3a8cc4",      // cat-5
   "#3f4652",      // cat-6
 ];
+
+/** label -> colour for categories listed in rank order (largest first): the first six take the categorical colours, every other one the quiet neutral. */
+export function categoryColours(labels: string[]): Record<string, string> {
+  const out: Record<string, string> = {};
+  labels.forEach((l, i) => { out[l] = i < CATEGORICAL.length ? CATEGORICAL[i] : NEUTRAL_SOFT; });
+  return out;
+}

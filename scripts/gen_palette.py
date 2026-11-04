@@ -74,6 +74,12 @@ CATEGORICAL = [
 {cats}
 ]
 
+
+def category_colours(labels) -> dict:
+    """label -> colour for categories listed in rank order (largest first): the first six take the categorical colours, every other one the quiet neutral.
+    The browser charts and the pictures both call this, so a category keeps its colour in every chart."""
+    return {{str(l): (CATEGORICAL[i] if i < len(CATEGORICAL) else NEUTRAL_SOFT) for i, l in enumerate(labels)}}
+
 # matplotlib's prop_cycle wants the highlight first and quiet neutrals after it
 PALETTE = [ACCENT, NEUTRAL, *CATEGORICAL[1:], NEUTRAL_SOFT]
 
@@ -114,6 +120,13 @@ stays readable with colour-blindness. */
 export const CATEGORICAL = [
 {cats}
 ];
+
+/** label -> colour for categories listed in rank order (largest first): the first six take the categorical colours, every other one the quiet neutral. */
+export function categoryColours(labels: string[]): Record<string, string> {{
+  const out: Record<string, string> = {{}};
+  labels.forEach((l, i) => {{ out[l] = i < CATEGORICAL.length ? CATEGORICAL[i] : NEUTRAL_SOFT; }});
+  return out;
+}}
 '''
 
 

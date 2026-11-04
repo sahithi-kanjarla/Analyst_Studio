@@ -14,3 +14,5 @@ details .chart-frame { max-width: 260px; }
 @media print { .chart-frame { break-inside: avoid; border: 0; padding: 0; } .chart-frame img { max-height: none; } }
 .tile-compact .chart-frame { margin-top: auto; flex: 1 1 auto; justify-content: center; min-height: 190px; }
 .tile-compact .chart-frame-img { flex: 1 1 auto; display: flex; align-items: center; }
+
+.bi-chip-dot { display: inline-block; width: 9px; height: 9px; border-radius: 3px; margin-right: 6px; vertical-align: baseline; }

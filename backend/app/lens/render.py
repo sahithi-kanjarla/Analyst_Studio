@@ -63,10 +63,8 @@ def draw(R: Result, path: Path) -> bool:
         if horizontal:
             idx = idx[::-1]
             vals = series[0]["values"]
-            bars = ax.barh(idx, vals, color=ACCENT if len(vals) > 1 else ACCENT, height=0.65)
-            for b in bars[1:]:
-                b.set_color(GREY)
-            bars[0].set_color(ACCENT)
+            cols = list(palette.category_colours(range(len(vals))).values())
+            bars = ax.barh(idx, vals, color=cols if len(vals) > 1 else ACCENT, height=0.65)
             ax.set_yticks(idx)
             ax.set_yticklabels(labels)
             sh = P.get("shares")

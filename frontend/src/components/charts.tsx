@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 
-import { ACCENT, BAD, NEUTRAL, NEUTRAL_SOFT, PANEL } from "../palette";
+import { ACCENT, BAD, CATEGORICAL, categoryColours, NEUTRAL, NEUTRAL_SOFT, PANEL } from "../palette";
 
 /** One chart style everywhere, from the one shared palette (src/palette.ts, generated from the
  *  chart-tokens block of tokens.css, so these charts and the PNGs the backend draws match exactly).
- *  The rule: the highlighted or selected mark carries the accent, every other mark a muted neutral. */
-export { ACCENT, NEUTRAL, NEUTRAL_SOFT };
+ *  The rule: each category has its own colour from the colour-blind-safe categorical palette (the same everywhere it appears); a time series keeps the one accent;
+ *  with something selected it keeps full colour and the rest drop to about half. */
+export { ACCENT, categoryColours, NEUTRAL, NEUTRAL_SOFT };
 export const NEG = BAD;
 
 function mix(a: string, b: string, t: number) {
@@ -39,6 +40,8 @@ interface ChartProps {
   share?: boolean;
   /** The whole a share is taken from, when the chart draws only part of it (the top bars of a longer list). */
   whole?: number;
+  /** key -> colour for each category, from categoryColours: the same colour for the same category in every chart, legend and chip. */
+  colours?: Record<string, string>;
 }
 
 /** What was clicked, written out: the name, its figure and, for a measure that adds up, its share
@@ -60,12 +63,8 @@ function Picked({ items, selected, fmt, share, whole: all }: ChartProps) {
   );
 }
 
-/** One mark's colour. Once something is selected the chart answers only that question: the
- *  selection carries the accent and everything else drops back to a plain neutral, so the ranking
- *  colours do not compete with the selection. */
-function markColour(on: boolean, anySel: boolean, resting: string) {
-  return anySel ? (on ? ACCENT : NEUTRAL) : resting;
-}
+/** A mark's colour: its category's own colour, or the one accent when the chart has no categories (a time series). Selection changes opacity, never the hue. */
+const colourOf = (it: Item, colours: Record<string, string> | undefined, fallback: string) => (it.other ? NEUTRAL_SOFT : colours?.[it.key] ?? fallback);
 
 /** A mark you can click is also a mark you can reach with the keyboard. */
 function pressable(on: boolean, label: string, toggle: () => void) {
@@ -96,12 +95,13 @@ function useWidth(): [React.RefObject<HTMLDivElement>, number] {
   return [ref, w];
 }
 
-/** With something selected, the rest of the chart fades right back so the selection is the only thing read. */
-const dim = (on: boolean, anySel: boolean) => (anySel && !on ? 0.25 : 1);
+/** With something selected, the rest stays clearly visible at about half strength and the selection stays at full colour. */
+export const DIM = 0.52;
+const dim = (on: boolean, anySel: boolean) => (anySel && !on ? DIM : 1);
 
 /** Horizontal bars, one colour per category (like the reference), click to filter. */
 export function HBar(props: ChartProps) {
-  const { items, selected, onToggle, fmt } = props;
+  const { items, selected, onToggle, fmt, colours } = props;
   const [ref, w] = useWidth();
   const row = 30;
   const labelW = Math.min(170, Math.max(104, w * 0.4));
@@ -121,8 +121,8 @@ export function HBar(props: ChartProps) {
               <g key={it.key} className="bar-g" transform={`translate(0 ${i * row + 2})`} opacity={dim(on, anySel)} {...(it.other ? {} : pressable(on, `${it.label}: ${fmt(it.value)}`, () => onToggle(it.key)))}>
                 <title>{`${it.label}: ${fmt(it.value)}${it.n !== undefined ? ` (n=${it.n.toLocaleString()})` : ""}`}</title>
                 <rect x={0} y={0} width={w} height={row - 4} fill="transparent" />
-                <text x={labelW - 8} y={(row - 4) / 2 + 4} textAnchor="end" className="c-label">{clip(it.label, Math.floor(labelW / 6.0))}</text>
-                <rect x={labelW} y={3} width={bw} height={row - 10} rx={4} fill={it.other ? NEUTRAL_SOFT : markColour(on, anySel, i === 0 ? ACCENT : NEUTRAL)} className="bar" />
+                <text x={labelW - 8} y={(row - 4) / 2 + 4} textAnchor="end" className="c-label" fontWeight={on ? 700 : undefined}>{clip(it.label, Math.floor(labelW / 6.0))}</text>
+                <rect x={labelW} y={3} width={bw} height={row - 10} rx={4} fill={colourOf(it, colours, i === 0 ? ACCENT : NEUTRAL)} className="bar" />
                 <text x={labelW + bw + 6} y={(row - 4) / 2 + 4} className="c-value">{fmt(it.value)}{it.n !== undefined && <tspan className="c-axis" dx={6}>n={it.n.toLocaleString()}</tspan>}</text>
               </g>
             );
@@ -143,7 +143,6 @@ export function Columns(props: ChartProps & { height?: number }) {
   const span = max - min || 1;
   const innerW = Math.max(10, w - padL - padR);
   const innerH = height - padT - padB;
-  const peak = Math.max(...items.map((i) => i.value));
   const y = (v: number) => padT + ((max - v) / span) * innerH;
   const slot = innerW / Math.max(items.length, 1);
   const bw = Math.max(3, Math.min(46, slot * 0.68));
@@ -171,8 +170,8 @@ export function Columns(props: ChartProps & { height?: number }) {
               <g key={it.key} className="bar-g" opacity={dim(on, anySel)} {...pressable(on, `${it.label}: ${fmt(it.value)}`, () => onToggle(it.key))}>
                 <title>{`${it.label}: ${fmt(it.value)}`}</title>
                 <rect x={padL + i * slot} y={padT} width={slot} height={innerH} fill="transparent" />
-                <rect x={x} y={top} width={bw} height={h} rx={3} fill={it.value < 0 ? NEG : markColour(on, anySel, it.value === peak ? ACCENT : NEUTRAL)} className="bar" />
-                {it.value === max && max > 0 && <text x={x + bw / 2} y={top - 4} textAnchor="middle" className="c-value">{fmt(it.value)}</text>}
+                <rect x={x} y={top} width={bw} height={h} rx={3} fill={it.value < 0 ? NEG : ACCENT} className="bar" />
+                {(it.value === max || on) && max > 0 && <text x={x + bw / 2} y={top - 4} textAnchor="middle" className="c-value">{fmt(it.value)}</text>}
                 {i % every === 0 && <text x={x + bw / 2} y={height - 8} textAnchor="middle" className="c-axis">{it.label}</text>}
               </g>
             );
@@ -185,7 +184,8 @@ export function Columns(props: ChartProps & { height?: number }) {
 
 /** Donut with its own legend (name, share) so no label ever overlaps. */
 export function Donut(props: ChartProps & { maxSize?: number }) {
-  const { items, selected, onToggle, fmt, maxSize } = props;
+  const { items, selected, onToggle, fmt, maxSize, colours } = props;
+  const palette = colours ?? categoryColours(items.map((i) => i.key));
   const [ref, w] = useWidth();
   const total = items.reduce((s, i) => s + Math.max(i.value, 0), 0) || 1;
   const size = Math.max(72, Math.min(maxSize ?? 170, 170, Math.max(120, w * 0.4)));      // a tile that is short gets a smaller ring, never a cut-off one
@@ -199,7 +199,7 @@ export function Donut(props: ChartProps & { maxSize?: number }) {
     const p = (a: number, rad: number) => `${c + rad * Math.cos(a)} ${c + rad * Math.sin(a)}`;
     const d = `M ${p(a0, r)} A ${r} ${r} 0 ${large} 1 ${p(a1, r)} L ${p(a1, ir)} A ${ir} ${ir} 0 ${large} 0 ${p(a0, ir)} Z`;
     a0 += frac * Math.PI * 2;
-    return { it, d, frac, color: it.other ? NEUTRAL_SOFT : shade(i, items.length) };
+    return { it, d, frac, color: it.other ? NEUTRAL_SOFT : palette[it.key] ?? CATEGORICAL[i % CATEGORICAL.length] };
   });
   return (
     <div ref={ref} className="chart donut-wrap">
@@ -210,7 +210,7 @@ export function Donut(props: ChartProps & { maxSize?: number }) {
             {arcs.map(({ it, d, color }) => {
               const on = selected.includes(it.key);
               return (
-                <path key={it.key} d={d} fill={markColour(on, anySel, color)} className="bar" opacity={dim(on, anySel)} {...pressable(on, `${it.label}: ${fmt(it.value)}`, () => onToggle(it.key))}>
+                <path key={it.key} d={d} fill={color} className="bar" opacity={dim(on, anySel)} {...pressable(on, `${it.label}: ${fmt(it.value)}`, () => onToggle(it.key))}>
                   <title>{`${it.label}: ${fmt(it.value)}`}</title>
                 </path>
               );
@@ -223,8 +223,8 @@ export function Donut(props: ChartProps & { maxSize?: number }) {
               const on = selected.includes(it.key);
               return (
                 <li key={it.key} style={{ opacity: dim(on, anySel) }} {...pressable(on, `${it.label}: ${fmt(it.value)}`, () => onToggle(it.key))} title={`${it.label}: ${fmt(it.value)}`}>
-                  <i style={{ background: markColour(on, anySel, color) }} />
-                  <span className="lg-name">{clip(it.label, 16)}</span>
+                  <i style={{ background: color }} />
+                  <span className="lg-name" style={on ? { fontWeight: 700 } : undefined}>{clip(it.label, 16)}</span>
                   <b>{(frac * 100).toFixed(frac < 0.1 ? 1 : 0)}%</b>
                 </li>
               );

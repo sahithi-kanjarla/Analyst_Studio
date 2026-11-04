@@ -321,7 +321,7 @@ def _vbars(labels, values, texts, colors, xlabel="", ylabel="", note="", err=Non
 def ranked_bars(labels, values, ns, fmt, other_at=None, xlabel="", ylabel="", note="", err=None, percent=False):
     """Pick the layout from the data: horizontal when there are more than 6 bars or long labels. The best bar is dark, others light, 'Other' grey."""
     texts = [f"{fmt(v)}  (n={int(n):,})" for v, n in zip(values, ns)]
-    colors = [palette.ACCENT if i == 0 else NEUTRAL for i in range(len(labels))]
+    colors = list(palette.category_colours(range(len(labels))).values())          # each bar its own colour from the shared palette, in rank order; past six, the quiet neutral
     if other_at is not None:
         colors[other_at] = OTHER_COLOR
     if len(labels) > 6 or max((len(str(l)) for l in labels), default=0) > LONG_LABEL:
@@ -624,7 +624,7 @@ def pareto(df, ctx, target, group):
     rest = g.iloc[n_shown:]
     labels, values = [str(i) for i in g.index[:n_shown]], [float(v) for v in g.values[:n_shown]]
     texts = [f"{share.iloc[i]:.0%}  (cum. {cum.iloc[i]:.0%})" for i in range(n_shown)]
-    colors = [palette.ACCENT if i < k else NEUTRAL for i in range(n_shown)]       # the top k carry the point; the tail recedes
+    colors = list(palette.category_colours(range(n_shown)).values())       # the shared palette in rank order; the value labels carry the point
     if len(rest):
         labels.append(other_label(len(rest)))
         values.append(float(rest.sum()))

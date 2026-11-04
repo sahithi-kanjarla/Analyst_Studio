@@ -90,3 +90,31 @@ def test_no_two_categorical_colours_look_alike():
             # colour-blindness keeps
             blue_yellow = abs((ra[2] - (ra[0] + ra[1]) / 2) - (rb[2] - (rb[0] + rb[1]) / 2))
             assert lightness >= 1.35 or blue_yellow >= 45, (a, b, round(lightness, 2), blue_yellow)
+
+
+def test_every_categorical_colour_is_visible_on_the_panel():
+    """A mark is a graphic, not text: at least 3:1 against the panel, so no category fades into the page."""
+    for c in palette.CATEGORICAL:
+        assert contrast(c, palette.PANEL) >= 3.0, c
+
+
+def test_categorical_hues_are_distinct_and_other_is_neutral():
+    import colorsys
+    hues = []
+    for c in palette.CATEGORICAL:
+        h, l, s = colorsys.rgb_to_hls(*(int(c[1 + i * 2:3 + i * 2], 16) / 255 for i in range(3)))
+        hues.append((h * 360, l, s))
+    for i, (ha, la, sa) in enumerate(hues):
+        for hb, lb, sb in hues[i + 1:]:
+            gap = min(abs(ha - hb), 360 - abs(ha - hb))
+            assert gap >= 15 or abs(la - lb) >= 0.15 or abs(sa - sb) >= 0.3, (ha, hb)            # a different hue, clearly lighter or darker, or a grey beside a colour
+    h, l, s = colorsys.rgb_to_hls(*(int(palette.NEUTRAL_SOFT[1 + i * 2:3 + i * 2], 16) / 255 for i in range(3)))
+    assert s < 0.25                                                        # "Other" is a neutral, not a colour
+
+
+def test_categories_get_the_same_colour_everywhere_and_the_tail_is_neutral():
+    names = [f"c{i}" for i in range(9)]
+    a, b = palette.category_colours(names), palette.category_colours(names)
+    assert a == b
+    assert [a[n] for n in names[:6]] == palette.CATEGORICAL
+    assert {a[n] for n in names[6:]} == {palette.NEUTRAL_SOFT}

@@ -27,9 +27,15 @@ CATEGORICAL = [
     "#d1760c",      # cat-2
     "#2e7d32",      # cat-3
     "#c77aa6",      # cat-4
-    "#4d9fd6",      # cat-5
+    "#3a8cc4",      # cat-5
     "#3f4652",      # cat-6
 ]
+
+
+def category_colours(labels) -> dict:
+    """label -> colour for categories listed in rank order (largest first): the first six take the categorical colours, every other one the quiet neutral.
+    The browser charts and the pictures both call this, so a category keeps its colour in every chart."""
+    return {str(l): (CATEGORICAL[i] if i < len(CATEGORICAL) else NEUTRAL_SOFT) for i, l in enumerate(labels)}
 
 # matplotlib's prop_cycle wants the highlight first and quiet neutrals after it
 PALETTE = [ACCENT, NEUTRAL, *CATEGORICAL[1:], NEUTRAL_SOFT]

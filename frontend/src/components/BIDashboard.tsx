@@ -7,7 +7,7 @@ import { latestChange } from "../periodchange";
 import ChartModal, { ZoomEntry } from "./ChartModal";
 import FindingGallery, { FindingZoom, Tile } from "./FindingGallery";
 import { useView } from "./view/ViewContext";
-import { Columns, Donut, HBar, Item, PALETTE } from "./charts";
+import { categoryColours, Columns, Donut, HBar, Item } from "./charts";
 import LensPins from "./lens/LensPins";
 import { Sections, ShowAllLink, TabViewBar } from "./view/ViewUI";
 
@@ -118,6 +118,17 @@ export default function BIDashboard({ run }: { run: RunResult }) {
   /** What a column is called on screen: the name the analysis worked out for it, never the name in the file. */
   const label = (col: string) => displayName(col, run.understanding);
 
+  /** One colour per category value, from how many records it has in the whole file: the same value has the same colour in every chart, legend, chip and popup, whatever is filtered. */
+  const colourMaps = useMemo(() => {
+    const out: Record<string, Record<string, string>> = {};
+    (data?.dims ?? []).forEach((d) => {
+      const n = new Map<string, number>();
+      rows.forEach((r) => { const v = r.d[d.col]; if (v != null) n.set(v, (n.get(v) ?? 0) + 1); });
+      out[d.col] = categoryColours([...n.entries()].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1)).map(([k]) => k));
+    });
+    return out;
+  }, [data, rows]);
+
   const months = useMemo(() => new Set(rows.map((r) => r.ym).filter(Boolean)).size, [rows]);
   const grain: "month" | "day" = months >= 3 ? "month" : "day";
   const years = useMemo(() => [...new Set(rows.map((r) => r.y).filter((y): y is string => !!y))].sort(), [rows]);
@@ -226,14 +237,14 @@ export default function BIDashboard({ run }: { run: RunResult }) {
     const share = values.length >= 2 && values.length <= SHARE_SLICES ? planShare(values, { measure: measureKind, group: label(col), measureLabel: m.label }) : null;
     if (share?.suitable) {
       return { title: `Share of ${chartTitle(m.label, undefined, run.understanding).toLowerCase()} by ${label(col).toLowerCase()}`, sub: share.subtitle,
-        node: <Donut items={share.items as Item[]} selected={f.dims[col] ?? []} onToggle={(k) => toggleDim(col, k)} fmt={fmt} share={m.agg === "sum"} maxSize={h - 8} /> };
+        node: <Donut colours={colourMaps[col]} items={share.items as Item[]} selected={f.dims[col] ?? []} onToggle={(k) => toggleDim(col, k)} fmt={fmt} share={m.agg === "sum"} maxSize={h - 8} /> };
     }
     const fits = Math.max(3, Math.floor((h - 4) / BAR_ROW));
     const shown = values.slice(0, fits);
     const what = plural(label(col).toLowerCase());
     return { title: chartTitle(m.label, col, run.understanding),
       sub: values.length > shown.length ? `Top ${shown.length} of ${values.length} ${what} by ${m.label.toLowerCase()}` : `All ${values.length} ${what} by ${m.label.toLowerCase()}`,
-      node: <HBar items={shown} selected={f.dims[col] ?? []} onToggle={(k) => toggleDim(col, k)} fmt={fmt} share={m.agg === "sum"} whole={values.reduce((a, v) => a + Math.max(v.value, 0), 0)} /> };
+      node: <HBar colours={colourMaps[col]} items={shown} selected={f.dims[col] ?? []} onToggle={(k) => toggleDim(col, k)} fmt={fmt} share={m.agg === "sum"} whole={values.reduce((a, v) => a + Math.max(v.value, 0), 0)} /> };
   };
   const findingOf = (t: DashTile) => (run.findings ?? []).find((x) => x.id === t.finding_id);
   const tableDim = data.dims[0];
@@ -266,8 +277,8 @@ export default function BIDashboard({ run }: { run: RunResult }) {
       ? [{ id: open, node: <FindingZoom f={allFindings.find((x) => x.id === open)!} index={allFindings.findIndex((x) => x.id === open) + 1} /> }] : []),
   ];
 
-  const chips = [
-    ...Object.entries(f.dims).flatMap(([col, vs]) => vs.map((v) => ({ label: `${label(col)}: ${v}`, drop: () => toggleDim(col, v) }))),
+  const chips: { label: string; drop: () => void; colour?: string }[] = [
+    ...Object.entries(f.dims).flatMap(([col, vs]) => vs.map((v) => ({ label: `${label(col)}: ${v}`, drop: () => toggleDim(col, v), colour: colourMaps[col]?.[v] }))),
     ...f.years.map((v) => ({ label: `Year ${v}`, drop: () => setF((p) => ({ ...p, years: toggle(p.years, v) })) })),
     ...f.quarters.map((v) => ({ label: v, drop: () => setF((p) => ({ ...p, quarters: toggle(p.quarters, v) })) })),
     ...f.time.map((v) => ({ label: periodLabel(v, grain, years.length > 1), drop: () => setF((p) => ({ ...p, time: toggle(p.time, v) })) })),
@@ -322,8 +333,8 @@ export default function BIDashboard({ run }: { run: RunResult }) {
 
       {active ? (
         <div className="bi-chips">
-          <span className="bi-muted">Showing {filtered.length.toLocaleString()} of {rows.length.toLocaleString()} records</span>
-          {chips.map((c) => <button key={c.label} className="bi-chip" onClick={c.drop}>{c.label} ✕</button>)}
+          <span className="bi-muted"><b>Filtered by</b> · showing {filtered.length.toLocaleString()} of {rows.length.toLocaleString()} records</span>
+          {chips.map((c) => <button key={c.label} className="bi-chip" onClick={c.drop} aria-label={`Remove filter ${c.label}`}>{c.colour && <i className="bi-chip-dot" style={{ background: c.colour }} />}{c.label} ✕</button>)}
           <button className="bi-chip bi-clear" onClick={() => setF(EMPTY)}>Clear all</button>
         </div>
       ) : (
@@ -378,12 +389,12 @@ export default function BIDashboard({ run }: { run: RunResult }) {
                       <tr><th>{label(tableDim.col)}</th><th className="r">Records</th><th className="r">{m.label}</th><th>{m.agg === "sum" ? "Share" : "vs average"}</th></tr>
                     </thead>
                     <tbody>
-                      {tableShown.map((r, i) => {
+                      {tableShown.map((r) => {
                         const on = (f.dims[tableDim.col] ?? []).includes(r.key);
                         const diff = overall ? (r.value - overall) / Math.abs(overall) : 0;
                         return (
                           <tr key={r.key} className={on ? "sel" : ""} onClick={() => toggleDim(tableDim.col, r.key)}>
-                            <td><i style={{ background: PALETTE[i % PALETTE.length] }} />{r.key}</td>
+                            <td><i style={{ background: colourMaps[tableDim.col]?.[r.key] }} />{r.key}</td>
                             <td className="r">{r.n.toLocaleString()}</td>
                             <td className="r">{fmt(r.value)}</td>
                             <td>
