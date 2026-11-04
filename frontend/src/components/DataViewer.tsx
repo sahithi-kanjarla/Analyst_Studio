@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { api, DataCompare, DataPage, DataSource } from "../api";
+import State from "./State";
+import { api, CleaningStep, DataCompare, DataPage, DataSource } from "../api";
 
 const PAGE = 25;
 
 /** Lets the user inspect the data exactly as the analysis used it, compare with the original, and see what cleaning changed. */
-export default function DataViewer({ runId }: { runId: string }) {
+export default function DataViewer({ runId, log }: { runId: string; log?: CleaningStep[] }) {
   const [source, setSource] = useState("clean");
   const [sources, setSources] = useState<DataSource[]>([]);
   const [offset, setOffset] = useState(0);
@@ -28,6 +29,11 @@ export default function DataViewer({ runId }: { runId: string }) {
   }, [runId, source, offset, query, sort, desc]);
 
   const changed = cmp?.columns.filter((c) => c.changed) ?? [];
+  // every figure here is already in the run's own comparison and log; nothing is recalculated
+  const colsKept = cmp ? cmp.columns.filter((c) => c.in_clean).length : 0;
+  const colsOut = cmp ? cmp.columns.filter((c) => c.in_raw && !c.in_clean).map((c) => c.name) : [];
+  const rowsOut = cmp ? Math.max(0, cmp.rows_before - cmp.rows_after) : 0;
+  const fixes = (log ?? []).filter((s) => s.count > 0).length;
   const shownCols = (cmp?.columns ?? []).filter((c) => !onlyChanged || c.changed);
 
   function clickSort(col: string) {
@@ -41,14 +47,26 @@ export default function DataViewer({ runId }: { runId: string }) {
 
   return (
     <div className="dataviewer">
-      <p className="lead">
-        Browse every dataset of this run: the cleaned table the charts use, the original, and each uploaded file. {cmp && <>Cleaned: <strong>{cmp.rows_after.toLocaleString()}</strong> rows (original {cmp.rows_before.toLocaleString()}).</>}
-      </p>
+      {cmp && (
+        <div className="dt-tiles" data-kind="numbers" aria-label="Your data at a glance">
+          <div className="dt-tile"><b>{cmp.rows_after.toLocaleString()}</b><span>Rows kept{rowsOut > 0 ? ` of ${cmp.rows_before.toLocaleString()}` : ""}</span></div>
+          <div className="dt-tile"><b>{colsKept.toLocaleString()}</b><span>Columns</span></div>
+          <div className="dt-tile"><b>{log ? fixes.toLocaleString() : changed.length.toLocaleString()}</b><span>{log ? (fixes === 1 ? "Fix made" : "Fixes made") : (changed.length === 1 ? "Column changed" : "Columns changed")}</span></div>
+          <div className="dt-tile"><b>{rowsOut.toLocaleString()}</b><span>{rowsOut === 1 ? "Row left out" : "Rows left out"}</span></div>
+        </div>
+      )}
+      {cmp && (rowsOut > 0 || colsOut.length > 0) && (
+        <p className="dt-note" data-kind="caution">
+          <b>Left out of the analysis:</b>{" "}
+          {[rowsOut > 0 ? `${rowsOut.toLocaleString()} ${rowsOut === 1 ? "row" : "rows"} (removed while cleaning)` : "", colsOut.length ? `${colsOut.length === 1 ? "column" : "columns"} ${colsOut.join(", ")}` : ""].filter(Boolean).join(" and ")}. The original file is still there under Dataset.
+        </p>
+      )}
+      <p className="muted read">Browse the cleaned table the charts use, the original, or any uploaded file.</p>
 
       {cmp && (
         <details className="changes fold-working" open={changed.length > 0 && changed.length <= 8}>
           <summary>
-            How we got this: what cleaning changed — {changed.length === 0 ? "no column changed" : `${changed.length} of ${cmp.columns.length} columns`}
+            What cleaning changed: {changed.length === 0 ? "no column changed" : `${changed.length} of ${cmp.columns.length} columns`}
           </summary>
           <label className="check small">
             <input type="checkbox" checked={onlyChanged} onChange={(e) => setOnlyChanged(e.target.checked)} />
@@ -95,7 +113,8 @@ export default function DataViewer({ runId }: { runId: string }) {
         <a className="primary small" href={api.downloadUrl(runId, source)} download>Download this table (CSV)</a>
       </div>
 
-      {err && <div className="error">{err}</div>}
+      {err && <State kind="error" title="Could not load the table" compact>{err}. Pick the dataset again, or reload the page.</State>}
+      {!page && !err && <State kind="loading" title="Loading the table" compact />}
       {page && (
         <>
           <div className="tablewrap data-scroll">

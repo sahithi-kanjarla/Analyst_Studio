@@ -1,6 +1,7 @@
 import { ReportCard, RunResult } from "../api";
 import { bigNumber, direction, takeaway } from "../insightwidget";
 import { humanise, plainLabel, plainTitle, Understanding } from "../display";
+import HowSteps, { Step, TechDetail } from "./HowSteps";
 import LensChat from "./lens/LensChat";
 import { LensProvider } from "./lens/LensContext";
 import LensPins from "./lens/LensPins";
@@ -65,6 +66,24 @@ function Cautions({ run, trust }: { run: RunResult; trust?: string }) {
         : <p>The checks raised no warnings{trust ? `, and overall confidence is ${trust.toLowerCase()}` : ""}. Findings still show associations, not causes.</p>}
     </aside>
   );
+}
+
+/** The path from the file to this page in a few plain steps. Every count comes from the run's own record; nothing is recalculated. */
+function howSteps(run: RunResult, mode: string): Step[] {
+  const rows = run.profile?.rows, cols = run.profile?.cols;
+  const log = run.cleaning_log ?? [];
+  const fixes = log.filter((s) => s.count > 0).length;
+  const checks = run.plan?.analyses.length;
+  const found = run.findings?.length;
+  const ai = !/rules/i.test(mode);
+  return [
+    { icon: "file", text: rows ? <>Read your file: {rows.toLocaleString()} rows and {cols} columns.</> : "Read your file." },
+    { icon: "columns", text: "Worked out what each column holds, such as a date, an amount or a category." },
+    { icon: "broom", text: fixes ? <>Cleaned the data: {fixes} {fixes === 1 ? "fix" : "fixes"}, each one logged on the Data tab.</> : "Checked the data. Nothing needed fixing." },
+    { icon: "list", text: checks ? <>Chose {checks} checks that fit your question.</> : "Chose the checks that fit your question." },
+    { icon: "scale", text: found ? <>Ran them on every row and tested whether each result could be chance: {found} results.</> : "Ran them on every row and tested whether each result could be chance." },
+    { icon: "doc", text: ai ? "Wrote this page. Code worked out every figure; the AI only helped with wording." : "Wrote this page from fixed rules. Code worked out every figure." },
+  ];
 }
 
 /** The report as a designed page: the short answer, the key figures, what to do, the evidence, and everything else folded away. */
@@ -174,7 +193,8 @@ export default function ReportPage({ run, embedded = false, startChat = false, s
                         {c.details.length > 0 && (
                           <details className="fold fold-working">
                             <summary>How we got this</summary>
-                            <ul>{c.details.map((d, i) => <li key={i}>{humanise(d, run.understanding)}</li>)}</ul>
+                            <HowSteps steps={c.details.slice(0, 2).map((d) => ({ icon: "check", text: humanise(d, run.understanding) }))} />
+                            {c.details.length > 2 && <TechDetail><ul>{c.details.slice(2).map((d, i) => <li key={i}>{humanise(d, run.understanding)}</li>)}</ul></TechDetail>}
                           </details>
                         )}
                       </ViewItem>) };
@@ -201,9 +221,10 @@ export default function ReportPage({ run, embedded = false, startChat = false, s
               <details className="fold fold-working">
                 <summary>
                   <ViewTitle id="report:behind" text="How we got this" />
-                  <span className="fold-hint">the working: how the data was set up, what we cleaned, how each figure was calculated</span>
+                  <span className="fold-hint">six short steps, from your file to this page</span>
                 </summary>
-                <Md md={page.behind_md} />
+                <HowSteps steps={howSteps(run, page.mode)} />
+                <TechDetail><Md md={page.behind_md} /></TechDetail>
               </details>
             </section>
           ),

@@ -15,7 +15,9 @@ import DataViewer from "./DataViewer";
 import InsightCard from "./InsightCard";
 import Tiers from "./Tiers";
 import StrategyView from "./StrategyView";
+import { Icon, TechDetail } from "./HowSteps";
 import Md from "./Md";
+import State from "./State";
 import ReportPage from "./ReportPage";
 import LensChat from "./lens/LensChat";
 import { useLens } from "./lens/LensContext";
@@ -264,6 +266,18 @@ export function ReportBody({ md }: { md: string }) {
   );
 }
 
+/** A cleaning step's name as a plain verb phrase: "Convert to date" reads "Turned into dates". Names it does not know are shown as written. */
+const VERB: [RegExp, string][] = [
+  [/^standardi[sz]e missing/i, "Marked blanks and placeholders as missing"],
+  [/^convert to date/i, "Read text as dates"],
+  [/^convert to number/i, "Read text as numbers"],
+  [/^remove duplicates?/i, "Removed duplicate rows"],
+  [/^trim|whitespace/i, "Trimmed stray spaces"],
+  [/^(fill|impute)/i, "Filled gaps"],
+  [/^(drop|remove) (empty|blank)/i, "Removed empty rows"],
+];
+const plainVerb = (step: string) => VERB.find(([re]) => re.test(step))?.[1] ?? step;
+
 /** The cleaning log: every change made to the data, with the rows or values it touched. Used by the results tabs and the landing tour. */
 export function CleaningLog({ run }: { run: RunResult }) {
   const v = useView();
@@ -272,29 +286,29 @@ export function CleaningLog({ run }: { run: RunResult }) {
     <>
     <TabViewBar tab="cleaning" />
     <ViewItem id="cleaning:steps" tag="section" className="view-section">
-<table className="table">
-    <thead>
-      <tr>
-        <th>Step</th>
-        <th>What was done</th>
-        <th>Rows / values</th>
-      </tr>
-    </thead>
-    <tbody>
-      {shown.map(({ s, i }) => (
-        <tr key={i} data-view-id={`cleaning:step:${i}`}>
-          <td>{s.step}</td>
-          <td>{s.detail}</td>
-          <td>{s.count.toLocaleString()}</td>
-        </tr>
-      ))}
-      {!shown.length && (
-        <tr>
-          <td colSpan={3}>{run.cleaning_log?.length ? "Every step is hidden. Restore them from Hidden items." : "No changes were needed."}</td>
-        </tr>
+      {shown.length > 0 ? (
+        <>
+          <ul className="cl-list">
+            {shown.map(({ s, i }) => (
+              <li key={i} data-view-id={`cleaning:step:${i}`}>
+                <Icon name={s.count > 0 ? "broom" : "check"} />
+                <span className="cl-verb">{plainVerb(s.step)}</span>
+                <span className="cl-count">{s.count > 0 ? s.count.toLocaleString() : "none needed"}</span>
+              </li>
+            ))}
+          </ul>
+          <TechDetail>
+            <div className="tablewrap">
+              <table className="table">
+                <thead><tr><th>Step</th><th>What was done</th><th>Rows / values</th></tr></thead>
+                <tbody>{shown.map(({ s, i }) => <tr key={i}><td>{s.step}</td><td>{s.detail}</td><td>{s.count.toLocaleString()}</td></tr>)}</tbody>
+              </table>
+            </div>
+          </TechDetail>
+        </>
+      ) : (
+        <State kind="empty" title={run.cleaning_log?.length ? "Every step is hidden" : "Nothing needed cleaning"} compact>{run.cleaning_log?.length ? "Restore them from Hidden items." : "The data was clean as it came."}</State>
       )}
-    </tbody>
-  </table>
     </ViewItem>
     <ShowAllLink tab="cleaning" />
     </>
@@ -365,7 +379,7 @@ export function TabBody({ run, tab, embedded = false, startChat = false, startPr
 
       {tab === "chat" && <><TabViewBar tab="chat" /><ViewItem id="chat:conversation" tag="section" className="view-section"><LensChat variant="tab" /></ViewItem></>}
 
-      {tab === "data" && <><TabViewBar tab="data" />{!embedded && <ColumnMeanings run={run} />}{run.report_view?.left_out_count ? <p className="muted small left-out-note">{run.report_view.left_out_count} minor {run.report_view.left_out_count === 1 ? "finding was" : "findings were"} left out of the report views because {run.report_view.left_out_count === 1 ? "it was" : "they were"} too small or too uncertain to act on. They stay in the full results.</p> : null}<ViewItem id="data:table:clean" tag="section" className="view-section"><DataViewer runId={run.run_id} /></ViewItem></>}
+      {tab === "data" && <><TabViewBar tab="data" />{!embedded && <ColumnMeanings run={run} />}{run.report_view?.left_out_count ? <p className="muted small left-out-note">{run.report_view.left_out_count} minor {run.report_view.left_out_count === 1 ? "finding was" : "findings were"} left out of the report views because {run.report_view.left_out_count === 1 ? "it was" : "they were"} too small or too uncertain to act on. They stay in the full results.</p> : null}<ViewItem id="data:table:clean" tag="section" className="view-section"><DataViewer runId={run.run_id} log={run.cleaning_log} /></ViewItem></>}
 
       {tab === "report" && <ReportPage run={run} embedded={embedded} startChat={startChat} startPrint={startPrint} />}
 
@@ -373,7 +387,7 @@ export function TabBody({ run, tab, embedded = false, startChat = false, startPr
         <div className="insights">
           {run.context?.company && <p className="muted">Tailored for <strong>{run.context.company}</strong>{run.context.explore ? " (exploratory run: no specific question was set)" : ""}.</p>}
           {run.report_view ? <Tiers view={run.report_view} goalAnswer={run.goal_answer} understanding={run.understanding} /> : ranked.map((f, i) => <InsightCard key={f.id} f={f} index={i + 1} />)}
-          {!ranked.length && !run.report_view && <p className="empty-state">No insights came out of this data. The Data tab shows what was read and cleaned.</p>}
+          {!ranked.length && !run.report_view && <State kind="empty" title="No insights from this data">The Data tab shows what was read and cleaned. Try a file with more rows, or a clearer question.</State>}
         </div>
       )}
 
@@ -384,10 +398,7 @@ export function TabBody({ run, tab, embedded = false, startChat = false, startPr
 
       {tab === "model" && run.data_model && <><TabViewBar tab="model" /><ViewItem id="model:links" tag="section" className="view-section"><DataModel model={run.data_model} /></ViewItem></>}
       {tab === "model" && !run.data_model && (
-        <section className="empty-state" aria-label="How files connect">
-          <h3>One file, so nothing to connect</h3>
-          <p>This analysis read a single table, so there are no links between files to show. Upload several files together — orders and customers, say — and this page shows how they join up.</p>
-        </section>
+        <State kind="empty" title="One file, so nothing to connect">This analysis read a single table, so there are no links between files to show. Upload several files together, such as orders and customers, and this page shows how they join up.</State>
       )}
 
       {tab === "cleaning" && <CleaningLog run={run} />}

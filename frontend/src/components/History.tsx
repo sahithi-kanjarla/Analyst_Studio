@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import State from "./State";
 import { api, RunSummary } from "../api";
 
 const FILTERS = [
@@ -100,8 +101,8 @@ export default function History() {
           <input className="hist-search" type="search" placeholder="Search by question or file name" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search history" />
         </div>
 
-        {failed && <div className="error">Could not load history. Is the backend running?</div>}
-        {!runs && !failed && <p className="muted hist-empty">Loading…</p>}
+        {failed && <State kind="error" title="Could not load your history" compact>The server did not answer. Check that it is running, then reload.</State>}
+        {!runs && !failed && <State kind="loading" title="Loading your analyses" compact />}
         {runs && shown.length === 0 && (
           <p className="muted hist-empty">{runs.length === 0 ? "No analyses yet. Upload a file to run your first one." : "Nothing matches your search."}</p>
         )}

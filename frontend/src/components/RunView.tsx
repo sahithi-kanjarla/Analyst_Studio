@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import State from "./State";
 import { AgentEvent, api, RunResult } from "../api";
 import Timeline from "./Timeline";
 import Results from "./Results";
@@ -69,7 +70,7 @@ export default function RunView({ runId, tab }: { runId: string; tab?: string | 
         </aside>
       )}
       <section className="main">
-        {error && <div className="error">{error}</div>}
+        {error && <State kind="error" title="Could not load this report">{error}. Check your connection, then reload the page.</State>}
         {running && (
           <div className="card placeholder">
             <div className="orb" />
@@ -80,7 +81,7 @@ export default function RunView({ runId, tab }: { runId: string; tab?: string | 
           </div>
         )}
         {run?.status === "needs_input" && <QuestionForm runId={runId} onSubmitted={() => setAttempt((a) => a + 1)} />}
-        {run?.status === "error" && <div className="error">The analysis failed: {run.error}</div>}
+        {run?.status === "error" && <State kind="error" title="The analysis did not finish">{run.error}. Your file was not changed. Upload it again, or try a smaller file.</State>}
         {run?.status === "done" && (
           <ViewProvider runId={runId}>
             <LensProvider runId={runId}>

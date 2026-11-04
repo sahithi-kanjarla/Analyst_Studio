@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import State from "../State";
 import { api, Brief, RunResult } from "../../api";
 import Dialog from "../Dialog";
 import { BriefView } from "../lens/LensAnswer";
@@ -31,8 +32,8 @@ export function BriefsDialog({ runId, onClose }: { runId: string; onClose: () =>
   useEffect(() => { api.briefsList(runId).then((r) => setBriefs(r.briefs)).catch(() => setError("The briefs could not be loaded.")); }, [runId]);
   return (
     <Dialog title="Briefs" intro="Short documents for one reader, written from this report. Download any of them as a PDF." onClose={onClose} wide>
-      {error && <div className="error">{error}</div>}
-      {!briefs && !error && <p className="muted"><span className="spinner" /> Loading briefs…</p>}
+      {error && <State kind="error" title="Could not load the briefs" compact>Close this and open it again.</State>}
+      {!briefs && !error && <State kind="loading" title="Loading briefs" compact />}
       {briefs && briefs.length === 0 && (
         <p className="muted">
           There are no saved briefs yet. Ask Lens for one, for example “write a brief for the board”.{" "}

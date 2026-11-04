@@ -1,4 +1,5 @@
 import { DataGap, Finding, Strategy } from "../api";
+import State from "./State";
 import { humanise, Understanding } from "../display";
 import { ShowAllLink, ShowMore, TabViewBar, ViewItem, ViewTitle } from "./view/ViewUI";
 import { useView } from "./view/ViewContext";
@@ -49,7 +50,7 @@ export default function StrategyView({ strategies, summary, gaps, findings, unde
     return (
       <div className="strategy">
         <TabViewBar tab="strategy" />
-        <p className="empty-state">No ideas to try came out of this data yet. That usually means no finding was strong enough to act on — the Insights tab shows what was checked.</p>
+        <State kind="empty" title="No ideas to try yet">That usually means no finding was strong enough to act on. The Insights tab shows what was checked.</State>
       </div>
     );
   }

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ReportCard as Card } from "../api";
 import { groupOf, GROUPS, Group } from "../insightwidget";
 import InsightWidget from "./InsightWidget";
+import State from "./State";
 import { Sections, ShowAllLink, ShowMore, TabViewBar, ViewImg, ViewItem, ViewTitle } from "./view/ViewUI";
 import { useView } from "./view/ViewContext";
 
@@ -89,7 +90,7 @@ export default function Tiers({ view, goalAnswer, understanding }: { view: Repor
             </ul>
           </section>
         )}
-        {!view.evidence.length && !nullLines.length && <p className="empty-state">Nothing in this data was both reliable and big enough to call a finding. What was checked is listed below.</p>}
+        {!view.evidence.length && !nullLines.length && <State kind="empty" title="No finding stood out">Nothing in this data was both reliable and big enough to call a finding. What was checked is listed below.</State>}
       </>
     ),
     "insights:checked": view.checked.length > 0 ? (

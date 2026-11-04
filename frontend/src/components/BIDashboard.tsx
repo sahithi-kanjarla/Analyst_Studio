@@ -1,4 +1,5 @@
 import { ReactNode, useEffect, useMemo, useState } from "react";
+import State from "./State";
 import { api, DashData, DashMeasure, DashTile, Finding, RunResult } from "../api";
 import { planShare, planTable, plural, SHARE_SLICES, TABLE_ROWS } from "../chartsize";
 import { chartTitle, displayName, humanise, plainLabel } from "../display";
@@ -161,7 +162,7 @@ export default function BIDashboard({ run }: { run: RunResult }) {
   const toggle = (arr: string[], k: string) => (arr.includes(k) ? arr.filter((x) => x !== k) : [...arr, k]);
   const toggleDim = (col: string, k: string) => setF((p) => ({ ...p, dims: { ...p.dims, [col]: toggle(p.dims[col] ?? [], k) } }));
 
-  if (err) return <div className="error">Could not build the dashboard: {err}</div>;
+  if (err) return <State kind="error" title="Could not build the dashboard">{err}. Reload the page; the other tabs are not affected.</State>;
   // A large file sends a lot of rows and every figure is worked out in the browser, so hold the page's shape while that happens
   // instead of letting a bare line of text be replaced by a full grid.
   if (!data) {

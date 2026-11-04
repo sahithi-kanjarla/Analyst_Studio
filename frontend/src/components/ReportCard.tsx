@@ -3,6 +3,7 @@ import ReactMarkdown from "react-markdown";
 import { CardTable, ReportCard as Card } from "../api";
 import { planTable, TABLE_ROWS } from "../chartsize";
 import { humanise, plainTitle, prettify, Understanding } from "../display";
+import HowSteps, { Step, TechDetail } from "./HowSteps";
 import { ViewImg, ViewItem, ViewTitle } from "./view/ViewUI";
 
 export const LEVEL_CLASS: Record<string, string> = {
@@ -83,34 +84,38 @@ export function hasWorking(c: Card): boolean {
 }
 export function Working({ c, say, children }: { c: Card; say: (t: string) => string; children?: React.ReactNode }) {
   const st = c.stats;
+  const lines = [...c.confidence.reasons, ...c.checks].map((x) => say(x));
+  const steps: Step[] = [
+    { icon: "scale", text: <>How far to trust it: <strong>{c.confidence.label.toLowerCase()}</strong>.</> },
+    ...(st.n != null ? [{ icon: "rows", text: <>Checked on {Number(st.n).toLocaleString()} rows.</> }] : []),
+    ...lines.slice(0, 2).map((t) => ({ icon: "check", text: t })),
+  ];
   return (
-            <details className="fold fold-working">
-              
-              <summary>How we got this<span className="fold-hint">how far to trust it, the checks we ran and what to look at next</span></summary>
-              {children}
-              <ul className="tight">
-                {c.confidence.reasons.map((r, i) => <li key={i}>{say(r)}</li>)}
-                {c.checks.map((x, i) => <li key={`c${i}`}>{say(x)}</li>)}
-                {c.also.flatMap((a) => a.checks).map((x, i) => <li key={`a${i}`}>{say(x)}</li>)}
-              </ul>
-              {c.hypotheses.length > 0 && (
-                <>
-                  <h5>Possible explanations to test <span className="muted">(not conclusions)</span></h5>
-                  <ul className="tight">{c.hypotheses.map((h, i) => <li key={i}>{say(h)}</li>)}</ul>
-                </>
-              )}
-              {c.check_next.length > 0 && (
-                <>
-                  <h5>Check next</h5>
-                  <ul className="tight">{c.check_next.map((x, i) => <li key={i}>{say(x)}</li>)}</ul>
-                </>
-              )}
-              <p className="stats">
-                {st.n != null && <>n = {String(st.n)} </>}
-                {st.p != null && <>· {st.p < 0.001 ? "p < 0.001" : `p = ${st.p.toPrecision(2)}`} </>}
-                {st.p_adjusted != null && <>· adjusted {st.p_adjusted < 0.001 ? "p < 0.001" : `p = ${st.p_adjusted.toPrecision(2)}`}</>}
-              </p>
-            </details>
+    <details className="fold fold-working">
+      <summary>How we got this<span className="fold-hint">how far to trust it, in a few lines</span></summary>
+      <HowSteps steps={steps} />
+      <TechDetail>
+        {children}
+        {lines.length > 2 && <ul className="tight">{lines.slice(2).map((t, i) => <li key={i}>{t}</li>)}{c.also.flatMap((a) => a.checks).map((x, i) => <li key={`a${i}`}>{say(x)}</li>)}</ul>}
+        {c.hypotheses.length > 0 && (
+          <>
+            <h5>Possible explanations to test <span className="muted">(not conclusions)</span></h5>
+            <ul className="tight">{c.hypotheses.map((h, i) => <li key={i}>{say(h)}</li>)}</ul>
+          </>
+        )}
+        {c.check_next.length > 0 && (
+          <>
+            <h5>Check next</h5>
+            <ul className="tight">{c.check_next.map((x, i) => <li key={i}>{say(x)}</li>)}</ul>
+          </>
+        )}
+        <p className="stats">
+          {st.n != null && <>n = {String(st.n)} </>}
+          {st.p != null && <>· {st.p < 0.001 ? "p < 0.001" : `p = ${st.p.toPrecision(2)}`} </>}
+          {st.p_adjusted != null && <>· adjusted {st.p_adjusted < 0.001 ? "p < 0.001" : `p = ${st.p_adjusted.toPrecision(2)}`}</>}
+        </p>
+      </TechDetail>
+    </details>
   );
 }
 
