@@ -35,7 +35,7 @@ def place(tab: str) -> str:
 
 DEFAULT_SHORT = ()      # every tab opens showing everything: a reader should never have to click to reach a chart or its sentence.
 # "Show less" switches a tab to the short view, and Lens can still ask for it ("short view", "top 5"), which is what SHORT_INSIGHTS
-# and MAX_SHORT_CHARTS below are for. Only supporting detail stays folded, in the one "How we got this" section of an item.
+# and MAX_SHORT_CHARTS below are for. Only supporting detail stays folded, in the one "Details, trust and next steps" section of an item.
 SHORT_INSIGHTS = 5            # the short Insights view: the top 5, ranked by the report's own order
 MAX_SHORT_CHARTS = 6          # the short Report and Dashboard: at most 6 charts, and only those an action or the summary cites
 MAX_N = 50
@@ -227,7 +227,7 @@ def _other_tabs(result: dict, items: dict, tabs: dict, section, add) -> None:
     if not steps:
         add("cleaning", sec, "card", "cleaning:none", "No changes were needed", text="No changes were needed to the data.")
     plan = result.get("plan") or {}
-    sq, sa, sd, ss = section("plan", "questions", "Questions we set out to answer"), section("plan", "analyses", "What we checked, and why"), section("plan", "definitions", "Definitions used"), section("plan", "setup", "How the data was set up")
+    sq, sa, sd, ss = section("plan", "questions", "Questions asked"), section("plan", "analyses", "Checks run"), section("plan", "definitions", "Definitions used"), section("plan", "setup", "How the data was set up")
     for i, q in enumerate(plan.get("questions") or []):
         add("plan", sq, "card", f"plan:question:{i}", q, text=q)
     for i, a in enumerate(plan.get("analyses") or []):

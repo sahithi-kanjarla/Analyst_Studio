@@ -61,11 +61,11 @@ export default function RunView({ runId, tab }: { runId: string; tab?: string | 
     <div className={`runview ${sideOpen ? "" : "side-closed"}`}>
       {run?.status !== "done" && <RunBar name={running ? "Analysing your data…" : run?.status === "needs_input" ? "A few questions" : "Report"} />}
       <button className="side-toggle" onClick={toggleSide} aria-expanded={sideOpen} aria-label={sideOpen ? "Hide agent activity" : "Show agent activity"} title={sideOpen ? "Hide agent activity" : "Show agent activity"}>
-        ☰ <span>{sideOpen ? "Hide agent activity" : "Agent activity"}</span>
+        ☰ <span>{sideOpen ? "Hide agent activity" : "Progress"}</span>
       </button>
       {sideOpen && (
         <aside className="card side">
-          <h3>Agent activity</h3>
+          <h3>Progress</h3>
           <Timeline events={events} running={running} />
         </aside>
       )}

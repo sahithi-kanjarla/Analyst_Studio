@@ -123,7 +123,7 @@ export default function ReportPage({ run, embedded = false, startChat = false, s
                         <div>
                           <h3><ViewTitle id={`report:action:${i}`} text={humanise(t, run.understanding)} /></h3>
                           {why && !short && <p>{humanise(why, run.understanding)}</p>}
-                          {a.figure && !short && <details className="rp-support"><summary>What this rests on</summary><p data-kind="evidence">{humanise(a.figure.replace(/^Supported by:\s*/i, ""), run.understanding)}</p></details>}
+                          {a.figure && !short && <details className="rp-support"><summary>Based on</summary><p data-kind="evidence">{humanise(a.figure.replace(/^Supported by:\s*/i, ""), run.understanding)}</p></details>}
                         </div>
                       </ViewItem>) };
                   })} />

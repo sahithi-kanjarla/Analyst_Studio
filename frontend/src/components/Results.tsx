@@ -333,11 +333,11 @@ export function PlanView({ run }: { run: RunResult }) {
       <strong>Plan made by:</strong> {run.plan.source === "llm" || run.plan.source === "repaired" ? "the AI" : "our built-in rules"} · <strong>Number we focus on:</strong> {run.plan.target ?? "none"} · <strong>Date used:</strong> {run.plan.date_col ?? "none"}
     </p>
     <ViewItem id="plan:questions" tag="section" className="view-section">
-    <h4>Questions we set out to answer</h4>
+    <h4>Questions asked</h4>
     <ul>{run.plan.questions.map((q, i) => !v?.isHidden(`plan:question:${i}`) && <li key={q} data-view-id={`plan:question:${i}`}>{q}</li>)}</ul>
     </ViewItem>
     <ViewItem id="plan:analyses" tag="section" className="view-section">
-    <h4>What we checked, and why</h4>
+    <h4>Checks run</h4>
     <p className="muted">Some checks were suggested by the AI. Others were added by code because they are always needed.</p>
     <ol>
       {run.plan.analyses.map((a, i) => !v?.isHidden(`plan:analysis:${i}`) && !v?.isFolded(`plan:analysis:${i}`) && (
@@ -352,7 +352,7 @@ export function PlanView({ run }: { run: RunResult }) {
     <ShowAllLink tab="plan" />
     {run.decisions && run.decisions.length > 0 && (
       <>
-        <h4>Choices made along the way</h4>
+        <h4>Choices made</h4>
         <ul>
           {run.decisions.map((d, i) => (
             <li key={i}>
@@ -365,7 +365,7 @@ export function PlanView({ run }: { run: RunResult }) {
     )}
     {run.plan.skipped.length > 0 && (
       <>
-        <h4>What we left out</h4>
+        <h4>Columns left out</h4>
         <ul>{run.plan.skipped.map((s) => <li key={s.column}><code>{s.column}</code>: {s.reason}</li>)}</ul>
       </>
     )}

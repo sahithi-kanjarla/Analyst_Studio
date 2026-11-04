@@ -83,8 +83,8 @@ export default function Tiers({ view, goalAnswer, understanding }: { view: Repor
           </section>
         ))}
         {nullLines.length > 0 && (
-          <section className="iw-theme iw-null-lines" aria-label="Checked, and nothing found">
-            <h4 className="iw-theme-title">Checked, and nothing found<small>These looked for a difference and found no reliable one.</small></h4>
+          <section className="iw-theme iw-null-lines" aria-label="Checked, nothing found">
+            <h4 className="iw-theme-title">Checked, nothing found<small>These looked for a difference and found no reliable one.</small></h4>
             <ul className="chip-list">
               {nullLines.map((nl: NullLine) => <li key={nl.id} className="chip-static" title={nl.reason}>{plainTitle(nl.title, understanding)}</li>)}
             </ul>
@@ -111,7 +111,7 @@ export default function Tiers({ view, goalAnswer, understanding }: { view: Repor
         )}
         {profileLines > 0 && (
           <details className="fold fold-working">
-            <summary>How we got this<span className="fold-hint">how your columns look ({profileLines} {profileLines === 1 ? "line" : "lines"})</span></summary>
+            <summary>Column profile<span className="fold-hint">how your columns look ({profileLines} {profileLines === 1 ? "line" : "lines"})</span></summary>
             {([["Distributions", p.distributions], ["Outliers", p.outliers], ["Composition", p.composition]] as const).map(([title, items]) =>
               items.length > 0 && (
                 <section key={title}>

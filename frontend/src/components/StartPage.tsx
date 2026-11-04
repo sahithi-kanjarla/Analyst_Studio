@@ -109,7 +109,7 @@ function HowItWorks({ run }: { run: RunResult | null }) {
     { title: "Upload", text: "Drop in your sales file. CSV, Excel and JSON all work.",
       preview: <div className="drop drop-has"><span className="up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 16V4M7 9l5-5 5 5M5 20h14" /></svg></span><strong>Drag files here or click to browse</strong></div> },
     { title: "Answer a few simple questions", text: "Tell us what you want to know. We ask only when an answer changes a number.",
-      preview: run?.plan ? <div className="plan"><h4>Questions we set out to answer</h4><ul>{run.plan.questions.slice(0, 2).map((q) => <li key={q}>{q}</li>)}</ul></div> : null },
+      preview: run?.plan ? <div className="plan"><h4>Questions asked</h4><ul>{run.plan.questions.slice(0, 2).map((q) => <li key={q}>{q}</li>)}</ul></div> : null },
     { title: "We analyse", text: "The AI suggests what to look at. Code does every calculation.",
       preview: <Timeline events={events.slice(0, 6)} running={false} /> },
     { title: "Get a short report", text: "The answer, the key figures and what to do, on one page.",

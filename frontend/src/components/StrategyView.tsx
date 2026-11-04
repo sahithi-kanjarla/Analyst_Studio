@@ -119,7 +119,7 @@ export default function StrategyView({ strategies, summary, gaps, findings, unde
 
               {!short && (s.risks.length > 0 || s.evidence.length > 1) && (
                 <details className="fold fold-working">
-                  <summary>How we got this<span className="fold-hint">every finding it rests on and what could go wrong</span></summary>
+                  <summary>Evidence and risks<span className="fold-hint">every finding it rests on and what could go wrong</span></summary>
                   {s.evidence.length > 1 && <><h5>Findings behind it</h5><ul className="tight">{s.evidence.map((id) => <li key={id}>{headline(id)}</li>)}</ul></>}
                   {s.risks.length > 0 && <><h5>What could go wrong</h5><ul className="tight">{s.risks.map((r, i) => <li key={i}>{say(r)}</li>)}</ul></>}
                 </details>
@@ -145,14 +145,14 @@ export default function StrategyView({ strategies, summary, gaps, findings, unde
       {dropped > 0 && <p className="muted small">{dropped} lower-ranked {dropped === 1 ? "idea is" : "ideas are"} not shown.</p>}
       {foundation.length > 0 && (
         <section className="strat-foundations">
-          <h4>Groundwork worth doing anyway</h4>
+          <h4>Groundwork first</h4>
           <ul className="tight">{foundation.map((f) => <li key={f.id}>{say(f.line)}</li>)}</ul>
         </section>
       )}
 
       {gaps.length > 0 && (
         <section className="gaps">
-          <h4>What would sharpen this</h4>
+          <h4>To sharpen this</h4>
           <ul>
             {gaps.map((g, i) => (
               <li key={i} className={g.severity === "warn" ? "warn-text" : ""}>

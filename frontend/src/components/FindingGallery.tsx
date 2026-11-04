@@ -87,7 +87,7 @@ export default function FindingGallery({ run, more, extra, extraCount = 0 }: { r
 
       {dm && (dm.created.length > 0 || dm.rejected.length > 0) && (
         <section className="dash-section derived-box">
-          <h4>Definitions used: derived metrics</h4>
+          <h4>Calculated measures</h4>
           {dm.created.map((d) => (
             <p key={d.name} className="small">
               <code>{d.name}</code> = {d.a} / {d.b} (ratio of sums). {d.meaning}{" "}

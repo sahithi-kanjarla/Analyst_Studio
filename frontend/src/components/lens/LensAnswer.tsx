@@ -36,7 +36,7 @@ export function LensHowView({ how }: { how: LensHow }) {
       <p><strong>{first}</strong></p>
       {body.length > 0 && <ul>{body.map((l, i) => <li key={i}>{l}</li>)}</ul>}
       {foot && <p className="muted lens-small">{foot}</p>}
-      {how.sql && <details className="lens-sql" key={`s${open}`} open={open}><summary>The query that was run</summary><pre>{how.sql}</pre></details>}
+      {how.sql && <details className="lens-sql" key={`s${open}`} open={open}><summary>The query used</summary><pre>{how.sql}</pre></details>}
     </div>
   );
 }

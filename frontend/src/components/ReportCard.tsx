@@ -92,14 +92,14 @@ export function Working({ c, say, children }: { c: Card; say: (t: string) => str
   ];
   return (
     <details className="fold fold-working">
-      <summary>How we got this<span className="fold-hint">how far to trust it, in a few lines</span></summary>
+      <summary>Details, trust and next steps<span className="fold-hint">how far to trust it, in a few lines</span></summary>
       <HowSteps steps={steps} />
       <TechDetail>
         {children}
         {lines.length > 2 && <ul className="tight">{lines.slice(2).map((t, i) => <li key={i}>{t}</li>)}{c.also.flatMap((a) => a.checks).map((x, i) => <li key={`a${i}`}>{say(x)}</li>)}</ul>}
         {c.hypotheses.length > 0 && (
           <>
-            <h5>Possible explanations to test <span className="muted">(not conclusions)</span></h5>
+            <h5>Ideas to test</h5>
             <ul className="tight">{c.hypotheses.map((h, i) => <li key={i}>{say(h)}</li>)}</ul>
           </>
         )}

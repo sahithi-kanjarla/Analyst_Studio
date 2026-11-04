@@ -47,7 +47,7 @@ export default function InsightCard({ f, index }: { f: Finding; index: number })
         <div className="insight-text">
           {sees && <p className="rp-why">{sees}</p>}
           <details className="fold fold-working">
-            <summary>How we got this<span className="fold-hint">how far to trust it, in a few lines</span></summary>
+            <summary>Details, trust and next steps<span className="fold-hint">how far to trust it, in a few lines</span></summary>
             <HowSteps steps={steps} />
             <TechDetail>
               <section>
@@ -65,7 +65,7 @@ export default function InsightCard({ f, index }: { f: Finding; index: number })
               )}
               {ins.hypotheses.length > 0 && (
                 <section>
-                  <h5>Possible explanations to test <span className="muted">(not conclusions)</span></h5>
+                  <h5>Ideas to test</h5>
                   <ul className="tight">{ins.hypotheses.map((h, i) => <li key={i}>{h}</li>)}</ul>
                 </section>
               )}
