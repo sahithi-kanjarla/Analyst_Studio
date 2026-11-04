@@ -229,3 +229,34 @@ One `State` component (icon, title, plain message, what to try). Old class names
 - Screenshots (not committed) at 1440x900 and 390x844: `docs/screens/ui2/part2/sample/` (the stored sample run) and `docs/screens/ui2/part2/run/` (a fresh rules-only run of `sample_data/mall/sales.csv`, which uses the new chart titles). No horizontal scroll on any tab at either width; no console errors.
 - Not tested: a real-AI run, 1280 / 1920 widths, the Ideas to try tab beyond the shared empty state, and print/PDF output with the new Report layout.
 - Known: on the Report, "Ideas to try" stays full width at the bottom (the Lens view registry has no slot for the second column).
+
+# Part 2b — titles, chart quality, frames, Export menu, standalone Report, Lens run tools
+
+No number, trust label or verification changed. Fake AI only. Commits are one per step (see `git log`).
+
+## Step 1 — titles and headings
+- Bug: `plainTitle` removed any `x` followed by a space, so "mix across" became "mi across". Now a multiplier is removed only when a digit comes first ("47.2x"); a lone "x" between spaces still means "and". Also removed: parentheses, `=`/`<`/`>`/`%` and the figure after them, p-values; "across" reads "by"; at most six words. Tests: `plain_title_keeps_x_inside_words` (mix, tax, box, index, max), `..._still_removes_a_real_multiplier`, `..._has_no_symbols_or_p_values`, `..._is_at_most_six_words` (in `chartsize_check.mjs`, listed in `test_chartsize.py`).
+- Headings renamed (frontend and the Lens section names in `viewedit.py`): "How we got this" on a finding is now "Details, trust and next steps"; Ideas card "Evidence and risks"; "Possible explanations to test (not conclusions)" -> "Ideas to test"; "Questions we set out to answer" -> "Questions asked"; "What we checked, and why" -> "Checks run"; "Choices made along the way" -> "Choices made"; "What we left out" -> "Columns left out"; "How your tables connect/Tables/Relationships found/Join steps/Warnings" -> "How files connect/Files/Links found/How files were joined/Things to check"; "Definitions used: derived metrics" -> "Calculated measures"; "Checked, and nothing found" -> "Checked, nothing found"; "Agent activity" -> "Progress"; "What this rests on" -> "Based on". report.md keeps its old headings. No test needed changing for these (none looked for the old text in the page).
+
+## Step 2 — chart picture quality
+PNG at 2x, not SVG (every path, the PDF and the Power BI pack use `charts/*.png`). `chartfinish.py`: every backend picture is at most 4.6 in wide and 4.6 in high (3.4 in for stacked share bars), no text under 12 pt, saved at 192 dpi. Share bars: legend below, in-bar labels only for segments of 12% or more, dark text on light segments. Tests: `test_chartfinish.py`.
+Before/after of the stacked bar: `docs/screens/ui2/part2b/before/submix_before.png`, `submix_after.png`.
+
+## Step 3 — one frame
+`ChartFrame`: same border, padding, radius, thumbnail with a maximum height, "Open full size" popup; inside a fold the thumbnail is 120 px. Used by every picture (`ViewImg`, Insights card, dashboard tile).
+
+## Step 4 — tabs and Export
+Power BI is no longer a tab, a dialog or a registry tab. Export menu: Download PDF, Download report.md, Download cleaned data, Download Power BI pack (direct downloads), Briefs, Print. Old `#/run/<id>/powerbi` opens the Report. How we analysed: six one-line steps, an AI usage line (new `ai_usage` totals on the run result) and everything else under "Show technical detail". What we cleaned was already a short list with the detail folded.
+Tests changed: `test_simplify.py`, `test_nav.py`, `test_old_tab_names.py`, `test_agent_loop.py` (nine tabs), `lens_eval/requests.jsonl` (e081-e086 no longer mention `report:behind`), and the browser scripts `nav_check.js`, `simplify_check.js`, `widgets_check.js` plus their lists in `test_ui_nav.py`, `test_ui_simplify.py`. README updated.
+
+## Step 5 — the Report as a document
+Removed from the Report page: every "How we got this", the ideas list, the cautions note, the AI-partly pill, the mode/footer line. Added by code: a scope line ("Based on 1,500 records, 01 Jan 2018 to 31 Dec 2018, from 2 files"; "orders" only when an order key was verified) and footnotes for a partial last period or one the person said really ended. `report:behind` is gone from the Lens registry. Tests: `test_report_standalone.py`.
+
+## Step 6 — Lens run tools (partial)
+The request text was cut off after "(c) a search across the run's". Built: `run_sections` (list), `run_section` (read one of 14 sections), `run_search` (word search across sections), all read-only, chosen by the model from their descriptions, no keyword routing. Tests: `test_run_sections.py` (fake model). Anything that came after "(c)" in the request is not done.
+
+## Checks
+Tests run (touched files): test_chartsize, test_chartfinish, test_report_standalone, test_run_sections, test_simplify, test_nav, test_old_tab_names, test_agent_loop, test_agent_custom, test_lens_eval, test_lens, test_token_budget, test_palette, test_text_scan, test_partb_view, test_report_page_stage2, test_report_tiers, test_demo_run, test_display_names: pass. `test_lens_eval.py::test_the_real_ai_mode_refuses_without_a_model` fails when run after `test_lens.py` in one process and passes alone (order-dependent). `npx tsc -b` and `npm run build` clean.
+Screenshots (not committed) at 1440x900 and 390x844: `docs/screens/ui2/part2b/after/`. No horizontal scroll.
+Not tested: the browser tests (`test_ui_nav`, `test_ui_simplify`, widgets) were edited but not run; print/PDF output; a real-AI run of the new Lens tools; the full suite (leave to a cloud session).
+Known: the ranked bar charts and the payment-mode bar chart still have small text where long labels widen the picture, and two x labels overlap on the payment-mode bars; the Report's "What to do" support text is still "Based on" (folded).

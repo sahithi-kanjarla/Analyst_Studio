@@ -10,8 +10,8 @@ from __future__ import annotations
 
 import matplotlib
 
-MAX_WIDTH = 6.0           # inches
-MIN_FONT = 11.0           # points
+MAX_WIDTH = 4.6           # inches: a card shows the picture about 320 to 460 px wide, so this keeps the scale near 0.75
+MIN_FONT = 12.0           # points: 16 px natural, about 12 px at the card width
 MAX_HEIGHT = 4.6          # inches, for any chart
 COMPACT_HEIGHT = 3.4      # inches, for compact types (stacked share bars, small multiples of a few bars)
 

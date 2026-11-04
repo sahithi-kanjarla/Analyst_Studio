@@ -17,22 +17,22 @@ def _fig(w, h, size=7):
 
 
 def test_width_is_capped_and_the_aspect_ratio_kept():
-    fig = _fig(9.0, 4.5)
+    fig = _fig(9.2, 4.6)
     chartfinish.finish(fig)
     w, h = fig.get_size_inches()
-    assert w == pytest.approx(chartfinish.MAX_WIDTH) and h == pytest.approx(3.0)
+    assert w == pytest.approx(chartfinish.MAX_WIDTH) and h == pytest.approx(2.3)
     plt.close(fig)
 
 
 def test_a_narrow_chart_keeps_its_size():
-    fig = _fig(5.0, 3.0)
+    fig = _fig(4.0, 3.0)
     chartfinish.finish(fig)
-    assert tuple(fig.get_size_inches()) == (5.0, 3.0)
+    assert tuple(fig.get_size_inches()) == (4.0, 3.0)
     plt.close(fig)
 
 
 def test_height_is_capped_and_a_compact_chart_is_shorter():
-    tall, compact = _fig(6.0, 9.0), _fig(6.0, 9.0)
+    tall, compact = _fig(4.5, 9.0), _fig(4.5, 9.0)
     chartfinish.finish(tall)
     chartfinish.finish(compact, chartfinish.COMPACT_HEIGHT)
     assert tall.get_size_inches()[1] == pytest.approx(chartfinish.MAX_HEIGHT)

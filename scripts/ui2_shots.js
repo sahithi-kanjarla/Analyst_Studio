@@ -8,7 +8,7 @@ const fs = require('fs');
 const path = require('path');
 
 const [base, outDir, label, ...rest] = process.argv.slice(2);
-const RUN = '5a1e5d3e0001';
+const RUN = process.env.RUN || '5a1e5d3e0001';          // RUN=<id> for another run; COOKIE=<name>=<value> when that run belongs to a visitor (owner separation)
 const WIDTHS = process.env.WIDTHS ? process.env.WIDTHS.split(',').map((x) => x.split('x').map(Number)) : [[1280, 720], [1440, 900], [1920, 1080], [390, 844]];
 const ALL = ['landing', 'Report', 'Insights', 'Ideas to try', 'Dashboard', 'Data'];
 const pages = rest.length ? rest : ALL;
@@ -18,6 +18,7 @@ const out = {};
   const b = await chromium.launch();
   for (const [w, h] of WIDTHS) {
     const ctx = await b.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 1 });
+    if (process.env.COOKIE) { const [n, ...v] = process.env.COOKIE.split('='); await ctx.addCookies([{ name: n, value: v.join('='), url: base }]); }
     const p = await ctx.newPage();
     const errs = [];
     p.on('pageerror', (e) => errs.push(String(e).slice(0, 160)));

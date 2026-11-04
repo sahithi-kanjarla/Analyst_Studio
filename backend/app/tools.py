@@ -985,10 +985,13 @@ def composition(df, ctx, group, by):
     ys = [_shorten(i, 24) for i in shown_share.index]
     for i, col in enumerate(shown_share.columns):
         other = str(col).startswith("Other (")
-        ax.barh(ys, shown_share[col].values, left=left, color=OTHER_COLOR if other else PALETTE[i % len(PALETTE)], label=_shorten(col, 22), edgecolor="white", linewidth=0.6)
+        seg = OTHER_COLOR if other else PALETTE[i % len(PALETTE)]
+        ax.barh(ys, shown_share[col].values, left=left, color=seg, label=_shorten(col, 22), edgecolor="white", linewidth=0.6)
+        r, g, b = matplotlib.colors.to_rgb(seg)
+        label_color = palette.INK if (0.299 * r + 0.587 * g + 0.114 * b) > 0.6 else "white"          # dark text on a light segment, white on a dark one
         for j, val in enumerate(shown_share[col].values):
-            if val >= 0.10:          # a segment narrower than this cannot hold a readable label
-                ax.text(left[j] + val / 2, j, f"{val:.0%}", ha="center", va="center", fontsize=11, color=palette.INK if other else "white")
+            if val >= 0.12:          # a segment narrower than this cannot hold a readable label
+                ax.text(left[j] + val / 2, j, f"{val:.0%}", ha="center", va="center", fontsize=11, color=label_color)
         left += shown_share[col].values
     ax.set_xlim(0, 1)
     ax.xaxis.set_major_formatter(matplotlib.ticker.PercentFormatter(1.0))
