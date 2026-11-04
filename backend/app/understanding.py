@@ -55,8 +55,9 @@ role: measure (a quantity you can add or average), category (a group to split by
 goal_columns: every noun or term in the goal that points at data, mapped to the column(s) holding it, as {"<term as written in the goal>": ["<column>", ...] or "none"}. A plural or a different wording still maps (a goal word "states" can be a column called ship-state).
 Use "none" only when no column holds that term. Do not list verbs or filler words.
 goal_term_kinds: for every term in goal_columns, "data" when it refers to data (a column, a group, a measure or a time period) or "descriptive" when it only describes the question (a word such as best, worst, where or how much). Descriptive terms are ignored.
+order_key: the one column that identifies a single order, invoice or transaction (a label that names one order, not a product, customer or row number you merely guess at), or "none" when no column does.
 Use only the column names given, exactly as written. Never write a number.
-Return JSON: {"columns": [{"column": str, "meaning": str, "role": str, "display_name": str, "goal_terms": [str], "expected": str, "measure_kind": str}], "goal_columns": {"<term>": [str] | "none"}, "goal_term_kinds": {"<term>": "data" | "descriptive"}}"""
+Return JSON: {"columns": [{"column": str, "meaning": str, "role": str, "display_name": str, "goal_terms": [str], "expected": str, "measure_kind": str}], "goal_columns": {"<term>": [str] | "none"}, "goal_term_kinds": {"<term>": "data" | "descriptive"}, "order_key": str}"""
 
 
 def build_view(sheet: dict, goal: str, ctx: dict | None) -> str:
@@ -130,13 +131,15 @@ def validate(obj, columns: list[str]) -> tuple[dict | None, list[str]]:
     goal_columns = {t: c for t, c in goal_columns.items() if t not in descriptive}      # a descriptive word is not data: code ignores it
     if len(goal_columns) > MAX_TERMS:
         goal_columns = dict(list(goal_columns.items())[:MAX_TERMS])
-    return ({"columns": cols, "goal_columns": goal_columns, "descriptive": descriptive[:MAX_TERMS]}, []) if not errors else (None, errors)
+    ok = obj.get("order_key")
+    order_key = ok.strip() if isinstance(ok, str) and ok.strip() in known else NONE if isinstance(ok, str) and ok.strip().lower() == NONE else ""      # a column that does not exist is no answer (the order key is never a reason to fail the record)
+    return ({"columns": cols, "goal_columns": goal_columns, "descriptive": descriptive[:MAX_TERMS], "order_key": order_key}, []) if not errors else (None, errors)
 
 
 def _record(source: str, parts: dict | None = None, retries: int = 0, error: str = "") -> dict:
     parts = parts or {"columns": {}, "goal_columns": {}, "descriptive": []}
     return {"source": source, "columns": parts["columns"], "goal_columns": parts["goal_columns"],
-            "descriptive": parts.get("descriptive", []), "unmapped": [t for t, c in parts["goal_columns"].items() if not c], "retries": retries, "error": error}
+            "descriptive": parts.get("descriptive", []), "order_key": parts.get("order_key", ""), "unmapped": [t for t, c in parts["goal_columns"].items() if not c], "retries": retries, "error": error}
 
 
 def resolve(llm, df: pd.DataFrame, profile: dict, goal: str, ctx: dict | None, state: dict | None = None, saved: dict | None = None) -> dict:
@@ -272,28 +275,42 @@ def with_derived(rec: dict | None, derived: list[dict]) -> dict | None:
 
 
 def display_names(state: dict) -> dict[str, str]:
-    """{internal name: readable name} for every column and derived measure whose name is not readable as it is (underscores, camelCase). Names that already read well are left alone."""
+    """{internal name: readable name} for every column and derived measure whose readable name differs from the name itself (underscores, camelCase, or words the record shows apart: 'costamount' -> 'Cost amount').
+    A name that already reads well, apart from its capitals, is left alone."""
     rec = state.get("understanding") or {}
     plan = state.get("plan") or {}
     dm = list(plan.get("derived") or []) + list((state.get("derived_metrics") or {}).get("created") or [])
     names = [c["name"] for c in (state.get("profile") or {}).get("columns", [])] + [d["name"] for d in dm]
     out = {}
     for n in names:
-        if not re.search(r"_|[a-z0-9][A-Z]", n):
-            continue
         d = next((x for x in dm if x["name"] == n), None)
-        out[n] = ((rec.get("derived") or {}).get(n) or (derived_display(d) if d else "")
-                  or ((rec.get("columns") or {}).get(n) or {}).get("display_name") or readable_name(n))
+        shown = ((rec.get("derived") or {}).get(n) or (derived_display(d) if d else "")
+                 or ((rec.get("columns") or {}).get(n) or {}).get("display_name") or readable_name(n))
+        if shown and shown.casefold() != str(n).casefold():
+            out[n] = shown
     return out
 
 
-def readable(text: str, state: dict) -> str:
-    """The text with every internal column or derived-measure name replaced by its display name (one pass, so a display name is never replaced again). Main view only: the details keep the internal names."""
-    names = display_names(state)
+def apply_names(text: str, names: dict[str, str]) -> str:
+    """The text with every internal name replaced by its display name (one pass, so a display name is never replaced again)."""
     if not names or not text:
         return text
     rx = re.compile(r"(?<![A-Za-z0-9_])(" + "|".join(re.escape(n) for n in sorted(names, key=len, reverse=True)) + r")(?![A-Za-z0-9_])")
     return rx.sub(lambda m: names[m.group(1)], text)
+
+
+def readable_md(text: str, state: dict) -> str:
+    """`readable` for markdown: the targets of links and images (file paths) are never changed."""
+    names = display_names(state)
+    if not names or not text:
+        return text
+    parts = re.split(r"(\]\([^)\n]*\))", text)
+    return "".join(p if k % 2 else apply_names(p, names) for k, p in enumerate(parts))
+
+
+def readable(text: str, state: dict) -> str:
+    """The text with every internal column or derived-measure name replaced by its display name. Used for everything a reader sees; ids, parameters and file names keep the internal names."""
+    return apply_names(text, display_names(state)) if text else text
 
 
 def unmapped_lines(rec: dict | None) -> list[str]:

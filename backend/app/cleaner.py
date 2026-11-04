@@ -39,8 +39,11 @@ def coerce_types(df: pd.DataFrame, profile: dict, date_order: dict | None = None
     df = df.copy()
     df.columns = [str(c).strip() for c in df.columns]
     roles = {c['name']: c['role'] for c in profile['columns']}
-    df = fill_order_details(df, log, roles)
-    df = count_order_amounts_once(df, log, roles)
+    key = (profile.get("grain") or {}).get("key")           # set only from the AI's record or the user's answer, and verified against the data
+    df = fill_order_details(df, log, roles, key)
+    df = count_order_amounts_once(df, log, roles, key)
+    if key:
+        df.attrs["order_key"] = key
     df, n_na = normalize_strings(df, log)
     if n_na:
         log.append({"step": "Standardise missing values", "detail": "Trimmed whitespace and converted placeholders like 'N/A', 'null', '-' to real missing values", "count": n_na})
@@ -79,7 +82,8 @@ def coerce_types(df: pd.DataFrame, profile: dict, date_order: dict | None = None
     # Runs last, so rows that only differed by formatting (a currency prefix, a label's case) count as duplicates too.
     can_identify = any(c["role"] in ("id", "numeric", "date", "text") for c in profile["columns"])
     n_dup = int(df.duplicated().sum())
-    if n_dup and detect_grain(df, {c['name']: c['role'] for c in profile['columns']}):
+    gk = (profile.get("grain") or {}).get("key")
+    if n_dup and gk and (detect_grain(df, {c['name']: c['role'] for c in profile['columns']}, gk) or {}).get("verdict") == "verified":
         log.append({"step": "Kept duplicates", "detail": f"{n_dup} identical rows were KEPT: in a file with several rows per order, the same product listed twice in one order is two lines, not a repeated record", "count": n_dup})
     elif can_identify:
         df = df.drop_duplicates().reset_index(drop=True)
@@ -243,6 +247,13 @@ def apply_directives(df: pd.DataFrame, questions: list[dict], answers: dict) -> 
                     continue
                 also = f", analysed alongside {', '.join(a['columns'][1:])}" if len(a["columns"]) > 1 else ""
                 note(q, f"'{a['columns'][0]}' is the main number{also} ({n:,} rows have a value).", n)
+        elif t == "set_data_end":
+            if not gone(q, [a["column"]]):
+                df.attrs["data_end_is_real"] = True
+                note(q, f"The data ends on {pd.to_datetime(df[a['column']], errors='coerce').max():%Y-%m-%d} because things really stopped there, as you said; a lower last period is read that way.", int(df[a["column"]].notna().sum()))
+        elif t == "set_order_key":
+            if not gone(q, [a["column"]]):          # the key was verified and applied when the types were fixed (coerce_types); here the answer is only recorded
+                note(q, f"'{a['column']}' identifies one order.", int(df[a["column"]].notna().sum()))
         elif t == "treat_value_as_missing":
             if gone(q, [a["column"]]):
                 continue

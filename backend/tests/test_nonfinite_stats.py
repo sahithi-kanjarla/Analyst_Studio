@@ -68,10 +68,12 @@ def test_a_report_whose_figures_include_undefined_statistics_is_served_as_json()
     assert body["run_id"] == rid and body["profile"]["rows"] == 60
 
 
-def test_the_shopify_orders_file_opens_over_the_api():
+def test_the_shopify_orders_file_opens_over_the_api(monkeypatch):
     """The file that showed this up. Two of its columns ("Lineitem requires shipping", "Lineitem taxable") never change, so their skew is NaN, and that alone
     made the whole report fail with a 500: the report page never opened for it. The figures it reports are the same ones as before."""
     f = Path(__file__).parent / "fixtures" / "varied" / "a_shopify_orders.csv"
+    from app import grain
+    monkeypatch.setattr(grain, "ai_order_key", lambda rec: ("Name", "named"))          # a fake understanding record names the order column
     rid = runner.create_run("Which products and cities bring the most revenue?", [(f.name, f.read_bytes())])
     runner.start_run(rid).join(timeout=600)
     wd = runner.run_dir(rid)

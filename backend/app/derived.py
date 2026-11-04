@@ -19,6 +19,7 @@ import numpy as np
 import pandas as pd
 
 from . import context as ctxmod, directives as dv
+from . import derived_cols as dc
 from .llm import ask_json
 
 MAX_DERIVED = 2
@@ -89,6 +90,42 @@ def _clean_meaning(m) -> str | None:
     return m if MEANING_MIN <= len(m) <= MEANING_MAX else None
 
 
+def looks_like_count(x: pd.Series) -> bool:
+    """Whole numbers with few distinct values (1, 2, 3 ... 8): a count of something, not a rate."""
+    x = x.replace([np.inf, -np.inf], np.nan).dropna()
+    return len(x) >= MIN_ROWS and bool(np.allclose(x, np.round(x), atol=1e-6)) and int(np.round(x).nunique()) <= COUNT_MAX_DISTINCT
+
+
+def check_proposal(df: pd.DataFrame, a: str, b: str) -> tuple[bool, str, dict]:
+    """`check_ratio` plus the checks that stop a ratio from restating what the table already holds. Values only.
+      * the ratio equals, within rounding, a column that exists (a total divided by its own unit price is the quantity), or a simple product, sum or difference of two columns
+      * a total (a column that is the product of others) divided by one of its own factors, or by any per-unit rate
+      * its values are whole numbers with few distinct values, which is a count"""
+    ok, why, facts = check_ratio(df, a, b)
+    if not ok:
+        return ok, why, facts
+    x, y = _num(df, a), _num(df, b)
+    ratio = (x / y.where(y > 0)).replace([np.inf, -np.inf], np.nan)
+    num = [c for c in dc.numeric_columns(df) if c not in (a, b)]
+    for c in num:
+        if dc.is_close_to(ratio, df[c]):
+            return False, f"{a} / {b} gives the same values as the column {c}, so it adds nothing new", {}
+    calc = dc.derived_columns(df)
+    if a in calc and calc[a]["op"] == "product" and b in calc[a]["inputs"]:
+        other = next(c for c in calc[a]["inputs"] if c != b)
+        return False, f"{a} is {dc.describe(calc[a])}, so dividing it by {b} just returns {other}", {}
+    if a in calc and b in dc.per_unit_factors(df):
+        return False, f"{b} is a price or rate per unit and {a} is a total; a total over a per-unit rate is a count of units, not a ratio worth tracking", {}
+    if looks_like_count(ratio):
+        return False, f"{a} / {b} gives whole numbers with few different values, which is a count, not a ratio", {}
+    frame = df[num + [a, b]].apply(pd.to_numeric, errors="coerce").assign(__r=ratio)
+    for rel in dc.relations(frame):
+        members = {rel["result"], *rel["inputs"]}
+        if "__r" in members and members != {"__r", a, b}:
+            return False, f"{a} / {b} is the same as a simple calculation on other columns ({dc.describe(rel).replace('__r', 'it')})", {}
+    return ok, why, facts
+
+
 def propose(llm, df: pd.DataFrame, measures: list[str], goal: str, ctx_text: str = "") -> tuple[list[dict], list[dict]]:
     """(accepted, rejected). No LLM, or an unusable answer, gives ([], [])."""
     measures = [m for m in measures if m in df.columns][:8]
@@ -114,7 +151,7 @@ def propose(llm, df: pd.DataFrame, measures: list[str], goal: str, ctx_text: str
         if meaning is None:
             rejected.append({"a": a, "b": b, "reason": "the proposal came without a one-line business meaning"})
             continue
-        ok, why, facts = check_ratio(df, a, b)
+        ok, why, facts = check_proposal(df, a, b)
         if not ok:
             rejected.append({"a": a, "b": b, "meaning": meaning, "reason": why})
             continue

@@ -43,3 +43,20 @@ def fresh_ai_state(monkeypatch, tmp_path):
     monkeypatch.setattr(pacing, "_sleep", lambda s: None)      # a test never really waits for the token window (the pacing tests use a fake clock)
     yield
     llm.begin_run()
+
+
+ORDER_KEY_QUESTION_TESTS = ("test_order_key", "test_varied_data")       # the modules that exercise the order-key question itself
+
+
+@pytest.fixture(autouse=True, scope="module")
+def no_order_key_question(request):
+    """Rules-only runs pause with "Which column identifies one order?" whenever a column is named like an order key. The older tests are about other things and use order_id columns freely, so for them the
+    question is not generated; the tests of the question itself (ORDER_KEY_QUESTION_TESTS) see the real behaviour. Module scope, because module-scoped run fixtures are built before any function fixture."""
+    if request.module.__name__.split(".")[-1] in ORDER_KEY_QUESTION_TESTS:
+        yield
+        return
+    from app import signals
+    mp = pytest.MonkeyPatch()
+    mp.setattr(signals, "order_key_signal", lambda profile: [])
+    yield
+    mp.undo()
