@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { ReportCard, RunResult } from "../api";
-import { bigNumber, direction, takeaway } from "../insightwidget";
 import { humanise, plainLabel, plainTitle, Understanding } from "../display";
+import { Columns } from "./charts";
+import Dialog from "./Dialog";
 import LensChat from "./lens/LensChat";
 import { LensProvider } from "./lens/LensContext";
 import LensPins from "./lens/LensPins";
@@ -9,12 +11,12 @@ import { Sections, ShowAllLink, ShowMore, TabViewBar, ViewImg, ViewItem, ViewTit
 import { useView } from "./view/ViewContext";
 import { ReportBody } from "./Results";
 
-/** "Put more behind what works: Segment = Enterprise: Grow overall revenue…" -> a short title and one line of why. */
-function splitAction(text: string): { title: string; why: string } {
-  const i = text.indexOf(":");
-  const j = text.lastIndexOf(":");
-  if (i === -1) return { title: text, why: "" };
-  return { title: text.slice(0, i).trim(), why: text.slice(j + 1).trim() };
+/** The action's bold lead, one plain line and the rest, as split by code on the server; the old split is the fallback for a run saved before it. */
+function splitAction(a: { text: string; split_lead?: string; split_line?: string; split_rest?: string }): { lead: string; line: string; rest: string } {
+  if (a.split_lead !== undefined) return { lead: a.split_lead, line: a.split_line ?? "", rest: a.split_rest ?? "" };
+  const i = a.text.indexOf(":");
+  const j = a.text.lastIndexOf(":");
+  return i === -1 ? { lead: a.text, line: "", rest: "" } : { lead: a.text.slice(0, i).trim(), line: a.text.slice(j + 1).trim(), rest: "" };
 }
 
 /** Display only: the statistic in brackets is left out of the page, the sentence itself is unchanged. */
@@ -27,27 +29,70 @@ const chartHeading = (title: string, und?: Understanding | null) => {
   return t.charAt(0).toUpperCase() + t.slice(1);
 };
 
-/** One curated finding in "What matters": a lead figure, a plain title, a small chart, the result in one line and one or two sentences on why it matters. */
+/** Simple bars with the value at the end of each: no error bars, no n= labels (those stay in the full-size picture and the details). */
+function SimpleBars({ items, total }: { items: { label: string; value: number; text: string }[]; total: number }) {
+  const max = Math.max(...items.map((i) => Math.abs(i.value)), 0.0001);
+  return (
+    <div className="rp-bars">
+      <ol className="iw-rank">
+        {items.map((i) => (
+          <li key={i.label}>
+            <span className="iw-rank-label" title={i.label}>{i.label}</span>
+            <span className="iw-rank-bar" aria-hidden><s style={{ width: `${Math.max(2, (Math.abs(i.value) / max) * 100)}%` }} /></span>
+            <b className="iw-rank-val">{i.text}</b>
+          </li>
+        ))}
+      </ol>
+      {total > items.length && <p className="rp-bars-note">Top {items.length} of {total.toLocaleString()}</p>}
+    </div>
+  );
+}
+
+/** What a Report card draws: monthly columns for a trend (the Dashboard's per-month chart), simple bars for a comparison, otherwise the finding's own picture. */
+function Visual({ c, alt }: { c: ReportCard; alt: string }) {
+  const [open, setOpen] = useState(false);
+  const L = c.lead;
+  const fmt = (v: number) => {
+    const a = Math.abs(v);
+    return a >= 1e6 ? `${Math.round(v / 1e5) / 10}M` : a >= 1e4 ? `${Math.round(v / 100) / 10}K` : a >= 1000 ? Math.round(v).toLocaleString() : String(Math.round(v * 100) / 100);
+  };
+  const drawn = L && (L.series.length > 1 || L.bars.length > 1);
+  if (!drawn) return c.chart_url ? <div className="rp-viz"><ViewImg id={`report:chart:${c.id}`} src={c.chart_url} alt={alt} /></div> : <div className="rp-viz" />;
+  return (
+    <figure className="rp-viz rp-viz-drawn chart-frame" data-kind="chart">
+      {L.series.length > 1
+        ? <Columns items={L.series.map((p) => ({ key: p.key, label: p.label, value: p.value }))} selected={[]} onToggle={() => undefined} fmt={fmt} height={170} />
+        : <SimpleBars items={L.bars} total={L.bars_total} />}
+      {c.chart_url && <button type="button" className="link chart-frame-open no-print" onClick={() => setOpen(true)}>Open full size</button>}
+      {open && c.chart_url && <Dialog title={alt} onClose={() => setOpen(false)} wide><img className="chart-full" src={c.chart_url} alt={alt} /></Dialog>}
+    </figure>
+  );
+}
+
+/** One curated finding in "What matters": a lead figure a reader cares about, a plain title, one plain line, a simple chart, and the working behind it folded. */
 function ReportFinding({ c, und }: { c: ReportCard; und?: Understanding | null }) {
   const say = (t: string) => humanise(t, und);
   const cid = `report:finding:${c.id}`;
-  const big = bigNumber(c.headline, c.tool);
-  const dir = direction(c.headline, c.tool, big?.sign ?? 0);
-  const why = takeaway(say(c.why_it_matters), say(c.observation), 190);
+  const L = c.lead;
+  const dir = L && L.sign ? (L.sign > 0 ? "up" : "down") : null;
   return (
     <ViewItem id={cid} tag="article" className="rp-chart rp-matter" data-kind="chart">
-      {big ? (
-        <p className={`rp-lead ${dir ? `rp-${dir}` : ""}`}><b>{dir === "up" ? "▲ " : dir === "down" ? "▼ " : ""}{big.value}</b><span>{big.label}</span></p>
+      {L?.value ? (
+        <p className={`rp-lead ${dir ? `rp-${dir}` : ""}`}><b>{dir === "up" ? "▲ " : dir === "down" ? "▼ " : ""}{L.value}</b><span>{say(L.label)}</span></p>
       ) : (
         <p className="rp-lead"><span className={`rp-trust rp-trust-${c.confidence.level}`}>{c.confidence.label} confidence</span></p>
       )}
       <h3><ViewTitle id={cid} text={plainTitle(c.title, und)} /></h3>
-      <p className="iw-line" data-kind="takeaway">{say(c.headline)}</p>
-      {c.chart_url && <ViewImg id={`report:chart:${c.id}`} src={c.chart_url} alt={say(c.title)} />}
-      {why && <p className="rp-why" data-kind="reason">{why}</p>}
-      {c.merged && c.merged.items.length > 1 && (
-        <ul className="muted small">{c.merged.items.map((it) => <li key={it.id}>{say(it.text)}</li>)}</ul>
-      )}
+      {L?.line && <p className="iw-line rp-line" data-kind="takeaway">{say(L.line)}</p>}
+      <Visual c={c} alt={say(c.title)} />
+      <details className="rp-support rp-more-details">
+        <summary>Details</summary>
+        {L?.why && <p className="rp-why" data-kind="reason">{say(L.why)}</p>}
+        {L?.ratio && <p>{L.ratio}</p>}
+        {L?.difference && <p>This is {L.difference}.</p>}
+        <p>How far to trust it: {c.confidence.label.toLowerCase()}.{c.stats.n != null ? ` Checked on ${Number(c.stats.n).toLocaleString()} records.` : ""}</p>
+        {L && L.merged.length > 0 && <ul className="muted small">{L.merged.map((t, i) => <li key={i}>{say(t)}</li>)}</ul>}
+      </details>
     </ViewItem>
   );
 }
@@ -116,14 +161,15 @@ export default function ReportPage({ run, embedded = false, startChat = false, s
               {page.actions.length > 0 ? (
                 <ol className="rp-todo">
                   <ShowMore tab="report" items={page.actions.map((a, i) => {
-                    const { title: t, why } = splitAction(a.text);
+                    const split = splitAction(a);
+                    const rest = [split.rest, a.figure ? a.figure.replace(/^Supported by:\s*/i, "") : ""].filter(Boolean).join(" ");
                     return { id: `report:action:${i}`, node: (
                       <ViewItem key={i} id={`report:action:${i}`} tag="li" className="rp-action" data-kind="action">
                         <span className="rp-num" aria-hidden>{i + 1}</span>
                         <div>
-                          <h3><ViewTitle id={`report:action:${i}`} text={humanise(t, run.understanding)} /></h3>
-                          {why && !short && <p>{humanise(why, run.understanding)}</p>}
-                          {a.figure && !short && <details className="rp-support"><summary>Based on</summary><p data-kind="evidence">{humanise(a.figure.replace(/^Supported by:\s*/i, ""), run.understanding)}</p></details>}
+                          <h3><ViewTitle id={`report:action:${i}`} text={humanise(split.lead, run.understanding)} /></h3>
+                          {split.line && !short && <p className="rp-action-line">{humanise(split.line, run.understanding)}</p>}
+                          {rest && !short && <details className="rp-support"><summary>Based on</summary><p data-kind="evidence">{humanise(rest, run.understanding)}</p></details>}
                         </div>
                       </ViewItem>) };
                   })} />

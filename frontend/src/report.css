@@ -80,3 +80,23 @@
 .rp-scope { margin: 0; color: var(--muted); font-size: var(--fs-2); }
 .rp-notes { flex-direction: column; gap: var(--sp-1); }
 .rp-notes p { margin: 0; max-width: 80ch; }
+
+/* G2: cards in a row are the same height and their pictures the same size; simple bars carry their value labels. */
+.rp-matters { grid-auto-rows: 1fr; align-items: stretch; }
+.rp-matter { display: flex; flex-direction: column; }
+.rp-line { margin: 0; font-size: var(--fs-2); color: var(--ink); line-height: var(--lh-body); min-height: calc(2 * 1.5em); }
+.rp-viz { height: 240px; margin-top: var(--sp-2); display: flex; flex-direction: column; justify-content: center; }
+.rp-viz .chart-frame { height: 100%; justify-content: center; }
+.rp-viz .chart-frame img { max-height: 200px; }
+.rp-viz-drawn { padding: var(--sp-3); }
+.rp-viz-drawn .chart { flex: 1 1 auto; }
+.rp-bars { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: center; }
+.rp-bars .iw-rank { margin: 0; gap: var(--sp-2); }
+.rp-bars .iw-rank li { font-size: 12px; }
+.rp-bars .iw-rank-bar { height: 12px; }
+.rp-bars-note { margin: var(--sp-1) 0 0; font-size: 12px; color: var(--muted); }
+.rp-more-details { margin-top: var(--sp-3); }
+.rp-more-details p { font-size: 12px; }
+.rp-matter .rp-viz-drawn .c-axis { font-size: 12px; } .rp-matter .rp-viz-drawn .c-value { font-size: 12px; }
+.rp-action h3 { font-weight: 700; }
+.rp-action-line { font-weight: 400; color: var(--ink); }

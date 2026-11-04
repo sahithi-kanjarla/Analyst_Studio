@@ -13,7 +13,7 @@ from fastapi.responses import FileResponse, JSONResponse, Response, StreamingRes
 from fastapi.staticfiles import StaticFiles
 
 from .config import ALLOWED_EXT, FRONTEND_DIST, MAX_FILES, MAX_ROWS, MAX_UPLOAD_MB, RUNS_DIR, VERSION, public_demo, retention_days
-from . import clarify, glossary, guard, owner, tiering, viewedit, web
+from . import clarify, glossary, guard, owner, report_lead, tiering, viewedit, web
 from .profiler import count_delimited_rows, too_many_rows_message
 from . import lens
 from .lens import chat as lenschat, howtext as lenshow, reports as lensreports, store as lensstore
@@ -203,6 +203,7 @@ def get_run(run_id: str):
         curation = data.get("curation")
         if curation:
             tiering.apply_curation(view, curation)
+            report_lead.apply(view, data.get("findings") or [])
             for c in view.get("report_findings", []) + view.get("more_findings", []):
                 if c.get("chart") and not c.get("chart_url"):
                     c["chart_url"] = base + c["chart"]

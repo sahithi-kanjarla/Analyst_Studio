@@ -76,6 +76,8 @@ export interface ReportCard {
   check_next: string[];
   stats: { n?: number; p?: number; p_adjusted?: number };
   /** Several findings with the same leading group, merged by the selection step; every figure is the original finding's own. */
+  /** Built by code from the saved finding for the Report card: lead figure and label, a plain line, the bars or monthly series, and the plain-words detail. */
+  lead?: { value: string; label: string; sign: number; line: string; bars: { label: string; value: number; text: string }[]; bars_total: number; series: { key: string; label: string; value: number }[]; ratio: string; difference: string; why: string; merged: string[] };
   merged?: { dimension: string; leader: string; items: { id: string; measure: string; figure: number | null; text: string }[] };
 }
 
@@ -116,7 +118,7 @@ export interface ReportPageData {
   headline_more: string;
   tiles: { label: string; value: string }[];
   cards: { num: number; question: string; lines: string[]; trust: string; trust_why: string; so_what: string }[];
-  actions: { text: string; question: number | null; chart: string; chart_title: string; figure: string; chart_url?: string }[];
+  actions: { text: string; question: number | null; chart: string; chart_title: string; figure: string; chart_url?: string; split_lead?: string; split_line?: string; split_rest?: string }[];
   charts: { title: string; path: string; caption: string; details: string[]; url?: string }[];
   no_action: string[];
   behind_md: string;
