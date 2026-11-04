@@ -37,16 +37,8 @@ NULL_PENALTY = 1.5            # subtracted from null-result scores
 OVERLAP_PENALTY = 0.8         # a candidate that adds nothing new keeps (1 - this) of its score
 PARTIAL_OVERLAP = 0.5         # same dimension and same leader, different measure and different last place
 COVERAGE_PTS = 0.4            # overview mode only: points for a well-filled measure column
-VAGUE_MAX_WORDS = 3           # a goal this short that names no column is too general to focus on
-VAGUE_WORDS = re.compile(
-    r"don'?t know|do not know|dunno|not sure|no idea|anything|everything|whatever|"
-    r"surprise me|interesting|overview|explore|in general|general",
-    re.I,
-)
 NOTE_NO_GOAL = ("No goal was given, so this is an overview of the data: the main figure, "
                 "who contributes most, how it changes over time and how concentrated it is.")
-NOTE_VAGUE_GOAL = ("The goal was too general to focus on, so this is an overview of the data: "
-                   "the main figure, who contributes most, how it changes over time and how concentrated it is.")
 
 EFFECT_PTS = {"large": 1.0, "medium": 0.6, "small": 0.2, "negligible": 0.05, None: 0.0}
 RELIABILITY_PTS = {"high": 1.0, "medium": 0.6, "low": 0.2,
@@ -263,9 +255,8 @@ def _candidates_from_metrics(metrics: list[dict], goal: str) -> list[dict]:
     out: list[dict] = []
     for i, m in enumerate(metrics):
         label = m.get("label", "")
-        goal_rel = bool(re.search(
-            "|".join(re.escape(w) for w in re.findall(r"\w{3,}", goal)),
-            label, re.I)) if goal else False
+        words = re.findall(r"\w{3,}", goal or "")
+        goal_rel = bool(re.search("|".join(re.escape(w) for w in words), label, re.I)) if words else False   # no usable word: matches nothing
         out.append({
             "id": f"kf_{i}",
             "title": label,
@@ -426,18 +417,11 @@ def _goal_columns(state: dict, goal: str) -> set[str]:
 
 
 def goal_mode(state: dict) -> tuple[str, str]:
-    """('goal' | 'overview', note).  An empty goal (the app stores a placeholder sentence and
-    sets the explore flag), the explore flag, or a goal too general to point at any column
-    gives the overview mode."""
-    goal = (state.get("goal") or "").strip()
-    if not goal:
-        return "overview", NOTE_NO_GOAL
+    """('goal' | 'overview', note).  Only the explore flag (the person ticked "I'm not sure what
+    to look for") gives the overview mode.  Anything typed is a real goal, however short, and
+    goes through the normal goal matching."""
     if state.get("explore") or (state.get("plan") or {}).get("explore") or (state.get("context") or {}).get("explore"):
         return "overview", NOTE_NO_GOAL
-    if _goal_columns(state, goal):
-        return "goal", ""
-    if VAGUE_WORDS.search(goal) or len(re.findall(r"[A-Za-z0-9]{3,}", goal)) <= VAGUE_MAX_WORDS:
-        return "overview", NOTE_VAGUE_GOAL
     return "goal", ""
 
 

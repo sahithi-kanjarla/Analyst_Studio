@@ -194,3 +194,28 @@ merged card + Report floor, empty/vague goal -> overview, main measure from reco
 **No old tests changed** (the old "goal finding survives" test still passes because that finding is the direct answer).
 Run: test_curate, test_report_tiers, test_report_page_stage1, test_main_view, test_report_consistency (80 passed), test_pipeline + test_token_budget (12 passed). `tsc --noEmit` clean.
 Not tested: a real-AI run, the browser rendering of the merged lists, the full suite (leave to a cloud session).
+
+## B4 follow-up: the explore flag is the only trigger for overview mode
+
+The goal cannot be empty in the app: the person types a goal or ticks "I'm not sure what to look for…", which sets the explore flag.
+
+- `curate.goal_mode` now returns overview **only** when the explore flag is set (state, plan or context). Removed: the "goal names no column and is
+  vague / three words or fewer" rule, the `VAGUE_WORDS` / `VAGUE_MAX_WORDS` constants and `NOTE_VAGUE_GOAL`. Anything typed ("best seller?",
+  "sales", "I do not know") is a real goal and goes through the normal goal matching. The rest of overview mode is unchanged (note on the Report,
+  main measure chosen by code, always-kept overview findings).
+- **Placeholder check.** `create_run` still stores the placeholder sentence in `input.json` (so old runs and reruns read the same), but it is now
+  `DEFAULT_EXPLORE_GOAL` in `context.py` with `typed_goal()`, which turns it back into `""`. The graph is started with `typed_goal(goal)`, so no stage
+  can match the placeholder's words ("insights", "business", "data"…) against column names; `status.json` and the run list/status API return `""`
+  too, so the History list and the Dashboard fall back to "Exploratory analysis" / the objective instead of printing it. The Report already printed
+  "Mode: exploratory. No specific goal was given" from the plan's explore flag. A typed goal with the explore box also ticked is kept as typed.
+- Small guard in `_candidates_from_metrics`: a goal with no word of 3+ letters ("a b") used to build an empty regex that matched every label.
+- Prompts to the AI now get an empty GOAL line for an explore run instead of the placeholder (the explore flag is still passed).
+
+**Tests changed**: `test_curate.py::test_empty_and_vague_goal_give_overview_mode` was **rewritten** as `test_explore_flag_is_the_only_trigger_for_overview_mode`
+(its `("", False)`, `"I do not know"` and `"anything interesting"` cases expected overview from the text; they now expect goal mode). **Added** in
+`test_curate.py`: `test_typed_goals_of_any_length_are_real_goals`, `test_short_typed_goal_goes_through_goal_matching`,
+`test_placeholder_goal_is_not_a_typed_goal`. **New file** `test_explore_placeholder.py`: an end-to-end fake-AI run with the explore tick (goal stored
+empty, mode overview, placeholder absent from report and API) and one with the typed goal "best seller?" (kept, goal mode). Other tests that pass
+`_plain_state("", True, …)` are unchanged (explore flag on).
+Run: test_curate + test_explore_placeholder (36 passed); test_main_view, test_main_view_polish, test_report_page_stage1, test_report_consistency,
+test_run_safety, test_partb_view (79 passed). Not tested: a real-AI run, the browser, the full suite (leave to a cloud session).

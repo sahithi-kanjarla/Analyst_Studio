@@ -20,6 +20,7 @@ from .context import normalise_context
 from .dashboard import build_dashboard, list_sources, source_path, valid_source
 from .events import get_events
 from .llm import get_llm
+from .context import typed_goal
 from .runner import DEFAULT_EXPLORE_GOAL, RUN_ID_RE, create_run, ensure_demo_run, is_demo, purge_expired, read_status, rerun_with_answers, rerun_without_derived, resume_with_answers, run_dir, start_run
 
 @asynccontextmanager
@@ -133,7 +134,7 @@ def list_runs(request: Request):
     for d in RUNS_DIR.iterdir():
         st = read_status(d.name) if re.match(RUN_ID_RE, d.name) else None
         if st and owner.can_access(d.name, caller):
-            items.append({"run_id": d.name, "goal": st.get("goal"), "status": st.get("status"), "created": st.get("created"), "filename": st.get("filename")})
+            items.append({"run_id": d.name, "goal": typed_goal(st.get("goal")), "status": st.get("status"), "created": st.get("created"), "filename": st.get("filename")})
     return sorted(items, key=lambda x: x.get("created") or 0, reverse=True)[:20]
 
 
@@ -141,7 +142,7 @@ def list_runs(request: Request):
 def get_run(run_id: str):
     _check_id(run_id)
     st = read_status(run_id) or {}
-    out = {"run_id": run_id, "status": st.get("status"), "goal": st.get("goal"), "error": st.get("error")}
+    out = {"run_id": run_id, "status": st.get("status"), "goal": typed_goal(st.get("goal")), "error": st.get("error")}
     res = run_dir(run_id) / "result.json"
     if st.get("status") == "done" and res.exists():
         data = json.loads(res.read_text())

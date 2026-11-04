@@ -537,14 +537,43 @@ def _plain_state(goal, explore=False, understanding=None, kinds=None, target=Non
     return st
 
 
-def test_empty_and_vague_goal_give_overview_mode():
-    for goal, explore in (("", False), ("Explore this data and surface the most important insights.", True),
-                          ("I do not know", False), ("anything interesting", False)):
-        res = curate.curate(_plain_state(goal, explore))
+def test_explore_flag_is_the_only_trigger_for_overview_mode():
+    # the flag on gives the overview, whatever goal text is stored with it (the placeholder, or typed words)
+    for goal in ("Explore this data and surface the most important insights.", "", "Which yy_dim earns the most zq_a?"):
+        res = curate.curate(_plain_state(goal, True))
         assert res["mode"] == "overview", goal
         assert res["mode_note"] and "overview" in res["mode_note"]
+    # the flag off: a goal that names a column is a goal
     named = curate.curate(_plain_state("Which yy_dim earns the most zq_a?"))
     assert named["mode"] == "goal" and named["mode_note"] == ""
+
+
+def test_typed_goals_of_any_length_are_real_goals():
+    # short, vague-sounding, or naming no column: none of these is overview mode when the flag is off
+    for goal in ("best seller?", "sales", "I do not know", "anything interesting", "overview", "explore",
+                 "what should I focus on to grow the business next quarter?"):
+        res = curate.curate(_plain_state(goal, False))
+        assert res["mode"] == "goal" and res["mode_note"] == "", goal
+        assert not res["candidates"] or not any(c.get("core") for c in res["candidates"]), goal
+
+
+def test_short_typed_goal_goes_through_goal_matching():
+    # a one-word goal that is a column's word marks that column's findings as goal-relevant
+    res = curate.curate(_plain_state("zq_c", False))
+    assert res["mode"] == "goal"
+    rel = {c["measure"] for c in res["candidates"] if c["kind"] == "finding" and c.get("goal_relevant")}
+    assert rel == {"zq_c"}
+    # a short goal naming nothing marks nothing as goal-relevant, and is still not an overview
+    res = curate.curate(_plain_state("best seller?", False))
+    assert res["mode"] == "goal"
+    assert not any(c.get("goal_relevant") for c in res["candidates"])
+
+
+def test_placeholder_goal_is_not_a_typed_goal():
+    from app.context import DEFAULT_EXPLORE_GOAL, typed_goal
+    assert typed_goal(DEFAULT_EXPLORE_GOAL) == ""
+    assert typed_goal("best seller?") == "best seller?"
+    assert typed_goal(None) == ""
 
 
 def test_main_measure_from_understanding_record():

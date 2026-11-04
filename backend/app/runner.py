@@ -77,7 +77,7 @@ def _safe_filename(name: str, used: set[str]) -> str:
     return safe
 
 
-DEFAULT_EXPLORE_GOAL = "Explore this data and surface the most important insights and opportunities for the business."
+from .context import DEFAULT_EXPLORE_GOAL, typed_goal      # noqa: E402  (re-exported: main.py imports it from here)
 
 
 def create_run(goal: str, files_or_name, content: bytes | None = None, context: dict | None = None, review_saved: bool = False, owner: str | None = None) -> str:
@@ -98,7 +98,7 @@ def create_run(goal: str, files_or_name, content: bytes | None = None, context: 
         (wd / "inputs" / safe).write_bytes(data)
         names.append(safe)
     (wd / "input.json").write_text(json.dumps({"goal": goal, "files": names, "context": context, "review_saved": review_saved}))
-    write_status(run_id, "queued", goal=goal, filename=", ".join(names), created=time.time(), **({"owner": owner} if owner else {}))     # owner: the hash of the browser's token (owner.py), never the token
+    write_status(run_id, "queued", goal=typed_goal(goal), filename=", ".join(names), created=time.time(), **({"owner": owner} if owner else {}))     # owner: the hash of the browser's token (owner.py), never the token
     return run_id
 
 
@@ -128,7 +128,7 @@ def _execute_in_scope(run_id: str) -> None:
         set_quiet(run_id, True)  # resumed after a pause: profile/relate run again but must not repeat their timeline events
     try:
         context = meta.get("context") or {}
-        final = GRAPH.invoke({"run_id": run_id, "goal": meta["goal"], "data_paths": [str(wd / "inputs" / f) for f in meta["files"]],
+        final = GRAPH.invoke({"run_id": run_id, "goal": typed_goal(meta["goal"]), "data_paths": [str(wd / "inputs" / f) for f in meta["files"]],
                               "workdir": str(wd), "iteration": 0, "remove_derived": meta.get("remove_derived") or [], "review_saved": bool(meta.get("review_saved")), "findings": [], "context": context, "explore": bool(context.get("explore"))})
         set_quiet(run_id, False)
         if final.get("awaiting_input"):
@@ -223,7 +223,7 @@ def rerun_with_answers(run_id: str, answers: dict, ask_again: list[str]) -> str:
         old = json.loads((src / "answers.json").read_text(encoding="utf-8")) if (src / "answers.json").exists() else {}
         (dst / "answers.json").write_text(json.dumps({"answers": answers, "skip": False, "notes": old.get("notes", "")}), encoding="utf-8")
     (dst / "input.json").write_text(json.dumps({**meta, "review_saved": False}))
-    write_status(new_id, "queued", goal=meta["goal"], filename=", ".join(meta["files"]), created=time.time(), **_owner_kw(src_id))
+    write_status(new_id, "queued", goal=typed_goal(meta["goal"]), filename=", ".join(meta["files"]), created=time.time(), **_owner_kw(src_id))
     start_run(new_id)
     return new_id
 
@@ -241,6 +241,6 @@ def rerun_without_derived(run_id: str, names: list[str]) -> str:
             shutil.copy(src / f, dst / f)
     removed = list(dict.fromkeys(list(meta.get("remove_derived") or []) + names))
     (dst / "input.json").write_text(json.dumps({**meta, "remove_derived": removed}))
-    write_status(new_id, "queued", goal=meta["goal"], filename=", ".join(meta["files"]), created=time.time(), **_owner_kw(src_id))
+    write_status(new_id, "queued", goal=typed_goal(meta["goal"]), filename=", ".join(meta["files"]), created=time.time(), **_owner_kw(src_id))
     start_run(new_id)
     return new_id
