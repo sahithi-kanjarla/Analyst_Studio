@@ -446,7 +446,7 @@ def apply_curation(view: dict, curation: dict) -> None:
     # --- Report tab: curated findings for the evidence section ---
     rpt_f = tabs.get("report:finding") or {}
     rpt_kept = list(rpt_f.get("kept") or [])
-    if rpt_kept:
+    if rpt_kept or "report:finding" in tabs:
         rf = []
         for fid in rpt_kept:
             c = card_by_id.get(fid)
@@ -477,6 +477,19 @@ def apply_curation(view: dict, curation: dict) -> None:
                           if i in strat_by_id]
         strats["dropped"] = ideas.get("left_out_count", 0)
         view["strategies"] = strats
+
+    # --- Merged findings: the card that stands for several says each one's figure ---
+    for pid, info in (curation.get("merges") or {}).items():
+        card = card_by_id.get(pid)
+        if card is None:
+            continue
+        card["merged"] = {"dimension": info.get("dimension", ""), "leader": info.get("leader", ""),
+                          "items": list(info.get("items") or [])}
+        card["members"] = list(dict.fromkeys(list(card.get("members") or [pid]) + [i["id"] for i in info.get("items") or []]))
+
+    # --- Overview mode: the Report says so plainly ---
+    view["overview_note"] = curation.get("mode_note", "") if curation.get("mode") == "overview" else ""
+    view["main_measure"] = curation.get("main_measure", "") if curation.get("mode") == "overview" else ""
 
     # --- Left-out count for the Data tab ---
     view["left_out_count"] = curation.get("left_out_count", 0)

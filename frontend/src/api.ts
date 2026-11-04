@@ -75,6 +75,8 @@ export interface ReportCard {
   hypotheses: string[];
   check_next: string[];
   stats: { n?: number; p?: number; p_adjusted?: number };
+  /** Several findings with the same leading group, merged by the selection step; every figure is the original finding's own. */
+  merged?: { dimension: string; leader: string; items: { id: string; measure: string; figure: number | null; text: string }[] };
 }
 
 export interface NullLine { id: string; title: string; kind: string; reason: string }
@@ -96,6 +98,9 @@ export interface ReportView {
   null_lines?: NullLine[];
   null_counted?: number;
   left_out_count?: number;
+  /** Set when no goal (or a vague one) was given: the Report says it is an overview. */
+  overview_note?: string;
+  main_measure?: string;
 }
 
 /** The main view of the report as data: the same cards, actions and figures as the markdown, in the same words. */

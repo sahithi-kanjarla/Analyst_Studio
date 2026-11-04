@@ -410,3 +410,173 @@ def test_apply_curation_empty_is_noop():
     assert view["evidence"] == ev_before
     tiering.apply_curation(view, {"tabs": {}})
     assert view["evidence"] == ev_before
+
+
+# ============================================================ Part B4 tests
+# goal match is a boost, overlapping findings are merged, overview mode
+
+def _cmp(i, target, group, best, worst, vals=None, **kw):
+    """A group comparison with a named leader and last place."""
+    vals = vals or {best: 100.0 + i, "mid": 50.0 + i, worst: 10.0 + i}
+    st = {"best": best, "worst": worst, "values": vals}
+    return _finding(i, target=target, group=group, stats=st, **kw)
+
+
+def _all_ids(res):
+    kept, more = set(), set()
+    for v in res["tabs"].values():
+        kept.update(v["kept"])
+        more.update(v["more"])
+    return kept, more
+
+
+def test_same_leader_three_measures_merge_into_one():
+    fs = [_cmp(1, "m_one", "area", "North", "South", score=9.0),
+          _cmp(2, "m_two", "area", "North", "South", score=8.0),
+          _cmp(3, "m_three", "area", "North", "South", score=7.0),
+          _cmp(4, "m_four", "other", "East", "West", score=6.0)]
+    res = curate.curate(_state(findings=fs, goal="anything interesting"))
+    assert len(res["merges"]) == 1
+    (pid, info), = res["merges"].items()
+    assert pid == "f1" and len(info["items"]) == 3
+    originals = {f["id"]: f["stats"]["values"]["North"] for f in fs[:3]}
+    for it in info["items"]:
+        assert it["figure"] == originals[it["id"]]       # the figure of the original, unchanged
+    assert set(res["absorbed"]) >= {"f2", "f3"}
+    kept, more = _all_ids(res)
+    assert "f1" in kept
+    assert not ({"f2", "f3"} & (kept | more))           # shown only inside the merged finding
+
+
+def test_different_leader_is_not_merged():
+    fs = [_cmp(1, "m_one", "area", "North", "South", score=9.0),
+          _cmp(2, "m_two", "area", "East", "South", score=8.0)]
+    res = curate.curate(_state(findings=fs, goal="anything interesting"))
+    assert res["merges"] == {} and res["absorbed"] == {}
+
+
+def test_one_to_one_dimension_is_the_same_information():
+    vals = {"a": 5.0, "b": 3.0, "c": 1.0}
+    fs = [_cmp(1, "m_one", "area", "a", "c", vals=vals, score=9.0),
+          _cmp(2, "m_one", "area_code", "x", "z", vals=dict(vals), score=9.0)]
+    res = curate.curate(_state(findings=fs, goal="anything interesting"))
+    imp = {c["id"]: c for c in res["candidates"]}
+    assert imp["f2"]["overlap"] == 1.0
+    assert imp["f2"]["importance"] < imp["f1"]["importance"] * 0.5
+
+
+def test_goal_related_weak_finding_is_not_always_kept():
+    """Naming the measure in the goal is a boost only; a weak finding on another dimension competes."""
+    goal_f = _finding(1, score=9.0, effect=0.4, target="revenue", group="category")
+    weak = _finding(2, score=0.1, effect=0.001, target="revenue", group="weekday")
+    strong = [_finding(i, score=20.0, effect=0.5, target="clicks", group=f"g{i}")
+              for i in range(3, 20)]
+    res = curate.curate(_state(findings=[goal_f, weak] + strong,
+                               goal="Which category earns the most revenue?"))
+    kept, more = _all_ids(res)
+    assert "f1" in kept                                  # the direct answer
+    assert "f2" not in kept                              # goal-related but weak: More or left out
+
+
+def test_direct_answer_survives_even_when_weak():
+    goal_f = _finding(1, score=0.1, effect=0.001, target="revenue", group="category")
+    strong = [_finding(i, score=20.0, effect=0.5, target="revenue", group=f"o{i}")
+              for i in range(2, 25)]
+    res = curate.curate(_state(findings=[goal_f] + strong,
+                               goal="Which category earns the most revenue?"))
+    assert "f1" in _all_ids(res)[0]
+
+
+def test_goal_with_no_dimension_still_gets_one_answer():
+    fs = [_finding(1, score=9.0, target="revenue", group="a"),
+          _finding(2, score=3.0, target="revenue", group="b")] + \
+         [_finding(i, score=20.0, effect=0.5, target="clicks", group=f"g{i}") for i in range(3, 20)]
+    res = curate.curate(_state(findings=fs, goal="How is revenue doing?"))
+    direct = [c for c in res["candidates"] if c.get("direct") and c["kind"] == "finding"]
+    assert [c["id"] for c in direct] == ["f1"]
+
+
+def test_selection_with_merging_is_deterministic():
+    fs = [_cmp(i, f"m{i}", "area", "North", "South", score=9.0 - i) for i in range(1, 6)] + \
+         [_finding(i, target="clicks", group=f"g{i}") for i in range(6, 14)]
+    a = curate.curate(_state(findings=fs, goal="anything interesting"))
+    b = curate.curate(_state(findings=fs, goal="anything interesting"))
+    assert json.dumps(a, sort_keys=True, default=str) == json.dumps(b, sort_keys=True, default=str)
+
+
+def test_merged_card_lists_every_figure_and_report_keeps_floor():
+    from app import tiering
+    fs = [_cmp(1, "m_one", "area", "North", "South", score=9.0),
+          _cmp(2, "m_two", "area", "North", "South", score=8.0),
+          _cmp(3, "m_three", "area", "North", "South", score=7.0)]
+    st = _state(findings=fs, goal="anything interesting")
+    view = tiering.build_view(st)
+    cur = curate.curate(st)
+    tiering.apply_curation(view, cur)
+    rf = view["report_findings"]
+    assert len(rf) >= 1                                   # the floor: never empty
+    card = next(c for c in rf if c["id"] == "f1")
+    assert [i["id"] for i in card["merged"]["items"]] == ["f1", "f2", "f3"]
+    assert set(card["members"]) >= {"f1", "f2", "f3"}
+
+
+def _plain_state(goal, explore=False, understanding=None, kinds=None, target=None):
+    cols = [{"name": n, "role": "numeric", "missing_pct": mp, "unique": 500}
+            for n, mp in (("zq_a", 0.30), ("zq_b", 0.0), ("zq_c", 0.10))]
+    cols += [{"name": "yy_dim", "role": "categorical", "missing_pct": 0.0, "unique": 5}]
+    fs = [_finding(i, target=n, group="yy_dim", score=5.0) for i, n in enumerate(("zq_a", "zq_b", "zq_c"), 1)]
+    fs.append(_finding(4, tool="trend", target="zq_b", group="x", score=4.0))
+    st = _state(findings=fs, goal=goal, target=target or "zq_a")
+    st["profile"] = {"rows": 1000, "cols": 4, "columns": cols}
+    st["explore"] = explore
+    st["plan"]["explore"] = explore
+    if understanding:
+        st["understanding"] = understanding
+    if kinds:
+        st["brief"] = {"kinds": kinds}
+    return st
+
+
+def test_empty_and_vague_goal_give_overview_mode():
+    for goal, explore in (("", False), ("Explore this data and surface the most important insights.", True),
+                          ("I do not know", False), ("anything interesting", False)):
+        res = curate.curate(_plain_state(goal, explore))
+        assert res["mode"] == "overview", goal
+        assert res["mode_note"] and "overview" in res["mode_note"]
+    named = curate.curate(_plain_state("Which yy_dim earns the most zq_a?"))
+    assert named["mode"] == "goal" and named["mode_note"] == ""
+
+
+def test_main_measure_from_understanding_record():
+    rec = {"source": "llm", "columns": {
+        "zq_a": {"role": "measure", "measure_kind": "rate"},
+        "zq_b": {"role": "measure", "measure_kind": "count"},
+        "zq_c": {"role": "measure", "measure_kind": "money"}}}
+    res = curate.curate(_plain_state("", True, understanding=rec))
+    assert res["main_measure"] == "zq_c"                 # money first
+
+
+def test_main_measure_rules_without_names():
+    # no AI record: additive before non-additive, then the planner's target, then best filled
+    res = curate.curate(_plain_state("", True, kinds={"zq_a": "rate", "zq_b": "additive", "zq_c": "additive"}))
+    assert res["main_measure"] == "zq_b"                 # additive, and better filled than zq_c
+    res = curate.curate(_plain_state("", True, kinds={"zq_a": "additive", "zq_b": "additive", "zq_c": "additive"},
+                                     target="zq_c"))
+    assert res["main_measure"] == "zq_c"                 # the planner's target breaks the tie
+    # a column the record calls a measure but that is not numeric in the profile is not accepted
+    rec = {"source": "llm", "columns": {"yy_dim": {"role": "measure", "measure_kind": "money"}}}
+    assert curate.curate(_plain_state("", True, understanding=rec))["main_measure"] != "yy_dim"
+
+
+def test_overview_keeps_standard_findings_and_report_not_empty():
+    from app import tiering
+    st = _plain_state("", True, kinds={"zq_a": "additive", "zq_b": "additive", "zq_c": "additive"})
+    cur = curate.curate(st)
+    main = cur["main_measure"]
+    core = {c["id"] for c in cur["candidates"] if c.get("core") and c["kind"] == "finding"}
+    assert core and all(c["measure"] == main for c in cur["candidates"] if c["id"] in core)
+    assert core <= set(cur["tabs"]["insights:finding"]["kept"]) | set(cur["absorbed"])
+    view = tiering.build_view(st)
+    tiering.apply_curation(view, cur)
+    assert view["overview_note"] == cur["mode_note"] and view["overview_note"]
+    assert len(view["report_findings"]) >= 1

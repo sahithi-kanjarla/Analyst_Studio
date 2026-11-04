@@ -147,3 +147,50 @@ step applied in `main.py`, so existing assertions on the raw view still hold.
 **Test results**: 19 passed (test_curate), 25 passed (test_report_tiers +
 test_report_page_stage1), 11 passed (test_report_consistency), 13 passed
 (test_main_view).  TypeScript compiles clean.
+
+## Part B4: stricter goal match, merging overlap, overview mode
+
+### Step 1 — `backend/app/curate.py`, `tiering.py`, front end, tests
+
+**What the old code did with an empty goal.** `main.py` / `runner.create_run` replace an empty goal
+with a placeholder sentence and set `explore=True`. `curate` ignored that flag, so the placeholder
+words were matched against column names like a real goal (a column called, say, "data" would have been
+"goal-relevant"), and nothing told the reader it was an overview.
+
+**1. Goal match is a boost only.** `goal_relevant` now only adds `GOAL_BONUS`. The always-kept items are
+`direct` (the finding whose measure *and* dimension the goal names; if the goal names a measure but
+no usable dimension, the single best finding on that measure; if it names no measure, the planner's
+target is the measure), data cautions and pinned items. A chart carries its finding's flags.
+
+**2. Overlap** (`apply_overlap`, runs after scoring, before the cut), walking the ranked findings:
+- same measure + dimension, other tool (e.g. comparison and share chart) → merged into one;
+- same dimension, same leader **and same last place**, other measure → merged; the card lists each
+  measure's figure (`merged.items`, text built by code from the original stats, original finding ids kept in `members`);
+- same dimension and leader but a different last place → half overlap (score x 0.6);
+- same measure, another dimension whose group values are identical (a one-to-one mapping) → full overlap (score x 0.2), no merge;
+- charts: one per measure + dimension. Merged originals are shown only inside the merged card (not in More or the left-out count);
+  `curation.merges` and `curation.absorbed` record them.
+- A direct/overview item is never folded into another *measure's* finding (it gets the partial reduction instead).
+  The "top share within tolerance" idea was dropped for comparisons: matching the same last place is stricter and needs no tolerance.
+
+**3. Views.** `tiering.apply_curation` sets `card["merged"]` and extends `card["members"]` on the surviving card, so Report,
+Insights and More read it without change. Front end: `ReportFinding` (Report) and `ReportCard` (Insights) list the merged figures;
+types in `api.ts`. No colours or layout changed. **The Dashboard does not read the curation result in the current code**
+(only `tiering.apply_curation` does), so there was nothing to change there; part B3 will wire it.
+Also fixed: the Report floor now also applies when curation kept no Report finding at all.
+
+**4. Overview mode** (`goal_mode`): empty goal, explore flag, or a goal that names no column and is a vague phrase or <= 3 words.
+Curation gets `mode`, `mode_note`, `main_measure`; the Report shows the note under the title.
+Main measure (`main_measure`, always checked to be a numeric profile column that was analysed): with a usable understanding
+record, its measures by kind money, count, quantity, rate, cost, then best filled; without one, additive kind (brief kinds, then
+the shared `measures.measure_kind`), then the planner's target, then best filled, then name (a deterministic tiebreak only).
+Always kept: top contributors (comparison) on the main dimension, the trend, concentration (share). Others compete by score plus a
+coverage term (`COVERAGE_PTS`) and the overlap rules. Goal bonus is off in this mode.
+Note: the understanding record has no explicit "main measure" field, so I use its measure kinds; a prompt change is not made.
+
+**Tests**: 12 new in `test_curate.py` (31 total): merge of three measures with same leader (figures equal originals), different leader not
+merged, one-to-one dimension, weak goal-related finding not kept, direct answer survives, goal with no dimension, determinism,
+merged card + Report floor, empty/vague goal -> overview, main measure from record and by rules, overview keeps core findings and Report not empty.
+**No old tests changed** (the old "goal finding survives" test still passes because that finding is the direct answer).
+Run: test_curate, test_report_tiers, test_report_page_stage1, test_main_view, test_report_consistency (80 passed), test_pipeline + test_token_budget (12 passed). `tsc --noEmit` clean.
+Not tested: a real-AI run, the browser rendering of the merged lists, the full suite (leave to a cloud session).

@@ -34,6 +34,19 @@ AI_TOP_BONUS = 0.5            # per-position bonus for AI-ranked items (decays)
 GOAL_BONUS = 2.0
 CAUTION_BONUS = 5.0           # data cautions are always kept
 NULL_PENALTY = 1.5            # subtracted from null-result scores
+OVERLAP_PENALTY = 0.8         # a candidate that adds nothing new keeps (1 - this) of its score
+PARTIAL_OVERLAP = 0.5         # same dimension and same leader, different measure and different last place
+COVERAGE_PTS = 0.4            # overview mode only: points for a well-filled measure column
+VAGUE_MAX_WORDS = 3           # a goal this short that names no column is too general to focus on
+VAGUE_WORDS = re.compile(
+    r"don'?t know|do not know|dunno|not sure|no idea|anything|everything|whatever|"
+    r"surprise me|interesting|overview|explore|in general|general",
+    re.I,
+)
+NOTE_NO_GOAL = ("No goal was given, so this is an overview of the data: the main figure, "
+                "who contributes most, how it changes over time and how concentrated it is.")
+NOTE_VAGUE_GOAL = ("The goal was too general to focus on, so this is an overview of the data: "
+                   "the main figure, who contributes most, how it changes over time and how concentrated it is.")
 
 EFFECT_PTS = {"large": 1.0, "medium": 0.6, "small": 0.2, "negligible": 0.05, None: 0.0}
 RELIABILITY_PTS = {"high": 1.0, "medium": 0.6, "low": 0.2,
@@ -97,6 +110,12 @@ def _is_caution(f: dict) -> bool:
         f.get("tool") in ("distribution", "outliers", "category_share")
 
 
+def _leader(f: dict) -> tuple[str, str]:
+    """(best, worst) group of a comparison, '' when the finding has none."""
+    st = f.get("stats") or {}
+    return str(st.get("best") or ""), str(st.get("worst") or "")
+
+
 def _chart_key(f: dict) -> tuple[str, str, str]:
     """(chart_type, measure, dimension) for dedup: two charts with the same key are redundant."""
     return (f.get("chart_type") or f.get("tool", ""), _measure(f), _dimension(f))
@@ -153,7 +172,16 @@ def _candidates_from_findings(findings: list[dict], goal: str) -> list[dict]:
         share = _share(f)
         rel = _reliability(f)
         score_val = (f.get("insight") or {}).get("score", 0)
+        best, worst = _leader(f)
+        vals = (f.get("stats") or {}).get("values")
         out.append({
+            "leader": best,
+            "worst": worst,
+            "value_sig": tuple(sorted(round(float(v), 9) for v in vals.values()
+                                      if isinstance(v, (int, float)))) if isinstance(vals, dict) else (),
+            "top_share": (f.get("stats") or {}).get("top_share"),
+            "top_k": (f.get("stats") or {}).get("top_k"),
+            "leader_value": vals.get(best) if isinstance(vals, dict) else None,
             "id": fid,
             "title": (f.get("insight") or {}).get("headline") or f.get("title", ""),
             "kind": KIND_FINDING,
@@ -361,6 +389,8 @@ def importance(c: dict, ai_rank_pos: int | None = None, n_total: int = 1) -> flo
     s += EFFECT_PTS.get(c.get("effect_label"), c.get("effect_size", 0.0))
     s += c.get("share_of_total", 0.0) * 2
     s += RELIABILITY_PTS.get(c.get("reliability", "descriptive"), 0.0)
+    if c.get("coverage") is not None:          # set in overview mode only
+        s += COVERAGE_PTS * float(c["coverage"])
     if c.get("goal_relevant"):
         s += GOAL_BONUS
     if c.get("caution"):
@@ -373,6 +403,200 @@ def importance(c: dict, ai_rank_pos: int | None = None, n_total: int = 1) -> flo
     return round(max(s, 0.0), 4)
 
 
+
+# ------------------------------------------------------------------ goal mode
+def _profile_cols(state: dict) -> dict[str, dict]:
+    return {c["name"]: c for c in ((state.get("profile") or {}).get("columns") or []) if c.get("name")}
+
+
+def _goal_columns(state: dict, goal: str) -> set[str]:
+    """Columns the goal points at: every column whose own words appear in the goal, plus the
+    columns the understanding record maps the goal's terms to (when that record is usable)."""
+    pool = set(_profile_cols(state))
+    for f in state.get("findings") or []:
+        for k in CARD_PARAMS:
+            v = (f.get("params") or {}).get(k)
+            pool.update(str(x) for x in (v if isinstance(v, list) else [v]) if x)
+    named = {c for c in pool if named_in_goal(c, goal)}
+    rec = state.get("understanding") or {}
+    if rec.get("source") == "llm":
+        for cols in (rec.get("goal_columns") or {}).values():
+            named.update(x for x in cols if isinstance(x, str))
+    return named
+
+
+def goal_mode(state: dict) -> tuple[str, str]:
+    """('goal' | 'overview', note).  An empty goal (the app stores a placeholder sentence and
+    sets the explore flag), the explore flag, or a goal too general to point at any column
+    gives the overview mode."""
+    goal = (state.get("goal") or "").strip()
+    if not goal:
+        return "overview", NOTE_NO_GOAL
+    if state.get("explore") or (state.get("plan") or {}).get("explore") or (state.get("context") or {}).get("explore"):
+        return "overview", NOTE_NO_GOAL
+    if _goal_columns(state, goal):
+        return "goal", ""
+    if VAGUE_WORDS.search(goal) or len(re.findall(r"[A-Za-z0-9]{3,}", goal)) <= VAGUE_MAX_WORDS:
+        return "overview", NOTE_VAGUE_GOAL
+    return "goal", ""
+
+
+def main_measure(state: dict, cands: list[dict]) -> str:
+    """The measure an overview is about.  Code verifies it is a numeric measure that was
+    analysed.  With a usable understanding record: the record's measures by kind (money,
+    then count, then quantity, then the rest), then best filled.  Without it: additive
+    measures first, then the planner's target, then best filled.  The name is only the
+    last tiebreak, so the result is deterministic."""
+    prof = _profile_cols(state)
+    analysed = sorted({c["measure"] for c in cands if c["kind"] == KIND_FINDING and c.get("measure")
+                       and c["tool"] in ("group_compare", "pareto", "trend", "outcome_compare",
+                                         "segment_trend", "heatmap")})
+    verified = [m for m in analysed if (prof.get(m) or {}).get("role") == "numeric"] if prof else analysed
+    if not verified:
+        return ""
+
+    def miss(m):
+        return float((prof.get(m) or {}).get("missing_pct") or 0.0)
+
+    rec = state.get("understanding") or {}
+    if rec.get("source") == "llm":
+        rank = {"money": 0, "count": 1, "quantity": 2, "rate": 3, "cost": 4}
+        cols = rec.get("columns") or {}
+        labelled = [m for m in verified if (cols.get(m) or {}).get("role") == "measure"
+                    and (cols[m].get("measure_kind") or "") in rank]
+        if labelled:
+            return min(labelled, key=lambda m: (rank[cols[m]["measure_kind"]], miss(m), m))
+    kinds = (state.get("brief") or {}).get("kinds") or {}
+    target = (state.get("plan") or {}).get("target")
+    return min(verified, key=lambda m: ((kinds.get(m) or measure_kind(m)) != "additive",
+                                        m != target, miss(m), m))
+
+
+def _mark_direct(cands: list[dict], state: dict, goal: str) -> None:
+    """Flag the findings that directly answer the goal: the measure and the dimension the goal
+    asks about.  A goal that names a measure but no usable dimension gets its single best
+    finding on that measure, so a goal always has one answer."""
+    named = _goal_columns(state, goal)
+    target = (state.get("plan") or {}).get("target") or ""
+    findings = [c for c in cands if c["kind"] == KIND_FINDING]
+    any_measure_named = any(c["measure"] in named for c in findings if c["measure"])
+
+    def measure_ok(c):
+        return c["measure"] in named if any_measure_named else (bool(target) and c["measure"] == target)
+
+    pair = [c for c in findings if measure_ok(c) and c["dimension"] and c["dimension"] in named]
+    if not pair:
+        rest = sorted((c for c in findings if measure_ok(c)),
+                      key=lambda c: (-(c["base_score"] + c["effect_size"]), c["id"]))
+        pair = rest[:1]
+    for c in pair:
+        c["direct"] = True
+
+
+def _mark_overview(cands: list[dict], main: str) -> None:
+    """Overview mode: flag the standard overview findings for the main measure: top
+    contributors by the main dimension, the trend over time, and concentration."""
+    fs = [c for c in cands if c["kind"] == KIND_FINDING and c["measure"] == main]
+    by_dim = sorted((c for c in fs if c["tool"] in ("group_compare", "pareto") and c["dimension"]),
+                    key=lambda c: (-(c["base_score"] + c["effect_size"]), c["id"]))
+    dim = by_dim[0]["dimension"] if by_dim else ""
+
+    def first(tool, need_dim):
+        pool = [c for c in fs if c["tool"] == tool and (not need_dim or c["dimension"])]
+        pool.sort(key=lambda c: (c["dimension"] != dim, -(c["base_score"] + c["effect_size"]), c["id"]))
+        return pool[0] if pool else None
+
+    for c in (first("group_compare", True), first("trend", False), first("pareto", True)):
+        if c:
+            c["core"] = True
+
+
+# ------------------------------------------------------------------ overlap
+def _num_text(v) -> str:
+    v = float(v)
+    return f"{v:,.0f}" if abs(v) >= 100 else f"{v:,.2f}" if abs(v) >= 1 else f"{v:.3f}"
+
+
+def _item(c: dict) -> dict:
+    """One line of a merged finding, built by code from the original finding's own figures."""
+    m = c["measure"]
+    if c["tool"] == "pareto" and c.get("top_share") is not None:
+        fig = float(c["top_share"])
+        k = c.get("top_k")
+        text = f"{m}: the top {k if k else 'few'} {c['dimension']} values carry {fig:.0%}"
+    elif c.get("leader_value") is not None:
+        fig = float(c["leader_value"])
+        text = f"{m}: {c['leader']} at {_num_text(fig)}"
+    else:
+        fig, text = None, f"{m}"
+    return {"id": c["id"], "measure": m, "figure": fig, "text": text}
+
+
+def _relation(c: dict, p: dict) -> tuple[str, float]:
+    """How much of c is already said by p: (kind, overlap) with kind 'merge', 'same', 'partial' or ''."""
+    same_dim = bool(c["dimension"]) and c["dimension"] == p["dimension"]
+    if same_dim and c["measure"] == p["measure"] and c["tool"] != p["tool"]:
+        return "merge", 1.0                       # the same measure and dimension drawn another way
+    both_cmp = c["tool"] == p["tool"] == "group_compare"
+    if both_cmp and c["measure"] == p["measure"] and c["dimension"] != p["dimension"] \
+            and len(c["value_sig"]) >= 2 and c["value_sig"] == p["value_sig"]:
+        return "same", 1.0                        # the dimension maps one-to-one onto a standing one
+    if both_cmp and same_dim and c["measure"] != p["measure"] and c["leader"] and c["leader"] == p["leader"]:
+        if c["worst"] == p["worst"]:
+            return "merge", 1.0                   # the same ordering at both ends, another measure
+        return "partial", PARTIAL_OVERLAP
+    return "", 0.0
+
+
+def apply_overlap(cands: list[dict]) -> tuple[dict, dict]:
+    """Walk the ranked findings; each one's score is reduced by how much it repeats what is
+    already standing, or it is merged into the finding that already says it.  Returns
+    (merges {primary_id: {...}}, absorbed {absorbed_id: primary_id}).  Deterministic."""
+    fs = sorted((c for c in cands if c["kind"] == KIND_FINDING), key=lambda c: (-c["importance"], c["id"]))
+    merges: dict[str, dict] = {}
+    absorbed: dict[str, str] = {}
+    standing: list[dict] = []
+    top = fs[0]["importance"] if fs else 0.0
+    for c in fs:
+        c["overlap"] = 0.0
+        if c.get("caution") or c.get("null_result") or c.get("pinned"):
+            standing.append(c)
+            continue
+        best_kind, best_o, best_p = "", 0.0, None
+        for p in standing:
+            if p.get("caution") or p.get("null_result"):
+                continue
+            kind, o = _relation(c, p)
+            if kind == "merge" and (c.get("direct") or c.get("core")) and c["measure"] != p["measure"]:
+                kind, o = "partial", PARTIAL_OVERLAP     # an item the goal or the overview needs is not folded into another measure's
+            if o > best_o:
+                best_kind, best_o, best_p = kind, o, p
+        if best_kind == "merge":
+            entry = merges.setdefault(best_p["id"], {"dimension": best_p["dimension"],
+                                                      "leader": best_p["leader"], "items": [_item(best_p)]})
+            entry["items"].append(_item(c))
+            absorbed[c["id"]] = best_p["id"]
+            continue
+        if best_o:
+            c["overlap"] = best_o
+            c["importance"] = round(c["importance"] * (1 - OVERLAP_PENALTY * best_o), 4)
+        if _always_keep(c) or c["importance"] >= top * SCORE_FLOOR_FRAC:
+            standing.append(c)
+    # a chart follows its finding; two charts of one measure and dimension are one chart
+    chart_seen: dict[tuple, str] = {}
+    for c in sorted((c for c in cands if c["kind"] == KIND_CHART), key=lambda c: (-c["importance"], c["id"])):
+        fid = c.get("finding_id")
+        if fid in absorbed:
+            absorbed[c["id"]] = absorbed[fid]
+            continue
+        key = (c["measure"], c["dimension"])
+        if c["dimension"] and key in chart_seen:
+            absorbed[c["id"]] = chart_seen[key]
+        else:
+            chart_seen[key] = c["id"]
+    return merges, absorbed
+
+
 # ------------------------------------------------------------------ the cut
 def _ceiling(n: int) -> int:
     """Loose safety ceiling that scales with n and rarely binds."""
@@ -380,8 +604,10 @@ def _ceiling(n: int) -> int:
 
 
 def _always_keep(c: dict) -> bool:
-    """Items that are never cut: goal-answering, data cautions, pinned/edited."""
-    return bool(c.get("goal_relevant")) or bool(c.get("caution")) or bool(c.get("pinned"))
+    """Items that are never cut: the direct answer to the goal (or, in overview mode, the
+    standard overview findings), data cautions, pinned/edited.  Merely being about a
+    measure the goal names is only a score boost."""
+    return bool(c.get("direct")) or bool(c.get("core")) or bool(c.get("caution")) or bool(c.get("pinned"))
 
 
 def apply_cut(scored: list[dict]) -> tuple[list[dict], list[dict], list[dict]]:
@@ -483,7 +709,25 @@ def curate(state: dict, llm=None) -> dict:
     in result.json under the key 'curation'."""
     candidates = build_candidates(state)
     goal = state.get("goal", "")
-    main_measure = (state.get("plan") or {}).get("target", "")
+    mode, mode_note = goal_mode(state)
+    main = main_measure(state, candidates)
+    if mode == "overview":
+        # the goal is a placeholder or too general: nothing is goal-relevant, the overview findings are kept
+        for c in candidates:
+            c["goal_relevant"] = False
+        _mark_overview(candidates, main)
+        prof = _profile_cols(state)
+        for c in candidates:
+            if c["kind"] in (KIND_FINDING, KIND_CHART):
+                c["coverage"] = 1.0 - float((prof.get(c.get("measure")) or {}).get("missing_pct") or 0.0)
+    else:
+        _mark_direct(candidates, state, goal)
+    by_cand = {c["id"]: c for c in candidates}
+    for c in candidates:                                   # a chart carries the flags of its finding
+        if c["kind"] == KIND_CHART:
+            parent = by_cand.get(c.get("finding_id")) or {}
+            c["direct"], c["core"] = bool(parent.get("direct")), bool(parent.get("core"))
+    main_measure_name = main or (state.get("plan") or {}).get("target", "")
 
     # AI ranking (one call)
     ai_ids, ai_reason = ([], "no LLM configured") if llm is None \
@@ -495,11 +739,14 @@ def curate(state: dict, llm=None) -> dict:
     for c in candidates:
         c["importance"] = importance(c, ai_pos.get(c["id"]), n_total)
 
+    # overlap: merge findings that say the same thing, reduce the score of repeats
+    merges, absorbed = apply_overlap(candidates)
+
     # assign candidates to (tab, kind) groups
     groups: dict[tuple[str, str], list[dict]] = {}
     for tab, ks in TAB_KINDS.items():
         for kind in ks:
-            items = [c for c in candidates if c["kind"] == kind]
+            items = [c for c in candidates if c["kind"] == kind and c["id"] not in absorbed]
             if items:
                 groups[(tab, kind)] = items
 
@@ -517,7 +764,7 @@ def curate(state: dict, llm=None) -> dict:
         null_kept = [c for c in kept if c.get("null_result")]
         real_kept = [c for c in kept if not c.get("null_result")]
         # only goal/main-measure null results get one-line entries
-        null_group = group_nulls(null_kept + null_left, goal, main_measure)
+        null_group = group_nulls(null_kept + null_left, goal, main_measure_name)
         key = f"{tab}:{kind}"
         decision[key] = {
             "kept": [c["id"] for c in real_kept] + [n["id"] for n in null_group["lines"]],
@@ -544,8 +791,14 @@ def curate(state: dict, llm=None) -> dict:
                                             "dimension", "effect_size",
                                             "effect_label", "share_of_total",
                                             "reliability", "goal_relevant",
-                                            "null_result", "importance")}
+                                            "null_result", "importance", "overlap", "direct", "core")
+                        if k in c}
                        for c in candidates],
+        "mode": mode,
+        "mode_note": mode_note,
+        "main_measure": main,
+        "merges": merges,
+        "absorbed": absorbed,
         "ai_ranking": ai_ids,
         "ai_reason": ai_reason,
         "tabs": decision,

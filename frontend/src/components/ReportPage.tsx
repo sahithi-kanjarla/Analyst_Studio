@@ -36,6 +36,9 @@ function ReportFinding({ c, und }: { c: ReportCard; und?: Understanding | null }
       <h3><ViewTitle id={cid} text={say(c.headline)} /></h3>
       {c.chart_url && <ViewImg id={`report:chart:${c.id}`} src={c.chart_url} alt={say(c.title)} />}
       <p data-kind="takeaway">{say(c.why_it_matters || c.observation)}</p>
+      {c.merged && c.merged.items.length > 1 && (
+        <ul className="muted small">{c.merged.items.map((it) => <li key={it.id}>{say(it.text)}</li>)}</ul>
+      )}
       {c.checks.length > 0 && (
         <p className="muted small">{c.checks.map((ch) => say(ch)).join(" ")}</p>
       )}
@@ -83,6 +86,7 @@ export default function ReportPage({ run, embedded = false, startChat = false, s
           </div>}
         </header>
 
+        {run.report_view?.overview_note && <p className="muted" data-kind="overview-note">{run.report_view.overview_note}</p>}
         <TabViewBar tab="report" />
         <Sections tab="report" selfTitled={["report:actions", "report:evidence", "report:ideas", "report:behind"]} nodes={{
           "report:short": (
