@@ -38,3 +38,14 @@ def test_footnote_for_a_period_the_person_said_really_ended():
 def test_no_footnote_when_nothing_changes_how_a_number_reads():
     f = {"stats": {"partial": {"label": "2025-11-01", "days_in_period": 30, "days": 30, "partial": False}}}
     assert reporter._footnotes(_state(findings=[f, {"stats": {}}])) == []
+
+
+def test_ai_usage_totals_come_from_the_run_folder(tmp_path, monkeypatch):
+    import json
+    from app import main
+    monkeypatch.setattr(main, "run_dir", lambda rid: tmp_path)
+    assert main._ai_totals("x") is None
+    (tmp_path / "ai_usage.json").write_text(json.dumps({"calls": [], "totals": {"sent": 3, "input_tokens": 900}}), encoding="utf-8")
+    assert main._ai_totals("x") == {"sent": 3, "input_tokens": 900}
+    (tmp_path / "ai_usage.json").write_text("not json", encoding="utf-8")
+    assert main._ai_totals("x") is None

@@ -15,7 +15,7 @@ import DataViewer from "./DataViewer";
 import InsightCard from "./InsightCard";
 import Tiers from "./Tiers";
 import StrategyView from "./StrategyView";
-import { Icon, TechDetail } from "./HowSteps";
+import HowSteps, { Icon, TechDetail, howSteps } from "./HowSteps";
 import Md from "./Md";
 import State from "./State";
 import ReportPage from "./ReportPage";
@@ -309,6 +309,14 @@ export function CleaningLog({ run }: { run: RunResult }) {
   );
 }
 
+/** One short line of what the AI cost this run, from the run's own usage record; nothing when no AI was used. */
+function usageLine(run: RunResult): string {
+  const u = run.ai_usage;
+  if (!u || !u.sent) return "";
+  const tok = (u.input_tokens ?? 0) + (u.output_tokens ?? 0);
+  return `AI used: ${u.sent} ${u.sent === 1 ? "call" : "calls"}${tok ? `, about ${tok.toLocaleString()} tokens` : ""}${u.cached ? `, ${u.cached} answered from saved results` : ""}.`;
+}
+
 /** The plan: the questions the analysis set out to answer, the analyses chosen and the decisions taken. */
 export function PlanView({ run }: { run: RunResult }) {
   const v = useView();
@@ -317,11 +325,13 @@ export function PlanView({ run }: { run: RunResult }) {
 <div className="plan">
     <TabViewBar tab="plan" />
     <ViewItem id="plan:setup" tag="section" className="view-section">
-    <p>
-      <strong>Plan made by:</strong> {run.plan.source === "llm" || run.plan.source === "repaired" ? "the AI" : "our built-in rules"} · <strong>Number we focus on:</strong> {run.plan.target ?? "none"} ·{" "}
-      <strong>Date used:</strong> {run.plan.date_col ?? "none"}
-    </p>
+      <HowSteps steps={howSteps(run, run.report_view?.page?.mode ?? "")} />
+      {usageLine(run) && <p className="muted small" data-kind="usage">{usageLine(run)}</p>}
     </ViewItem>
+    <TechDetail>
+    <p>
+      <strong>Plan made by:</strong> {run.plan.source === "llm" || run.plan.source === "repaired" ? "the AI" : "our built-in rules"} · <strong>Number we focus on:</strong> {run.plan.target ?? "none"} · <strong>Date used:</strong> {run.plan.date_col ?? "none"}
+    </p>
     <ViewItem id="plan:questions" tag="section" className="view-section">
     <h4>Questions we set out to answer</h4>
     <ul>{run.plan.questions.map((q, i) => !v?.isHidden(`plan:question:${i}`) && <li key={q} data-view-id={`plan:question:${i}`}>{q}</li>)}</ul>
@@ -359,6 +369,7 @@ export function PlanView({ run }: { run: RunResult }) {
         <ul>{run.plan.skipped.map((s) => <li key={s.column}><code>{s.column}</code>: {s.reason}</li>)}</ul>
       </>
     )}
+    </TechDetail>
   </div>
   );
 }

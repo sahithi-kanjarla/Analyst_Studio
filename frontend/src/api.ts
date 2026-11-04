@@ -384,6 +384,7 @@ export interface Decision {
 }
 
 export interface RunResult {
+  ai_usage?: { calls?: number; sent?: number; cached?: number; input_tokens?: number; output_tokens?: number; seconds?: number } | null;
   profile?: { rows: number; cols: number; columns?: { name: string; dtype: string; role: string; missing_pct: number; unique: number }[] };
   understanding?: { source?: string; columns?: Record<string, { display_name?: string; meaning?: string; role?: string }> };
   decisions?: Decision[];

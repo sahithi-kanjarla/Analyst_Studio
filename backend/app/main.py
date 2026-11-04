@@ -161,6 +161,16 @@ def list_runs(request: Request):
     return sorted(items, key=lambda x: x.get("created") or 0, reverse=True)[:20]
 
 
+def _ai_totals(run_id: str) -> dict | None:
+    """The run's AI usage totals (calls, tokens, seconds) from its own ai_usage.json, for the short usage line on the Data tab; None when the run has none."""
+    f = run_dir(run_id) / "ai_usage.json"
+    try:
+        t = json.loads(f.read_text(encoding="utf-8")).get("totals")
+    except (OSError, ValueError, AttributeError):
+        return None
+    return t if isinstance(t, dict) else None
+
+
 @app.get("/api/runs/{run_id}")
 def get_run(run_id: str):
     _check_id(run_id)
@@ -173,6 +183,7 @@ def get_run(run_id: str):
         data = json.loads(res.read_text())
         base = f"/api/runs/{run_id}/files/"
         data["report_md"] = (data.get("report_md") or "").replace("](charts/", f"]({base}charts/")
+        data["ai_usage"] = _ai_totals(run_id)
         for f in data.get("findings") or []:
             if f.get("chart"):
                 f["chart_url"] = base + f["chart"]
