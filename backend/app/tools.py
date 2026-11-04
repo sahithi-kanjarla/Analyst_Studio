@@ -353,7 +353,7 @@ def distribution(df, ctx, col):
     ax.axvline(x.mean(), color=PALETTE[1], ls=":", lw=1.8, label=f"mean {_cur(col, ctx)}{_fmt(x.mean())}")
     if clipped:
         ax.set_xlim(float(shown.min()), q99)
-    _title(ax, f"{col}: half of all rows fall between {_cur(col, ctx)}{_fmt(q1)} and {_cur(col, ctx)}{_fmt(q3)}")
+    _title(ax, f"Distribution of {col}")
     note = ("log scale: a few very large values would otherwise hide the rest" if log_axis
             else f"{beyond:,} value{'s' if beyond != 1 else ''} above {_cur(col, ctx)}{_fmt(q99)} (the 99th percentile) not shown; all values are in the statistics" if clipped else "")
     ax.set(xlabel=col + (f"\n{note}" if note else ""), ylabel="Count")
@@ -386,7 +386,7 @@ def outliers(df, ctx, col):
     except TypeError:
         ax.boxplot(x, vert=False, **kw)
     ax.set(xlabel=col, yticks=[])
-    _title(ax, f"{col}: {n_out} of {len(x)} values sit outside the usual range")
+    _title(ax, f"Outliers in {col}")
     pct = n_out / len(x)
     text = f"**{col}**: {n_out} of {len(x)} values ({pct:.1%}) fall outside the usual range ({_fmt(lo)} to {_fmt(hi)})."
     action = f"Check whether the extreme values of {col} are errors or genuinely important cases before drawing conclusions." if pct > 0.05 else None
@@ -409,7 +409,7 @@ def category_share(df, ctx, col):
         values.append(int(rest.sum()))
     fig, ax = _hbars(labels, values, [f"{v:,} ({v / rows:.0%})" for v in values], [PALETTE[1]] * len(top) + ([OTHER_COLOR] if len(rest) else []),
                      "Rows", trim_note(len(top), total_groups, "values"))
-    _title(ax, f"{col}: which values appear most often" + (f" (top {len(top)} of {total_groups})" if len(rest) else ""))
+    _title(ax, f"Composition of {col}" + (f" (top {len(top)} of {total_groups})" if len(rest) else ""))
     share = top.iloc[0] / rows
     text = (f"**{col}** has {total_groups} distinct values; the most common is '{top.index[0]}' ({share:.0%} of records)."
             + (f" The chart shows the top {len(top)} and pools the other {len(rest)} as Other." if len(rest) else ""))
@@ -521,7 +521,7 @@ def group_compare(df, ctx, target, group, within=None, within_value=None):
         headline = f"{top} averages {ratio:.1f}× the {target} of {bot}"
     else:
         headline = f"Average {target} by {group}"
-    _title(ax, headline + ("" if p < 0.05 else " (difference not significant)"))
+    _title(ax, f"{target} by {group}{scope}")
     if note:
         text += f" The chart shows the top {len(shown)} of {n_groups} groups" + (f" and pools the other {len(rest)} as Other" if rest else "") + "; the statistics use all groups."
     # Statistical significance is not practical significance: only recommend action on a medium-or-larger effect.
@@ -553,7 +553,7 @@ def outcome_compare(df, ctx, target, col):
     ax.boxplot([a, b], showfliers=False, patch_artist=True, boxprops=dict(facecolor=PALETTE[0], alpha=0.35),
                medianprops=dict(color=PALETTE[3]), **names)
     ax.set(ylabel=col)
-    _title(ax, f"{col} when {target} = {pos} vs all other rows")
+    _title(ax, f"{col} vs {target}")
     direction = "higher" if r > 0 else "lower"
     text = (f"Rows with **{target} = {pos}** have a {direction} median **{col}** ({_fmt(a.median())} vs {_fmt(b.median())}). "
             f"The difference is {'statistically significant' if p < 0.05 else 'not statistically significant'} (Mann-Whitney p{_pf(p)}, rank-biserial effect={abs(r):.2f}, "
@@ -596,7 +596,7 @@ def robust_compare(df, ctx, target, group):
     ax.grid(axis="y", visible=False)
     note = trim_note(len(shown), len(order), "groups")
     ax.set_xlabel(target + (f"\n{note}" if note else ""), fontsize=9)
-    _title(ax, f"Median {target} across {group} (outlier-resistant check)")
+    _title(ax, f"Median {target} by {group}")
     text = (f"Robustness check for **{target}** by **{group}** using medians: highest median in **{med.index[0]}** ({_fmt(med['median'].iloc[0])}), "
             f"lowest in **{med.index[-1]}** ({_fmt(med['median'].iloc[-1])}). Kruskal-Wallis p{_pf(p)} - "
             f"{'the group difference holds up without relying on means' if p < 0.05 else 'the difference does NOT hold up with a rank-based test'}.")
@@ -629,7 +629,7 @@ def pareto(df, ctx, target, group):
         texts.append(f"{rest.sum() / g.sum():.0%}  (cum. 100%)")
         colors.append(OTHER_COLOR)
     fig, ax = _hbars(labels, values, texts, colors, f"Total {_cur(target, ctx)}{target}".strip(), trim_note(n_shown, len(g), "groups"))
-    _title(ax, f"The top {k} {group} values drive {top_share:.0%} of total {target}")
+    _title(ax, f"Where {target} comes from ({group})")
     text = f"The top {k} values of **{group}** account for **{top_share:.0%}** of total {target} (leader: {g.index[0]}, {share.iloc[0]:.0%})."
     action = (f"{target} is concentrated in a few {group} values ({top_share:.0%} from the top {k}); protect them and look for growth in the long tail."
               if top_share > 0.5 and len(g) >= 5 else None)
@@ -699,7 +699,7 @@ def trend(df, ctx, target, date):
     steep_fall = lr.slope < 0 and wording.steep({"relative_change": change, "end": fit_end})       # a fall of 100% or more of the level, or to below zero: no percentage
     size = f"falling steeply, from {_fmt(series.iloc[0])} to {_fmt(series.iloc[-1])}" if steep_fall else f"{change:+.0%}"
     over = f"over the complete {unit}s" if pinfo else "over the period"
-    _title(ax, f"{target} is trending {'up' if lr.slope > 0 else 'down'} ({size} {over})" if sig else f"No clear trend in {target} {over if pinfo else 'over time'} (p={lr.pvalue:.2f})")
+    _title(ax, f"{target} over time")
     gaps = full.index[full.isna()]
     no_data = f" No data in {len(gaps)} {unit}{'s' if len(gaps) != 1 else ''} (for example {gaps[0].date()}); these are left out of the best and weakest {unit}." if len(gaps) else ""
     text = (f"**{target}** ({agg} per {unit}) shows a {'statistically significant ' if sig else 'weak, non-significant '}{direction} trend "
@@ -743,7 +743,7 @@ def correlation(df, ctx, cols=None):
             ax.text(j, i, f"{corr.values[i, j]:.2f}", ha="center", va="center", fontsize=8,
                     color="white" if abs(corr.values[i, j]) > 0.6 else "black")
     fig.colorbar(im, ax=ax, fraction=0.046)
-    _title(ax, "Which numeric columns move together (closer to +1 or -1 = stronger link)")
+    _title(ax, "Relationships between numeric columns")
     pairs = corr.where(np.triu(np.ones(corr.shape), 1).astype(bool)).stack()
     linked = dcols.related_pairs(df)
     left_out = [k for k in pairs.index if frozenset(k) in linked]          # a column calculated from others "moves together" with them by construction: not a finding
@@ -815,7 +815,7 @@ def heatmap(df, ctx, target, group_a, group_b):
             else:
                 ax.text(j, i, f"{fmt(v)}\nn={int(cnt.values[i, j])}", ha="center", va="center", fontsize=8,
                         color="white" if (v - lo) / span > 0.55 else palette.INK)
-    _title(ax, f"Best: {a_hi} × {b_hi} ({fmt(hi)}). Weakest: {a_lo} × {b_lo} ({fmt(lo)})")
+    _title(ax, f"{target} by {group_a} and {group_b}")
     gap = f", a {hi / lo:.1f}× gap" if kind != "binary" and lo > 0 else ""
     text = (f"Across **{group_a}** and **{group_b}**, {'the rate of ' + str(pos) + ' for ' if kind == 'binary' else ''}**{target}** is highest for **{a_hi} × {b_hi}** ({fmt(hi)}{_loss_note(hi, target, pct)}) "
             f"and lowest for **{a_lo} × {b_lo}** ({fmt(lo)}{_loss_note(lo, target, pct)}){gap}. Only combinations with at least 10 rows are shown; these cell-level gaps are not individually "
@@ -891,7 +891,7 @@ def segment_trend(df, ctx, target, date, group):
         ax.set_xlabel(note, fontsize=9)
     st_view = {"groups": res, "fastest": str(fast), "slowest": str(slow), "survives_correction": survives}
     headline = wording.trend_headline(st_view, group, target, _fmt)
-    _title(ax, headline)
+    _title(ax, f"{target} over time by {group}")
     ranked = sorted(res, key=lambda g: -res[g]["relative_change"])
     listed = ranked if k <= 8 else [g for g in ranked if g in (fast, slow)] + [g for g in sig_groups if g not in (fast, slow)][:4]
     desc = "; ".join(f"**{g}** {wording.change_phrase(res[g], _fmt)} ({'significant' if res[g]['p_adjusted'] < 0.05 else 'not significant'})" for g in listed)
@@ -941,8 +941,7 @@ def scatter(df, ctx, x, y):
     sig = bool(p < 0.05)
     word = "positive" if rho > 0 else "negative"
     strength = "strong" if abs(rho) >= 0.6 else "moderate" if abs(rho) >= 0.3 else "weak"
-    _title(ax, f"{y} rises with {x} (rho={rho:+.2f})" if sig and rho > 0 and abs(rho) >= 0.3 else f"{y} falls as {x} rises (rho={rho:+.2f})" if sig and rho < 0 and abs(rho) >= 0.3
-           else f"{x} and {y} are only weakly related (rho={rho:+.2f})")
+    _title(ax, f"{y} vs {x}")
     text = (f"**{x}** and **{y}** have a {strength} {word} relationship (Spearman rho={rho:+.2f}, p{_pf(p)}, n={len(d):,}). "
             f"{'It is statistically significant' if sig else 'It is not statistically significant'}; a straight-line fit suggests {y} changes by about {_fmt(lr.slope)} for each unit of {x}. "
             f"This shows association, not cause and effect.")
@@ -999,7 +998,7 @@ def composition(df, ctx, group, by):
     if note:
         ax.set_xlabel(note, fontsize=9)
     sig = bool(p < 0.05)
-    _title(ax, f"The mix of {by} differs across {group}" if sig else f"The mix of {by} is similar across {group}")
+    _title(ax, f"{by} mix across {group}")
     text = (f"The mix of **{by}** {'differs' if sig else 'does not differ reliably'} across **{group}** (chi-square p{_pf(p)}, Cramér's V={v:.2f}, n={len(d):,}). "
             f"Biggest departure from the overall mix: **{big_g}** has {abs(big_diff):.0%} {'more' if big_diff > 0 else 'less'} {big_b} than average."
             + (f" The chart shows {'; '.join(notes)}, with the rest pooled as Other; the test uses every row." if notes else ""))
@@ -1104,7 +1103,7 @@ def seasonality(df, ctx, target, date):
     sig = bool(r["p"] < 0.05)
     m = r["means"]
     hi, lo = r["labels"][int(m.idxmax()) - (1 if name == "month" else 0)], r["labels"][int(m.idxmin()) - (1 if name == "month" else 0)]
-    fig.suptitle((f"{target} peaks on {hi} and is lowest on {lo}" if name == "weekday" else f"{target} peaks in {hi} and is lowest in {lo}") if sig else f"No reliable {name} pattern in {target}",
+    fig.suptitle(f"{target} by {'day of the week' if name == 'weekday' else 'month of the year'}",
                  fontsize=12, fontweight="bold", x=0.02, ha="left", y=1.04)
     pct = _pct_ratio(df, spec)
     fmt = (lambda v: f"{v:.0%}") if kind == "binary" else (lambda v: f"{v:.1%}") if pct else _fmt

@@ -1,5 +1,6 @@
 import ReactMarkdown from "react-markdown";
 import { Finding } from "../api";
+import { plainTitle } from "../display";
 import FindingTable from "./FindingTable";
 
 const LEVEL_CLASS: Record<string, string> = {
@@ -24,14 +25,14 @@ export default function InsightCard({ f, index }: { f: Finding; index: number })
       <header className="insight-head">
         <span className="insight-num">{index}</span>
         <div className="insight-title">
-          <h4>{ins.headline}</h4>
+          <h4>{plainTitle(f.title)}</h4>
+          <p className="iw-line">{ins.headline}</p>
           <div className="meta">
             <span className={LEVEL_CLASS[ins.confidence.level] ?? "tag"}>
               {ins.confidence.label} confidence
             </span>
             {ins.kpi_related && <span className="tag tag-kpi">your KPI</span>}
             {ins.source === "llm" && <span className="tag tag-info" title="Wording improved by the language model using your business context">AI-tailored</span>}
-            <span className="muted">{f.title}</span>
           </div>
           {ins.confidence.reasons.length > 0 && <p className="muted small insight-reasons">{ins.confidence.reasons.join(" ")}</p>}
         </div>

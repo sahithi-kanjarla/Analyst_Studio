@@ -97,3 +97,14 @@ export function shareSlices(items: Slice[], keep = 5): Slice[] {
   const v = rest.reduce((s, x) => s + x.value, 0);
   return [...items.slice(0, keep), { label: `Other (${rest.length} items)`, value: v, text: `${Math.round(v * 10) / 10}%` }];
 }
+
+/** How the Insights tab groups findings for a quick scan: who contributes most, what changes over time, and how things compare.
+ *  Decided from the analysis type only. (themeOf, above, is the finer split the cards still use.) */
+export type Group = "contributors" | "time" | "compare";
+export const GROUPS: Record<Group, { title: string; blurb: string }> = {
+  contributors: { title: "Top contributors", blurb: "What most of the total comes from." },
+  time: { title: "Trends over time", blurb: "Whether a measure is rising, falling or steady." },
+  compare: { title: "Comparisons", blurb: "Groups, and measures, set side by side." },
+};
+const CONTRIBUTORS = new Set(["pareto", "concentration", "composition", "category_share", "group_table", "distribution", "outliers"]);
+export const groupOf = (tool: string): Group => (TIME.has(tool) || tool === "segment_trend" ? "time" : CONTRIBUTORS.has(tool) ? "contributors" : "compare");

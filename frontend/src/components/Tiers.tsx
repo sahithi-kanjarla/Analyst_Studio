@@ -1,8 +1,8 @@
 import { GoalAnswer, NullLine, ReportView } from "../api";
-import { humanise, Understanding } from "../display";
+import { humanise, plainTitle, Understanding } from "../display";
 import { useState } from "react";
 import { ReportCard as Card } from "../api";
-import { themeOf, THEMES, Theme } from "../insightwidget";
+import { groupOf, GROUPS, Group } from "../insightwidget";
 import InsightWidget from "./InsightWidget";
 import { Sections, ShowAllLink, ShowMore, TabViewBar, ViewImg, ViewItem, ViewTitle } from "./view/ViewUI";
 import { useView } from "./view/ViewContext";
@@ -24,10 +24,11 @@ export default function Tiers({ view, goalAnswer, understanding }: { view: Repor
     const t = a.text; const i = t.indexOf(":");
     return say(i > 0 ? t.slice(0, i) : t);
   };
-  const themed = (cards: Card[]): [Theme, { c: Card; i: number }[]][] => {
-    const by = new Map<Theme, { c: Card; i: number }[]>();
-    cards.forEach((c, i) => { const t = themeOf(c.tool); by.set(t, [...(by.get(t) ?? []), { c, i }]); });
-    return [...by.entries()];
+  const ORDER: Group[] = ["contributors", "time", "compare"];
+  const themed = (cards: Card[]): [Group, { c: Card; i: number }[]][] => {
+    const by = new Map<Group, { c: Card; i: number }[]>();
+    cards.forEach((c, i) => { const t = groupOf(c.tool); by.set(t, [...(by.get(t) ?? []), { c, i }]); });
+    return ORDER.filter((g) => by.has(g)).map((g) => [g, by.get(g)!]);
   };
   const heading = (id: string, text: string, extra?: React.ReactNode) => <h3><ViewTitle id={id} text={text} />{extra}</h3>;
 
@@ -37,31 +38,34 @@ export default function Tiers({ view, goalAnswer, understanding }: { view: Repor
 
   const nodes: Record<string, React.ReactNode> = {
     "insights:answer": (
-      <section className="tier1">
+      <section className="is-strip" aria-label="The answer">
         {heading("insights:answer", "The answer")}
-        {goalAnswer && <p className="lead" data-kind="takeaway"><strong>{say(goalAnswer.sentence)}</strong> {say(goalAnswer.groups_sentence)}</p>}
-        {view.answers.length > 0 && !short && (
-          <ul className="tight">
-            {view.answers.map((a) => <li key={a.question}><strong>{say(a.question)}</strong> {say(a.answer)}</li>)}
-          </ul>
-        )}
+        {goalAnswer && <p className="is-answer" data-kind="takeaway">{say(goalAnswer.sentence)} <span>{say(goalAnswer.groups_sentence)}</span></p>}
         {view.headlines.length > 0 && (
-          <>
-            <h5>Headline findings</h5>
-            <ul className="tight">
-              <ShowMore tab="insights" items={view.headlines.map((h) => ({ id: `insights:headline:${h.id}`, node: (
-                <ViewItem key={h.id} id={`insights:headline:${h.id}`} tag="li"><span title={`Reference ${h.id}`}>{say(h.text)}</span></ViewItem>) }))} />
-            </ul>
-          </>
+          <ol className="is-points">
+            <ShowMore tab="insights" items={view.headlines.slice(0, 3).map((h, i) => ({ id: `insights:headline:${h.id}`, node: (
+              <ViewItem key={h.id} id={`insights:headline:${h.id}`} tag="li"><span className="is-n" aria-hidden>{i + 1}</span><span title={`Reference ${h.id}`}>{say(h.text)}</span></ViewItem>) }))} />
+          </ol>
         )}
-        {view.actions.length > 0 && (
-          <>
-            <h5>What to do</h5>
-            <ul className="tight">
-              <ShowMore tab="insights" items={view.actions.map((a, i) => ({ id: `insights:action:${i}`, node: (
-                <ViewItem key={i} id={`insights:action:${i}`} tag="li" data-kind="action"><span title={a.evidence.length ? `Based on ${a.evidence.join(", ")}` : undefined}>{say(a.text)}</span></ViewItem>) }))} />
-            </ul>
-          </>
+        {((view.answers.length > 0 && !short) || view.headlines.length > 3 || view.actions.length > 0) && (
+          <details className="fold fold-working is-more">
+            <summary>More on the answer<span className="fold-hint">every question, every headline and what to do</span></summary>
+            {view.answers.length > 0 && !short && (
+              <ul className="tight">{view.answers.map((a) => <li key={a.question}><strong>{say(a.question)}</strong> {say(a.answer)}</li>)}</ul>
+            )}
+            {view.headlines.length > 3 && (
+              <>
+                <h5>Other headline findings</h5>
+                <ul className="tight">{view.headlines.slice(3).map((h) => <li key={h.id}><span title={`Reference ${h.id}`}>{say(h.text)}</span></li>)}</ul>
+              </>
+            )}
+            {view.actions.length > 0 && (
+              <>
+                <h5>What to do</h5>
+                <ul className="tight">{view.actions.map((a, i) => <li key={i} data-kind="action"><span title={a.evidence.length ? `Based on ${a.evidence.join(", ")}` : undefined}>{say(a.text)}</span></li>)}</ul>
+              </>
+            )}
+          </details>
         )}
       </section>
     ),
@@ -69,8 +73,8 @@ export default function Tiers({ view, goalAnswer, understanding }: { view: Repor
       <>
         {heading("insights:evidence", "What we found", <> <span className="muted small">{view.evidence.length} findings, most important first</span></>)}
         {themed(view.evidence).map(([theme, cards]) => (
-          <section className="iw-theme" key={theme} aria-label={THEMES[theme].title}>
-            <h4 className="iw-theme-title">{THEMES[theme].title}<small>{THEMES[theme].blurb}</small></h4>
+          <section className="iw-theme" key={theme} aria-label={GROUPS[theme].title}>
+            <h4 className="iw-theme-title">{GROUPS[theme].title}<small>{GROUPS[theme].blurb}</small></h4>
             <div className="iw-grid">
               <ShowMore tab="insights" items={cards.map(({ c, i }) => ({ id: `insights:card:${c.id}`, node: (
                 <ViewItem key={c.id} id={`insights:card:${c.id}`} tag="div" className="view-card"><InsightWidget c={c} index={i + 1} compact={short} understanding={understanding} action={actionFor(c)} /></ViewItem>) }))} />
@@ -78,10 +82,10 @@ export default function Tiers({ view, goalAnswer, understanding }: { view: Repor
           </section>
         ))}
         {nullLines.length > 0 && (
-          <section className="iw-null-lines">
-            <h5>Checked, no reliable difference</h5>
-            <ul className="tight">
-              {nullLines.map((nl: NullLine) => <li key={nl.id}><span className="muted">{say(nl.title)}</span></li>)}
+          <section className="iw-theme iw-null-lines" aria-label="Checked, and nothing found">
+            <h4 className="iw-theme-title">Checked, and nothing found<small>These looked for a difference and found no reliable one.</small></h4>
+            <ul className="chip-list">
+              {nullLines.map((nl: NullLine) => <li key={nl.id} className="chip-static" title={nl.reason}>{plainTitle(nl.title, understanding)}</li>)}
             </ul>
           </section>
         )}
@@ -152,7 +156,7 @@ function MoreFindingItem({ c, index, say, understanding }: { c: Card; index: num
         <summary>
           <span className="insight-num">{index}</span>
           <div>
-            <ViewTitle id={`insights:card:${c.id}`} tag="h4" text={say(c.headline)} />
+            <ViewTitle id={`insights:card:${c.id}`} tag="h4" text={plainTitle(c.title, understanding)} />
             <p className="muted small">{line.length > 140 ? line.slice(0, 137).replace(/[\s,;:]+\S*$/, "") + "…" : line}</p>
           </div>
         </summary>

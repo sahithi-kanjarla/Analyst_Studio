@@ -2,7 +2,7 @@ import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { CardTable, ReportCard as Card } from "../api";
 import { planTable, TABLE_ROWS } from "../chartsize";
-import { humanise, prettify, Understanding } from "../display";
+import { humanise, plainTitle, prettify, Understanding } from "../display";
 import { ViewImg, ViewItem, ViewTitle } from "./view/ViewUI";
 
 export const LEVEL_CLASS: Record<string, string> = {
@@ -126,12 +126,12 @@ export default function ReportCard({ c, index, compact = false, understanding }:
       <header className="insight-head">
         <span className="insight-num">{index}</span>
         <div className="insight-title">
-          <ViewTitle id={`insights:card:${c.id}`} tag="h4" text={say(c.headline)} />
+          <ViewTitle id={`insights:card:${c.id}`} tag="h4" text={plainTitle(c.title, und)} />
+          <p className="iw-line">{say(c.headline)}</p>
           <div className="meta">
             {kind && <span className="tag tag-kind">{kind}</span>}
             <span className={LEVEL_CLASS[c.confidence.level] ?? "tag"} title={c.confidence.reasons.join(" ")}>{c.confidence.label} confidence</span>
             {c.kpi_related && <span className="tag tag-kpi">your KPI</span>}
-            <span className="muted">{say(c.title)}</span>
           </div>
         </div>
       </header>

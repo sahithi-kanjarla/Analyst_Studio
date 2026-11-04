@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { api, DashTile, Finding, RunResult, isDemo } from "../api";
-import { humanise } from "../display";
+import { humanise, plainTitle } from "../display";
 import { moreChartCount } from "../morecharts";
 import FindingTable from "./FindingTable";
 import ChartModal from "./ChartModal";
@@ -12,7 +12,7 @@ const LEVEL: Record<string, string> = { high: "tag tag-ok", medium: "tag tag-mid
 export function Tile({ f, onOpen, und, items }: { f: Finding; onOpen: () => void; und?: RunResult["understanding"]; items?: { measure: string; text: string }[] }) {
   const ins = { ...f.insight!, headline: humanise(f.insight!.headline, und) };
   const id = `dashboard:chart:${f.id}`;
-  const title = humanise(f.title, und);
+  const title = plainTitle(f.title, und);
   return (
     <ViewItem id={id} tag="article" className="tile tile-compact">
       <header>

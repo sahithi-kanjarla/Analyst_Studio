@@ -1,5 +1,5 @@
 import { ReportCard, RunResult } from "../api";
-import { humanise, plainLabel, Understanding } from "../display";
+import { humanise, plainLabel, plainTitle, Understanding } from "../display";
 import LensChat from "./lens/LensChat";
 import { LensProvider } from "./lens/LensContext";
 import LensPins from "./lens/LensPins";
@@ -33,9 +33,10 @@ function ReportFinding({ c, und }: { c: ReportCard; und?: Understanding | null }
   const cid = `report:finding:${c.id}`;
   return (
     <ViewItem id={cid} tag="article" className="rp-chart surface span-6" data-kind="chart">
-      <h3><ViewTitle id={cid} text={say(c.headline)} /></h3>
+      <h3><ViewTitle id={cid} text={plainTitle(c.title, und)} /></h3>
+      <p className="iw-line" data-kind="takeaway">{say(c.headline)}</p>
       {c.chart_url && <ViewImg id={`report:chart:${c.id}`} src={c.chart_url} alt={say(c.title)} />}
-      <p data-kind="takeaway">{say(c.why_it_matters || c.observation)}</p>
+      <p className="rp-why" data-kind="reason">{say(c.why_it_matters || c.observation)}</p>
       {c.merged && c.merged.items.length > 1 && (
         <ul className="muted small">{c.merged.items.map((it) => <li key={it.id}>{say(it.text)}</li>)}</ul>
       )}

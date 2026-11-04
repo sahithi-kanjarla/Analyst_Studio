@@ -90,3 +90,18 @@ export function plainLabel(label: string): string {
   const t = String(label ?? "").replace(/^\s*(total|sum of)\s+/i, "").replace(/\s*\((?:sum|avg|average|mean|count)\)\s*$/i, "").trim();
   return t ? t.charAt(0).toUpperCase() + t.slice(1) : t;
 }
+
+/** A finding's short, plain chart title, built from its own title and the display names: "Revenue by segment", "Revenue over time".
+ *  The sentence that states the result is the headline and goes under the title; this only names what is measured and by what. */
+export function plainTitle(title: string, und?: Understanding | null): string {
+  let t = humanise(String(title ?? ""), und)
+    .replace(/\s*\((?:table|sum|avg|average|mean|count)\)\s*/gi, " ")
+    .replace(/^\s*(total|sum of)\s+/i, "")
+    .replace(/\s*[×x]\s+/g, " and ")                     // "A × B" is "A and B"
+    .replace(/^(.+?):\s+(.+ and .+)$/, "$1 by $2")       // "Revenue: A and B" is "Revenue by A and B"
+    .replace(/\s+/g, " ")
+    .trim();
+  // words after "by" / "and" / "across" read as plain words, not as headings
+  t = t.replace(/\b(by|and|across|vs|in|of)\s+([A-Z])(?=[a-z])/g, (_m, w: string, c: string) => `${w} ${c.toLowerCase()}`);
+  return t ? t.charAt(0).toUpperCase() + t.slice(1) : t;
+}
