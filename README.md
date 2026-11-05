@@ -2,6 +2,10 @@
 
 **An AI data analyst for small vendors.** Upload your sales files and get a verified report, a dashboard and plain-English insights. The AI never receives your raw rows, and code checks every figure it quotes.
 
+🔗 **Live demo:** https://analyst-studio.up.railway.app
+The sample report is open to view, no sign-in. Uploading your own files needs an access code, so message me for a trial code.
+
+_Status: running on a free tier, so it may be slow to wake up. The project is still being improved._
 
 ![Report](docs/screens/report.png)
 
