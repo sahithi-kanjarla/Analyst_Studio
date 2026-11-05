@@ -1,23 +1,23 @@
 // Number of records.
 Row Count = COUNTROWS('Data')
 
-Total revenue = SUM('Data'[revenue])
+Total product_revenue = SUM('Data'[product_revenue])
 
-Average revenue = AVERAGE('Data'[revenue])
+Average product_revenue = AVERAGE('Data'[product_revenue])
 
 // Better than average when the column is skewed.
-Median revenue = MEDIAN('Data'[revenue])
+Median product_revenue = MEDIAN('Data'[product_revenue])
 
 // Use with a bar chart on this column to reproduce the Pareto view.
-Share of revenue by Segment = DIVIDE([Total revenue], CALCULATE([Total revenue], ALL('Data'[Segment])))
+Share of product_revenue by sales_channel = DIVIDE([Total product_revenue], CALCULATE([Total product_revenue], ALL('Data'[sales_channel])))
 
 // Use with a bar chart on this column to reproduce the Pareto view.
-Share of revenue by region = DIVIDE([Total revenue], CALCULATE([Total revenue], ALL('Data'[region])))
+Share of product_revenue by payment_method = DIVIDE([Total product_revenue], CALCULATE([Total product_revenue], ALL('Data'[payment_method])))
 
 // Needs a continuous date column; mark a Date table if you add one.
-revenue Prior Month = CALCULATE([Total revenue], DATEADD('Data'[order_date], -1, MONTH))
+product_revenue Prior Month = CALCULATE([Total product_revenue], DATEADD('Data'[order_date], -1, MONTH))
 
 // Format as percentage.
-revenue MoM % = DIVIDE([Total revenue] - [revenue Prior Month], [revenue Prior Month])
+product_revenue MoM % = DIVIDE([Total product_revenue] - [product_revenue Prior Month], [product_revenue Prior Month])
 
-revenue YTD = TOTALYTD([Total revenue], 'Data'[order_date])
+product_revenue YTD = TOTALYTD([Total product_revenue], 'Data'[order_date])

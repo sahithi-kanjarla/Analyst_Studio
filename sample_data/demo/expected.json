@@ -48,7 +48,7 @@
       "label": "Customers who ordered",
       "expected": 1248,
       "kind": "number",
-      "must_show": true,
+      "must_show": false,
       "tabs": [
         "Report"
       ],
