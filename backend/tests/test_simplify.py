@@ -39,7 +39,8 @@ def test_show_all_and_show_less_are_ordinary_changes_that_reset_removes(run):
 
 def test_the_slim_bar_appears_for_a_hidden_item_and_disappears_with_undo_and_with_reset(run):
     rid, wd, res = run
-    a = post(rid, commands=[{"cmd": "hide", "id": "insights:card:f4"}, {"cmd": "hide", "id": "insights:appendix"}]).json()
+    fid = res["report_view"]["evidence"][0]["id"]                                           # an id taken from the run itself
+    a = post(rid, commands=[{"cmd": "hide", "id": f"insights:card:{fid}"}, {"cmd": "hide", "id": "insights:appendix"}]).json()
     assert a["bar"] == {"show": True, "text": "2 items hidden", "hidden": 2}
     b = post(rid, command={"cmd": "rename", "id": "strategy:s1", "title": "Mine"}).json()
     assert b["bar"]["text"] == "2 items hidden · 1 title edited"
@@ -103,7 +104,7 @@ def test_a_short_view_on_a_tab_that_opens_full_folds_all_but_five_and_show_all_b
 
 def test_the_ai_planner_edits_every_tab_with_the_same_commands(run):
     rid, wd, res = run
-    for tab, item in (("data", "data:table:clean"), ("cleaning", "cleaning:steps"), ("model", "model:summary"), ("plan", "plan:setup"), ("chat", "chat:conversation")):
+    for tab, item in (("data", "data:table:clean"), ("cleaning", "cleaning:steps"), ("model", ve.catalogue(res)["tabs"]["model"]["sections"][0]), ("plan", "plan:setup"), ("chat", "chat:conversation")):
         ai = FakeAI(P(("view_edit", {"commands": [{"cmd": "hide", "id": item}]})))
         a = chat.ask(wd, res, question=f"get rid of the {tab} part please", llm=ai, allow_ai=True, tab=ve.TAB_NAMES[tab])["answer"]
         assert a["view"]["changed"], tab
@@ -114,18 +115,20 @@ def test_the_ai_planner_edits_every_tab_with_the_same_commands(run):
 # ------------------------------------------------------------------ briefs: rename and edit
 def make(run):
     rid, wd, res = run
-    plan = P(("brief", {"briefs": [{"audience": "the board", "length": "short", "focus": "growth", "columns": ["revenue"], "evidence": [{"tool": "report_facts", "args": {"ids": ["f4"]}}]}]}))
-    chat.ask(wd, res, question="brief", llm=FakeAI(plan, {"headline": "Segment Enterprise averages 3.2× the revenue of Consumer [f4].", "key_figures": ["Average revenue is 550 for Enterprise [f4]."], "recommendations": ["Put more behind what works [f4]."]}), allow_ai=True)
+    fid = res["report_view"]["evidence"][0]["id"]
+    plan = P(("brief", {"briefs": [{"audience": "the board", "length": "short", "focus": "growth", "columns": ["revenue"], "evidence": [{"tool": "report_facts", "args": {"ids": [fid]}}]}]}))
+    chat.ask(wd, res, question="brief", llm=FakeAI(plan, {"headline": f"Segment Enterprise averages 3.2× the revenue of Consumer [{fid}].", "key_figures": [f"Average revenue is 550 for Enterprise [{fid}]."], "recommendations": [f"Put more behind what works [{fid}]."]}), allow_ai=True)
     return store.get_briefs(wd)[0]
 
 
 def test_a_brief_can_be_renamed_and_its_lines_edited_and_the_quality_note_stays(run):
     rid, wd, res = run
     b = make(run)
+    fid = res["report_view"]["evidence"][0]["id"]
     r = client.post(f"/api/runs/{rid}/briefs/{b['id']}/rename", json={"title": "Note for Priya"})
     assert r.status_code == 200 and r.json()["title"] == "Note for Priya" and r.json()["title_edited"] is True
     r = client.post(f"/api/runs/{rid}/briefs/{b['id']}/edit", json={"section": "headline", "text": "My own headline."}).json()
-    assert r["headline"] == {"text": "My own headline.", "ids": ["f4"], "edited": True}
+    assert r["headline"] == {"text": "My own headline.", "ids": [fid], "edited": True}
     r = client.post(f"/api/runs/{rid}/briefs/{b['id']}/edit", json={"section": "recommendations", "index": 0, "text": "Ask the regional leads first."}).json()
     assert r["recommendations"][0]["edited"] and r["recommendations"][0]["text"] == "Ask the regional leads first."
     assert r["key_figures"][0].get("edited") is None                                       # only the edited line is labelled

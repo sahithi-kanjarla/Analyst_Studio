@@ -97,6 +97,7 @@ def test_the_definitions_question_lists_the_reports_definitions_and_the_saved_on
 
 def test_with_no_definitions_at_all_it_says_so_plainly(run):
     rid, wd, res = run
+    res = {**res, "applied_definitions": [], "ignored_definitions": [], "derived_metrics": {"created": []}, "definitions": {}}                                               # the case is built here, whatever the recorded sample holds
     gl.delete_workspace(gl.workspace_key(res.get("context")))
     for q, ai in (("which definitions did you use?", None), ("which definitions did you use?", FakeAI(P(("glossary", {"op": "lookup"}))))):
         a = chat.ask(wd, res, question=q, llm=ai, allow_ai=ai is not None)["answer"]
