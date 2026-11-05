@@ -280,13 +280,15 @@ def _hbars(labels, values, texts, colors, xlabel="", note="", err=None, percent=
     y = np.arange(k)
     ev = [0.0 if e is None or not np.isfinite(e) else float(e) for e in (err if err is not None else [0.0] * k)]
     ax.barh(y, values, color=colors, height=0.68, xerr=ev if any(ev) else None, error_kw=dict(alpha=0.5, capsize=2))
-    ax.set_yticks(y, [_shorten(l) for l in labels])
+    import textwrap
+    ax.set_yticks(y, [textwrap.fill(_shorten(l, 32), 16) for l in labels] if k <= 6 else [_shorten(l, 18) for l in labels])      # a row has room for two lines only when there are few rows
     ax.invert_yaxis()
     hi, lo = max(max(v + e for v, e in zip(values, ev)), 0.0), min(min(values), 0.0)
     span = (hi - lo) or 1.0
     for yi, v, e, t in zip(y, values, ev, texts):
-        ax.text(max(v + e, 0.0) + 0.012 * span, yi, t, va="center", ha="left", fontsize=8)
-    ax.set_xlim(lo - (0.03 * span if lo < 0 else 0), hi + 0.5 * span)
+        if t:
+            ax.text(max(v + e, 0.0) + 0.012 * span, yi, t, va="center", ha="left", fontsize=8)
+    ax.set_xlim(lo - (0.03 * span if lo < 0 else 0), hi + (0.5 if any(texts) else 0.05) * span)
     ax.grid(axis="y", visible=False)
     ax.grid(axis="x", alpha=0.25)
     if percent:
@@ -303,12 +305,18 @@ def _vbars(labels, values, texts, colors, xlabel="", ylabel="", note="", err=Non
     fig, ax = plt.subplots(figsize=(max(5.2, 1.15 * k + 2.4), 3.9))
     ev = [0.0 if e is None or not np.isfinite(e) else float(e) for e in (err if err is not None else [0.0] * k)]
     ax.bar(range(k), values, color=colors, width=0.62, yerr=ev if any(ev) else None, capsize=3, error_kw=dict(alpha=0.5))
-    ax.set_xticks(range(k), [textwrap.fill(str(l), 12) for l in labels])
+    per_line = max(6, int(46 / (k + 1)))                      # characters that fit one line under a bar at the card width
+    crowded = any(len(w) > per_line for l in labels for w in str(l).split())
+    if crowded:
+        ax.set_xticks(range(k), [_shorten(l, 18) for l in labels], rotation=30, ha="right")
+    else:
+        ax.set_xticks(range(k), [textwrap.fill(str(l), per_line) for l in labels])
     hi = max(max(v + e for v, e in zip(values, ev)), 0.0)
     lo = min(min(values), 0.0)
     span = (hi - lo) or 1.0
     for i, (v, e, t) in enumerate(zip(values, ev, texts)):
-        ax.text(i, max(v + e, 0.0) + 0.02 * span, t, ha="center", va="bottom", fontsize=8)
+        if t:
+            ax.text(i, max(v + e, 0.0) + 0.02 * span, t, ha="center", va="bottom", fontsize=8)
     ax.set_ylim(lo - (0.03 * span if lo < 0 else 0), hi + 0.3 * span)
     ax.grid(axis="x", visible=False)
     if percent:
@@ -318,9 +326,12 @@ def _vbars(labels, values, texts, colors, xlabel="", ylabel="", note="", err=Non
     return fig, ax
 
 
+MAX_LABELLED_BARS = 8
+
+
 def ranked_bars(labels, values, ns, fmt, other_at=None, xlabel="", ylabel="", note="", err=None, percent=False):
     """Pick the layout from the data: horizontal when there are more than 6 bars or long labels. The best bar is dark, others light, 'Other' grey."""
-    texts = [f"{fmt(v)}  (n={int(n):,})" for v, n in zip(values, ns)]
+    texts = [fmt(v) for v in values] if len(labels) <= MAX_LABELLED_BARS else [""] * len(labels)          # the number of rows (n) is for the popup and the table, not the picture; many bars: the axis only
     colors = list(palette.category_colours(range(len(labels))).values())          # each bar its own colour from the shared palette, in rank order; past six, the quiet neutral
     if other_at is not None:
         colors[other_at] = OTHER_COLOR

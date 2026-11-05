@@ -171,6 +171,8 @@ def split_action(text: str) -> dict:
         head, tail = t, ""
     mid, _, why = tail.rpartition(":")
     words = head.split()
+    if not sep:                       # one sentence with no title part: it is shown whole, never cut after twelve words
+        return {"lead": t, "line": "", "rest": ""}
     lead = " ".join(words[:LEAD_WORDS])
     spill = " ".join(words[LEAD_WORDS:])
     sentences = re.findall(r".+?[.!?]+(?=\s|$)|.+$", why.strip()) if why.strip() else []

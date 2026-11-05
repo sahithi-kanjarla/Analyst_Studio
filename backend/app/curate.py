@@ -748,7 +748,11 @@ def curate(state: dict, llm=None) -> dict:
         # chart dedup before the cut
         if kind == KIND_CHART:
             items = dedup_charts(items)
-        kept, more, left_out = apply_cut(items)
+        faint = [c for c in items if tab == TAB_INSIGHTS and kind == KIND_FINDING and c.get("effect_label") == "negligible" and not c.get("null_result") and not c.get("pinned") and not c.get("direct")]
+        if faint:                  # a difference too small to matter is not an insight: it stays in the Data tab only
+            items = [c for c in items if c not in faint]
+        kept, more, left_out = apply_cut(items) if items else ([], [], [])
+        left_out = left_out + faint
         # separate null results from left_out
         real_left = [c for c in left_out if not c.get("null_result")]
         null_left = [c for c in left_out if c.get("null_result")]

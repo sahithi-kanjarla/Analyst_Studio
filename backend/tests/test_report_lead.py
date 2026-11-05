@@ -163,3 +163,23 @@ def test_a_weekday_or_month_finding_draws_every_period_and_the_line_starts_with_
     lead = rl.lead_for(f)
     assert [p["label"] for p in lead["series"]] == list(vals) and lead["bars"] == []
     assert rl.lead_for({"tool": "scatter", "params": {}, "stats": {"rho": 0.5, "x": "a", "y": "revenue"}})["line"].startswith("R")
+
+
+def test_a_one_sentence_action_is_never_cut_after_twelve_words():
+    text = "Pilot a targeted promotion for the Social Shop channel to test whether its revenue amount of 26,092 can be increased."
+    a = rl.split_action(text)
+    assert a["lead"] == text and a["line"] == "" and a["rest"] == ""
+
+
+@pytest.mark.parametrize("make", [bakery, boutique])
+def test_no_recommendation_ends_mid_sentence_or_has_empty_evidence(tmp_path, monkeypatch, make):
+    monkeypatch.setenv("RUNS_DIR", str(tmp_path / "runs"))
+    monkeypatch.setenv("GLOSSARY_PATH", str(tmp_path / "g.json"))
+    rid = runner.create_run("", [("sales.csv", make().to_csv(index=False).encode())])
+    runner._execute(rid)
+    res = json.loads((runner.run_dir(rid) / "result.json").read_text(encoding="utf-8"))
+    acts = res["report_view"]["actions"]
+    assert acts
+    for a in acts:
+        assert a["evidence"], f"empty evidence: {a['text']!r}"
+        assert a["text"].rstrip().endswith((".", "!", "?")), f"cut off: {a['text']!r}"

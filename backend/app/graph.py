@@ -420,7 +420,7 @@ def clarify_node(state: RunState) -> dict:
         skip = {c for q in pq for c in (q["columns"][0], f"{q['table']}_{q['columns'][0]}")}
         with llmmod.capture() as cap:
             questions, ignored = clarify.build_questions_and_ignored(typed, typed_profile, state["goal"], ctx, bool(state.get("explore")), llm, ws, skip, dropped,
-                                                                     raw=raw, raw_profile=state["profile"], kinds=briefmod.kinds(state.get("brief")), brief=state.get("brief"), concerns_out=concerns)
+                                                                     raw=raw, raw_profile=state["profile"], kinds=briefmod.kinds(state.get("brief")), brief={**(state.get("brief") or {}), "cost_columns": sorted(undmod.cost_columns(state.get("understanding")))}, concerns_out=concerns)
         if concerns.get("cached"):
             emit(rid, "Clarifier", f"{aicache.REUSED} for the data concerns (same data, goal, description, saved answers, model and prompt).")
         res = _ai_failed({**state, "decisions": []}, {}, "clarifying questions", llm, cap, "clarifier")
@@ -506,6 +506,9 @@ def plan_node(state: RunState) -> dict:
             emit(rid, "Planner", "Applying your definitions (" + "; ".join(shown) + ").")
     if line_total and not ov.get("target"):
         ov["target"], ov["target_source"] = line_total, "the analyst brief"
+    from .retail_roles import per_unit_columns
+    per_unit = per_unit_columns(typed, {c["name"]: c for c in prof["columns"]}, ov["kinds"], state.get("brief"))
+    ov["kinds"] = {**{c: "rate" for c in per_unit if c not in new_cols}, **ov["kinds"]}      # a price or a unit cost is averaged over time and groups, never summed
     # several candidate measures are never a question: all are analysed. A ratio is only added when the LLM proposes one with a business meaning and the data passes the checks.
     removed = set(state.get("remove_derived") or [])
     # a ratio the user named as a KPI is created by code whenever the brief (or the rules) found its two columns; the LLM's own ideas only fill the remaining slots

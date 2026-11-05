@@ -67,8 +67,15 @@ def test_the_interface_source_has_no_old_tab_name_in_visible_text():
     assert not bad, bad
 
 
-def test_the_landing_tour_lists_the_five_real_tabs():
+def test_every_landing_tour_card_that_names_a_tab_names_a_real_one():
+    """The landing page shows a shorter tour on purpose, so it need not list all five tabs; each card that names a tab must name one the interface has."""
     src = (ROOT / "frontend" / "src" / "components" / "StartPage.tsx").read_text(encoding="utf-8")
-    assert "const TOUR_TABS: NavTab[] = NAV_TABS" in src and "NAV_LABEL[t]" in src
     tabs = (ROOT / "frontend" / "src" / "tabs.ts").read_text(encoding="utf-8")
     assert re.search(r'NAV_TABS: NavTab\[\] = \["report", "insights", "strategy", "dashboard", "data"\]', tabs)
+    real = set(re.findall(r'\w+: "([^"]+)"', next(l for l in tabs.splitlines() if "NAV_LABEL" in l)))
+    assert real == {"Report", "Insights", "Ideas to try", "Dashboard", "Data"}, real
+    not_tabs = {"Lens", "Power BI pack"}                      # features of the app that are not tabs
+    cards = re.findall(r'title: "([^"]+)"', src.split("const FEATURES")[1].split("];")[0]) + [t.strip() for x in re.findall(r'title: "(Report, [^"]+)"', src) for t in x.split(",")]
+    assert cards
+    named = [c for c in cards if c not in not_tabs]
+    assert named and all(c in real for c in named), [c for c in named if c not in real]

@@ -1,5 +1,6 @@
 """The calm interface, backend side: the default short view, the slim bar's state, chat edits (hide, show, short) on every tab by the same mechanism, and brief rename and edit. The browser side is test_ui_simplify.py."""
 import json
+from pathlib import Path
 import os
 
 os.environ["LLM_PROVIDER"] = "none"
@@ -51,7 +52,7 @@ def test_the_slim_bar_appears_for_a_hidden_item_and_disappears_with_undo_and_wit
 
 
 def test_hide_and_show_by_name_without_an_ai():
-    cat = ve.catalogue(json.load(open("../sample_data/demo/sales_run/result.json")))
+    cat = ve.catalogue(json.loads((Path(__file__).resolve().parents[2] / "sample_data" / "demo" / "sales_run" / "result.json").read_text(encoding="utf-8")))
     assert viewchat.toggle_cmds("Hide the cleaning log", cat, []) == [{"cmd": "hide", "id": "cleaning:steps"}]
     assert viewchat.toggle_cmds("hide the appendix", cat, []) == [{"cmd": "hide", "id": "insights:appendix"}]
     assert viewchat.toggle_cmds("show the appendix", cat, ["insights:appendix"]) == [{"cmd": "show", "id": "insights:appendix"}]

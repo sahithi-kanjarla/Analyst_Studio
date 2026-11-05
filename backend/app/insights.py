@@ -215,7 +215,7 @@ def _narrative(f: dict, ctx: dict, pol: dict | None = None, cols: list[str] | No
         lab = effect_label(st)              # the size wording comes from the test's effect size, never from the gap between the group means
         small = lab in ("small", "negligible")
         eff = f" ({lab} effect)" if sig and lab else ""
-        note = f"; lower is better, so {bot} performs best" if bad and sig else ""
+        note = ""           # the direction of a measure is a guess from its name or a model: no "performs best" claim is made from it
         if st.get("kind") == "binary":
             h = (f"{group} = {top} has the highest {target} rate ({_pct(hv)} of {ROWS_LABEL}) versus {_pct(lv)} for {bot}{eff}{note}" if sig
                  else f"The {target} rate does not differ reliably across {group}")

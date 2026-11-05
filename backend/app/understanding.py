@@ -136,6 +136,20 @@ def validate(obj, columns: list[str]) -> tuple[dict | None, list[str]]:
     return ({"columns": cols, "goal_columns": goal_columns, "descriptive": descriptive[:MAX_TERMS], "order_key": order_key}, []) if not errors else (None, errors)
 
 
+def check_flags(cols: dict, df: pd.DataFrame) -> dict:
+    """A column the model calls a yes/no flag but whose values are not two values (a whole-number count, an amount) is a measure: code reads the values, the model's wording is dropped.
+    Its meaning and display name are replaced, so no card calls a count a flag, an indicator or a reason."""
+    out = {}
+    for name, v in cols.items():
+        x = pd.to_numeric(df[name], errors="coerce").dropna() if v.get("role") == "flag" and name in df.columns and pd.api.types.is_numeric_dtype(df[name]) else None
+        if x is not None and len(x) and x.nunique() > 2:
+            whole = bool((x % 1 == 0).all())
+            v = {**{k: val for k, val in v.items() if k != "display_name"}, "role": "measure", "measure_kind": "count" if whole else "rate",
+                 "meaning": f"A {'whole-number count' if whole else 'number'} with {x.nunique()} different values, not a yes/no flag", "display_name": readable_name(name)}
+        out[name] = v
+    return out
+
+
 def _record(source: str, parts: dict | None = None, retries: int = 0, error: str = "") -> dict:
     parts = parts or {"columns": {}, "goal_columns": {}, "descriptive": []}
     return {"source": source, "columns": parts["columns"], "goal_columns": parts["goal_columns"],
@@ -159,7 +173,7 @@ def resolve(llm, df: pd.DataFrame, profile: dict, goal: str, ctx: dict | None, s
         if state is not None:
             state.setdefault("decisions", []).append({"decision": "data understanding", "source": "cache", "chosen": aicache.REUSED, "why": "same data, goal, description, glossary, model and prompt as a saved run",
                                                       "errors": [], "raw_output": ""})
-        return {**hit, "cached": True}
+        return {**hit, "columns": check_flags(hit.get("columns") or {}, df), "cached": True}
     llm = deterministic(llm)
     ask, retries, errors = view, 0, []
     for attempt in range(MAX_RETRIES + 1):
@@ -172,6 +186,7 @@ def resolve(llm, df: pd.DataFrame, profile: dict, goal: str, ctx: dict | None, s
                 state.setdefault("decisions", []).append({"decision": "data understanding", "source": "llm" if not retries else "repaired",
                                                           "chosen": f"{len(parts['columns'])} columns described; {len(parts['goal_columns'])} goal terms mapped ({sum(not c for c in parts['goal_columns'].values())} without a column)",
                                                           "why": f"structure test passed after {retries} retr{'y' if retries == 1 else 'ies'}", "errors": [], "raw_output": ""})
+            parts = {**parts, "columns": check_flags(parts["columns"], df)}
             rec = _record("llm", parts, retries)
             aicache.put(ck, rec)
             return rec
@@ -292,11 +307,18 @@ def display_names(state: dict) -> dict[str, str]:
 
 
 def apply_names(text: str, names: dict[str, str]) -> str:
-    """The text with every internal name replaced by its display name (one pass, so a display name is never replaced again)."""
+    """The text with every internal name replaced by its display name (one pass, so a display name is never replaced again).
+    Case does not matter (a model capitalises a name that starts a sentence), and neither do the underscores: 'Returnsrefundamounttotal' is the same name squashed."""
     if not names or not text:
         return text
-    rx = re.compile(r"(?<![A-Za-z0-9_])(" + "|".join(re.escape(n) for n in sorted(names, key=len, reverse=True)) + r")(?![A-Za-z0-9_])")
-    return rx.sub(lambda m: names[m.group(1)], text)
+    look: dict[str, str] = {}
+    for n, shown in names.items():
+        look[n.casefold()] = shown
+        flat = re.sub(r"[\s_]+", "", n).casefold()
+        if flat != n.casefold() and len(flat) >= 6:
+            look.setdefault(flat, shown)
+    rx = re.compile(r"(?<![A-Za-z0-9_])(" + "|".join(re.escape(n) for n in sorted(look, key=len, reverse=True)) + r")(?![A-Za-z0-9_])", re.I)
+    return rx.sub(lambda m: look[m.group(1).casefold()], text)
 
 
 def readable_md(text: str, state: dict) -> str:

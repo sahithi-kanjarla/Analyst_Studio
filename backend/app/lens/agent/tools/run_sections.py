@@ -91,8 +91,8 @@ class RunSections(Tool):
 
 class RunSection(Tool):
     name = "run_section"
-    description = ("Read one section of the saved run (run_sections shows what each holds): its lines, copied from the saved record. Use for questions about how the data was set up, cleaned, "
-                   "linked, understood, or what was asked and answered. Read-only.")
+    description = ("Use for questions about how the data was set up, cleaned, linked, understood, or what was asked and answered: reads one section of the saved run "
+                   "(run_sections shows what each holds), its lines copied from the saved record. Read-only.")
     args = {"section": {"type": "str", "required": True, "help": "a section name from run_sections"}}
 
     def validate(self, args, env):
@@ -108,8 +108,8 @@ class RunSection(Tool):
 
 class RunSearch(Tool):
     name = "run_search"
-    description = ("Search every section of the saved run for lines containing the given words and return the best matches, each with its section. "
-                   "Use when you do not know which section holds the answer. Read-only.")
+    description = ("Use when you do not know which section of the saved run holds the answer: searches every section for lines containing the given words and returns the best matches, "
+                   "each with its section. Read-only.")
     args = {"query": {"type": "str", "required": True, "max_len": 120, "help": "a few words"}}
 
     def run(self, args, env, prior):

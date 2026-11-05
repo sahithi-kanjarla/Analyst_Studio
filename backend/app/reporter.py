@@ -361,7 +361,8 @@ def llm_actions(llm, state: dict, view: dict, cs: list[dict], wanted: list[int],
             rejected.append(why)
             instead(n, "it failed the fact check")
             continue
-        sentence = _sentences(clean)[0]
+        sentence = _sentences(clean)[0].rstrip()
+        sentence += "" if sentence.endswith((".", "!", "?")) else "."          # the fact id sat after the full stop: stripping it must not leave an unfinished sentence
         if not mainview.concrete(sentence, {mainview.measure_of(i, by_id, r_by_id) for i in offered[n]}):
             dropped.append(f"action replaced (no figure with its measure named): {clean}")
             instead(n, "no figure with its measure named")
@@ -760,7 +761,7 @@ def build_report(state: dict, summary: str, recs: list[str], run_mode: str = "",
     plan = mainview.plan_actions(state, view, cs)
     # the saved view lists the same actions as 'What to do' (one recommendation list); the evidence of an action kept where its text is unchanged
     old_ev = {a.get("text"): a.get("evidence") or [] for a in view.get("actions") or []}
-    view["actions"] = [{"text": a["text"], "evidence": old_ev.get(a["text"], [])} for a in plan["actions"]]
+    view["actions"] = [{"text": a["text"], "evidence": old_ev.get(a["text"]) or a.get("evidence") or []} for a in plan["actions"]]      # an action whose text was reworded keeps the evidence it was planned with
     answer_cards = [c for c in cs if c["num"]]          # an action question has no card: the 'What to do' section answers it
     L = [title, "", f"**Mode:** {run_mode or derive_mode(state.get('stage_sources'))}", ""] + [f"- ⚠ {w}" for w in warns[:mainview.WARNINGS_MAX]] + ([""] if warns else [])
 
