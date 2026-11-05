@@ -105,3 +105,8 @@ body.lens-docked .runbar-tabs { justify-content: flex-start; }
 /* ---- the details control is a slim bar above the content card; on a phone the card gives the content more of the width */
 .page-tools { margin: 0 0 8px; }
 @media (max-width: 640px) { .card.results { padding: var(--sp-3); } }
+
+/* ---- "Progress" and "Expand all details" share one row: the details bar is lifted into the row of the Progress toggle */
+.runview .side-toggle { min-height: 44px; }
+.runview .main > .page-tools { height: 44px; margin: calc(-44px - 18px) 0 18px; align-items: center; pointer-events: none; }
+.runview .main > .page-tools > * { pointer-events: auto; }
