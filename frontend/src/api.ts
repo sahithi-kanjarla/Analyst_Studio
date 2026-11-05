@@ -420,6 +420,7 @@ export interface RunResult {
     relevant_columns: string[];
     analyses: { tool: string; params: Record<string, unknown>; why: string; origin?: "ai" | "code" | "rules" }[];
     skipped: { column: string; reason: string }[];
+    dropped?: { n: number; tool: string; params: Record<string, unknown>; reason: string }[];
     source: string;
   };
   applied_definitions?: AppliedDefinition[];

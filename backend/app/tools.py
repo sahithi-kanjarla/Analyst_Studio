@@ -1198,29 +1198,38 @@ def spec_signature(spec: dict) -> str:
     return json.dumps([spec.get("tool"), sorted((spec.get("params") or {}).items())], default=str)
 
 
+# the column roles each analysis parameter accepts, and the distinct-value range of a group column; the planner prompt and its candidate lists use the same table
+PARAM_ROLES = {
+    "distribution": {"col": {"numeric"}}, "outliers": {"col": {"numeric"}},
+    "category_share": {"col": {"categorical", "binary"}},
+    "group_compare": {"target": {"numeric", "binary"}, "group": {"categorical", "binary"}},
+    "outcome_compare": {"target": {"binary"}, "col": {"numeric"}},
+    "robust_compare": {"target": {"numeric"}, "group": {"categorical", "binary"}},
+    "pareto": {"target": {"numeric"}, "group": {"categorical", "binary"}},
+    "trend": {"target": {"numeric", "binary"}, "date": {"date"}},
+    "correlation": {},
+    "heatmap": {"target": {"numeric", "binary"}, "group_a": {"categorical", "binary"}, "group_b": {"categorical", "binary"}},
+    "segment_trend": {"target": {"numeric", "binary"}, "date": {"date"}, "group": {"categorical", "binary"}},
+    "scatter": {"x": {"numeric"}, "y": {"numeric"}},
+    "composition": {"group": {"categorical", "binary"}, "by": {"categorical", "binary"}},
+    "seasonality": {"target": {"numeric", "binary"}, "date": {"date"}},
+    "summary_table": {},
+    "group_table": {"target": {"numeric", "binary"}, "group": {"categorical", "binary"}},
+}
+GROUP_MIN, GROUP_MAX = 2, 30
+
+
+def is_group_param(k: str) -> bool:
+    return k.startswith("group") or k == "by"
+
+
 def validate_spec(spec: dict, roles: dict[str, str], uniques: dict[str, int]) -> tuple[dict | None, str]:
     """Reject anything an LLM may have hallucinated: unknown tools, unknown columns, wrong column types."""
     tool = spec.get("tool")
     params = spec.get("params") or {}
     if tool not in REGISTRY:
         return None, f"unknown tool '{tool}'"
-    need = {
-        "distribution": {"col": {"numeric"}}, "outliers": {"col": {"numeric"}},
-        "category_share": {"col": {"categorical", "binary"}},
-        "group_compare": {"target": {"numeric", "binary"}, "group": {"categorical", "binary"}},
-        "outcome_compare": {"target": {"binary"}, "col": {"numeric"}},
-        "robust_compare": {"target": {"numeric"}, "group": {"categorical", "binary"}},
-        "pareto": {"target": {"numeric"}, "group": {"categorical", "binary"}},
-        "trend": {"target": {"numeric", "binary"}, "date": {"date"}},
-        "correlation": {},
-        "heatmap": {"target": {"numeric", "binary"}, "group_a": {"categorical", "binary"}, "group_b": {"categorical", "binary"}},
-        "segment_trend": {"target": {"numeric", "binary"}, "date": {"date"}, "group": {"categorical", "binary"}},
-        "scatter": {"x": {"numeric"}, "y": {"numeric"}},
-        "composition": {"group": {"categorical", "binary"}, "by": {"categorical", "binary"}},
-        "seasonality": {"target": {"numeric", "binary"}, "date": {"date"}},
-        "summary_table": {},
-        "group_table": {"target": {"numeric", "binary"}, "group": {"categorical", "binary"}},
-    }[tool]
+    need = PARAM_ROLES[tool]
     clean = {}
     for k, allowed in need.items():
         col = params.get(k)
@@ -1228,8 +1237,8 @@ def validate_spec(spec: dict, roles: dict[str, str], uniques: dict[str, int]) ->
             return None, f"{tool}: column '{col}' does not exist"
         if roles[col] not in allowed:
             return None, f"{tool}: column '{col}' has role '{roles[col]}', expected {sorted(allowed)}"
-        if (k.startswith("group") or k == "by") and not (2 <= uniques.get(col, 0) <= 30):
-            return None, f"{tool}: group column '{col}' has {uniques.get(col)} distinct values (need 2-30)"
+        if is_group_param(k) and not (GROUP_MIN <= uniques.get(col, 0) <= GROUP_MAX):
+            return None, f"{tool}: group column '{col}' has {uniques.get(col)} distinct values (need {GROUP_MIN}-{GROUP_MAX})"
         clean[k] = col
     if tool == "heatmap" and clean["group_a"] == clean["group_b"]:
         return None, "heatmap: group_a and group_b must be different columns"

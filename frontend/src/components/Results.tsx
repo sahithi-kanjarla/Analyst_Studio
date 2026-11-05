@@ -363,6 +363,12 @@ export function PlanView({ run }: { run: RunResult }) {
         </ul>
       </>
     )}
+    {(run.plan.dropped?.length ?? 0) > 0 && (
+      <>
+        <h4>Proposed checks that were dropped</h4>
+        <ul>{run.plan.dropped!.map((d) => <li key={d.n}><strong>{d.tool.replace(/_/g, " ")}</strong> {Object.values(d.params).flat().map(String).join(", ")}: {d.reason}</li>)}</ul>
+      </>
+    )}
     {run.plan.skipped.length > 0 && (
       <>
         <h4>Columns left out</h4>

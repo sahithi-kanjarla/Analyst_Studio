@@ -14,6 +14,7 @@ import re
 import pandas as pd
 
 from . import labels
+from . import tools
 from . import context as ctxmod
 from . import derived as derivedmod
 from . import directives as dv
@@ -451,9 +452,13 @@ Use the business context (industry, what they sell, the KPIs they named) to choo
 Available analysis tools (use exact names and parameter names; no other tool exists):
 {json.dumps(CATALOG, indent=1)}
 
+Limits of each analysis (an analysis that breaks one is dropped):
+{limits_text()}
+
 Rules:
 - Use only column names that appear in the profile. Match column role to tool requirements. Never use an identifier column.
-- Choose at most {cap} analyses, each with a short "why" tied to the goal or the business context. More than {cap} is rejected.
+- Take every column from the CANDIDATE COLUMNS lists in the message: a column that is not in the list for a parameter cannot be used for it.
+- Choose at most {cap} analyses, each with a short "why" tied to the goal or the business context. Analyses beyond the first {cap} valid ones are dropped.
 - The code adds these itself when you leave them out, so do not spend your {cap} on them: a month-of-year seasonality for the main total and each ratio KPI when the dates cover a year, the broader level of a verified hierarchy for each KPI with a drill-down into its child level, and the measures the user named as KPIs.
 - If the goal says exploratory mode: choose the 1-2 most business-relevant outcome columns and a broad, varied set of analyses.
 - Skip identifier and free-text columns. List notable skipped columns with a reason.
@@ -464,47 +469,79 @@ Return JSON with keys: objective (string), questions (list of 2-4 strings), targ
 relevant_columns (list), analyses (list of {{tool, params, why}}), skipped (list of {{column, reason}})."""
 
 
-def plan_view(profile: dict, goal: str, context: dict | None = None, explore: bool = False, overrides: dict | None = None) -> str:
+MIN_VALID_ANALYSES = 3      # fewer valid analyses than this and the model's plan is not worth keeping: the rules plan is used instead
+_KINDS = (("numeric", "numeric columns (any numeric parameter)"), ("binary", "binary columns (exactly 2 values; outcome targets)"),
+          ("group", f"group columns ({tools.GROUP_MIN}-{tools.GROUP_MAX} distinct values; group, group_a, group_b, by)"), ("date", "date columns"))
+
+
+def limits_text() -> str:
+    """The rules every analysis type must meet, written from the same table the validator uses."""
+    names = {"numeric": "numeric column", "binary": "binary column (2 values)", "categorical": "categorical column", "date": "date column"}
+    lines = []
+    for tool, params in tools.PARAM_ROLES.items():
+        if params:
+            lines.append(f"- {tool}: " + "; ".join(f"{k} = {' or '.join(names[r] for r in sorted(roles))}"
+                                                  + (f" with {tools.GROUP_MIN}-{tools.GROUP_MAX} distinct values" if tools.is_group_param(k) else "") for k, roles in params.items()))
+    return "\n".join(lines) + "\n- outcome_compare: the target must be a binary column; a numeric count or amount is never a binary outcome, even if it has few values."
+
+
+def candidate_lists(roles: dict, uniques: dict) -> dict[str, list[str]]:
+    """Columns that can satisfy each kind of parameter, so the model is only offered columns the validator will accept. Identifier columns are in none."""
+    group = [c for c, r in roles.items() if r in ("categorical", "binary") and tools.GROUP_MIN <= uniques.get(c, 0) <= tools.GROUP_MAX]
+    return {"numeric": [c for c, r in roles.items() if r == "numeric"], "binary": [c for c, r in roles.items() if r == "binary"], "group": group,
+            "date": [c for c, r in roles.items() if r == "date"]}
+
+
+def plan_view(profile: dict, goal: str, context: dict | None = None, explore: bool = False, overrides: dict | None = None, roles: dict | None = None) -> str:
     ctx_txt = ctxmod.context_text(context)
     ov = overrides or {}
     confirmed = "".join(f"- {k}: {v}\n" for k, v in (("target (main number)", ov.get("target")), ("date_col", ov.get("date_col"))) if v)
     confirmed += "".join(f"- do not use column: {c}\n" for c in ov.get("exclude") or [])
     mode = "EXPLORATORY MODE: the user does not know what to look for.\n" if explore else ""
+    base_roles, uniques = roles_and_uniques(profile)
+    cands = candidate_lists(roles if roles is not None else base_roles, uniques)
+    cand_txt = "CANDIDATE COLUMNS (a column can only be used for the parameter kinds listed under its list):\n" + "".join(f"- {label}: {', '.join(cands[k]) or '(none)'}\n" for k, label in _KINDS) + "\n"
     return (f"{mode}GOAL: {goal}\n\n" + (f"CONFIRMED BY THE USER (use exactly):\n{confirmed}\n" if confirmed else "") + (f"BUSINESS CONTEXT (user-written, unverified):\n{ctx_txt}\n\n" if ctx_txt else "")
-            + f"PROFILE ({profile['rows']} rows):\n{json.dumps(compact_profile(profile), default=str)}")
+            + cand_txt + f"PROFILE ({profile['rows']} rows):\n{json.dumps(compact_profile(profile), default=str)}")
 
 
 def plan_validator(roles: dict, uniques: dict, ids: set, cap: int):
-    """The checks on a proposed plan: only tools of the catalog, columns that exist with fitting types, no identifier columns, within the cap. Any problem is an error
-    (the model gets one repair); the clean plan has the analyses in the model's order without duplicates."""
+    """The checks on a proposed plan: only tools of the catalog, columns that exist with fitting types, no identifier columns, within the cap. A bad analysis is dropped with its reason and the rest are kept; the plan is rejected (one repair, then rules) only when fewer than
+    MIN_VALID_ANALYSES remain or another part of it is wrong; the clean plan has the analyses in the model's order without duplicates."""
     def validate(obj):
         if not isinstance(obj, dict) or not isinstance(obj.get("analyses"), list):
             return None, ["the reply must be a JSON object with an 'analyses' list"]
-        specs, errors, good, seen = obj["analyses"], [], [], set()
-        if len(specs) > cap:
-            errors.append(f"{len(specs)} analyses were proposed but at most {cap} are allowed")
+        specs, errors, good, seen, dropped = obj["analyses"], [], [], set(), []
         for i, spec in enumerate(specs, 1):
             spec = spec if isinstance(spec, dict) else {}
-            used = [c for v in (spec.get("params") or {}).values() for c in (v if isinstance(v, list) else [v])]
+            params = spec.get("params") if isinstance(spec.get("params"), dict) else {}
+            used = [c for v in params.values() for c in (v if isinstance(v, list) else [v])]
             ok, why = validate_spec(spec, roles, uniques)
+            drop = {"n": i, "tool": str(spec.get("tool")), "params": params}
             if bad := [c for c in used if isinstance(c, str) and c in ids]:
-                errors.append(f"analysis {i} ({spec.get('tool')}): '{bad[0]}' is an identifier column and cannot be analysed")
+                dropped.append({**drop, "reason": f"'{bad[0]}' is an identifier column and cannot be analysed"})
             elif ok is None:
-                errors.append(f"analysis {i}: {why}")
-            elif spec_signature(ok) not in seen:
+                dropped.append({**drop, "reason": why})
+            elif spec_signature(ok) in seen:
+                continue                                            # a repeat is merged, not an error
+            elif len(good) >= cap:
+                dropped.append({**drop, "reason": f"over the limit of {cap} analyses"})
+            else:
                 seen.add(spec_signature(ok))
                 good.append({**ok, "origin": "ai"})
         status_cols = [c for c, v in uniques.items() if isinstance(c, str) and c in roles and labels.is_status_like(c, ())]
         for q in obj.get("questions") or []:
             if isinstance(q, str) and re.search(r"\bsegments?\b", q, re.I) and any(labels.shown(c).lower() in q.lower() for c in status_cols) and not any("segment" in str(c).lower() for c in roles):
                 errors.append(f"the question \"{q[:80]}\" calls a status column a segment: call the column by its own name and say it is a status")
-        if len(good) < 2 and not errors:
-            errors.append("a plan needs at least 2 different analyses")
+        if len(good) < MIN_VALID_ANALYSES:      # too little survived: the reasons go back to the model for its one repair
+            errors += [f"analysis {d['n']} ({d['tool']}): {d['reason']}" for d in dropped]
+            if not dropped:
+                errors.append(f"a plan needs at least {MIN_VALID_ANALYSES} different valid analyses")
         for key, role in (("target", ("numeric", "binary")), ("date_col", ("date",))):
             v = obj.get(key)
             if v is not None and roles.get(v) not in role:
                 errors.append(f"{key} '{v}' is not a column with the role {' or '.join(role)}")
-        return ({**obj, "analyses": good}, []) if not errors else (None, errors)
+        return ({**obj, "analyses": good, "dropped": dropped}, []) if not errors else (None, errors)
     return validate
 
 
@@ -515,19 +552,26 @@ def propose_plan(llm, df: pd.DataFrame, profile: dict, goal: str, context: dict 
     roles, uniques = roles_and_uniques(profile)
     ids = {c for c, r in roles.items() if r == "id"}
     cap = plan_cap(explore)
-    res = propose(llm, "analysis plan", plan_system(cap), plan_view(profile, goal, context, explore, ov), plan_validator(demote_quantities(df, _apply_exclusions(roles, ov), ov.get("brief_roles")), uniques, ids, cap), lambda: None)
+    plan_roles = demote_quantities(df, _apply_exclusions(roles, ov), ov.get("brief_roles"))
+    res = propose(llm, "analysis plan", plan_system(cap), plan_view(profile, goal, context, explore, ov, plan_roles), plan_validator(plan_roles, uniques, ids, cap), lambda: None)
     ai = res["source"] in AI_SOURCES
     plan, notes = finalize_plan(res["value"] if ai else None, df, profile, goal, context, explore, ov)
     replaced = ai and plan["source"] == "rules"       # finalize_plan threw the AI plan away because an override named another main number
     plan["source"] = "rules" if replaced else "llm" if res["source"] == "llm" else "repaired" if ai else "rules"
     by = sum(a.get("origin") == "ai" for a in plan["analyses"])
+    dropped = list((res["value"] or {}).get("dropped") or []) if ai and not replaced else []
+    plan["dropped"] = dropped
+    drop_txt = ""
+    if dropped:
+        drop_txt = f"{len(dropped)} {'analysis' if len(dropped) == 1 else 'analyses'} dropped: " + "; ".join(f"{d['tool']} {', '.join(str(v) for v in d['params'].values())} ({d['reason']})" for d in dropped)[:600]
+        notes.append(f"The AI's plan was kept; {drop_txt}")
     if state is not None and replaced:
         state.setdefault("decisions", []).append({"decision": "analysis plan", "source": "rules", "chosen": "rule-built plan around the overriding main number",
                                                   "why": notes[-1] if notes else "The AI plan was replaced by the rules plan.", "errors": res["errors"]})
     elif state is not None:
         state.setdefault("decisions", []).append({
-            "decision": "analysis plan", "source": res["source"], "chosen": {"analyses chosen by the AI": by, "analyses added by code": len(plan["analyses"]) - by if ai else 0},
-            "why": res["why"] if ai else "The rule-based plan was used." if res["source"] != "fallback" else "The model's plan was not usable after one repair, so the rule-based plan was used.", "errors": res["errors"]})
+            "decision": "analysis plan", "source": res["source"], "chosen": {"analyses chosen by the AI": by, "analyses added by code": len(plan["analyses"]) - by if ai else 0, **({"analyses dropped": len(dropped)} if dropped else {})},
+            "dropped": dropped, "why": " ".join(x for x in (res["why"], drop_txt) if x) if ai else "The rule-based plan was used." if res["source"] != "fallback" else "The model's plan was not usable after one repair, so the rule-based plan was used.", "errors": res["errors"]})
     return plan, notes
 
 

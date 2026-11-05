@@ -132,6 +132,7 @@ def judge(run: Path) -> dict:
     ai_values = ("llm", "ai", "repaired", "mixed")                   # the AI wrote it, possibly after a repair, or part of it was reworded by rules
     llm_stages = sorted(k for k, v in sources.items() if str(v).lower() in ai_values)
     fell_back = sorted(k for k, v in sources.items() if str(v).lower() == "fallback")
+    dropped = [d for d in res.get("decisions") or [] if isinstance(d, dict) and d.get("decision") == "analysis plan" and d.get("dropped")]   # AI-written with some analyses dropped: still real AI, not a fallback
     fell_back += [str(d.get("decision")) for d in res.get("decisions") or [] if isinstance(d, dict) and str(d.get("decision", "")).startswith("AI unavailable")]
     rules_only = sorted(k for k, v in sources.items() if str(v).lower() in ("rules", "rules-only") and k not in by_design)
     if sources and not llm_stages:
@@ -148,7 +149,7 @@ def judge(run: Path) -> dict:
         usage = json.loads((run / "ai_usage.json").read_text(encoding="utf-8")).get("totals", {})
     except (OSError, ValueError):
         pass
-    return {"mode": mode, "by_design": sorted(by_design), "fell_back": sorted(set(fell_back)), "rules_stages": rules_only, "failed": failed, "missing": missing, "usage": usage, "llm_mode": res.get("llm_mode"), "sources": sources}
+    return {"mode": mode, "by_design": sorted(by_design), "fell_back": sorted(set(fell_back)), "rules_stages": rules_only, "failed": failed, "missing": missing, "planner_dropped": sum(len(d["dropped"]) for d in dropped), "usage": usage, "llm_mode": res.get("llm_mode"), "sources": sources}
 
 
 def main():
@@ -207,6 +208,8 @@ def main():
     print(f"Tokens: {u.get('input_tokens', 0):,} in / {u.get('output_tokens', 0):,} out, {u.get('calls', 0)} calls sent, {u.get('cached', 0)} cached"
           f"{' (estimated)' if u.get('estimated') else ''}, {u.get('seconds', 0)} s in AI calls")
     print(f"AI mode: {j['mode']} ({j['llm_mode']}); fell back: {', '.join(j['fell_back']) or 'none'}; rules stages: {', '.join(j['rules_stages']) or 'none'}; rules by design (no AI call needed): {', '.join(j['by_design']) or 'none'}")
+    if j.get('planner_dropped'):
+        print(f"Planner: AI-written plan kept, {j['planner_dropped']} analyses dropped (counts as real AI, not a fallback)")
 
     problems = []
     if code != 0:

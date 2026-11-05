@@ -188,7 +188,8 @@ def test_override_that_replaces_the_ai_plan_makes_the_plan_rules_and_names_the_t
     prof = profile_df(df)
     ai_plan = {"objective": "o", "questions": ["q"], "target": "cost", "date_col": None, "relevant_columns": ["cost", "seg"],
                "analyses": [{"tool": "group_compare", "params": {"target": "cost", "group": "seg"}, "why": "w"},
-                            {"tool": "distribution", "params": {"col": "cost"}, "why": "w"}], "skipped": []}
+                            {"tool": "distribution", "params": {"col": "cost"}, "why": "w"},
+                            {"tool": "outliers", "params": {"col": "cost"}, "why": "w"}], "skipped": []}
 
     class Planner:
         def invoke(self, messages):
