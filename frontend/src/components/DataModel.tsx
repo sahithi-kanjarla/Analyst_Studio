@@ -28,6 +28,7 @@ export default function DataModel({ model }: { model: Model }) {
       )}
 
       <h4>Files</h4>
+      <div className="table-scroll">
       <table className="table">
         <thead>
           <tr>
@@ -57,11 +58,13 @@ export default function DataModel({ model }: { model: Model }) {
           })}
         </tbody>
       </table>
+      </div>
 
       <h4>Links found</h4>
       {model.relationships.length === 0 ? (
         <p className="muted">No reliable key links were found between these tables.</p>
       ) : (
+        <div className="table-scroll">
         <table className="table">
           <thead>
             <tr>
@@ -93,6 +96,7 @@ export default function DataModel({ model }: { model: Model }) {
             ))}
           </tbody>
         </table>
+        </div>
       )}
 
       {model.steps.length > 0 && (

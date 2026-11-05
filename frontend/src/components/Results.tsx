@@ -154,6 +154,12 @@ export default function Results({ run, target }: { run: RunResult; target?: stri
     <>
       <RunBar name={name} tabs={tabs} active={chat ? null : nav} onTab={pickTab} onLeave={onLeave} onReview={() => setReview(true)} onFullScreen={toggleFull} fullScreen={full} onDelete={isDemo(run.run_id) ? undefined : () => setConfirmDelete(true)}
         exportMenu={<ExportMenu run={run} onPick={(item) => { if (item === "print") setNav("report"); setDialog(item); }} />} />
+      {nav !== "report" && !chat && <div className="page-tools no-print">
+        <button type="button" className="btn-quiet details-toggle" aria-pressed={expanded} disabled={folds === 0 && !expanded} onClick={() => setExpanded(!expanded)}
+          title={folds === 0 && !expanded ? "Nothing is folded away on this page" : expanded ? "Fold the supporting detail away again" : "Open every folded section on this page"}>
+          {expanded ? "Collapse details" : "Expand all details"}
+        </button>
+      </div>}
       <div className={`card results ${full ? "is-full" : ""}`} ref={card}>
         {review && <AnswersReview runId={run.run_id} onClose={() => setReview(false)} onDirty={(d) => { dirty.current = d; }} />}
         {dialog === "briefs" && <BriefsDialog runId={run.run_id} onClose={() => setDialog(null)} />}
@@ -187,12 +193,6 @@ export default function Results({ run, target }: { run: RunResult; target?: stri
                 ))}
               </div>
             )}
-            {nav !== "report" && <div className="page-tools no-print">
-              <button type="button" className="btn-quiet details-toggle" aria-pressed={expanded} disabled={folds === 0 && !expanded} onClick={() => setExpanded(!expanded)}
-                title={folds === 0 && !expanded ? "Nothing is folded away on this page" : expanded ? "Fold the supporting detail away again" : "Open every folded section on this page"}>
-                {expanded ? "Collapse details" : "Expand all details"}
-              </button>
-            </div>}
             {backend === "insights" && run.key_metrics && run.key_metrics.length > 0 && (
               <div className="kpi-strip">
                 {run.key_metrics.map((m) => (

@@ -22,7 +22,7 @@
 /* ---- drop-down menus */
 .menu { position: relative; }
 .menu-caret { font-size: 11px; opacity: .7; }
-.menu-list { position: absolute; top: calc(100% + 6px); z-index: 60; min-width: 190px; padding: 6px; display: flex; flex-direction: column; background: var(--card, #fff); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 10px 30px rgb(0 0 0 / .14); }
+.menu-list { max-width: calc(100vw - 32px); max-height: min(70vh, calc(100dvh - 80px)); overflow-y: auto; overscroll-behavior: contain; position: absolute; top: calc(100% + 6px); z-index: 60; min-width: 190px; padding: 6px; display: flex; flex-direction: column; background: var(--card, #fff); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 10px 30px rgb(0 0 0 / .14); }
 .menu-right { right: 0; } .menu-left { left: 0; }
 .menu-item { display: block; width: 100%; text-align: left; padding: 8px 12px; border: 0; border-radius: 8px; background: none; color: var(--ink); font: inherit; font-size: 14px; text-decoration: none; cursor: pointer; }
 .menu-item:hover, .menu-item:focus-visible { background: color-mix(in srgb, var(--brand) 10%, transparent); outline: none; }
@@ -76,3 +76,32 @@ html, body { max-width: 100%; overflow-x: clip; }
 body.lens-docked .runbar-brand-text, body.lens-docked .runbar-name { display: none; }
 body.lens-docked .runbar-tabs { justify-content: flex-start; }
 .rp-pill-warn { border-color: var(--warn, #b7791f); background: var(--warn-bg, #fff7e6); }
+
+/* ---- wide tables scroll sideways inside their own box, with a soft fade on the edge that still has more */
+.table-scroll, .tablewrap { overflow-x: auto; max-width: 100%; -webkit-overflow-scrolling: touch; scrollbar-width: thin; scrollbar-color: var(--line) transparent;
+  background: linear-gradient(to right, var(--card, #fff) 30%, transparent) left center / 24px 100% no-repeat local,
+              linear-gradient(to left, var(--card, #fff) 30%, transparent) right center / 24px 100% no-repeat local,
+              linear-gradient(to right, rgb(0 0 0 / .12), transparent) left center / 10px 100% no-repeat scroll,
+              linear-gradient(to left, rgb(0 0 0 / .12), transparent) right center / 10px 100% no-repeat scroll; }
+.table-scroll { margin: 0 0 12px; }
+.table-scroll > .table { min-width: 520px; }
+.tablewrap.data-scroll { background-color: var(--card); }
+.table-scroll::-webkit-scrollbar, .tablewrap::-webkit-scrollbar { height: 8px; }
+.table-scroll::-webkit-scrollbar-thumb, .tablewrap::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
+
+/* ---- phone: menus and buttons stay inside the screen, tap targets are at least 44px, the buttons sit on the right of the bar */
+@media (max-width: 760px) {
+  .runbar .runbar-tabs + .runbar-right { margin-left: auto; }
+  .runbar-brand { margin-right: auto; }
+  .runbar { flex-wrap: wrap; }
+  .runbar .btn-quiet, .runbar .menu-button { height: 44px; min-width: 44px; }
+  .runbar-tabs { height: 44px; }
+  .runbar-tabs .tab { min-height: 44px; }
+  .menu-item { min-height: 44px; display: flex; align-items: center; }
+  .dv-item { min-height: 44px; }
+  .details-toggle { min-height: 44px; }
+}
+
+/* ---- the details control is a slim bar above the content card; on a phone the card gives the content more of the width */
+.page-tools { margin: 0 0 8px; }
+@media (max-width: 640px) { .card.results { padding: var(--sp-3); } }
