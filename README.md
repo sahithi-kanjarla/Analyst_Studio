@@ -102,7 +102,3 @@ A free [Groq](https://console.groq.com) key makes the AI stages work: set `GROQ_
 ## Tech
 
 FastAPI, Server-Sent Events, LangGraph, Groq (`openai/gpt-oss-120b`), pandas, DuckDB, React 18, TypeScript, Vite.
-
-## License
-
-MIT. More detail is in [docs/DETAILS.md](docs/DETAILS.md).
