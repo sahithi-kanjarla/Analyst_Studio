@@ -36,3 +36,4 @@ scripts/*_out*.txt
 *.bak
 *.tmp
 .pytest_cache/
+docs/dev/
