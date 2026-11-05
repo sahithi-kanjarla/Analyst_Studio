@@ -301,11 +301,12 @@ def test_smoke_live_passes_against_a_local_server_and_fails_on_a_wrong_code(tmp_
 
 
 # ------------------------------------------------------------------ the Docker files, read for what they must do
-def test_the_dockerfile_builds_the_frontend_installs_chromium_runs_as_a_non_root_user_and_keeps_data_in_one_volume():
+def test_the_dockerfile_builds_the_frontend_installs_chromium_drops_to_a_non_root_user_and_keeps_data_in_one_volume():
     d = (ROOT / "Dockerfile").read_text(encoding="utf-8")
     assert "npm run build" in d and "COPY --from=frontend /app/frontend/dist" in d
     assert "pip install --no-cache-dir -r backend/requirements.txt" in d and "chromium" in d and "BROWSER_PATH=/usr/bin/chromium" in d
-    assert re.search(r"^USER app$", d, re.M) and "useradd" in d and "--uid 10001" in d
+    assert not re.search(r"^USER ", d, re.M), "no USER line: the entrypoint chowns /data as root, then drops to uid 10001 (see test_dockerfile.py)"
+    assert "docker-entrypoint.sh" in d and "useradd" in d and "--uid 10001" in d
     assert "DATA_DIR=/data" in d and 'VOLUME ["/data"]' in d and "chown -R app:app /data" in d
     assert "HEALTHCHECK" in d and "/api/health" in d and "PORT" in d.split("HEALTHCHECK")[1]
     assert 'CMD ["python", "-m", "app"]' in d and "APP_ENV=production" in d

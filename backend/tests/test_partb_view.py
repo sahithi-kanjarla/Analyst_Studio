@@ -5,6 +5,7 @@ import json
 import os
 import shutil
 import uuid
+from pathlib import Path
 
 os.environ["LLM_PROVIDER"] = "none"
 
@@ -12,15 +13,18 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app import runner, viewedit as ve
-from app.config import DEMO_DIR
+from app.config import DEMO_DIR  # noqa: F401  (the shipped sample: only for tests of the shipped sample itself)
 from app.lens import chat, store
 from app.main import app
 from tests.test_lens import FakeAI
 
 client = TestClient(app)
 
-# The ids come from the recorded sample, never typed in, so re-recording it cannot break these tests.
-_SAMPLE = json.loads((DEMO_DIR / "result.json").read_text(encoding="utf-8"))
+# A frozen copy of a realistic run: re-recording the shipped sample must not move these tests.
+FROZEN_RUN = Path(__file__).resolve().parent / "lens_eval" / "run"
+
+# The ids come from the frozen run, never typed in, so re-recording it cannot break these tests.
+_SAMPLE = json.loads((FROZEN_RUN / "result.json").read_text(encoding="utf-8"))
 _ITEMS = ve.catalogue(_SAMPLE)["items"]
 F = next(c["id"] for c in _SAMPLE["report_view"]["evidence"] if c.get("chart") and f"insights:chart:{c['id']}" in _ITEMS)   # a finding with a card and a comparison chart
 _HEAD = next(c["headline"] for c in _SAMPLE["report_view"]["evidence"] if c["id"] == F)
@@ -33,12 +37,12 @@ STRAT = next(k for k in _ITEMS if k.startswith("strategy:s"))
 
 @pytest.fixture
 def run(monkeypatch):
-    """A copy of the sample run under a new id (so it is an ordinary, writable run), with 10 evidence cards so the top-5 rule has something to cut."""
+    """A copy of the frozen run under a new id (so it is an ordinary, writable run), with 10 evidence cards so the top-5 rule has something to cut."""
     monkeypatch.setenv("CHATBOT", "on")
     chat._DAILY["until"] = 0.0
     rid = uuid.uuid4().hex[:12]
     wd = runner.run_dir(rid)
-    shutil.copytree(DEMO_DIR, wd)
+    shutil.copytree(FROZEN_RUN, wd)
     res = json.loads((wd / "result.json").read_text(encoding="utf-8"))
     res["run_id"] = rid
     rv = res["report_view"]
@@ -254,12 +258,14 @@ def test_chips_work_without_any_ai(run):
 
 
 def test_the_sample_run_keeps_its_edits_in_the_browser_not_on_the_server():
+    shipped = json.loads((DEMO_DIR / "result.json").read_text(encoding="utf-8"))          # this test is about the shipped sample, so its ids come from the shipped sample
+    card = next(k for k in ve.catalogue(shipped)["items"] if k.startswith("insights:card:"))
     demo = client.post("/api/demo").json()["run_id"]       # the sample run is copied into the runs folder when it is first opened
-    r = client.post(f"/api/runs/{demo}/view", json={"command": {"cmd": "hide", "id": CARD}, "state": {}}).json()
-    assert r["state"]["hidden"] == [CARD] and r["local"] is True
+    r = client.post(f"/api/runs/{demo}/view", json={"command": {"cmd": "hide", "id": card}, "state": {}}).json()
+    assert r["state"]["hidden"] == [card] and r["local"] is True
     assert client.get(f"/api/runs/{demo}/view").json()["state"]["hidden"] == []              # nothing was saved for the next visitor
-    t = chat.ask(DEMO_DIR if False else runner.run_dir(demo), json.loads((runner.run_dir(demo) / "result.json").read_text()), question="show the short view of the insights", llm=None, allow_ai=False, view_state=r["state"])
-    assert t["answer"]["view"]["state"]["short"] == {"insights": True} and t["answer"]["view"]["state"]["hidden"] == [CARD]
+    t = chat.ask(runner.run_dir(demo), json.loads((runner.run_dir(demo) / "result.json").read_text()), question="show the short view of the insights", llm=None, allow_ai=False, view_state=r["state"])
+    assert t["answer"]["view"]["state"]["short"] == {"insights": True} and t["answer"]["view"]["state"]["hidden"] == [card]
 
 
 def test_focus_passes_the_items_context_and_can_be_removed(run):

@@ -53,7 +53,7 @@ def test_the_slim_bar_appears_for_a_hidden_item_and_disappears_with_undo_and_wit
 
 
 def test_hide_and_show_by_name_without_an_ai():
-    cat = ve.catalogue(json.loads((Path(__file__).resolve().parents[2] / "sample_data" / "demo" / "sales_run" / "result.json").read_text(encoding="utf-8")))
+    cat = ve.catalogue(json.loads((Path(__file__).resolve().parent / "lens_eval" / "run" / "result.json").read_text(encoding="utf-8")))
     assert viewchat.toggle_cmds("Hide the cleaning log", cat, []) == [{"cmd": "hide", "id": "cleaning:steps"}]
     assert viewchat.toggle_cmds("hide the appendix", cat, []) == [{"cmd": "hide", "id": "insights:appendix"}]
     assert viewchat.toggle_cmds("show the appendix", cat, ["insights:appendix"]) == [{"cmd": "show", "id": "insights:appendix"}]
