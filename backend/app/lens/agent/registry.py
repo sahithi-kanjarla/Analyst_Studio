@@ -43,7 +43,7 @@ class Tool:
         return f'{{"tool":"{self.name}","args":{{{", ".join(parts)}}}}}  {self.description}'
 
 
-PLAIN = {"data_query": "a calculation on your data", "custom_analysis": "a custom analysis", "report_facts": "a look-up in the report", "rank": "ranking by what matters to you",
+PLAIN = {"run_sections": "a look at what the run saved", "run_section": "a section of the saved run", "run_search": "a search of the saved run", "data_query": "a calculation on your data", "custom_analysis": "a custom analysis", "report_facts": "a look-up in the report", "rank": "ranking by what matters to you",
          "strategies": "ideas from the report", "explain": "an explanation from the report", "summarise": "a summary", "glossary": "your saved definitions",
          "general_knowledge": "a general answer", "chart_edit": "a change to a chart", "view_edit": "a change to what is shown", "brief": "a brief", "brief_manage": "your saved briefs",
          "export": "a download", "clarify": "a question to you", "premise_check": "a check of what you assumed", "recheck_chart": "a re-check of the chart", "data_catalog": "a look at what your data holds", "why_breakdown": "a look at what is behind a number"}

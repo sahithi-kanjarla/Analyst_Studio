@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { api, DashTile, Finding, RunResult, isDemo } from "../api";
-import { humanise } from "../display";
+import { humanise, plainTitle } from "../display";
 import { moreChartCount } from "../morecharts";
 import FindingTable from "./FindingTable";
+import ChartModal from "./ChartModal";
 import InsightCard from "./InsightCard";
 import { ShowMore, ViewImg, ViewItem, ViewTitle } from "./view/ViewUI";
 
@@ -11,27 +12,31 @@ const LEVEL: Record<string, string> = { high: "tag tag-ok", medium: "tag tag-mid
 export function Tile({ f, onOpen, und, items }: { f: Finding; onOpen: () => void; und?: RunResult["understanding"]; items?: { measure: string; text: string }[] }) {
   const ins = { ...f.insight!, headline: humanise(f.insight!.headline, und) };
   const id = `dashboard:chart:${f.id}`;
+  const title = plainTitle(f.title, und);
   return (
-    <ViewItem id={id} tag="article" className="tile">
+    <ViewItem id={id} tag="article" className="tile tile-compact">
       <header>
-        <ViewTitle id={id} tag="h4" text={ins.headline} />
-        <div className="meta">
-          <span className={LEVEL[ins.confidence.level] ?? "tag"}>{ins.confidence.label}</span>
-          {f.chart_type && <span className="muted" title={f.chart_why}>{f.chart_type}</span>}
-        </div>
+        <ViewTitle id={id} tag="h4" text={title} />
+        <span className={LEVEL[ins.confidence.level] ?? "tag"}>{ins.confidence.label}</span>
       </header>
+      <p className="tile-take">{ins.headline}</p>
       {items && items.length > 1 && <ul className="tile-measures small">{items.map((i) => <li key={i.measure + i.text}>{i.text}</li>)}</ul>}
       {f.chart_url ? (
-        <button className="tile-img" onClick={onOpen} aria-label={`Open details: ${ins.headline}`}>
-          <ViewImg id={id} src={f.chart_url} alt={humanise(f.title, und)} />
-        </button>
+        <ViewImg id={id} src={f.chart_url} alt={title} onOpen={onOpen} />
       ) : (
-        <FindingTable f={f} />
+        <button className="tile-img tile-table" onClick={onOpen} aria-label={`Open full size: ${title}`}><FindingTable f={f} /></button>
       )}
-      <footer>
-        <button className="link" onClick={onOpen}>Details, trust and next steps →</button>
-      </footer>
     </ViewItem>
+  );
+}
+
+/** The finding's full-size content: the whole insight card (chart, what we see, trust, next steps) and why this chart was drawn. */
+export function FindingZoom({ f, index }: { f: Finding; index: number }) {
+  return (
+    <>
+      <InsightCard f={f} index={index} />
+      {f.chart_why && <p className="muted small"><strong>Why this chart:</strong> {f.chart_why}</p>}
+    </>
   );
 }
 
@@ -80,7 +85,7 @@ export default function FindingGallery({ run, more, extra, extraCount = 0 }: { r
 
       {dm && (dm.created.length > 0 || dm.rejected.length > 0) && (
         <section className="dash-section derived-box">
-          <h4>Definitions used: derived metrics</h4>
+          <h4>Calculated measures</h4>
           {dm.created.map((d) => (
             <p key={d.name} className="small">
               <code>{d.name}</code> = {d.a} / {d.b} (ratio of sums). {d.meaning}{" "}
@@ -92,13 +97,9 @@ export default function FindingGallery({ run, more, extra, extraCount = 0 }: { r
       )}
 
       {open && (
-        <div className="modal" role="dialog" aria-modal="true" aria-label="Insight details" onClick={() => setOpen(null)}>
-          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-x" aria-label="Close" onClick={() => setOpen(null)}>✕</button>
-            <InsightCard f={open} index={all.indexOf(open) + 1} />
-            {open.chart_why && <p className="muted small"><strong>Why this chart:</strong> {open.chart_why}</p>}
-          </div>
-        </div>
+        <ChartModal current={open.id} onClose={() => setOpen(null)}
+          onSelect={(id) => setOpen(moreFindings.find((x) => x.f.id === id)?.f ?? null)}
+          entries={moreFindings.map(({ f }) => ({ id: f.id, node: <FindingZoom f={f} index={all.indexOf(f) + 1} /> }))} />
       )}
     </div>
   );

@@ -1,12 +1,345 @@
 {
- "calls": [],
+ "calls": [
+  {
+   "stage": "relations.llm_review",
+   "ok": true,
+   "reason": "",
+   "cache_hit": false,
+   "input_tokens": 627,
+   "output_tokens": 360,
+   "tokens_estimated": false,
+   "seconds": 1.82
+  },
+  {
+   "stage": "propose.propose",
+   "ok": true,
+   "reason": "",
+   "cache_hit": false,
+   "input_tokens": 1658,
+   "output_tokens": 1917,
+   "tokens_estimated": false,
+   "seconds": 5.569
+  },
+  {
+   "stage": "understanding.resolve",
+   "ok": true,
+   "reason": "",
+   "cache_hit": false,
+   "input_tokens": 1895,
+   "output_tokens": 2861,
+   "tokens_estimated": false,
+   "seconds": 7.506
+  },
+  {
+   "stage": "concerns.ask_concerns",
+   "ok": true,
+   "reason": "",
+   "cache_hit": false,
+   "input_tokens": 2784,
+   "output_tokens": 1522,
+   "tokens_estimated": false,
+   "seconds": 3.95
+  },
+  {
+   "stage": "clarify.llm_questions",
+   "ok": true,
+   "reason": "",
+   "cache_hit": false,
+   "input_tokens": 1660,
+   "output_tokens": 1002,
+   "tokens_estimated": false,
+   "seconds": 3.267
+  },
+  {
+   "stage": "relations.llm_review",
+   "ok": true,
+   "reason": "",
+   "cache_hit": true,
+   "input_tokens": 0,
+   "output_tokens": 0,
+   "tokens_estimated": false,
+   "seconds": 0.0
+  },
+  {
+   "stage": "derived.propose",
+   "ok": true,
+   "reason": "",
+   "cache_hit": false,
+   "input_tokens": 454,
+   "output_tokens": 464,
+   "tokens_estimated": false,
+   "seconds": 2.324
+  },
+  {
+   "stage": "propose.propose",
+   "ok": true,
+   "reason": "",
+   "cache_hit": false,
+   "input_tokens": 3340,
+   "output_tokens": 2637,
+   "tokens_estimated": false,
+   "seconds": 6.369
+  },
+  {
+   "stage": "critic.review",
+   "ok": true,
+   "reason": "",
+   "cache_hit": false,
+   "input_tokens": 931,
+   "output_tokens": 858,
+   "tokens_estimated": false,
+   "seconds": 2.326
+  },
+  {
+   "stage": "critic.review",
+   "ok": true,
+   "reason": "",
+   "cache_hit": true,
+   "input_tokens": 0,
+   "output_tokens": 0,
+   "tokens_estimated": false,
+   "seconds": 0.0
+  },
+  {
+   "stage": "propose.propose",
+   "ok": true,
+   "reason": "",
+   "cache_hit": false,
+   "input_tokens": 324,
+   "output_tokens": 410,
+   "tokens_estimated": false,
+   "seconds": 1.289
+  },
+  {
+   "stage": "insights.enrich_with_llm",
+   "ok": true,
+   "reason": "",
+   "cache_hit": false,
+   "input_tokens": 1050,
+   "output_tokens": 1613,
+   "tokens_estimated": false,
+   "seconds": 4.117
+  },
+  {
+   "stage": "strategy.refine_with_llm",
+   "ok": true,
+   "reason": "",
+   "cache_hit": false,
+   "input_tokens": 1559,
+   "output_tokens": 2723,
+   "tokens_estimated": false,
+   "seconds": 6.281
+  },
+  {
+   "stage": "summary.llm_pick",
+   "ok": true,
+   "reason": "",
+   "cache_hit": false,
+   "input_tokens": 1716,
+   "output_tokens": 683,
+   "tokens_estimated": false,
+   "seconds": 2.169
+  },
+  {
+   "stage": "reporter.llm_summary",
+   "ok": false,
+   "reason": "provider error",
+   "cache_hit": false,
+   "input_tokens": 3570,
+   "output_tokens": 0,
+   "tokens_estimated": true,
+   "seconds": 7.993
+  },
+  {
+   "stage": "reporter.llm_summary",
+   "ok": true,
+   "reason": "",
+   "cache_hit": false,
+   "input_tokens": 3794,
+   "output_tokens": 3072,
+   "tokens_estimated": false,
+   "seconds": 7.368
+  },
+  {
+   "stage": "reporter.llm_actions",
+   "ok": true,
+   "reason": "",
+   "cache_hit": false,
+   "input_tokens": 829,
+   "output_tokens": 1689,
+   "tokens_estimated": false,
+   "seconds": 4.398
+  },
+  {
+   "stage": "reporter.plan_charts",
+   "ok": true,
+   "reason": "",
+   "cache_hit": false,
+   "input_tokens": 744,
+   "output_tokens": 1776,
+   "tokens_estimated": false,
+   "seconds": 3.981
+  },
+  {
+   "stage": "curate.ai_rank",
+   "ok": true,
+   "reason": "",
+   "cache_hit": false,
+   "input_tokens": 1179,
+   "output_tokens": 1984,
+   "tokens_estimated": false,
+   "seconds": 5.814
+  }
+ ],
  "totals": {
-  "calls": 0,
-  "sent": 0,
-  "cached": 0,
-  "input_tokens": 0,
-  "output_tokens": 0,
-  "estimated": false,
-  "seconds": 0
- }
+  "calls": 19,
+  "sent": 17,
+  "cached": 2,
+  "input_tokens": 28114,
+  "output_tokens": 25571,
+  "estimated": true,
+  "seconds": 76.5
+ },
+ "by_stage": [
+  {
+   "stage": "relations.llm_review",
+   "calls": 2,
+   "cached": 1,
+   "failed": 0,
+   "input_tokens": 627,
+   "output_tokens": 360,
+   "estimated": false,
+   "seconds": 1.82
+  },
+  {
+   "stage": "propose.propose",
+   "calls": 3,
+   "cached": 0,
+   "failed": 0,
+   "input_tokens": 5322,
+   "output_tokens": 4964,
+   "estimated": false,
+   "seconds": 13.227
+  },
+  {
+   "stage": "understanding.resolve",
+   "calls": 1,
+   "cached": 0,
+   "failed": 0,
+   "input_tokens": 1895,
+   "output_tokens": 2861,
+   "estimated": false,
+   "seconds": 7.506
+  },
+  {
+   "stage": "concerns.ask_concerns",
+   "calls": 1,
+   "cached": 0,
+   "failed": 0,
+   "input_tokens": 2784,
+   "output_tokens": 1522,
+   "estimated": false,
+   "seconds": 3.95
+  },
+  {
+   "stage": "clarify.llm_questions",
+   "calls": 1,
+   "cached": 0,
+   "failed": 0,
+   "input_tokens": 1660,
+   "output_tokens": 1002,
+   "estimated": false,
+   "seconds": 3.267
+  },
+  {
+   "stage": "derived.propose",
+   "calls": 1,
+   "cached": 0,
+   "failed": 0,
+   "input_tokens": 454,
+   "output_tokens": 464,
+   "estimated": false,
+   "seconds": 2.324
+  },
+  {
+   "stage": "critic.review",
+   "calls": 2,
+   "cached": 1,
+   "failed": 0,
+   "input_tokens": 931,
+   "output_tokens": 858,
+   "estimated": false,
+   "seconds": 2.326
+  },
+  {
+   "stage": "insights.enrich_with_llm",
+   "calls": 1,
+   "cached": 0,
+   "failed": 0,
+   "input_tokens": 1050,
+   "output_tokens": 1613,
+   "estimated": false,
+   "seconds": 4.117
+  },
+  {
+   "stage": "strategy.refine_with_llm",
+   "calls": 1,
+   "cached": 0,
+   "failed": 0,
+   "input_tokens": 1559,
+   "output_tokens": 2723,
+   "estimated": false,
+   "seconds": 6.281
+  },
+  {
+   "stage": "summary.llm_pick",
+   "calls": 1,
+   "cached": 0,
+   "failed": 0,
+   "input_tokens": 1716,
+   "output_tokens": 683,
+   "estimated": false,
+   "seconds": 2.169
+  },
+  {
+   "stage": "reporter.llm_summary",
+   "calls": 2,
+   "cached": 0,
+   "failed": 1,
+   "input_tokens": 7364,
+   "output_tokens": 3072,
+   "estimated": true,
+   "seconds": 15.361
+  },
+  {
+   "stage": "reporter.llm_actions",
+   "calls": 1,
+   "cached": 0,
+   "failed": 0,
+   "input_tokens": 829,
+   "output_tokens": 1689,
+   "estimated": false,
+   "seconds": 4.398
+  },
+  {
+   "stage": "reporter.plan_charts",
+   "calls": 1,
+   "cached": 0,
+   "failed": 0,
+   "input_tokens": 744,
+   "output_tokens": 1776,
+   "estimated": false,
+   "seconds": 3.981
+  },
+  {
+   "stage": "curate.ai_rank",
+   "calls": 1,
+   "cached": 0,
+   "failed": 0,
+   "input_tokens": 1179,
+   "output_tokens": 1984,
+   "estimated": false,
+   "seconds": 5.814
+  }
+ ]
 }

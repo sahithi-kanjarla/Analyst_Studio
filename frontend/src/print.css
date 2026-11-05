@@ -1,8 +1,8 @@
-/* Print and save as PDF. Screen styles are untouched: everything here is inside print media, or on the print panel. */
+﻿/* Print and save as PDF. Screen styles are untouched: everything here is inside print media, or on the print panel. */
 .print-wrap { position: relative; display: inline-block; }
 .print-panel { position: absolute; right: 0; top: calc(100% + var(--sp-2)); z-index: 20; width: min(440px, 92vw); background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: var(--sp-4); display: grid; gap: var(--sp-4); text-align: left; }
 .print-panel fieldset { border: 0; margin: 0; padding: 0; display: grid; gap: var(--sp-2); min-width: 0; }
-.print-panel legend { font-size: var(--fs-1); font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; padding: 0; margin-bottom: var(--sp-2); }
+.print-panel legend { font-size: var(--fs-1); font-weight: 600; color: var(--muted); padding: 0; margin-bottom: var(--sp-2); }
 .print-check { display: flex; gap: var(--sp-2); align-items: flex-start; font-size: var(--fs-2); }
 .print-check input { margin-top: 4px; }
 .print-check small { display: block; color: var(--muted); font-size: var(--fs-1); }

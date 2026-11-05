@@ -199,7 +199,7 @@ TOGGLE_RE = re.compile(r"^\s*(?:please\s+|can you\s+|could you\s+)?(?P<v>hide|re
 TAB_VOCAB = {"report": ["report", "answer", "summary"], "insights": ["insights", "insight", "findings", "finding", "evidence"], "strategy": ["ideas", "idea", "strategies", "strategy", "suggestions"],
              "dashboard": ["dashboard", "charts", "visuals"], "data": ["data", "table", "rows"], "model": ["files", "connect", "model", "links", "tables"],
              "cleaning": ["cleaning", "cleaned", "clean", "log", "changes"], "plan": ["plan", "analysed", "analysis", "analyse", "questions", "definitions", "setup"],
-             "powerbi": ["power", "bi", "export", "measures", "dax"], "chat": ["chat", "conversation"]}
+             "chat": ["chat", "conversation"]}
 
 
 def _stem(w: str) -> str:

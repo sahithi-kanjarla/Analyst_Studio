@@ -52,8 +52,8 @@ GROUPS = {
                                   "bar_has_export_review_and_a_menu", "menu_has_glossary_and_history"],
     "Data sub-views": ["data_has_four_visible_subviews", "subviews_are_a_segmented_control_not_a_dropdown", "your_data_includes_how_the_data_was_set_up", "subview_How_files_connect_is_a_full_page",
                        "subview_What_we_cleaned_is_a_full_page", "subview_How_we_analysed_is_a_full_page", "chosen_subview_is_remembered"],
-    "every item id reachable": ["every_section_id_is_on_its_page", "the_catalogue_still_covers_all_ten_tabs"],
-    "Export menu": ["export_menu_has_the_four_items", "download_pdf_is_the_report_pdf", "export_power_bi_files_opens_the_pack", "export_briefs_opens_the_briefs", "export_print_opens_the_print_options",
+    "every item id reachable": ["every_section_id_is_on_its_page", "the_catalogue_still_covers_all_nine_tabs"],
+    "Export menu": ["export_menu_has_every_export", "download_pdf_is_the_report_pdf", "power_bi_pack_and_the_other_downloads_are_direct_links", "export_briefs_opens_the_briefs", "export_print_opens_the_print_options",
                     "export_dialog_closes_on_click_outside", "export_menu_closes_on_escape_and_returns_focus"],
     "Expand all details": [f"one_details_control_on_{n}" for n in ("Report", "Insights", "Ideas_to_try", "Dashboard", "What_we_cleaned", "How_we_analysed")] + [
         "report_has_folded_supporting_detail", "the_headline_actions_and_chart_captions_are_open_without_expanding", "expand_all_opens_every_fold_and_the_button_changes", "expanded_state_is_remembered_for_this_report",

@@ -1,0 +1,5 @@
+from_table,from_column,to_table,to_column,cardinality,cross_filter_direction,match_rate
+order_lines,order_id,orders,order_id,Many-to-one,Single,1.0
+orders,customer_ref,customers,customer_id,Many-to-one,Single,1.0
+order_lines,item_code,products,sku,Many-to-one,Single,1.0
+returns,line_id,order_lines,line_id,One-to-one,Single,1.0

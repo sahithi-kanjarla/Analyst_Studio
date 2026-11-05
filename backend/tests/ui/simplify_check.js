@@ -10,7 +10,7 @@ const ok = (name, cond, detail) => { R[name] = { ok: !!cond, detail: detail === 
   const errs = []; p.on('pageerror', e => errs.push(String(e)));
   const shot = async (n) => { if (shots) await p.screenshot({ path: `${shots}/simplify-after-${n}.png` }); };
   await p.goto(base); await p.evaluate(() => localStorage.clear());
-  await p.getByRole('button', { name: /Try with sample data/i }).first().click(); await p.waitForSelector('.report-page'); await p.waitForTimeout(800);
+  await p.getByRole('button', { name: /See a sample/i }).first().click(); await p.waitForSelector('.report-page'); await p.waitForTimeout(800);
   const SUB = ['Your data', 'How files connect', 'What we cleaned', 'How we analysed'];
   const tab = async (name) => {          // the five tabs of the bar; the former setup tabs are sub-views of Data
     if (SUB.includes(name)) { await p.getByRole('tab', { name: /^Data/ }).first().click(); await p.waitForTimeout(300); await p.getByRole('tab', { name: new RegExp('^' + name) }).first().click(); }
@@ -62,7 +62,7 @@ const ok = (name, cond, detail) => { R[name] = { ok: !!cond, detail: detail === 
 
   // 3/4/7. chat edits are visible on every tab, through the slim bar, with Undo and Reset
   const edits = [['data', 'hide the cleaned table', 'Your data', 'data:table:clean'], ['cleaning', 'hide the cleaning log', 'What we cleaned', 'cleaning:steps'], ['plan', 'hide how we analysed', 'How we analysed', 'plan:questions'],
-                 ['powerbi', 'hide power bi export', 'Export:Power BI files', 'powerbi:pack'], ['chat', 'hide the conversation', 'Lens:expand', 'chat:conversation']];
+                 ['chat', 'hide the conversation', 'Lens:expand', 'chat:conversation']];
   for (const [key, phrase, where, id] of edits) {
     await ask(phrase);
     const inDialog = where.startsWith('Export:');

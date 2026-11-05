@@ -1,13 +1,246 @@
 {
  "record": {
-  "source": "rules-only",
-  "columns": {},
-  "goal_columns": {},
+  "source": "llm",
+  "columns": {
+   "order_date": {
+    "display_name": "Order Date",
+    "meaning": "date the order was placed",
+    "role": "date",
+    "goal_terms": [
+     "revenue",
+     "returns"
+    ]
+   },
+   "signup_date": {
+    "display_name": "Signup Date",
+    "meaning": "date the customer signed up",
+    "role": "date",
+    "goal_terms": [
+     "revenue",
+     "returns"
+    ]
+   },
+   "item_code": {
+    "display_name": "Item Code",
+    "meaning": "unique product identifier (SKU)",
+    "role": "category",
+    "goal_terms": [
+     "revenue",
+     "returns"
+    ]
+   },
+   "quantity": {
+    "display_name": "Quantity",
+    "measure_kind": "quantity",
+    "meaning": "number of units sold in the line",
+    "role": "measure",
+    "goal_terms": [
+     "revenue"
+    ]
+   },
+   "sales_channel": {
+    "display_name": "Sales Channel",
+    "meaning": "channel through which the sale occurred",
+    "role": "category",
+    "goal_terms": [
+     "revenue",
+     "returns"
+    ]
+   },
+   "payment_method": {
+    "display_name": "Payment Method",
+    "meaning": "method used for payment",
+    "role": "category",
+    "goal_terms": [
+     "revenue",
+     "returns"
+    ]
+   },
+   "region": {
+    "display_name": "Region",
+    "meaning": "geographic region of the order",
+    "role": "category",
+    "goal_terms": [
+     "revenue",
+     "returns"
+    ]
+   },
+   "acquisition_channel": {
+    "display_name": "Acquisition Channel",
+    "meaning": "marketing channel that acquired the customer",
+    "role": "category",
+    "goal_terms": [
+     "revenue",
+     "returns"
+    ]
+   },
+   "product_name": {
+    "display_name": "Product Name",
+    "meaning": "descriptive name of the product",
+    "role": "category",
+    "goal_terms": [
+     "revenue",
+     "returns"
+    ]
+   },
+   "category": {
+    "display_name": "Category",
+    "meaning": "high\u2011level product category",
+    "role": "category",
+    "goal_terms": [
+     "revenue",
+     "returns"
+    ]
+   },
+   "shipping_fee": {
+    "display_name": "Shipping Fee",
+    "measure_kind": "cost",
+    "meaning": "cost charged for shipping the order",
+    "role": "measure",
+    "goal_terms": [
+     "revenue"
+    ],
+    "expected": "Many missing values expected for orders with free shipping"
+   },
+   "unit_cost": {
+    "display_name": "Unit Cost",
+    "measure_kind": "cost",
+    "meaning": "cost to acquire or produce one unit",
+    "role": "measure",
+    "goal_terms": [
+     "revenue"
+    ],
+    "expected": "Some missing values are normal for items without recorded cost"
+   },
+   "list_price": {
+    "display_name": "List Price",
+    "measure_kind": "money",
+    "meaning": "standard selling price of the product",
+    "role": "measure",
+    "goal_terms": [
+     "revenue"
+    ]
+   },
+   "returns_count": {
+    "display_name": "Returns Count",
+    "meaning": "indicator whether the line was returned (1) or not (0)",
+    "role": "flag",
+    "goal_terms": [
+     "returns"
+    ]
+   },
+   "returns_reason_distinct": {
+    "display_name": "Return Reason Flag",
+    "meaning": "indicator whether a distinct return reason was recorded (1) or not (0)",
+    "role": "flag",
+    "goal_terms": [
+     "returns"
+    ]
+   },
+   "line_id": {
+    "display_name": "Line ID",
+    "meaning": "unique identifier for each line item in the dataset",
+    "role": "id",
+    "goal_terms": []
+   },
+   "order_id": {
+    "display_name": "Order ID",
+    "meaning": "unique identifier for each order",
+    "role": "id",
+    "goal_terms": []
+   },
+   "unit_price": {
+    "display_name": "Unit Price",
+    "measure_kind": "money",
+    "meaning": "price at which a single unit was sold",
+    "role": "measure",
+    "goal_terms": [
+     "revenue"
+    ]
+   },
+   "customer_ref": {
+    "display_name": "Customer Ref",
+    "meaning": "reference or code identifying the customer",
+    "role": "free_text",
+    "goal_terms": []
+   },
+   "returns_refund_amount_total": {
+    "display_name": "Return Refund Total",
+    "measure_kind": "money",
+    "meaning": "total monetary amount refunded for returns",
+    "role": "measure",
+    "goal_terms": [
+     "returns"
+    ]
+   },
+   "returns_refund_amount_avg": {
+    "display_name": "Return Refund Avg",
+    "measure_kind": "money",
+    "meaning": "average refund amount per returned line",
+    "role": "measure",
+    "goal_terms": [
+     "returns"
+    ],
+    "expected": "Missing for non\u2011returned lines, which is expected"
+   },
+   "returns_days_since_return_date": {
+    "display_name": "Days Since Return",
+    "measure_kind": "quantity",
+    "meaning": "days elapsed since the return was processed",
+    "role": "measure",
+    "goal_terms": [
+     "returns"
+    ],
+    "expected": "Missing for non\u2011returned lines, which is expected"
+   }
+  },
+  "goal_columns": {
+   "revenue": [
+    "quantity",
+    "unit_price",
+    "list_price",
+    "shipping_fee",
+    "unit_cost",
+    "sales_channel",
+    "payment_method",
+    "region",
+    "acquisition_channel",
+    "product_name",
+    "category",
+    "order_date",
+    "signup_date"
+   ],
+   "returns": [
+    "returns_count",
+    "returns_refund_amount_total",
+    "returns_refund_amount_avg",
+    "returns_reason_distinct",
+    "returns_days_since_return_date",
+    "sales_channel",
+    "payment_method",
+    "region",
+    "acquisition_channel",
+    "product_name",
+    "category",
+    "order_date",
+    "signup_date"
+   ]
+  },
   "descriptive": [],
+  "order_key": "order_id",
   "unmapped": [],
   "retries": 0,
   "error": ""
  },
- "decisions": [],
+ "decisions": [
+  {
+   "decision": "data understanding",
+   "source": "llm",
+   "chosen": "22 columns described; 2 goal terms mapped (0 without a column)",
+   "why": "structure test passed after 0 retries",
+   "errors": [],
+   "raw_output": ""
+  }
+ ],
  "ai_notes": []
 }

@@ -80,13 +80,13 @@ def test_every_backend_tab_is_still_declared_and_the_sub_views_are_real_tabs():
 
 def test_old_tab_names_resolve_to_their_new_place():
     body = SRC.split("export function resolveTarget")[1]
-    for old, where in (("powerbi", 'exportItem: "powerbi"'), ("print", 'exportItem: "print"'), ("chat", "lens: true"), ("model", 'data: "model"'), ("cleaning", 'data: "cleaning"'), ("plan", 'data: "plan"'),
-                       ("howfilesconnect", 'data: "model"'), ("whatwecleaned", 'data: "cleaning"'), ("howweanalysed", 'data: "plan"'), ("powerbiexport", 'exportItem: "powerbi"'), ("yourdata", 'data: "data"')):
+    for old, where in (("powerbi", 'nav: "report"'), ("print", 'exportItem: "print"'), ("chat", "lens: true"), ("model", 'data: "model"'), ("cleaning", 'data: "cleaning"'), ("plan", 'data: "plan"'),
+                       ("howfilesconnect", 'data: "model"'), ("whatwecleaned", 'data: "cleaning"'), ("howweanalysed", 'data: "plan"'), ("powerbiexport", 'nav: "report"'), ("yourdata", 'data: "data"')):
         assert re.search(rf"\b{old}: \{{[^}}]*{re.escape(where)}", body), old
 
 
-def test_the_chat_view_ids_and_power_bi_ids_stay_in_the_catalogue(run):
+def test_the_chat_view_ids_stay_in_the_catalogue_and_power_bi_is_not_a_tab(run):
     rid, wd, res = run
     cat = ve.catalogue(res)
-    for t in ("powerbi", "chat"):
-        assert any(i["tab"] == t for i in cat["items"].values()), t
+    assert any(i["tab"] == "chat" for i in cat["items"].values())
+    assert not any(i["tab"] == "powerbi" for i in cat["items"].values()) and "powerbi" not in ve.TABS

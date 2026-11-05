@@ -2,7 +2,7 @@ import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { ReportCard as Card } from "../api";
 import { planTable } from "../chartsize";
-import { humanise, Understanding } from "../display";
+import { humanise, plainTitle, Understanding } from "../display";
 import { bigNumber, direction, shareSlices, tableSeries, takeaway, widgetKind } from "../insightwidget";
 import { PALETTE } from "./charts";
 import { hasWorking, kindOf, LEVEL_CLASS, Table, Working } from "./ReportCard";
@@ -58,9 +58,6 @@ export default function InsightWidget({ c, index, compact = false, understanding
   const dir = direction(c.headline, c.tool, big?.sign ?? 0);
   const take = takeaway(say(c.why_it_matters), say(c.observation));
   const items = series?.items ?? [];
-  const full = !!series && series.total === items.length && items.length >= 2;
-  const hi = full ? items.reduce((a, b) => (b.value > a.value ? b : a)) : null;
-  const lo = full ? items.reduce((a, b) => (b.value < a.value ? b : a)) : null;
   const tabular = wk === "ranking" || wk === "share";      // a ranking list stands in for its table: the full sortable table sits in "How we got this"
   return (
     <article className="insight iw" data-kind="insight" data-widget={wk} data-index={index}>
@@ -70,7 +67,8 @@ export default function InsightWidget({ c, index, compact = false, understanding
           <span className={LEVEL_CLASS[c.confidence.level] ?? "tag"} title={c.confidence.reasons.join(" ")}>{c.confidence.label} confidence</span>
           {c.kpi_related && <span className="tag tag-kpi">your KPI</span>}
         </div>
-        <ViewTitle id={`insights:card:${c.id}`} tag="h4" text={say(c.headline)} />
+        <ViewTitle id={`insights:card:${c.id}`} tag="h4" text={plainTitle(c.title, understanding)} />
+        <p className="iw-line" data-kind="takeaway">{say(c.headline)}</p>
       </header>
 
       <div className="iw-body">
@@ -89,13 +87,6 @@ export default function InsightWidget({ c, index, compact = false, understanding
           )}
         </div>
       </div>
-
-      {full && hi && lo && hi.label !== lo.label && !compact && (
-        <div className="iw-vs" data-kind="comparison" aria-label="Highest and lowest side by side">
-          <div className="iw-vs-card"><span className="muted small">Highest</span><b>{hi.label}</b><span>{hi.text}</span></div>
-          <div className="iw-vs-card"><span className="muted small">Lowest</span><b>{lo.label}</b><span>{lo.text}</span></div>
-        </div>
-      )}
 
       {!compact && take && <p className="iw-take" data-kind="takeaway">{take}</p>}
       {!compact && action && <p className="iw-action" data-kind="action"><span className="iw-chip">What to do</span> {action}</p>}

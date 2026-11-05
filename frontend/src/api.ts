@@ -76,6 +76,8 @@ export interface ReportCard {
   check_next: string[];
   stats: { n?: number; p?: number; p_adjusted?: number };
   /** Several findings with the same leading group, merged by the selection step; every figure is the original finding's own. */
+  /** Built by code from the saved finding for the Report card: lead figure and label, a plain line, the bars or monthly series, and the plain-words detail. */
+  lead?: { value: string; label: string; sign: number; line: string; bars: { label: string; value: number; text: string }[]; bars_total: number; series: { key: string; label: string; value: number }[]; ratio: string; difference: string; why: string; merged: string[] };
   merged?: { dimension: string; leader: string; items: { id: string; measure: string; figure: number | null; text: string }[] };
 }
 
@@ -116,10 +118,16 @@ export interface ReportPageData {
   headline_more: string;
   tiles: { label: string; value: string }[];
   cards: { num: number; question: string; lines: string[]; trust: string; trust_why: string; so_what: string }[];
-  actions: { text: string; question: number | null; chart: string; chart_title: string; figure: string; chart_url?: string }[];
+  actions: { text: string; question: number | null; chart: string; chart_title: string; figure: string; chart_url?: string; split_lead?: string; split_line?: string; split_rest?: string }[];
   charts: { title: string; path: string; caption: string; details: string[]; url?: string }[];
   no_action: string[];
   behind_md: string;
+  more?: { title: string; md: string }[];
+  scope?: string;
+  built_title?: string;
+  built_answer?: string;
+  built_tag?: string;
+  footnotes?: string[];
 }
 
 export interface LensTable { columns: string[]; rows: (string | number | null)[][]; shown: string[][]; total_rows: number; truncated: boolean }
@@ -382,6 +390,7 @@ export interface Decision {
 }
 
 export interface RunResult {
+  ai_usage?: { calls?: number; sent?: number; cached?: number; input_tokens?: number; output_tokens?: number; seconds?: number } | null;
   profile?: { rows: number; cols: number; columns?: { name: string; dtype: string; role: string; missing_pct: number; unique: number }[] };
   understanding?: { source?: string; columns?: Record<string, { display_name?: string; meaning?: string; role?: string }> };
   decisions?: Decision[];
@@ -411,6 +420,7 @@ export interface RunResult {
     relevant_columns: string[];
     analyses: { tool: string; params: Record<string, unknown>; why: string; origin?: "ai" | "code" | "rules" }[];
     skipped: { column: string; reason: string }[];
+    dropped?: { n: number; tool: string; params: Record<string, unknown>; reason: string }[];
     source: string;
   };
   applied_definitions?: AppliedDefinition[];
@@ -593,6 +603,7 @@ export const api = {
     fetch(`/api/runs/${id}/data?source=${source}&offset=${offset}&limit=${limit}&q=${encodeURIComponent(q)}&sort=${encodeURIComponent(sort)}&desc=${desc}`).then((r) => json<DataPage>(r)),
   getCompare: (id: string) => fetch(`/api/runs/${id}/data/compare`).then((r) => json<DataCompare>(r)),
   cleanedCsvUrl: (id: string) => `/api/runs/${id}/files/cleaned.csv`,
+  reportMdUrl: (id: string) => `/api/runs/${id}/files/report.md`,
   powerbiUrl: (id: string) => `/api/runs/${id}/powerbi`,
   eventsUrl: (id: string) => `/api/runs/${id}/events`,
   getQuestions: (id: string) => fetch(`/api/runs/${id}/questions`).then((r) => json<QuestionSet>(r)),

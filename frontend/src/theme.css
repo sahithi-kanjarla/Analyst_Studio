@@ -7,7 +7,6 @@ body::before, body::after { display: none; }
 /* header: plain, on the grid, one line under it */
 .topbar { position: static; margin: 0 0 var(--sp-6); padding: var(--sp-4) 0; border: 0; border-bottom: var(--border); border-radius: 0; background: none; box-shadow: none; }
 .brand { font-weight: 650; font-size: var(--fs-3); color: var(--ink); gap: var(--sp-3); }
-.logo-mark { width: var(--sp-6); height: var(--sp-6); border-radius: 8px; box-shadow: none; }
 .topbar .topright { gap: var(--sp-1); }
 .navlink { font-size: var(--fs-2); color: var(--muted); padding: var(--sp-2) var(--sp-3); border-radius: 999px; }
 .navlink:hover, .navlink-on { background: none; color: var(--ink); }

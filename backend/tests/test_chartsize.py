@@ -55,9 +55,10 @@ GROUPS = {
                                  "latest_change_just_over_80_percent_of_the_days_is_complete", "latest_change_just_under_80_percent_is_per_day", "latest_change_of_an_average_is_compared_as_it_is",
                                  "latest_change_needs_two_periods_and_day_grain_is_unchanged"],
     "more charts count": ["more_charts_counts_finding_charts_and_drawn_live_charts_only"],
-    "wording": ["plural_handles_the_shapes_it_meets", "prettify_spells_out_an_internal_name", "prettify_keeps_acronyms_and_camel_case",
+    "wording": ["plain_title_keeps_x_inside_words", "plain_title_still_removes_a_real_multiplier", "plain_title_has_no_symbols_or_p_values", "plain_title_is_at_most_six_words", "plural_handles_the_shapes_it_meets", "prettify_spells_out_an_internal_name", "prettify_keeps_acronyms_and_camel_case",
                 "display_name_prefers_what_the_analysis_worked_out", "display_name_without_a_record_still_reads", "humanise_replaces_every_internal_name_in_a_sentence",
-                "humanise_leaves_no_underscore_id_behind", "chart_title_drops_total_and_the_aggregation", "chart_title_of_an_average_reads_plainly", "looks_internal_spots_what_it_should"],
+                "humanise_leaves_no_underscore_id_behind", "chart_title_drops_total_and_the_aggregation", "chart_title_of_an_average_reads_plainly", "looks_internal_spots_what_it_should",
+                "plain_title_names_the_measure_and_the_split_from_display_names", "plain_title_drops_the_table_and_aggregation_words", "plain_title_turns_a_cross_into_and"],
 }
 
 

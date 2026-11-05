@@ -22,12 +22,12 @@ export default function DataModel({ model }: { model: Model }) {
 
       {model.tables.length > 1 && (
         <>
-          <h4>How your tables connect</h4>
+          <h4>How files connect</h4>
           <ERDiagram model={model} />
         </>
       )}
 
-      <h4>Tables</h4>
+      <h4>Files</h4>
       <table className="table">
         <thead>
           <tr>
@@ -58,7 +58,7 @@ export default function DataModel({ model }: { model: Model }) {
         </tbody>
       </table>
 
-      <h4>Relationships found</h4>
+      <h4>Links found</h4>
       {model.relationships.length === 0 ? (
         <p className="muted">No reliable key links were found between these tables.</p>
       ) : (
@@ -97,7 +97,7 @@ export default function DataModel({ model }: { model: Model }) {
 
       {model.steps.length > 0 && (
         <>
-          <h4>Join steps</h4>
+          <h4>How files were joined</h4>
           <ol>
             {model.steps.map((s, i) => (
               <li key={i}>
@@ -110,7 +110,7 @@ export default function DataModel({ model }: { model: Model }) {
 
       {model.warnings.length > 0 && (
         <>
-          <h4>Warnings</h4>
+          <h4>Things to check</h4>
           <ul>
             {model.warnings.map((w, i) => (
               <li key={i} className={w.severity === "warn" ? "warn-text" : ""}>

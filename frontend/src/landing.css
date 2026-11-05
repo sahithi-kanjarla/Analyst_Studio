@@ -1,4 +1,4 @@
-/* Shared pieces kept from the earlier design: the agent flowchart, cards and small components. */
+﻿/* Shared pieces kept from the earlier design: the agent flowchart, cards and small components. */
 .shell { max-width: 1180px; }
 .home { max-width: 1120px; }
 .home .form { margin-top: 8px; scroll-margin-top: 90px; }
@@ -15,7 +15,7 @@
 /* 3 steps */
 
 /* sections */
-.kicker { font: 600 11.5px "JetBrains Mono", monospace; letter-spacing: .12em; text-transform: uppercase; color: var(--brand); }
+.kicker { font-weight: 600; font-size: var(--fs-1); color: var(--brand); }
 
 /* flowchart */
 .flow { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 22px; box-shadow: var(--shadow); }
@@ -63,7 +63,7 @@
 .fd-play:hover { border-color: var(--brand); color: var(--brand); }
 .flow-detail p { margin: 12px 0 0; max-width: 76ch; }
 .fd-out { color: var(--muted); font-size: 13.5px; }
-.fd-out i { font: 600 10.5px "JetBrains Mono", monospace; text-transform: uppercase; letter-spacing: .1em; color: var(--brand); font-style: normal; margin-right: 8px; }
+.fd-out i { font-weight: 600; font-size: var(--fs-1); color: var(--brand); font-style: normal; margin-right: 8px; }
 .fd-prog { display: flex; gap: 4px; margin-top: 14px; }
 .fd-prog span { flex: 1; height: 3px; border-radius: 3px; background: var(--line); }
 .fd-prog .past { background: color-mix(in srgb, var(--brand) 45%, var(--line)); } .fd-prog .on { background: var(--brand); }
@@ -76,7 +76,7 @@
 .flow-compact .wire { height: 8px; }
 
 /* bento */
-.code { margin: 6px 0 0; padding: 12px 14px; border-radius: 12px; background: #0f1626; color: #cfe0ff; font: 500 12px/1.7 "JetBrains Mono", monospace; overflow-x: auto; }
+.code { margin: 6px 0 0; padding: 12px 14px; border-radius: var(--radius); background: var(--ink); color: var(--bg); font: 500 12px/1.7 var(--font-mono); overflow-x: auto; }
 .checks { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 7px; font-size: 14px; }
 .checks li::before { content: "✓"; color: var(--ok); font-weight: 700; margin-right: 9px; }
 .mini-er { width: 100%; max-height: 110px; }

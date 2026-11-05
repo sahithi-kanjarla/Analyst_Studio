@@ -623,3 +623,13 @@ def test_a_slice_and_the_whole_table_are_never_merged():
     fs2 = [_cmp(1, "revenue", "item", "Bridal", "Kurta", score=9.0, within="category", within_value="Ethnic"),
            _cmp(2, "discount", "item", "Bridal", "Kurta", score=8.0, within="category", within_value="Ethnic")]
     assert curate.curate(_state(findings=fs2, goal="anything interesting"))["absorbed"].get("f2") == "f1"
+
+
+# ------------------------------------------------------------------ negligible effects stay out of Insights
+
+def test_negligible_effect_is_not_shown_in_insights_but_is_counted():
+    strong = [_finding(i, score=20.0, effect=0.5, group=f"g{i}") for i in range(1, 6)]
+    faint = _finding(9, score=9.0, effect=0.0005, group="faint")
+    res = curate.curate(_state(findings=strong + [faint], goal="Explore this data and surface the most important insights."))
+    ins = res["tabs"]["insights:finding"]
+    assert "f9" not in ins["kept"] + ins["more"] and ins["left_out_count"] >= 1

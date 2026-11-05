@@ -1,0 +1,71 @@
+﻿sku,product_name,category,unit_cost,list_price
+SKU-0001,Classic Mixing Bowl,Kitchen,35.59,60.21
+SKU-0002,Modern Chopping Board,Kitchen,28.57,50.75
+SKU-0003,Compact Kettle,Kitchen,22.37,60.65
+SKU-0004,Deluxe Storage Jar,Kitchen,17.93,32.68
+SKU-0005,Everyday Pan,Kitchen,32.75,60.69
+SKU-0006,Starter Colander,Kitchen,23.74,41.67
+SKU-0007,Premium Whisk,Kitchen,7.08,20.22
+SKU-0008,Folding Mixing Bowl,Kitchen,21.73,37.91
+SKU-0009,Classic Chopping Board,Kitchen,30.53,62.7
+SKU-0010,Modern Kettle,Kitchen,23.77,63.97
+SKU-0011,Compact Storage Jar,Kitchen,16.68,28.15
+SKU-0012,Deluxe Pan,Kitchen,25.19,50.44
+SKU-0013,Everyday Colander,Kitchen,27.52,63.54
+SKU-0014,Starter Whisk,Kitchen,11.3,24.76
+SKU-0015,Classic Candle Holder,Home Decor,27.95,57.82
+SKU-0016,Modern Cushion Cover,Home Decor,9.92,24.61
+SKU-0017,Compact Wall Frame,Home Decor,22.16,38.33
+SKU-0018,Deluxe Vase,Home Decor,12.78,34.06
+SKU-0019,Everyday Table Lamp,Home Decor,4.9,13.64
+SKU-0020,Starter Rug,Home Decor,21.53,54.15
+SKU-0021,Premium Candle Holder,Home Decor,28.38,59.07
+SKU-0022,Folding Cushion Cover,Home Decor,18.5,35.21
+SKU-0023,Classic Wall Frame,Home Decor,,53.61
+SKU-0024,Modern Vase,Home Decor,22.87,49.64
+SKU-0025,Compact Table Lamp,Home Decor,,38.6
+SKU-0026,Deluxe Rug,Home Decor,21.36,60.08
+SKU-0027,Classic T-Shirt,Apparel,8.8,17.61
+SKU-0028,Modern Hoodie,Apparel,38.23,77.1
+SKU-0029,Compact Scarf,Apparel,48.55,86.7
+SKU-0030,Deluxe Jacket,Apparel,28.32,49.06
+SKU-0031,Everyday Cap,Apparel,25.12,66.4
+SKU-0032,Starter Socks Pack,Apparel,13.38,32.63
+SKU-0033,Premium Joggers,Apparel,29.3,67.38
+SKU-0034,Folding Dress,Apparel,28.13,62.91
+SKU-0035,Classic T-Shirt,Apparel,7.09,15.77
+SKU-0036,Modern Hoodie,Apparel,21.65,56.31
+SKU-0037,Compact Scarf,Apparel,15.84,35.07
+SKU-0038,Deluxe Jacket,Apparel,8.72,22.68
+SKU-0039,Everyday Cap,Apparel,17.63,44.41
+SKU-0040,Starter Socks Pack,Apparel,21.65,56.8
+SKU-0041,Premium Joggers,Apparel,25.16,47.39
+SKU-0042,Folding Dress,Apparel,13.81,30.04
+SKU-0043,Classic Plant Pot,Garden,26.16,49.21
+SKU-0044,Modern Watering Can,Garden,11.37,20.7
+SKU-0045,Compact Trowel Set,Garden,6.63,14.18
+SKU-0046,Deluxe Seed Tray,Garden,15.17,29.93
+SKU-0047,Everyday Bird Feeder,Garden,6.75,13.29
+SKU-0048,Starter Plant Pot,Garden,31.27,56.37
+SKU-0049,Premium Watering Can,Garden,3.26,8.26
+SKU-0050,Folding Trowel Set,Garden,,25.73
+SKU-0051,Classic Seed Tray,Garden,16.93,33.86
+SKU-0052,Modern Bird Feeder,Garden,17.32,34.53
+SKU-0053,Classic Puzzle,Toys,7.98,14.31
+SKU-0054,Modern Building Set,Toys,15.11,38.71
+SKU-0055,Compact Plush Toy,Toys,13.71,29.35
+SKU-0056,Deluxe Board Game,Toys,15.46,27.88
+SKU-0057,Everyday Craft Kit,Toys,14.73,33.27
+SKU-0058,Starter Puzzle,Toys,19.57,36.58
+SKU-0059,Premium Building Set,Toys,18.19,31.15
+SKU-0060,Folding Plush Toy,Toys,14.02,36.99
+SKU-0061,Classic Board Game,Toys,9.35,21.29
+SKU-0062,Modern Craft Kit,Toys,7.02,16.88
+SKU-0063,Classic Notebook,Stationery,5.9,11.07
+SKU-0064,Modern Pen Set,Stationery,2.27,3.82
+SKU-0065,Compact Planner,Stationery,6.24,15.72
+SKU-0066,Deluxe Sticker Pack,Stationery,2.15,4.87
+SKU-0067,Everyday Notebook,Stationery,6.9,12.46
+SKU-0068,Starter Pen Set,Stationery,6.09,12.03
+SKU-0069,Premium Planner,Stationery,3.69,7.57
+SKU-0070,Folding Sticker Pack,Stationery,6.17,17.08

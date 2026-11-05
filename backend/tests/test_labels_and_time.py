@@ -37,7 +37,7 @@ def test_a_model_plan_that_calls_a_status_column_a_segment_is_sent_back():
     prof = profiler.profile_df(df)
     roles = {c["name"]: c["role"] for c in prof["columns"]}
     validate = planner.plan_validator(roles, {c["name"]: c["unique"] for c in prof["columns"]}, set(), 8)
-    base = {"analyses": [{"tool": "group_compare", "params": {"target": "net_revenue", "group": "Region"}, "why": "x"}, {"tool": "distribution", "params": {"col": "net_revenue"}, "why": "y"}], "target": "net_revenue", "date_col": "order_date"}
+    base = {"analyses": [{"tool": "group_compare", "params": {"target": "net_revenue", "group": "Region"}, "why": "x"}, {"tool": "distribution", "params": {"col": "net_revenue"}, "why": "y"}, {"tool": "outliers", "params": {"col": "net_revenue"}, "why": "z"}], "target": "net_revenue", "date_col": "order_date"}
     clean, errs = validate({**base, "questions": ["How does net revenue differ by Financial Status?"]})
     assert not errs, errs
     clean, errs = validate({**base, "questions": ["Which customer segments (Financial Status) earn most?"]})

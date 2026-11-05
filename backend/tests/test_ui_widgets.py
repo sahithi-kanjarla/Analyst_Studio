@@ -52,7 +52,7 @@ GROUPS = {
     "insights": ["insights_widget_chart_explanation_and_action_visible", "insights_have_a_headline_stat_and_badges", "insights_are_grouped_under_theme_headings", "insights_titles_are_plain",
                  "insights_show_all_reveals_the_rest", "insights_expand_all_details_opens_the_folds"],
     "ideas": ["ideas_title_why_steps_and_kpis_visible", "ideas_expand_all_details", "ideas_titles_are_plain"],
-    "dashboard": ["dashboard_stat_tiles_and_charts_visible", "dashboard_no_collapsed_chart", "dashboard_show_all_reveals_the_rest", "dashboard_titles_are_plain"],
+    "dashboard": ["dashboard_stat_tiles_and_charts_visible", "dashboard_no_collapsed_chart", "dashboard_show_all_reveals_the_rest", "dashboard_titles_are_plain", "dashboard_card_opens_a_dialog_and_esc_closes_it"],
     "data": ["data_first_rows_visible_with_show_all", "data_show_all_reveals_every_column"],
     "print and errors": ["print_shows_the_same_insights_as_the_screen", "no_page_errors"],
 }

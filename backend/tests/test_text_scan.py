@@ -63,6 +63,12 @@ def collect_text(wd, res):
                 page.append((f"findings[{fid}].{k} (chart title)", f[k]))
         _walk(f.get("insight"), f"findings[{fid}].insight", page)
     out += [(w, shown(t)) for w, t in page]
+    cards = []      # the Insights tab cards: their titles are scanned on their own so a card is never skipped by a key filter
+    for sec in ("evidence", "appendix", "headlines", "checked"):
+        for i, c in enumerate((res.get("report_view") or {}).get(sec) or []):
+            if isinstance(c, dict):
+                cards += [(f"Insights card title report_view.{sec}[{i}].{k}", shown(c[k])) for k in ("headline", "title", "line") if isinstance(c.get(k), str)]
+    out += cards
     cur = res.get("curation") or {}
     for cid, m in (cur.get("merges") or {}).items():
         for i, item in enumerate(m.get("items") or []):
@@ -97,7 +103,7 @@ def find_raw_names(texts, df):
     cols = [str(c) for c in df.columns]
     under = [c for c in cols if "_" in c]
     squashed = {re.sub(r"[\s_]+", "", c).lower() for c in cols if "_" in c or " " in c}
-    rx = re.compile("(?<![A-Za-z0-9_])(" + "|".join(map(re.escape, under)) + ")(?![A-Za-z0-9_])") if under else None
+    rx = re.compile("(?<![A-Za-z0-9_])(" + "|".join(map(re.escape, under)) + ")(?![A-Za-z0-9_])", re.I) if under else None      # a name that starts a sentence is capitalised
     sq = re.compile(r"(?<![A-Za-z0-9])(" + "|".join(map(re.escape, sorted(squashed))) + r")(?![A-Za-z0-9])") if squashed else None
     bad = []
     for where, text in texts:
@@ -179,3 +185,42 @@ def test_the_detectors_catch_what_they_are_for():
     spec = {"dims": [{"col": "item"}, {"col": "item_code"}], "plan": {"tiles": [], "more": [], "filters": ["item", "item_code"]}}
     pair = pd.DataFrame({"item": ["a", "b", "c"], "item_code": ["x", "y", "z"]})
     assert len(find_twin_columns(pair, spec)) == 2 and not find_twin_columns(pd.DataFrame({"item": ["a", "a", "b"], "item_code": ["x", "y", "z"]}), spec)
+
+
+def test_the_five_demo_files_end_to_end(tmp_path, monkeypatch):
+    """The multi-file demo (keys with different names, an Excel file): all four links are used, product and return columns reach the analysis,
+    and the same scan finds no raw column name in anything shown, titles and headlines included."""
+    from pathlib import Path
+    files = sorted((Path(__file__).resolve().parents[2] / "sample_data" / "demo" / "files").iterdir())
+    monkeypatch.setenv("RUNS_DIR", str(tmp_path / "runs"))
+    monkeypatch.setenv("GLOSSARY_PATH", str(tmp_path / "g.json"))
+    rid = runner.create_run("", [(p.name, p.read_bytes()) for p in files])
+    runner._execute(rid)
+    wd = runner.run_dir(rid)
+    if (runner.read_status(rid) or {}).get("status") == "needs_input":
+        (wd / "answers.json").write_text(json.dumps({"answers": {}, "skip": True, "notes": ""}))
+        runner._execute(rid)
+    assert (runner.read_status(rid) or {}).get("status") == "done"
+    res = json.loads((wd / "result.json").read_text(encoding="utf-8"))
+    used = {(r["child_table"], r["child_col"], r["parent_table"], r["parent_col"]) for r in res["data_model"]["relationships"] if r["status"] == "used"}
+    assert len(used) == 4 and ("order_lines", "item_code", "products", "sku") in used and ("returns", "line_id", "order_lines", "line_id") in used, used
+    cols = [c["name"] for c in res["profile"]["columns"]]
+    assert "category" in cols and any(c.startswith("returns_") for c in cols)
+    texts, spec = collect_text(wd, res)
+    df = pd.DataFrame(columns=cols)
+    problems = find_raw_names(texts, df) + find_duplicate_charts(spec)
+    titles = [(f"findings[{f.get('id')}] title", und.readable(f.get("title") or "", res)) for f in res.get("findings") or []]
+    titles += [(f"findings[{f.get('id')}] headline", und.readable((f.get("insight") or {}).get("headline") or "", res)) for f in res.get("findings") or []]
+    titles += [(f"strategies[{s.get('id')}] title", und.readable(s.get("title") or "", res)) for s in res.get("strategies") or []]
+    problems += [f"{w}: underscore in shown title {t!r}" for w, t in titles if "_" in t]
+    assert not problems, f"{len(problems)} problem(s):\n" + "\n".join(problems)
+
+
+def test_a_capitalised_or_squashed_column_name_gets_its_plain_name():
+    """A model starts a sentence with a name in capitals ('Returns_refund_amount_total'), or squashes it; both must read as the plain name, and the scan must catch one that does not."""
+    names = {"returns_refund_amount_total": "Refund total", "returns_refund_amount_avg": "Refund avg"}
+    text = "Returns_refund_amount_total and returnsrefundamountavg move together"
+    assert und.apply_names(text, names) == "Refund total and Refund avg move together"
+    df = pd.DataFrame({"returns_refund_amount_total": [1], "returns_refund_amount_avg": [1]})
+    assert find_raw_names([("card", text)], df)                                  # unfixed text is reported
+    assert not find_raw_names([("card", und.apply_names(text, names))], df)      # fixed text is clean

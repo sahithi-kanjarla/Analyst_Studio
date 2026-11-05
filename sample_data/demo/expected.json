@@ -1,0 +1,282 @@
+{
+  "source": "scripts/make_sample_expected.py (plain pandas, no app code)",
+  "files": {
+    "customers": 1400,
+    "order_lines": 5904,
+    "orders": 3309,
+    "products": 70,
+    "returns": 492
+  },
+  "figures": [
+    {
+      "id": "orders_total",
+      "label": "Total orders",
+      "expected": 3300,
+      "kind": "number",
+      "must_show": true,
+      "tabs": [
+        "Report"
+      ],
+      "tol_rel": 0
+    },
+    {
+      "id": "order_lines_total",
+      "label": "Order lines",
+      "expected": 5886,
+      "kind": "number",
+      "must_show": false,
+      "tabs": [
+        "Report"
+      ],
+      "tol_rel": 0
+    },
+    {
+      "id": "revenue_total",
+      "label": "Total revenue (quantity x unit price)",
+      "expected": 356964.0,
+      "kind": "number",
+      "must_show": true,
+      "tabs": [
+        "Report",
+        "Dashboard"
+      ],
+      "tol_rel": 0.02,
+      "note": "lines with missing quantity excluded here; the app may fill them in"
+    },
+    {
+      "id": "unique_customers",
+      "label": "Customers who ordered",
+      "expected": 1248,
+      "kind": "number",
+      "must_show": false,
+      "tabs": [
+        "Report"
+      ],
+      "tol_rel": 0
+    },
+    {
+      "id": "top_category",
+      "label": "Top category by revenue",
+      "expected": "Kitchen",
+      "kind": "name",
+      "must_show": true,
+      "tabs": [
+        "Report",
+        "Insights",
+        "Dashboard"
+      ]
+    },
+    {
+      "id": "top_category_revenue",
+      "label": "Revenue of the top category",
+      "expected": 110424.54,
+      "kind": "number",
+      "must_show": false,
+      "tabs": [
+        "Report"
+      ],
+      "tol_rel": 0.02
+    },
+    {
+      "id": "bottom_category",
+      "label": "Bottom category by revenue",
+      "expected": "Stationery",
+      "kind": "name",
+      "must_show": true,
+      "tabs": [
+        "Report",
+        "Insights",
+        "Dashboard"
+      ]
+    },
+    {
+      "id": "top_region",
+      "label": "Top region by revenue",
+      "expected": "North",
+      "kind": "name",
+      "must_show": true,
+      "tabs": [
+        "Report",
+        "Insights",
+        "Dashboard"
+      ]
+    },
+    {
+      "id": "bottom_region",
+      "label": "Bottom region by revenue",
+      "expected": "Islands",
+      "kind": "name",
+      "must_show": true,
+      "tabs": [
+        "Report",
+        "Insights",
+        "Dashboard"
+      ]
+    },
+    {
+      "id": "trend_direction",
+      "label": "Order volume trend over time",
+      "expected": "up",
+      "kind": "direction",
+      "must_show": true,
+      "tabs": [
+        "Report",
+        "Insights",
+        "Dashboard"
+      ],
+      "first_third_monthly_orders": 99.2,
+      "last_third_monthly_orders": 174.9
+    },
+    {
+      "id": "highest_return_category",
+      "label": "Category with the highest return rate",
+      "expected": "Apparel",
+      "kind": "name",
+      "must_show": true,
+      "tabs": [
+        "Report",
+        "Insights"
+      ]
+    },
+    {
+      "id": "highest_return_rate",
+      "label": "Return rate of Apparel",
+      "expected": 0.2587,
+      "kind": "percent",
+      "must_show": true,
+      "tabs": [
+        "Report",
+        "Insights"
+      ],
+      "tol_abs": 0.01
+    },
+    {
+      "id": "duplicates_removed",
+      "label": "Duplicate rows removed (orders + order lines)",
+      "expected": 27,
+      "kind": "number",
+      "must_show": false,
+      "tabs": [
+        "Cleaning log"
+      ],
+      "tol_rel": 0
+    }
+  ],
+  "details": {
+    "revenue_by_category": {
+      "Kitchen": 110424.54,
+      "Apparel": 90230.23,
+      "Home Decor": 79505.94,
+      "Garden": 35795.37,
+      "Toys": 33070.87,
+      "Stationery": 7937.05
+    },
+    "revenue_by_region": {
+      "North": 134883.7,
+      "South": 56630.18,
+      "West": 51775.5,
+      "East": 49348.06,
+      "Central": 47219.31,
+      "Islands": 10272.75
+    },
+    "return_rate_by_category": {
+      "Apparel": 0.2587,
+      "Garden": 0.0501,
+      "Toys": 0.0491,
+      "Home Decor": 0.0437,
+      "Stationery": 0.0327,
+      "Kitchen": 0.0296
+    },
+    "monthly_orders": {
+      "2024-01": 66,
+      "2024-02": 84,
+      "2024-03": 102,
+      "2024-04": 99,
+      "2024-05": 112,
+      "2024-06": 116,
+      "2024-07": 112,
+      "2024-08": 103,
+      "2024-09": 112,
+      "2024-10": 114,
+      "2024-11": 105,
+      "2024-12": 111,
+      "2025-01": 143,
+      "2025-02": 168,
+      "2025-03": 182,
+      "2025-04": 172,
+      "2025-05": 190,
+      "2025-06": 180,
+      "2025-07": 186,
+      "2025-08": 166,
+      "2025-09": 167,
+      "2025-10": 148,
+      "2025-11": 168,
+      "2025-12": 194
+    },
+    "duplicate_rows_removed": {
+      "orders": 9,
+      "order_lines": 18
+    },
+    "missing_values": {
+      "customers": {
+        "region": 25,
+        "acquisition_channel": 70
+      },
+      "order_lines": {
+        "quantity": 40
+      },
+      "orders": {
+        "customer_ref": 12,
+        "payment_method": 31
+      },
+      "products": {
+        "unit_cost": 3
+      },
+      "returns": {
+        "reason": 15
+      }
+    },
+    "links": [
+      {
+        "child": "orders",
+        "child_col": "customer_ref",
+        "parent": "customers",
+        "parent_col": "customer_id",
+        "distinct_child_keys": 1248,
+        "matched_keys": 1248,
+        "child_rows_matching": 3297,
+        "child_rows": 3309
+      },
+      {
+        "child": "order_lines",
+        "child_col": "order_id",
+        "parent": "orders",
+        "parent_col": "order_id",
+        "distinct_child_keys": 3300,
+        "matched_keys": 3300,
+        "child_rows_matching": 5904,
+        "child_rows": 5904
+      },
+      {
+        "child": "order_lines",
+        "child_col": "item_code",
+        "parent": "products",
+        "parent_col": "sku",
+        "distinct_child_keys": 70,
+        "matched_keys": 70,
+        "child_rows_matching": 5904,
+        "child_rows": 5904
+      },
+      {
+        "child": "returns",
+        "child_col": "line_id",
+        "parent": "order_lines",
+        "parent_col": "line_id",
+        "distinct_child_keys": 492,
+        "matched_keys": 492,
+        "child_rows_matching": 492,
+        "child_rows": 492
+      }
+    ]
+  }
+}

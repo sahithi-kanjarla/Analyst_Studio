@@ -10,7 +10,7 @@ const ok = (name, cond, detail) => { R[name] = { ok: !!cond, detail: detail === 
   const p = await b.newPage({ viewport: { width: 1280, height: 900 } });
   const errs = []; p.on('pageerror', e => errs.push(String(e)));
   await p.goto(base); await p.evaluate(() => localStorage.clear());
-  await p.getByRole('button', { name: /Try with sample data/i }).first().click(); await p.waitForSelector('.report-page'); await p.waitForTimeout(800);
+  await p.getByRole('button', { name: /See a sample/i }).first().click(); await p.waitForSelector('.report-page'); await p.waitForTimeout(800);
   const tab = async (name) => { await p.getByRole('tab', { name: new RegExp('^' + name) }).first().click(); await p.waitForTimeout(900); };
   const vis = (sel) => p.locator(sel).evaluateAll(els => els.filter(e => e.offsetParent !== null && e.getBoundingClientRect().height > 0).length);
   const inView = async (sel) => { const l = p.locator(sel).filter({ visible: true }).first(); return (await l.count()) ? l.isVisible() : false; };
@@ -61,6 +61,13 @@ const ok = (name, cond, detail) => { R[name] = { ok: !!cond, detail: detail === 
   if (await sa.count()) { await sa.first().click(); await p.waitForTimeout(400); ok('dashboard_show_all_reveals_the_rest', (await vis('.bi-table tbody tr')) >= rowsBefore && (await vis('.bi-card')) >= 1); } else ok('dashboard_show_all_reveals_the_rest', true, 'nothing to reveal');
   t = await titles(); const bad4 = clean(t);
   ok('dashboard_titles_are_plain', bad4.length === 0, bad4.join(' | '));
+  // a finding card opens a dialog at full size; Esc closes it and the page below is unchanged
+  if (await p.locator('.tile-compact .chart-frame-img, .tile-img').count()) {
+    await p.locator('.tile-compact .chart-frame-img, .tile-img').first().click();
+    const opened = (await p.locator('[role=dialog]').count()) === 1;
+    await p.keyboard.press('Escape');
+    ok('dashboard_card_opens_a_dialog_and_esc_closes_it', opened && (await p.locator('[role=dialog]').count()) === 0);
+  } else ok('dashboard_card_opens_a_dialog_and_esc_closes_it', true, 'no finding card');
   // ---- Data
   await tab('Data');
   ok('data_first_rows_visible_with_show_all', (await vis('.column-meanings tbody tr')) >= 5);

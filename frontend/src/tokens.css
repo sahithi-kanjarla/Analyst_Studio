@@ -1,61 +1,133 @@
-/* Design tokens. Loaded last, so these values win over the older colour variables in styles.css.
-   Colours, six type sizes and a 4-point spacing scale. New code uses these and nothing else. */
-:root {
-  --bg: #f7f5f0;          /* warm off-white page */
-  --card: #fffdf9;
-  --ink: #1b1a17;         /* near-black text */
-  --muted: #5f5b52;       /* secondary text, 6.2:1 on --bg (AA) */
-  --line: #e4ded2;
-  --brand: #a4461f;       /* the one accent, used sparingly */
-  --brand-2: #a4461f;
-  --brand-ink: #fffdf9;
-  --grad: #a4461f;        /* gradients are not used; kept so older rules resolve to the accent */
-  --ok: #2d6a3e; --ok-bg: #e5efe6;
-  --warn: #7a4c0c; --warn-bg: #f6edd9;
-  --err: #a12d1f; --err-bg: #f8e4e0;
-  --shadow: 0 1px 2px rgba(27, 26, 23, .05), 0 8px 24px -12px rgba(27, 26, 23, .18);
-  --glow-a: transparent; --glow-b: transparent; --glow-c: transparent; --grid: transparent;
+/* Design tokens — the one place colour, type, spacing, radius and shadow are decided.
+   Loaded after styles.css, so these values win over the older variables there.
+   New code uses these names and nothing else.
 
+   The direction: paper-white surfaces, cool ink greys, one marine accent. The accent is never
+   decoration — it marks the thing being pointed at (the selected bar, the leading group, the
+   active tab) and nothing else. Status colour is reserved for good / watch / problem, so the
+   accent is deliberately a blue: a blue bar never reads as "this figure is good or bad".
+   Cards carry a hairline, not a shadow; only things that float above the page get one. */
+
+:root {
+  /* ---- surfaces and text */
+  --bg: #f5f6f7;          /* page: cool near-white paper */
+  --card: #ffffff;        /* a measured surface */
+  --ink: #16191d;         /* graphite text */
+  --muted: #5a636e;       /* secondary text, 5.7:1 on --bg (AA) */
+  --line: #dde1e6;        /* hairlines */
+  --bg-soft: #eef0f2;     /* a recessed panel inside a card */
+  --surface: #ffffff;
+
+  /* ---- the one accent */
+  --brand: #15567f;       /* marine, 7.9:1 on white (AAA) */
+  --brand-2: #15567f;
+  --brand-ink: #ffffff;
+  --accent: #15567f;      /* same colour under the name older rules use */
+  --accent-soft: #e7eef4;
+  --grad: #15567f;        /* gradients are not used; kept so older rules resolve to the accent */
+
+  /* ---- status: good / watch / problem, all AA on --bg and on their own tint */
+  --ok: #0e6b4f; --ok-bg: #e6f2ed;
+  --warn: #8a5a00; --warn-bg: #f8f0dd;
+  --err: #b0271b; --err-bg: #fae8e5;
+
+  /* ---- type */
+  --font-ui: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --fs-1: 13px;  /* captions, labels */
   --fs-2: 15px;  /* body */
   --fs-3: 17px;  /* lead text */
-  --fs-4: 22px;  /* section titles */
-  --fs-5: 32px;  /* page headline */
-  --fs-6: 48px;  /* hero headline */
-  --lh-tight: 1.1;
+  --fs-4: 21px;  /* section titles */
+  --fs-5: 28px;  /* page headline, key figure */
+  --fs-6: 40px;  /* hero headline */
+  --lh-tight: 1.12;
   --lh-body: 1.55;
-  --font-ui: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 
+  /* ---- spacing, radius, shadow */
   --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px; --sp-6: 32px; --sp-7: 48px; --sp-8: 64px;
-  --radius: 12px;
+  --radius-sm: 4px;        /* chips, inputs, bars */
+  --radius: 10px;          /* cards and panels */
+  --radius-lg: 14px;       /* the one dialog */
+  /* one shadow, for things that float above the page: menus, dialogs. Cards never use it. */
+  --shadow: 0 2px 4px -2px rgb(16 25 34 / .10), 0 14px 36px -14px rgb(16 25 34 / .26);
+  --glow-a: transparent; --glow-b: transparent; --glow-c: transparent; --grid: transparent;
+
+  /* ---- layout */
   --col: 1120px;          /* page column */
-  --read: 720px;          /* reading column */
+  --read: 68ch;           /* reading column, under 80 characters */
   --gutter: 24px;
   --card-pad: var(--sp-5);
   --border: 1px solid var(--line);
   --ease: cubic-bezier(.2, .6, .2, 1);
 }
+
+/* chart-tokens:start
+   The data palette. Charts drawn by the backend are PNGs that carry their own white panel, and
+   the charts drawn in the browser must match them exactly, so these values do not change with
+   the page theme. scripts/gen_palette.py reads this block and writes backend/app/palette.py and
+   frontend/src/palette.ts from it; tests/test_palette.py fails if they drift apart.
+   Rule for data: the highlighted or selected mark uses --chart-accent, every other mark
+   --chart-neutral. The categorical ramp is only for series that genuinely need separate
+   identities. It stops at six, because beyond that no set of fills can be told apart by a
+   colour-blind reader: every pair here differs either in lightness or on the blue-yellow axis
+   that all kinds of colour-blindness keep. tests/test_palette.py checks each pair. */
+:root {
+  --chart-panel: #ffffff;
+  --chart-ink: #16191d;
+  --chart-muted: #5a636e;
+  --chart-line: #dde1e6;
+  --chart-grid: #e9ecef;
+  --chart-accent: #15567f;
+  --chart-neutral: #c2c9d1;
+  --chart-neutral-soft: #dde2e8;
+  --chart-good: #0e6b4f;
+  --chart-caution: #8a5a00;
+  --chart-bad: #b0271b;
+  --cat-1: #15567f;      /* marine: the accent leads the ramp */
+  --cat-2: #d1760c;      /* ochre */
+  --cat-3: #2e7d32;      /* green */
+  --cat-4: #c77aa6;      /* rose */
+  --cat-5: #3a8cc4;      /* sky */
+  --cat-6: #3f4652;      /* graphite */
+}
+/* chart-tokens:end */
+
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #15140f; --card: #1e1c17; --ink: #f2efe8; --muted: #aaa497; --line: #35322a;
-    --brand: #e58a62; --brand-2: #e58a62; --brand-ink: #15140f; --grad: #e58a62;
-    --ok: #7fc793; --ok-bg: rgba(127, 199, 147, .14); --warn: #e8b865; --warn-bg: rgba(232, 184, 101, .14);
-    --err: #f0988b; --err-bg: rgba(240, 152, 139, .14);
-    --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 10px 28px -14px rgba(0, 0, 0, .7);
+    --bg: #101418; --card: #171c22; --ink: #e9edf1; --muted: #9ba5b0; --line: #2a323b; --bg-soft: #1e242b; --surface: #171c22;
+    --brand: #7bb8e0; --brand-2: #7bb8e0; --brand-ink: #0d1116; --accent: #7bb8e0; --accent-soft: #1d2a35; --grad: #7bb8e0;
+    --ok: #5fc79b; --ok-bg: rgb(95 199 155 / .14); --warn: #e0b45f; --warn-bg: rgb(224 180 95 / .14);
+    --err: #f09087; --err-bg: rgb(240 144 135 / .14);
+    --shadow: 0 2px 4px -2px rgb(0 0 0 / .5), 0 14px 36px -14px rgb(0 0 0 / .7);
   }
 }
 :root[data-theme="dark"] {
-  --bg: #15140f; --card: #1e1c17; --ink: #f2efe8; --muted: #aaa497; --line: #35322a;
-  --brand: #e58a62; --brand-2: #e58a62; --brand-ink: #15140f; --grad: #e58a62;
-  --ok: #7fc793; --ok-bg: rgba(127, 199, 147, .14); --warn: #e8b865; --warn-bg: rgba(232, 184, 101, .14);
-  --err: #f0988b; --err-bg: rgba(240, 152, 139, .14);
-  --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 10px 28px -14px rgba(0, 0, 0, .7);
+  --bg: #101418; --card: #171c22; --ink: #e9edf1; --muted: #9ba5b0; --line: #2a323b; --bg-soft: #1e242b; --surface: #171c22;
+  --brand: #7bb8e0; --brand-2: #7bb8e0; --brand-ink: #0d1116; --accent: #7bb8e0; --accent-soft: #1d2a35; --grad: #7bb8e0;
+  --ok: #5fc79b; --ok-bg: rgb(95 199 155 / .14); --warn: #e0b45f; --warn-bg: rgb(224 180 95 / .14);
+  --err: #f09087; --err-bg: rgb(240 144 135 / .14);
+  --shadow: 0 2px 4px -2px rgb(0 0 0 / .5), 0 14px 36px -14px rgb(0 0 0 / .7);
 }
-body { background: var(--bg); color: var(--ink); font-family: var(--font-ui); font-size: var(--fs-2); line-height: var(--lh-body); }
-h1 { font-size: var(--fs-5); letter-spacing: -0.02em; line-height: var(--lh-tight); }
-h2 { font-size: var(--fs-4); letter-spacing: -0.015em; line-height: var(--lh-tight); }
+
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-ui); font-size: var(--fs-2); line-height: var(--lh-body);
+  -webkit-font-smoothing: antialiased;
+}
+h1 { font-size: var(--fs-5); font-weight: 600; letter-spacing: -0.021em; line-height: var(--lh-tight); }
+h2 { font-size: var(--fs-4); font-weight: 600; letter-spacing: -0.014em; line-height: var(--lh-tight); }
+h3, h4, h5 { font-weight: 600; letter-spacing: -0.006em; }
+
+/* Figures are set in the same family but always on a fixed-width lining figure, so a column of
+   numbers lines up and a figure does not jump as it updates. */
+.bi-kpi b, .bi-table td, .bi-table th.r, .c-value, .c-axis, .c-center, .kpi b, .rp-tile b,
+.iw-stat-val, .iw-rank-val, .share, table td, .figure, .tnum {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+code, pre, .mono { font-family: var(--font-mono); font-size: .92em; }
+
 .grad-text { background: none; -webkit-text-fill-color: currentColor; color: inherit; }
-:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 4px; }
+:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: var(--radius-sm); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
 }

@@ -3,6 +3,7 @@ import StartPage from "./components/StartPage";
 import RunView from "./components/RunView";
 import Glossary from "./components/Glossary";
 import History from "./components/History";
+import Logo from "./components/Logo";
 
 /** The open run and, for an old link (#/run/<id>/powerbi, /chat, /cleaning ...), the name of the tab it points to. */
 function useHashRun(): [string | null, string | null, (id: string | null) => void] {
@@ -26,25 +27,27 @@ export default function App() {
   const [runId, runTab, go] = useHashRun();
   const readPage = () => (window.location.hash === "#/glossary" ? "glossary" : window.location.hash === "#/history" ? "history" : window.location.hash === "#/new" ? "new" : "");
   const [page, setPage] = useState(readPage);
+  const [menu, setMenu] = useState(false);          // the phone menu (three bars)
   useEffect(() => {
-    const on = () => setPage(readPage());
+    const on = () => { setPage(readPage()); setMenu(false); };
+    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") setMenu(false); };
     window.addEventListener("hashchange", on);
-    return () => window.removeEventListener("hashchange", on);
+    window.addEventListener("keydown", esc);
+    return () => { window.removeEventListener("hashchange", on); window.removeEventListener("keydown", esc); };
   }, []);
   return (
     <div className="shell">
       {runId ? <div id="runbar-slot" className="runbar-slot" /> : (
       <header className="topbar">
         <a className="brand" href="#/" onClick={() => go(null)}>
-          <span className="logo-mark">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M4 17l5-7 4 4 7-9" /></svg>
-          </span>
+          <Logo size={30} />
           Analyst Studio
         </a>
-        <div className="topright">
-          <a className={`navlink ${page === "new" ? "navlink-on" : ""}`} href="#/new">New analysis</a>
+        <button type="button" className="menu-bars" aria-label="Menu" aria-expanded={menu} aria-controls="top-links" onClick={() => setMenu((m) => !m)}><i /><i /><i /></button>
+        <div className={`topright ${menu ? "topright-open" : ""}`} id="top-links">
           <a className={`navlink ${page === "history" ? "navlink-on" : ""}`} href="#/history">History</a>
           <a className={`navlink ${page === "glossary" ? "navlink-on" : ""}`} href="#/glossary">Glossary</a>
+          <a className="navlink navlink-primary" href="#/new">New analysis</a>
         </div>
       </header>
       )}

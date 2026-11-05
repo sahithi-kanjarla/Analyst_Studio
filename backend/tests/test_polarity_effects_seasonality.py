@@ -111,11 +111,11 @@ def test_never_recommend_increasing_a_lower_is_better_metric():
     assert "reverse" in cand["objective"] and "extend" not in cand["objective"]
 
 
-def test_lower_is_better_ranking_names_the_lowest_group_as_best():
+def test_lower_is_better_ranking_makes_no_best_performer_claim():
     st = _state([_group("delivery_time", eta=0.2, top="North", bot="South", hv=12.0, lv=8.0)])
     ins.build_insights(st)
     ins_ = st["findings"][0]["insight"]
-    assert "lower is better" in ins_["headline"] and "South performs best" in ins_["headline"]
+    assert "lower is better" not in ins_["headline"] and "performs best" not in ins_["headline"]
     assert "strongest" not in ins_["why_it_matters"] and "putting more" not in ins_["why_it_matters"]
     st["plan"] = {"target": "delivery_time"}
     titles = [c["title"] for c in strategy.candidates(st) if c["kind"] == "data"]

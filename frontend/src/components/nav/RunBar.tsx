@@ -1,6 +1,7 @@
 import { ReactNode, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { NAV_LABEL, NAV_TABS, NavTab } from "../../tabs";
+import Logo from "../Logo";
 import Menu from "./Menu";
 
 /** The slot in the page where the thin bar of the analysis view goes (App renders it instead of the landing header while a run is open). */
@@ -34,9 +35,7 @@ export default function RunBar({ name, tabs, active, onTab, exportMenu, onReview
   const bar = (
     <header className="runbar">
       <a className="brand runbar-brand" href="#/" aria-label="Analyst Studio, back to the home page" onClick={(e) => go(e, "#/")}>
-        <span className="logo-mark">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M4 17l5-7 4 4 7-9" /></svg>
-        </span>
+        <Logo size={28} />
         <span className="runbar-brand-text">Analyst Studio</span>
       </a>
       <span className="runbar-name" title={name}>{name}</span>

@@ -3,12 +3,13 @@ The LLM (if available) only writes the executive summary and top recommendations
 from __future__ import annotations
 
 import time
-
 import json
 import re
 
+import pandas as pd
+
 from . import labels
-from . import aicache, cited, context as ctxmod, mainview, reportcharts, strategy as strat_mod, summary as summary_mod, tiering, wording
+from . import aicache, cited, headline, context as ctxmod, mainview, reportcharts, strategy as strat_mod, summary as summary_mod, tiering, wording
 from . import understanding as und
 from .clarify import named_in_goal
 from pathlib import Path
@@ -360,7 +361,8 @@ def llm_actions(llm, state: dict, view: dict, cs: list[dict], wanted: list[int],
             rejected.append(why)
             instead(n, "it failed the fact check")
             continue
-        sentence = _sentences(clean)[0]
+        sentence = _sentences(clean)[0].rstrip()
+        sentence += "" if sentence.endswith((".", "!", "?")) else "."          # the fact id sat after the full stop: stripping it must not leave an unfinished sentence
         if not mainview.concrete(sentence, {mainview.measure_of(i, by_id, r_by_id) for i in offered[n]}):
             dropped.append(f"action replaced (no figure with its measure named): {clean}")
             instead(n, "no figure with its measure named")
@@ -759,7 +761,7 @@ def build_report(state: dict, summary: str, recs: list[str], run_mode: str = "",
     plan = mainview.plan_actions(state, view, cs)
     # the saved view lists the same actions as 'What to do' (one recommendation list); the evidence of an action kept where its text is unchanged
     old_ev = {a.get("text"): a.get("evidence") or [] for a in view.get("actions") or []}
-    view["actions"] = [{"text": a["text"], "evidence": old_ev.get(a["text"], [])} for a in plan["actions"]]
+    view["actions"] = [{"text": a["text"], "evidence": old_ev.get(a["text"]) or a.get("evidence") or []} for a in plan["actions"]]      # an action whose text was reworded keeps the evidence it was planned with
     answer_cards = [c for c in cs if c["num"]]          # an action question has no card: the 'What to do' section answers it
     L = [title, "", f"**Mode:** {run_mode or derive_mode(state.get('stage_sources'))}", ""] + [f"- ⚠ {w}" for w in warns[:mainview.WARNINGS_MAX]] + ([""] if warns else [])
 
@@ -829,6 +831,78 @@ def ai_partly(state: dict) -> list[str]:
     return named + extra
 
 
+def _scope_line(state: dict) -> str:
+    """One line, built by code from the run's own record, that says what the report covers: "Based on 608 records, 01 Jan 2025 to 25 Nov 2025, from 1 file".
+    A count of orders is used only when the data verified an order key; nothing else is guessed."""
+    prof = state.get("profile") or {}
+    g = prof.get("grain") or {}
+    n = g.get("orders") or prof.get("rows")
+    if not n:
+        return ""
+    noun = "orders" if g.get("orders") else "records"
+    parts = [f"Based on {int(n):,} {noun}"]
+    span = None
+    for c in prof.get("columns") or []:
+        st = c.get("stats") or {}
+        if c.get("role") == "date" and st.get("min") and st.get("max"):
+            try:
+                a, b = pd.Timestamp(st["min"]), pd.Timestamp(st["max"])
+                span = f"{a:%d %b %Y} to {b:%d %b %Y}" if a.year != b.year or a.month != b.month else f"{a:%b %Y}"
+            except (ValueError, TypeError):
+                span = None
+            break
+    if span:
+        parts.append(span)
+    nf = len(state.get("tables") or []) or 1
+    parts.append(f"from {nf} file{'s' if nf != 1 else ''}")
+    return ", ".join(parts)
+
+
+def _footnotes(state: dict) -> list[str]:
+    """Short caveats that change how a number should be read, from the findings' own saved facts: a last period with only some of its days, or one the
+    person said really ended there. One line each, no repeats; nothing about how the data was organised or cleaned."""
+    out, seen = [], set()
+    for f in state.get("findings") or []:
+        pt = (f.get("stats") or {}).get("partial")
+        if not isinstance(pt, dict) or not pt.get("days_in_period") or (pt["label"], bool(pt.get("really_ended"))) in seen:
+            continue
+        seen.add((pt["label"], bool(pt.get("really_ended"))))
+        unit = "month" if pt["days_in_period"] >= 28 else "week" if pt["days_in_period"] == 7 else "period"
+        if pt.get("really_ended"):
+            out.append(f"You said the data ends where it does, so the last {unit} (from {pt['label']}) is counted as it stands: {pt['days']} of {pt['days_in_period']} days.")
+        elif pt.get("partial"):
+            out.append(f"The last {unit} (from {pt['label']}) covers only {pt['days']} of {pt['days_in_period']} days, so trends use the complete {unit}s.")
+    return out[:3]
+
+
+METHOD_TITLES = ("How the data was set up", "Definitions used", "Power BI")          # how the data was organised, cleaned, set up or built: not Report content
+MORE_TITLES = (("Answer details", "Answer details"), ("Evidence", "Evidence"), ("Strategy and Recommendations", "Strategy and recommendations"),
+               ("Statistics and limitations", "Limits and data gaps"), ("Appendix", "More detail"), ("Checked, nothing found", "Checked, nothing found"))
+
+
+def _more_sections(tail: list[str]) -> list[dict]:
+    """The collapsed sections after "View more", one {title, md} each, without the method ones. Nested <details> stay inside their section."""
+    out, depth, cur = [], 0, []
+    for ln in tail:
+        if ln == "<details>" and depth == 0:
+            depth, cur = 1, []
+            continue
+        if ln == "<details>":
+            depth += 1
+        elif ln == "</details>":
+            depth -= 1
+            if depth == 0:
+                m = re.match(r"<summary>(.*)</summary>$", cur[0]) if cur else None
+                title, body = (m.group(1), "\n".join(cur[1:]).strip()) if m else ("", "")
+                if title and body and not title.startswith(METHOD_TITLES):
+                    short = next((new for old, new in MORE_TITLES if title.startswith(old)), title)
+                    out.append({"title": short, "md": body})
+                continue
+        if depth:
+            cur.append(ln)
+    return out
+
+
 def _page(state: dict, run_mode: str, cs: list[dict], plan: dict, ts: list, answer_cards: list[dict], lines: list[str]) -> dict:
     """The main view as data, for the designed report page: the same cards, actions and figures the markdown shows, in the same words."""
     ctx = state.get("context") or {}
@@ -854,6 +928,7 @@ def _page(state: dict, run_mode: str, cs: list[dict], plan: dict, ts: list, answ
     return {"title": "Analysis report", "company": ctx.get("company", ""), "date": time.strftime("%d %b %Y"), "mode": run_mode or derive_mode(state.get("stage_sources")),
             "goal": state.get("goal", ""), "trust": first.get("trust", ""), "ai_partly": fell_back, "headline": ans.get("sentence") or (first.get("lines") or [""])[0], "headline_more": ans.get("groups_sentence") or "",
             "tiles": [{"label": l, "value": v} for l, v in ts][:4], "cards": cards, "actions": actions, "charts": charts,
+            "scope": _scope_line(state), **{f"built_{k}": v for k, v in headline.build(state).items()}, "footnotes": _footnotes(state),
             "no_action": [r for n, r in sorted(plan["none"].items()) if num.get(n)], "behind_md": "\n".join(lines[i + 1:]).strip()}
 
 

@@ -12,7 +12,7 @@ from test_report_page_stage1 import QL, outside, ranking, state_for  # noqa: E40
 from test_report_page_stage2 import BARS, Q1, charted, fake, go  # noqa: E402
 
 from app import llm as llm_mod  # noqa: E402
-from app import mainview, reportcharts, reporter  # noqa: E402
+from app import mainview, palette, reportcharts, reporter  # noqa: E402
 from app.propose import AI_ASSISTED, MIXED, RULES_ONLY, derive_mode  # noqa: E402
 
 
@@ -143,9 +143,12 @@ def test_the_reason_is_one_short_line():
 
 # ------------------------------------------------------------------ 5. the app's look
 def test_charts_use_the_apps_font_and_readable_colours(tmp_path, monkeypatch):
-    css = (Path(__file__).resolve().parents[2] / "frontend" / "src" / "styles.css").read_text(encoding="utf8")
-    assert "--ink: #0f172a" in css and "--line: #dfe4ec" in css and "Inter" in css          # the colours the chart uses are the app's
-    assert reportcharts.plt.rcParams["font.sans-serif"][0] == "Inter"
+    # the colours and the font come from the one shared palette, generated from tokens.css
+    css = (Path(__file__).resolve().parents[2] / "frontend" / "src" / "tokens.css").read_text(encoding="utf8")
+    for name, value in (("chart-ink", reportcharts.INK), ("chart-line", reportcharts.LINE), ("chart-accent", palette.ACCENT)):
+        assert f"--{name}: {value};" in css, name
+    assert palette.FONTS[0] in css
+    assert reportcharts.plt.rcParams["font.sans-serif"][0] == palette.FONTS[0]
     spec = reportcharts.specs_for(["r1"], {}, {"r1": ranking("r1", "g", bars=BARS)}, {})[0]
     fig = drawn(spec, tmp_path, monkeypatch)
     ax = fig.axes[0]

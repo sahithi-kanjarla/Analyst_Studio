@@ -1,0 +1,18 @@
+/* One frame for every chart picture and every chart the browser draws: same border, padding and radius, a maximum height, and "Open full size". */
+.chart-frame, .tile-img { border: var(--border); border-radius: var(--radius); background: var(--card); padding: var(--sp-2); margin: 0; overflow: hidden; }
+.chart-frame { display: flex; flex-direction: column; gap: var(--sp-1); }
+.chart-frame-img { all: unset; display: block; cursor: zoom-in; border-radius: var(--radius-sm); }
+.chart-frame-img:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.chart-frame img { display: block; width: 100%; height: auto; max-height: 260px; object-fit: contain; margin: 0 auto; border: 0; border-radius: 0; }
+.chart-frame-open { align-self: flex-end; font-size: var(--fs-1); padding: 0; }
+.chart-full { display: block; width: 100%; height: auto; max-height: 78vh; object-fit: contain; margin: 0 auto; }
+/* inside a fold the picture is a small thumbnail; the popup shows it full size */
+details .chart-frame img { max-height: 120px; }
+details .chart-frame { max-width: 260px; }
+.rp-matter .chart-frame img { max-height: 220px; }
+.tile-img { padding: var(--sp-2); }
+@media print { .chart-frame { break-inside: avoid; border: 0; padding: 0; } .chart-frame img { max-height: none; } }
+.tile-compact .chart-frame { margin-top: auto; flex: 1 1 auto; justify-content: center; min-height: 190px; }
+.tile-compact .chart-frame-img { flex: 1 1 auto; display: flex; align-items: center; }
+
+.bi-chip-dot { display: inline-block; width: 9px; height: 9px; border-radius: 3px; margin-right: 6px; vertical-align: baseline; }

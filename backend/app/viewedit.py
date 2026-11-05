@@ -18,9 +18,9 @@ import re
 
 from . import understanding as und
 
-TABS = ("report", "insights", "strategy", "dashboard", "data", "model", "cleaning", "plan", "powerbi", "chat")      # every tab of the results page (frontend/src/tabs.ts)
+TABS = ("report", "insights", "strategy", "dashboard", "data", "model", "cleaning", "plan", "chat")      # every tab of the results page (frontend/src/tabs.ts)
 TAB_NAMES = {"report": "Report", "insights": "Insights", "strategy": "Ideas to try", "dashboard": "Dashboard", "data": "Your data", "model": "How files connect", "cleaning": "What we cleaned",
-             "plan": "How we analysed", "powerbi": "Power BI files", "chat": "Lens"}
+             "plan": "How we analysed", "chat": "Lens"}
 DATA_VIEWS = ("data", "model", "cleaning", "plan")          # the four views of the Data tab (the interface's five tabs: Report, Insights, Ideas to try, Dashboard, Data)
 
 
@@ -28,8 +28,6 @@ def place(tab: str) -> str:
     """Where a tab's items are on the page, in the interface's own words: the five tabs, the views of the Data tab, the Export menu and the expanded Lens."""
     if tab in DATA_VIEWS:
         return f"the {TAB_NAMES[tab]} view of the Data tab"
-    if tab == "powerbi":
-        return "the Power BI files (Export menu)"
     if tab == "chat":
         return "the expanded Lens"
     return f"the {TAB_NAMES.get(tab, tab)} tab"
@@ -37,7 +35,7 @@ def place(tab: str) -> str:
 
 DEFAULT_SHORT = ()      # every tab opens showing everything: a reader should never have to click to reach a chart or its sentence.
 # "Show less" switches a tab to the short view, and Lens can still ask for it ("short view", "top 5"), which is what SHORT_INSIGHTS
-# and MAX_SHORT_CHARTS below are for. Only supporting detail stays folded, in the one "How we got this" section of an item.
+# and MAX_SHORT_CHARTS below are for. Only supporting detail stays folded, in the one "Details, trust and next steps" section of an item.
 SHORT_INSIGHTS = 5            # the short Insights view: the top 5, ranked by the report's own order
 MAX_SHORT_CHARTS = 6          # the short Report and Dashboard: at most 6 charts, and only those an action or the summary cites
 MAX_N = 50
@@ -146,7 +144,7 @@ def catalogue(result: dict) -> dict:
     # ---- report
     if page:
         s_short, s_num = section("report", "short", "The short answer"), section("report", "numbers", "Key figures")
-        s_act, s_ev, s_beh = section("report", "actions", "What to do"), section("report", "evidence", "The evidence"), section("report", "behind", "Behind the numbers")
+        s_act, s_ev = section("report", "actions", "What to do"), section("report", "evidence", "What matters")
         items[s_short]["text"] = _plain(page.get("headline"))
         for i, t in enumerate(page.get("tiles") or []):
             add("report", s_num, "card", f"report:tile:{i}", t.get("label", "Figure"), text=f"{t.get('label')}: {t.get('value')}")
@@ -159,7 +157,6 @@ def catalogue(result: dict) -> dict:
             fids = by_chart.get(path, [])
             ch = chart_item("report", s_ev, f"report:chart:{base}", c.get("title", "Chart"), path, fids)
             items[ch]["text"] = _plain(c.get("caption"))
-        items[s_beh]["text"] = ""
     # ---- insights
     if rv:
         a_sec, e_sec = section("insights", "answer", "The answer"), section("insights", "evidence", "Evidence")
@@ -230,7 +227,7 @@ def _other_tabs(result: dict, items: dict, tabs: dict, section, add) -> None:
     if not steps:
         add("cleaning", sec, "card", "cleaning:none", "No changes were needed", text="No changes were needed to the data.")
     plan = result.get("plan") or {}
-    sq, sa, sd, ss = section("plan", "questions", "Questions we set out to answer"), section("plan", "analyses", "What we checked, and why"), section("plan", "definitions", "Definitions used"), section("plan", "setup", "How the data was set up")
+    sq, sa, sd, ss = section("plan", "questions", "Questions asked"), section("plan", "analyses", "Checks run"), section("plan", "definitions", "Definitions used"), section("plan", "setup", "How the data was set up")
     for i, q in enumerate(plan.get("questions") or []):
         add("plan", sq, "card", f"plan:question:{i}", q, text=q)
     for i, a in enumerate(plan.get("analyses") or []):
@@ -239,12 +236,6 @@ def _other_tabs(result: dict, items: dict, tabs: dict, section, add) -> None:
     for i, d in enumerate(result.get("applied_definitions") or []):
         add("plan", sd, "card", f"plan:definition:{i}", d.get("question") or f"Definition {i + 1}", text=_plain(f"{d.get('question')} {d.get('answer_label') or d.get('answer')}. {d.get('effect', '')}"))
     add("plan", ss, "card", "plan:setup", "How the data was set up", text=_plain(f"Number we focus on: {plan.get('target')}. Date used: {plan.get('date_col')}. Objective: {plan.get('objective')}"))
-    sec = section("powerbi", "pack", "Power BI pack")
-    pb = result.get("powerbi") or {}
-    add("powerbi", sec, "card", "powerbi:pack", "Power BI pack", text="Files: " + ", ".join(pb.get("files") or []))
-    for i, m in enumerate(pb.get("measures") or []):
-        iid = add("powerbi", sec, "card", f"powerbi:measure:{i}", str(m).split("=")[0].strip() or f"Measure {i + 1}", text=_plain(m))
-        tabs["powerbi"]["primary"].append(iid)
     sec = section("chat", "conversation", "Conversation")
     add("chat", sec, "card", "chat:conversation", "The conversation with Lens", text="The questions asked and the answers given in this run.")
 
@@ -298,8 +289,6 @@ def resolve(result: dict, state: dict, cat: dict | None = None) -> dict:
             folded |= {i for i in live if i not in keep}
         if short and tab == "insights":
             folded |= {i for i in mine if items[i].get("section") in ("insights:checked", "insights:appendix")}
-        if short and tab == "report":
-            folded |= {s for s in ("report:behind",) if s in items}
         folded -= hid
         out["tabs"][tab] = {"order": order, "hidden": sorted(hid), "folded": sorted(folded), "short": short, "top_n": st["top_n"].get(tab), "only_supporting": bool(st["only_supporting"].get(tab)),
                             "items": [i for i in mine if items[i]["kind"] != "section"], "sections": sections}
@@ -610,8 +599,6 @@ def item_context(result: dict, item_id: str, cat: dict | None = None) -> dict | 
         parts = [s.get("title", ""), s.get("objective", ""), s.get("rationale", ""), "Actions: " + "; ".join(s.get("actions") or []), f"Impact {s.get('impact')}, confidence {s.get('confidence')}, effort {s.get('effort')}."]
     else:
         parts = [it.get("text") or it["title"]]
-        if it["kind"] == "section" and it["tab"] == "report" and it["id"].endswith(":behind"):
-            parts = ["Behind the numbers: how the data was set up, what was cleaned and how things were calculated."]
     text = _plain(" ".join(p for p in parts if p))[:1200]
     return {"id": item_id, "title": it["title"], "kind": it["kind"], "tab": it["tab"], "text": text, "fact_ids": fids}
 

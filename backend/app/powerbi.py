@@ -11,13 +11,15 @@ from pathlib import Path
 
 import pandas as pd
 
+from . import palette
 from . import understanding as und
 from .measures import has_sum_word
 from .tools import to_binary
 
 TABLE = "Data"
-THEME = {"name": "Analyst Studio", "dataColors": ["#4F6BED", "#22A699", "#F2994A", "#E5484D", "#8E6BEE", "#3FA9F5", "#A3A847", "#C45AB3"],
-         "background": "#FFFFFF", "foreground": "#1F2937", "tableAccent": "#4F6BED"}
+# The starter pack carries the app's own theme, from the one shared palette (app/palette.py).
+THEME = {"name": "Analyst Studio", "dataColors": list(palette.CATEGORICAL),
+         "background": palette.PANEL, "foreground": palette.INK, "tableAccent": palette.ACCENT}
 
 
 def _col(c: str) -> str:

@@ -1,16 +1,14 @@
 {
-  "name": "Analyst Studio",
-  "dataColors": [
-    "#4F6BED",
-    "#22A699",
-    "#F2994A",
-    "#E5484D",
-    "#8E6BEE",
-    "#3FA9F5",
-    "#A3A847",
-    "#C45AB3"
-  ],
-  "background": "#FFFFFF",
-  "foreground": "#1F2937",
-  "tableAccent": "#4F6BED"
+ "name": "Analyst Studio",
+ "dataColors": [
+  "#15567f",
+  "#d1760c",
+  "#2e7d32",
+  "#c77aa6",
+  "#3a8cc4",
+  "#3f4652"
+ ],
+ "background": "#ffffff",
+ "foreground": "#16191d",
+ "tableAccent": "#15567f"
 }

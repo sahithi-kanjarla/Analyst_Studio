@@ -15,7 +15,9 @@ import DataViewer from "./DataViewer";
 import InsightCard from "./InsightCard";
 import Tiers from "./Tiers";
 import StrategyView from "./StrategyView";
+import HowSteps, { Icon, TechDetail, howSteps } from "./HowSteps";
 import Md from "./Md";
+import State from "./State";
 import ReportPage from "./ReportPage";
 import LensChat from "./lens/LensChat";
 import { useLens } from "./lens/LensContext";
@@ -96,7 +98,7 @@ export default function Results({ run, target }: { run: RunResult; target?: stri
     if (!t) return;
     setNav(t.nav);
     if (t.data) pickDataView(t.data);
-    if (t.exportItem === "powerbi" || t.exportItem === "print" || t.exportItem === "briefs") setDialog(t.exportItem);
+    if (t.exportItem === "print" || t.exportItem === "briefs") setDialog(t.exportItem);
     if (t.lens) { lens?.setExpanded(true); lens?.setOpen(false); }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [target]);
@@ -146,7 +148,7 @@ export default function Results({ run, target }: { run: RunResult; target?: stri
       : id === "report" && warns > 0 ? warns : undefined,
     warn: id === "report" && warns > 0,
   }));
-  const name = run.report_view?.page?.company ? `${run.report_view.page.company} report` : run.context?.company ? `${run.context.company} report` : "Your report";
+  const name = run.report_view?.page?.built_title || (run.report_view?.page?.company ? `${run.report_view.page.company} report` : run.context?.company ? `${run.context.company} report` : "Report");
 
   return (
     <>
@@ -155,12 +157,6 @@ export default function Results({ run, target }: { run: RunResult; target?: stri
       <div className={`card results ${full ? "is-full" : ""}`} ref={card}>
         {review && <AnswersReview runId={run.run_id} onClose={() => setReview(false)} onDirty={(d) => { dirty.current = d; }} />}
         {dialog === "briefs" && <BriefsDialog runId={run.run_id} onClose={() => setDialog(null)} />}
-        {dialog === "powerbi" && (
-          <Dialog title="Power BI files" intro="Everything you need to rebuild the charts in Power BI." onClose={() => setDialog(null)} wide>
-            <p><a className="btn" href={api.powerbiUrl(run.run_id)}>Download Power BI pack</a></p>
-            <TabBody run={run} tab="powerbi" />
-          </Dialog>
-        )}
         <PrintPanel run={run} dialog open={dialog === "print"} onClose={() => setDialog(null)} />
         {confirmDelete && (
           <Dialog title="Delete my run?" intro="This removes the run, the files you uploaded, the results and your saved conversation from this server, now. It cannot be undone." onClose={() => setConfirmDelete(false)}>
@@ -191,12 +187,12 @@ export default function Results({ run, target }: { run: RunResult; target?: stri
                 ))}
               </div>
             )}
-            <div className="page-tools no-print">
+            {nav !== "report" && <div className="page-tools no-print">
               <button type="button" className="btn-quiet details-toggle" aria-pressed={expanded} disabled={folds === 0 && !expanded} onClick={() => setExpanded(!expanded)}
                 title={folds === 0 && !expanded ? "Nothing is folded away on this page" : expanded ? "Fold the supporting detail away again" : "Open every folded section on this page"}>
                 {expanded ? "Collapse details" : "Expand all details"}
               </button>
-            </div>
+            </div>}
             {backend === "insights" && run.key_metrics && run.key_metrics.length > 0 && (
               <div className="kpi-strip">
                 {run.key_metrics.map((m) => (
@@ -208,7 +204,7 @@ export default function Results({ run, target }: { run: RunResult; target?: stri
               </div>
             )}
             <div ref={body} role={nav === "data" ? "tabpanel" : undefined} className="page-body">
-              <TabBody run={run} tab={backend} />
+              <TabBody run={run} tab={backend} onExport={(item) => setDialog(item)} />
             </div>
           </>
         )}
@@ -264,6 +260,18 @@ export function ReportBody({ md }: { md: string }) {
   );
 }
 
+/** A cleaning step's name as a plain verb phrase: "Convert to date" reads "Turned into dates". Names it does not know are shown as written. */
+const VERB: [RegExp, string][] = [
+  [/^standardi[sz]e missing/i, "Marked blanks and placeholders as missing"],
+  [/^convert to date/i, "Read text as dates"],
+  [/^convert to number/i, "Read text as numbers"],
+  [/^remove duplicates?/i, "Removed duplicate rows"],
+  [/^trim|whitespace/i, "Trimmed stray spaces"],
+  [/^(fill|impute)/i, "Filled gaps"],
+  [/^(drop|remove) (empty|blank)/i, "Removed empty rows"],
+];
+const plainVerb = (step: string) => VERB.find(([re]) => re.test(step))?.[1] ?? step;
+
 /** The cleaning log: every change made to the data, with the rows or values it touched. Used by the results tabs and the landing tour. */
 export function CleaningLog({ run }: { run: RunResult }) {
   const v = useView();
@@ -272,33 +280,41 @@ export function CleaningLog({ run }: { run: RunResult }) {
     <>
     <TabViewBar tab="cleaning" />
     <ViewItem id="cleaning:steps" tag="section" className="view-section">
-<table className="table">
-    <thead>
-      <tr>
-        <th>Step</th>
-        <th>What was done</th>
-        <th>Rows / values</th>
-      </tr>
-    </thead>
-    <tbody>
-      {shown.map(({ s, i }) => (
-        <tr key={i} data-view-id={`cleaning:step:${i}`}>
-          <td>{s.step}</td>
-          <td>{s.detail}</td>
-          <td>{s.count.toLocaleString()}</td>
-        </tr>
-      ))}
-      {!shown.length && (
-        <tr>
-          <td colSpan={3}>{run.cleaning_log?.length ? "Every step is hidden. Restore them from Hidden items." : "No changes were needed."}</td>
-        </tr>
+      {shown.length > 0 ? (
+        <>
+          <ul className="cl-list">
+            {shown.map(({ s, i }) => (
+              <li key={i} data-view-id={`cleaning:step:${i}`}>
+                <Icon name={s.count > 0 ? "broom" : "check"} />
+                <span className="cl-verb">{plainVerb(s.step)}</span>
+                <span className="cl-count">{s.count > 0 ? s.count.toLocaleString() : "none needed"}</span>
+              </li>
+            ))}
+          </ul>
+          <TechDetail>
+            <div className="tablewrap">
+              <table className="table">
+                <thead><tr><th>Step</th><th>What was done</th><th>Rows / values</th></tr></thead>
+                <tbody>{shown.map(({ s, i }) => <tr key={i}><td>{s.step}</td><td>{s.detail}</td><td>{s.count.toLocaleString()}</td></tr>)}</tbody>
+              </table>
+            </div>
+          </TechDetail>
+        </>
+      ) : (
+        <State kind="empty" title={run.cleaning_log?.length ? "Every step is hidden" : "Nothing needed cleaning"} compact>{run.cleaning_log?.length ? "Restore them from Hidden items." : "The data was clean as it came."}</State>
       )}
-    </tbody>
-  </table>
     </ViewItem>
     <ShowAllLink tab="cleaning" />
     </>
   );
+}
+
+/** One short line of what the AI cost this run, from the run's own usage record; nothing when no AI was used. */
+function usageLine(run: RunResult): string {
+  const u = run.ai_usage;
+  if (!u || !u.sent) return "";
+  const tok = (u.input_tokens ?? 0) + (u.output_tokens ?? 0);
+  return `AI used: ${u.sent} ${u.sent === 1 ? "call" : "calls"}${tok ? `, about ${tok.toLocaleString()} tokens` : ""}${u.cached ? `, ${u.cached} answered from saved results` : ""}.`;
 }
 
 /** The plan: the questions the analysis set out to answer, the analyses chosen and the decisions taken. */
@@ -309,17 +325,19 @@ export function PlanView({ run }: { run: RunResult }) {
 <div className="plan">
     <TabViewBar tab="plan" />
     <ViewItem id="plan:setup" tag="section" className="view-section">
-    <p>
-      <strong>Plan made by:</strong> {run.plan.source === "llm" || run.plan.source === "repaired" ? "the AI" : "our built-in rules"} · <strong>Number we focus on:</strong> {run.plan.target ?? "none"} ·{" "}
-      <strong>Date used:</strong> {run.plan.date_col ?? "none"}
-    </p>
+      <HowSteps steps={howSteps(run, run.report_view?.page?.mode ?? "")} />
+      {usageLine(run) && <p className="muted small" data-kind="usage">{usageLine(run)}</p>}
     </ViewItem>
+    <TechDetail>
+    <p>
+      <strong>Plan made by:</strong> {run.plan.source === "llm" || run.plan.source === "repaired" ? "the AI" : "our built-in rules"} · <strong>Number we focus on:</strong> {run.plan.target ?? "none"} · <strong>Date used:</strong> {run.plan.date_col ?? "none"}
+    </p>
     <ViewItem id="plan:questions" tag="section" className="view-section">
-    <h4>Questions we set out to answer</h4>
+    <h4>Questions asked</h4>
     <ul>{run.plan.questions.map((q, i) => !v?.isHidden(`plan:question:${i}`) && <li key={q} data-view-id={`plan:question:${i}`}>{q}</li>)}</ul>
     </ViewItem>
     <ViewItem id="plan:analyses" tag="section" className="view-section">
-    <h4>What we checked, and why</h4>
+    <h4>Checks run</h4>
     <p className="muted">Some checks were suggested by the AI. Others were added by code because they are always needed.</p>
     <ol>
       {run.plan.analyses.map((a, i) => !v?.isHidden(`plan:analysis:${i}`) && !v?.isFolded(`plan:analysis:${i}`) && (
@@ -334,7 +352,7 @@ export function PlanView({ run }: { run: RunResult }) {
     <ShowAllLink tab="plan" />
     {run.decisions && run.decisions.length > 0 && (
       <>
-        <h4>Choices made along the way</h4>
+        <h4>Choices made</h4>
         <ul>
           {run.decisions.map((d, i) => (
             <li key={i}>
@@ -345,19 +363,25 @@ export function PlanView({ run }: { run: RunResult }) {
         </ul>
       </>
     )}
+    {(run.plan.dropped?.length ?? 0) > 0 && (
+      <>
+        <h4>Proposed checks that were dropped</h4>
+        <ul>{run.plan.dropped!.map((d) => <li key={d.n}><strong>{d.tool.replace(/_/g, " ")}</strong> {Object.values(d.params).flat().map(String).join(", ")}: {d.reason}</li>)}</ul>
+      </>
+    )}
     {run.plan.skipped.length > 0 && (
       <>
-        <h4>What we left out</h4>
+        <h4>Columns left out</h4>
         <ul>{run.plan.skipped.map((s) => <li key={s.column}><code>{s.column}</code>: {s.reason}</li>)}</ul>
       </>
     )}
+    </TechDetail>
   </div>
   );
 }
 
 /** One tab's content. The results page and the start page tour both render it, so the tour always shows the real screen. */
-export function TabBody({ run, tab, embedded = false, startChat = false, startPrint = false }: { run: RunResult; tab: Tab; embedded?: boolean; startChat?: boolean; startPrint?: boolean }) {
-  const vw = useView();
+export function TabBody({ run, tab, embedded = false, startChat = false, startPrint = false, onExport }: { run: RunResult; tab: Tab; embedded?: boolean; startChat?: boolean; startPrint?: boolean; onExport?: (item: ExportItem) => void }) {
   const ranked = [...(run.findings ?? [])].filter((f) => f.insight).sort((a, b) => (b.insight!.score - a.insight!.score));
   return (
     <>
@@ -365,15 +389,15 @@ export function TabBody({ run, tab, embedded = false, startChat = false, startPr
 
       {tab === "chat" && <><TabViewBar tab="chat" /><ViewItem id="chat:conversation" tag="section" className="view-section"><LensChat variant="tab" /></ViewItem></>}
 
-      {tab === "data" && <><TabViewBar tab="data" />{!embedded && <ColumnMeanings run={run} />}{run.report_view?.left_out_count ? <p className="muted small left-out-note">{run.report_view.left_out_count} minor {run.report_view.left_out_count === 1 ? "finding was" : "findings were"} left out of the report views because {run.report_view.left_out_count === 1 ? "it was" : "they were"} too small or too uncertain to act on. They stay in the full results.</p> : null}<ViewItem id="data:table:clean" tag="section" className="view-section"><DataViewer runId={run.run_id} /></ViewItem></>}
+      {tab === "data" && <><TabViewBar tab="data" /><ViewItem id="data:table:clean" tag="section" className="view-section"><DataViewer runId={run.run_id} log={run.cleaning_log} after={<>{run.report_view?.left_out_count ? <p className="muted small left-out-note">{run.report_view.left_out_count} minor {run.report_view.left_out_count === 1 ? "finding was" : "findings were"} left out of the report views because {run.report_view.left_out_count === 1 ? "it was" : "they were"} too small or too uncertain to act on. They stay in the full results.</p> : null}{!embedded && <ColumnMeanings run={run} />}</>} /></ViewItem></>}
 
-      {tab === "report" && <ReportPage run={run} embedded={embedded} startChat={startChat} startPrint={startPrint} />}
+      {tab === "report" && <ReportPage run={run} embedded={embedded} startChat={startChat} startPrint={startPrint} onExport={onExport} />}
 
       {tab === "insights" && (
         <div className="insights">
           {run.context?.company && <p className="muted">Tailored for <strong>{run.context.company}</strong>{run.context.explore ? " (exploratory run: no specific question was set)" : ""}.</p>}
           {run.report_view ? <Tiers view={run.report_view} goalAnswer={run.goal_answer} understanding={run.understanding} /> : ranked.map((f, i) => <InsightCard key={f.id} f={f} index={i + 1} />)}
-          {!ranked.length && !run.report_view && <p className="empty-state">No insights came out of this data. The Data tab shows what was read and cleaned.</p>}
+          {!ranked.length && !run.report_view && <State kind="empty" title="No insights from this data">The Data tab shows what was read and cleaned. Try a file with more rows, or a clearer question.</State>}
         </div>
       )}
 
@@ -384,40 +408,12 @@ export function TabBody({ run, tab, embedded = false, startChat = false, startPr
 
       {tab === "model" && run.data_model && <><TabViewBar tab="model" /><ViewItem id="model:links" tag="section" className="view-section"><DataModel model={run.data_model} /></ViewItem></>}
       {tab === "model" && !run.data_model && (
-        <section className="empty-state" aria-label="How files connect">
-          <h3>One file, so nothing to connect</h3>
-          <p>This analysis read a single table, so there are no links between files to show. Upload several files together — orders and customers, say — and this page shows how they join up.</p>
-        </section>
+        <State kind="empty" title="One file, so nothing to connect">This analysis read a single table, so there are no links between files to show. Upload several files together, such as orders and customers, and this page shows how they join up.</State>
       )}
 
       {tab === "cleaning" && <CleaningLog run={run} />}
 
       {tab === "plan" && run.plan && <PlanView run={run} />}
-
-      {tab === "powerbi" && run.powerbi && (
-        <div className="powerbi">
-          <TabViewBar tab="powerbi" />
-          <ViewItem id="powerbi:pack" tag="section" className="view-section">
-          <p>
-            The pack contains <code>{run.powerbi.files.join("</code>, <code>")}</code>. Open <code>POWERBI_GUIDE.md</code> first: load the CSV in Power BI Desktop, paste the measures, apply the theme, then build the visuals below.
-          </p>
-          <h4>DAX measures</h4>
-          <pre>{run.powerbi.measures.filter((_, i) => !vw?.isHidden(`powerbi:measure:${i}`) && !vw?.isFolded(`powerbi:measure:${i}`)).join("\n\n")}</pre>
-          <h4>Suggested visuals</h4>
-          <table className="table">
-            <thead>
-              <tr><th>Visual</th><th>Axis</th><th>Values</th><th>Tip</th></tr>
-            </thead>
-            <tbody>
-              {run.powerbi.visuals.map((v, i) => (
-                <tr key={i}><td>{v.visual}</td><td>{v.axis}</td><td>{v.values}</td><td>{v.tip}</td></tr>
-              ))}
-            </tbody>
-          </table>
-          </ViewItem>
-          <ShowAllLink tab="powerbi" />
-        </div>
-      )}
     </>
   );
 }

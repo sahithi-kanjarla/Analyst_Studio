@@ -420,7 +420,7 @@ def clarify_node(state: RunState) -> dict:
         skip = {c for q in pq for c in (q["columns"][0], f"{q['table']}_{q['columns'][0]}")}
         with llmmod.capture() as cap:
             questions, ignored = clarify.build_questions_and_ignored(typed, typed_profile, state["goal"], ctx, bool(state.get("explore")), llm, ws, skip, dropped,
-                                                                     raw=raw, raw_profile=state["profile"], kinds=briefmod.kinds(state.get("brief")), brief=state.get("brief"), concerns_out=concerns)
+                                                                     raw=raw, raw_profile=state["profile"], kinds=briefmod.kinds(state.get("brief")), brief={**(state.get("brief") or {}), "cost_columns": sorted(undmod.cost_columns(state.get("understanding")))}, concerns_out=concerns)
         if concerns.get("cached"):
             emit(rid, "Clarifier", f"{aicache.REUSED} for the data concerns (same data, goal, description, saved answers, model and prompt).")
         res = _ai_failed({**state, "decisions": []}, {}, "clarifying questions", llm, cap, "clarifier")
@@ -506,6 +506,9 @@ def plan_node(state: RunState) -> dict:
             emit(rid, "Planner", "Applying your definitions (" + "; ".join(shown) + ").")
     if line_total and not ov.get("target"):
         ov["target"], ov["target_source"] = line_total, "the analyst brief"
+    from .retail_roles import per_unit_columns
+    per_unit = per_unit_columns(typed, {c["name"]: c for c in prof["columns"]}, ov["kinds"], state.get("brief"))
+    ov["kinds"] = {**{c: "rate" for c in per_unit if c not in new_cols}, **ov["kinds"]}      # a price or a unit cost is averaged over time and groups, never summed
     # several candidate measures are never a question: all are analysed. A ratio is only added when the LLM proposes one with a business meaning and the data passes the checks.
     removed = set(state.get("remove_derived") or [])
     # a ratio the user named as a KPI is created by code whenever the brief (or the rules) found its two columns; the LLM's own ideas only fill the remaining slots
@@ -544,14 +547,16 @@ def plan_node(state: RunState) -> dict:
                                 "why": "An id, a code, or an integer with many distinct values and no declared kind: totals and averages of it mean nothing.", "errors": []})
     with llmmod.capture() as cap_plan:
         plan, notes = planner.propose_plan(llm, typed, prof, state["goal"], ctx, explore, ov, st)
-    if llm and st["decisions"][-1]["source"] == "fallback":
-        emit(rid, "Planner", "The LLM answer was unusable after one repair, so rule-based planning was used instead.")
+    planner_failed = bool(llm and st["decisions"][-1]["source"] == "fallback")
+    if planner_failed:
+        why = "; ".join(str(e) for e in (st["decisions"][-1].get("errors") or [])[:3])
+        emit(rid, "Planner", "The LLM answer was unusable after one repair, so rule-based planning was used instead." + (f" Problems found in the plan: {why}." if why else ""))
     extra["decisions"] = st["decisions"]
     for n in notes:
         emit(rid, "Planner", n)
     emit(rid, "Planner", f"Target: {plan['target'] or 'none (descriptive analysis)'}. Using {len(plan['relevant_columns'])} of {prof['cols']} columns, {len(plan['analyses'])} analyses planned.",
          plan=plan)
-    out = {"plan": plan, "llm_mode": label if llm else "rules-only", "stage_sources": {**(state.get("stage_sources") or {}), "planner": plan["source"]}, **extra}
+    out = {"plan": plan, "llm_mode": label if llm else "rules-only", "stage_sources": {**(state.get("stage_sources") or {}), "planner": "fallback" if planner_failed else plan["source"]}, **extra}
     out = _ai_failed(state, out, "derived measures", llm, cap_derived)
     return _ai_failed(state, out, "the analysis plan", llm, cap_plan)
 

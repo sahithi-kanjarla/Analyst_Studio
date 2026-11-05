@@ -106,8 +106,16 @@ def _score_pair(tables, A, ca, ma, B, cb, mb) -> dict | None:
     a_key, b_key = ma["uniq"] / ma["n"] >= 0.98, mb["uniq"] / mb["n"] >= 0.98
     if not (a_key or b_key):
         return None  # many-to-many: no safe way to join
+    extension = False
     if a_key and b_key:
-        parent = A if len(tables[A]) <= len(tables[B]) else B
+        a_in_b = len(ma["set"] & mb["set"]) / max(len(ma["set"]), 1)
+        b_in_a = len(ma["set"] & mb["set"]) / max(len(mb["set"]), 1)
+        if a_in_b >= 0.98 and b_in_a < 0.5:       # every A value is a B value but not the reverse: A is an optional extension of B (e.g. one record for some of B's rows)
+            parent, extension = B, True
+        elif b_in_a >= 0.98 and a_in_b < 0.5:
+            parent, extension = A, True
+        else:
+            parent = A if len(tables[A]) <= len(tables[B]) else B
     else:
         parent = A if a_key else B
     if parent == A:
@@ -124,15 +132,18 @@ def _score_pair(tables, A, ca, ma, B, cb, mb) -> dict | None:
         return None
     if a_key and b_key and ns < 0.6:
         return None  # two unique columns with no name evidence are probably just row numbers
-    if ns == 0 and not (containment >= 0.98 and cm["uniq"] >= 20 and pm["uniq"] >= 20 and id_like):
-        return None  # no name evidence: demand near-perfect, high-cardinality, id-like overlap (avoids 1..9 vs 1..N flukes)
-    score = 0.45 * ns + 0.45 * row_match + 0.1 * (1 if id_like else 0)
+    coverage = len(cm["set"] & pm["set"]) / max(len(pm["set"]), 1)               # share of the parent's keys that the child actually uses
+    value_link = containment >= 0.98 and cm["uniq"] >= 20 and pm["uniq"] >= 20 and coverage >= 0.5
+    if ns == 0 and not value_link:
+        return None  # no name evidence: demand near-perfect, high-cardinality overlap that uses much of the parent (avoids 1..9 vs 1..N and age-vs-id flukes)
+    evidence = ns if ns > 0 else 0.7             # a value-only link counts as strong, though not as strong as a matching name
+    score = 0.45 * evidence + 0.45 * row_match + 0.1 * (1 if id_like or value_link else 0)
     if score < 0.55:
         return None
     return {"child_table": ct, "child_col": cc, "parent_table": pt, "parent_col": pc, "score": round(score, 3),
             "name_similarity": ns, "containment": round(containment, 4),
             "parent_coverage": round(len(cm["set"] & pm["set"]) / max(len(pm["set"]), 1), 4),
-            "cardinality": "one-to-one" if a_key and b_key else "many-to-one"}
+            "cardinality": "one-to-one" if a_key and b_key else "many-to-one", **({"extension": True} if extension else {})}
 
 
 def describe_edge(e: dict) -> str:
@@ -146,7 +157,8 @@ def choose_base(tables: dict[str, pd.DataFrame], edges: list[dict]) -> tuple[str
     The goal never selects a coarser table (that would force the fact table to be aggregated)."""
     parents: dict[str, set[str]] = {}
     for e in edges:
-        parents.setdefault(e["child_table"], set()).add(e["parent_table"])
+        if not e.get("extension"):      # an optional extension (e.g. returns of some order lines) hangs off its parent; it never makes the base finer
+            parents.setdefault(e["child_table"], set()).add(e["parent_table"])
 
     def depth(t: str, seen: frozenset = frozenset()) -> int:
         return max((1 + depth(p, seen | {t}) for p in parents.get(t, ()) if p not in seen), default=0)

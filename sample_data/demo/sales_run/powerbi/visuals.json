@@ -1,121 +1,128 @@
 [
-  {
-    "visual": "KPI cards",
-    "from": "Overview",
-    "axis": "-",
-    "values": "Row Count, main revenue measure",
-    "tip": "Place at the top of the page."
-  },
-  {
-    "visual": "Line chart",
-    "from": "revenue over time",
-    "axis": "order_date (Month)",
-    "values": "revenue",
-    "tip": "Turn on Analytics > Trend line."
-  },
-  {
-    "visual": "Line chart with legend",
-    "from": "revenue over time by Segment",
-    "axis": "order_date (Month)",
-    "values": "revenue, legend = Segment",
-    "tip": "Show only the top few groups so the lines stay readable."
-  },
-  {
-    "visual": "Histogram (column chart on binned field)",
-    "from": "Distribution of revenue",
-    "axis": "revenue (bins)",
-    "values": "Row Count",
-    "tip": "Create bins via New group > Bin."
-  },
-  {
-    "visual": "Clustered bar chart",
-    "from": "revenue by Segment",
-    "axis": "Segment",
-    "values": "Average/Rate of revenue",
-    "tip": "Sort descending; add a slicer on other categories."
-  },
-  {
-    "visual": "Clustered bar chart",
-    "from": "revenue by region",
-    "axis": "region",
-    "values": "Average/Rate of revenue",
-    "tip": "Sort descending; add a slicer on other categories."
-  },
-  {
-    "visual": "Matrix with conditional formatting",
-    "from": "revenue: Segment \u00d7 region",
-    "axis": "Rows: Segment; Columns: region",
-    "values": "Average/Rate of revenue",
-    "tip": "Format > Cell elements > Background color > Gradient, to reproduce the heatmap."
-  },
-  {
-    "visual": "Scatter chart",
-    "from": "Relationships between numeric columns",
-    "axis": "Two strongly related numeric columns",
-    "values": "-",
-    "tip": "Add a trend line from the Analytics pane."
-  },
-  {
-    "visual": "Scatter chart",
-    "from": "revenue vs discount_pct",
-    "axis": "discount_pct",
-    "values": "revenue",
-    "tip": "Add a trend line from the Analytics pane; put a categorical column in Legend to check segments."
-  },
-  {
-    "visual": "Column chart by weekday / month",
-    "from": "revenue by day of the week",
-    "axis": "order_date (Day of week or Month name)",
-    "values": "revenue",
-    "tip": "Add the date hierarchy and drill to Day or Month; add an average line from Analytics."
-  },
-  {
-    "visual": "Table",
-    "from": "revenue by Segment (table)",
-    "axis": "Segment",
-    "values": "Rows, average, total",
-    "tip": "Use conditional formatting data bars on the value columns."
-  },
-  {
-    "visual": "Table",
-    "from": "Summary of numeric columns",
-    "axis": "Numeric columns",
-    "values": "Rows, average, total",
-    "tip": "Use conditional formatting data bars on the value columns."
-  },
-  {
-    "visual": "Line chart",
-    "from": "discount_pct over time",
-    "axis": "order_date (Month)",
-    "values": "revenue",
-    "tip": "Turn on Analytics > Trend line."
-  },
-  {
-    "visual": "Clustered bar chart",
-    "from": "discount_pct by Segment",
-    "axis": "Segment",
-    "values": "Average/Rate of revenue",
-    "tip": "Sort descending; add a slicer on other categories."
-  },
-  {
-    "visual": "Table",
-    "from": "discount_pct by Segment (table)",
-    "axis": "Segment",
-    "values": "Rows, average, total",
-    "tip": "Use conditional formatting data bars on the value columns."
-  },
-  {
-    "visual": "Clustered bar chart",
-    "from": "discount_pct by region",
-    "axis": "region",
-    "values": "Average/Rate of revenue",
-    "tip": "Sort descending; add a slicer on other categories."
-  },
-  {
-    "visual": "Table",
-    "from": "revenue by region (table)",
-    "axis": "region",
-    "values": "Rows, average, total",
-    "tip": "Use conditional formatting data bars on the value columns."
-  }
+ {
+  "visual": "KPI cards",
+  "from": "Overview",
+  "axis": "-",
+  "values": "Row Count, main Product revenue measure",
+  "tip": "Place at the top of the page.",
+  "fields": [
+   "product_revenue"
+  ]
+ },
+ {
+  "visual": "Histogram (column chart on binned field)",
+  "from": "Distribution of Product revenue",
+  "axis": "Product revenue (bins)",
+  "values": "Row Count",
+  "tip": "Create bins via New group > Bin.",
+  "fields": [
+   "product_revenue"
+  ]
+ },
+ {
+  "visual": "Column chart + line (Pareto)",
+  "from": "Where Product revenue comes from (category)",
+  "axis": "category",
+  "values": "Total Product revenue + cumulative %",
+  "tip": "Use 'Show value as > Running total %' for the line.",
+  "fields": [
+   "category",
+   "product_revenue"
+  ]
+ },
+ {
+  "visual": "Line chart",
+  "from": "Product revenue over time",
+  "axis": "Order Date (Month)",
+  "values": "Product revenue",
+  "tip": "Turn on Analytics > Trend line.",
+  "fields": [
+   "order_date",
+   "product_revenue"
+  ]
+ },
+ {
+  "visual": "Clustered bar chart",
+  "from": "Unit price to unit cost ratio by category",
+  "axis": "category",
+  "values": "Average/Rate of Product revenue",
+  "tip": "Sort descending; add a slicer on other categories.",
+  "fields": [
+   "category",
+   "product_revenue",
+   "unit_price_to_unit_cost_ratio"
+  ]
+ },
+ {
+  "visual": "Line chart",
+  "from": "Unit Price over time",
+  "axis": "Order Date (Month)",
+  "values": "Product revenue",
+  "tip": "Turn on Analytics > Trend line.",
+  "fields": [
+   "unit_price",
+   "order_date",
+   "product_revenue"
+  ]
+ },
+ {
+  "visual": "Clustered bar chart",
+  "from": "Unit Price by Sales Channel",
+  "axis": "Sales Channel",
+  "values": "Average/Rate of Product revenue",
+  "tip": "Sort descending; add a slicer on other categories.",
+  "fields": [
+   "unit_price",
+   "sales_channel",
+   "product_revenue"
+  ]
+ },
+ {
+  "visual": "Clustered bar chart",
+  "from": "Unit Price by Payment Method",
+  "axis": "Payment Method",
+  "values": "Average/Rate of Product revenue",
+  "tip": "Sort descending; add a slicer on other categories.",
+  "fields": [
+   "unit_price",
+   "payment_method",
+   "product_revenue"
+  ]
+ },
+ {
+  "visual": "Clustered bar chart",
+  "from": "Unit Price by region",
+  "axis": "region",
+  "values": "Average/Rate of Product revenue",
+  "tip": "Sort descending; add a slicer on other categories.",
+  "fields": [
+   "unit_price",
+   "region",
+   "product_revenue"
+  ]
+ },
+ {
+  "visual": "Clustered bar chart",
+  "from": "Unit Price by category",
+  "axis": "category",
+  "values": "Average/Rate of Product revenue",
+  "tip": "Sort descending; add a slicer on other categories.",
+  "fields": [
+   "unit_price",
+   "category",
+   "product_revenue"
+  ]
+ },
+ {
+  "visual": "Clustered bar chart",
+  "from": "Unit Cost by category",
+  "axis": "category",
+  "values": "Average/Rate of Product revenue",
+  "tip": "Sort descending; add a slicer on other categories.",
+  "fields": [
+   "category",
+   "unit_cost",
+   "product_revenue"
+  ]
+ }
 ]

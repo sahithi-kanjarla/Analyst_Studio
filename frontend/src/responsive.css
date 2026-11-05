@@ -1,7 +1,7 @@
 /* Responsive layer: loaded last, only adds fixes for tablet and phone widths. */
 html, body { overflow-x: clip; }
 img, svg, video { max-width: 100%; }
-.tile-grid { grid-template-columns: repeat(auto-fill, minmax(min(340px, 100%), 1fr)); }
+.tile-grid { grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr)); }
 .bi-grid { grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); }
 .table, .gtable { max-width: 100%; }
 .report, .gallery, .glossary, .qform { min-width: 0; }

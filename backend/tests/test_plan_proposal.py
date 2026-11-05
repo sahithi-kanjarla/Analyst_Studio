@@ -89,13 +89,14 @@ def test_unparseable_thin_and_wrongly_typed_replies_are_rejected():
         assert st["decisions"][0]["source"] == "fallback", reply
 
 
-def test_more_analyses_than_the_cap_are_rejected():
+def test_analyses_beyond_the_cap_are_dropped_and_the_first_valid_ones_kept():
     many = [spec("group_compare", target=t, group=g) for t in ("amount", "profit", "discount_pct") for g in ("region", "category", "sub_category")] \
         + [spec(k, col=c) for k in ("distribution", "outliers") for c in ("amount", "profit", "discount_pct")]
     assert len(many) > planner.MAX_ANALYSES
-    llm = Seq(good_plan(analyses=many), good_plan())
+    llm = Seq(good_plan(analyses=many))
     plan, st = plan_with(llm)
-    assert plan["source"] == "repaired" and f"at most {planner.MAX_ANALYSES}" in llm.prompts[1]
+    assert plan["source"] == "llm" and len(llm.prompts) == 1 and sum(a["origin"] == "ai" for a in plan["analyses"]) == planner.MAX_ANALYSES
+    assert len(plan["dropped"]) == len(many) - planner.MAX_ANALYSES and all("over the limit" in d["reason"] for d in plan["dropped"])
 
 
 def test_numbers_from_the_model_are_rejected():
@@ -112,7 +113,7 @@ def test_seasonality_is_added_for_each_additive_measure_when_the_goal_asks_about
 
 
 def test_a_seasonality_the_model_chose_stays_its_own():
-    plan, _ = plan_with(Seq(good_plan(analyses=[spec("trend", target="amount", date="order_date"), spec("seasonality", target="amount", date="order_date")])))
+    plan, _ = plan_with(Seq(good_plan(analyses=[spec("trend", target="amount", date="order_date"), spec("seasonality", target="amount", date="order_date"), spec("distribution", col="amount")])))
     assert [o for t, p, o in tools(plan) if t == "seasonality" and p[0] == "amount"] == ["ai"]
 
 
@@ -161,3 +162,61 @@ def test_the_required_items_are_there_with_no_llm_and_after_a_fallback():
         if "sub_category" in groups:
             assert groups.index("category") < groups.index("sub_category")
         assert st["decisions"][0]["source"] in ("rules-only", "fallback")
+
+
+# ---- invalid analyses are dropped one by one; the plan survives while enough valid ones remain
+
+def ten_analyses(bad_first=2):
+    ok = [spec("trend", target="amount", date="order_date"), spec("group_compare", target="amount", group="region"), spec("distribution", col="amount"),
+          spec("outliers", col="amount"), spec("category_share", col="region"), spec("distribution", col="profit"), spec("group_compare", target="profit", group="region"),
+          spec("scatter", x="amount", y="profit")]
+    bad = [spec("outcome_compare", target="discount_pct", col="amount"), spec("magic_forecast")]       # a numeric column as a binary outcome; an unknown tool
+    return (bad[:bad_first] + ok)
+
+
+def test_two_bad_analyses_among_ten_keep_the_eight_valid_ones():
+    llm = Seq(good_plan(analyses=ten_analyses()))
+    plan, st = plan_with(llm, explore=True)
+    assert len(llm.prompts) == 1                                  # no repair was needed
+    ai = [a for a in plan["analyses"] if a["origin"] == "ai"]
+    assert len(ai) == 8 and plan["source"] == "llm" and len(plan["dropped"]) == 2
+    assert {d["tool"] for d in plan["dropped"]} == {"outcome_compare", "magic_forecast"}
+    assert all(d["reason"] for d in plan["dropped"]) and any("expected ['binary']" in d["reason"] for d in plan["dropped"])
+    d = st["decisions"][0]
+    assert d["source"] == "llm" and d["chosen"]["analyses dropped"] == 2 and "2 analyses dropped" in d["why"] and len(d["dropped"]) == 2
+
+
+def test_a_plan_with_nothing_valid_still_falls_back_and_says_why():
+    all_bad = good_plan(analyses=[spec("outcome_compare", target="amount", col="profit"), spec("magic_forecast"), spec("trend", target="ghost", date="order_date")])
+    plan, st = plan_with(Seq(all_bad, all_bad))
+    d = st["decisions"][0]
+    assert d["source"] == "fallback" and plan["source"] == "rules" and plan["dropped"] == []
+    assert "not usable after one repair" in d["why"] and "outcome_compare" in d["why"] + " ".join(d["errors"])
+
+
+def test_an_unparseable_plan_falls_back():
+    plan, st = plan_with(Seq("this is not json", "{broken"))
+    d = st["decisions"][0]
+    assert d["source"] == "fallback" and plan["source"] == "rules" and d["errors"]
+
+
+def test_too_few_valid_analyses_are_repaired_then_kept_if_the_repair_is_good():
+    few = good_plan(analyses=[spec("trend", target="amount", date="order_date"), spec("magic_forecast"), spec("outcome_compare", target="amount", col="profit")])
+    llm = Seq(few, good_plan())
+    plan, st = plan_with(llm)
+    assert plan["source"] == "repaired" and len(llm.prompts) == 2 and "magic_forecast" in llm.prompts[1]
+
+
+def test_the_prompt_states_limits_and_offers_only_fitting_candidates():
+    df = data()
+    llm = Seq(good_plan())
+    plan_with(llm, df=df)
+    prompt = llm.prompts[0]
+    system = planner.plan_system(8)
+    assert "outcome_compare: the target must be a binary column" in system and "2-30 distinct values" in system
+    prof = profile_df(df)
+    roles, uniq = planner.roles_and_uniques(prof)
+    c = planner.candidate_lists(roles, uniq)
+    assert all(roles[x] == "numeric" for x in c["numeric"]) and all(roles[x] == "binary" for x in c["binary"])
+    assert all(roles[x] in ("categorical", "binary") and 2 <= uniq[x] <= 30 for x in c["group"]) and all(roles[x] == "date" for x in c["date"])
+    assert "CANDIDATE COLUMNS" in prompt and "order_date" in prompt

@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { DataModel } from "../api";
+import { BAD, CAUTION, GOOD, NEUTRAL } from "../palette";
 
 const W = 230;
 const HEAD = 40;
@@ -8,8 +9,10 @@ const GAP_X = 120;
 const GAP_Y = 50;
 const MAX_COLS = 9;
 
-const STATUS_COLOR: Record<string, string> = { used: "#22A699", skipped: "#F2994A", rejected: "#E5484D", unused: "#9AA3B2" };
-const ROLE_ICON: Record<string, string> = { id: "🔑", numeric: "#", categorical: "Aa", binary: "⊙", date: "📅", text: "¶" };
+// one shared palette (src/palette.ts): a link that was used, one left out, one refused, one untouched
+const STATUS_COLOR: Record<string, string> = { used: GOOD, skipped: CAUTION, rejected: BAD, unused: NEUTRAL };
+// What kind of column this is, as a typographic mark rather than a picture
+const ROLE_ICON: Record<string, string> = { id: "⌗", numeric: "#", categorical: "Aa", binary: "⊙", date: "▦", text: "¶" };
 
 interface Box {
   name: string;

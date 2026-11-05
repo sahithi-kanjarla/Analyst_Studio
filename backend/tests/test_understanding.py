@@ -255,3 +255,15 @@ def test_a_measure_is_not_used_as_a_dashboard_grouping(tmp_path):
     relevant = ["amount", "category", "seats"]
     assert "seats" in {x["col"] for x in dash(tmp_path, df, None, relevant)["dims"]}
     assert "seats" not in {x["col"] for x in dash(tmp_path, df, record(df), relevant)["dims"]}
+
+
+def test_a_count_the_model_calls_a_flag_becomes_a_measure():
+    """The model said 'indicator, 1 or 0' for a column whose values are counts: code reads the values and drops that wording."""
+    import pandas as pd
+    from app.understanding import check_flags
+    df = pd.DataFrame({"n_things": [0, 1, 2, 3, 5] * 4, "yes_no": [0, 1] * 10})
+    cols = {c: {"role": "flag", "meaning": "Indicator if it happened (1) or not (0)", "display_name": "Thing Flag"} for c in df.columns}
+    out = check_flags(cols, df)
+    assert out["n_things"]["role"] == "measure" and out["n_things"]["measure_kind"] == "count"
+    assert "flag" not in out["n_things"]["display_name"].lower() and "indicator" not in out["n_things"]["meaning"].lower()
+    assert out["yes_no"]["role"] == "flag"          # a real two-valued column stays a flag

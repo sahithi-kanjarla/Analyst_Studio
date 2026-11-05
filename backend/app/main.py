@@ -13,7 +13,7 @@ from fastapi.responses import FileResponse, JSONResponse, Response, StreamingRes
 from fastapi.staticfiles import StaticFiles
 
 from .config import ALLOWED_EXT, FRONTEND_DIST, MAX_FILES, MAX_ROWS, MAX_UPLOAD_MB, RUNS_DIR, VERSION, public_demo, retention_days
-from . import clarify, glossary, guard, owner, tiering, viewedit, web
+from . import clarify, glossary, guard, owner, report_lead, tiering, viewedit, web
 from .profiler import count_delimited_rows, too_many_rows_message
 from . import lens
 from .lens import chat as lenschat, howtext as lenshow, reports as lensreports, store as lensstore
@@ -161,6 +161,16 @@ def list_runs(request: Request):
     return sorted(items, key=lambda x: x.get("created") or 0, reverse=True)[:20]
 
 
+def _ai_totals(run_id: str) -> dict | None:
+    """The run's AI usage totals (calls, tokens, seconds) from its own ai_usage.json, for the short usage line on the Data tab; None when the run has none."""
+    f = run_dir(run_id) / "ai_usage.json"
+    try:
+        t = json.loads(f.read_text(encoding="utf-8")).get("totals")
+    except (OSError, ValueError, AttributeError):
+        return None
+    return t if isinstance(t, dict) else None
+
+
 @app.get("/api/runs/{run_id}")
 def get_run(run_id: str):
     _check_id(run_id)
@@ -173,6 +183,7 @@ def get_run(run_id: str):
         data = json.loads(res.read_text())
         base = f"/api/runs/{run_id}/files/"
         data["report_md"] = (data.get("report_md") or "").replace("](charts/", f"]({base}charts/")
+        data["ai_usage"] = _ai_totals(run_id)
         for f in data.get("findings") or []:
             if f.get("chart"):
                 f["chart_url"] = base + f["chart"]
@@ -184,7 +195,12 @@ def get_run(run_id: str):
                 ch["url"] = base + ch["path"]
             for a in pg["actions"]:
                 a["chart_url"] = base + a["chart"] if a.get("chart") else ""
+            if "more" not in pg:          # a run saved before the Report listed its content sections: split them out of the saved text
+                from .reporter import _more_sections
+                pg["more"] = _more_sections(pg["behind_md"].splitlines())
             pg["behind_md"] = pg["behind_md"].replace("](charts/", f"]({base}charts/")
+            for sec in pg.get("more") or []:
+                sec["md"] = sec["md"].replace("](charts/", f"]({base}charts/")
         for c in view.get("evidence", []) + view.get("appendix", []):
             if c.get("chart"):
                 c["chart_url"] = base + c["chart"]
@@ -192,6 +208,7 @@ def get_run(run_id: str):
         curation = data.get("curation")
         if curation:
             tiering.apply_curation(view, curation)
+            report_lead.apply(view, data.get("findings") or [])
             for c in view.get("report_findings", []) + view.get("more_findings", []):
                 if c.get("chart") and not c.get("chart_url"):
                     c["chart_url"] = base + c["chart"]

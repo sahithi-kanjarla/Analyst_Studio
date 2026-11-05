@@ -97,7 +97,8 @@ def _already_holds(nums: dict, skip: tuple, prod: pd.Series) -> bool:
 def _ai_product(df: pd.DataFrame, nums: dict, plan: dict) -> dict | None:
     """The product the brief proposed and the code accepted (the first multiplication), with how sure the data is about it. A low-confidence proposal, or one the values
     cannot settle between a per-unit price and a line total, is asked about with no derivation as the default."""
-    props = [p for p in plan.get("accepted") or [] if p["op"] == "mul" and p["left"] in nums and p["right"] in nums]
+    costs = set(plan.get("cost_columns") or [])
+    props = [p for p in plan.get("accepted") or [] if p["op"] == "mul" and p["left"] in nums and p["right"] in nums and not ({p["left"], p["right"]} & costs)]
     if not props:
         return None
     p = props[0]
@@ -136,7 +137,8 @@ def derive_product_measure(df: pd.DataFrame, cols: dict, kinds: dict | None = No
     q = qs[0]
     if nums[q].mean() < MIN_RULE_MEAN_COUNT:
         return None
-    ps = [n for n, x in nums.items() if n != q and is_rate_like(x, min_rate) and (kinds or {}).get(n) != "additive"]
+    costs = set((brief or {}).get("cost_columns") or [])          # what the sales cost is never the price charged, whatever its size (the lowest-rate rule below would pick it)
+    ps = [n for n, x in nums.items() if n != q and n not in costs and is_rate_like(x, min_rate) and (kinds or {}).get(n) != "additive"]
     if len(ps) > 1:      # percentage-sized columns (0-100 with decimals) sit far below the real price: keep the largest typical magnitude
         top = max(float(nums[n].median()) for n in ps)
         ps = [n for n in ps if float(nums[n].median()) >= PRICE_MAGNITUDE * top]
@@ -156,6 +158,21 @@ def derive_product_measure(df: pd.DataFrame, cols: dict, kinds: dict | None = No
     if basis == "unknown":
         return None
     return {"count": q, "rate": rate, "basis": basis, "others": [n for n in ps if n != rate], "rows": int(prod.notna().sum()), **facts}
+
+
+def per_unit_columns(df: pd.DataFrame, cols: dict, kinds: dict | None = None, brief: dict | None = None) -> set[str]:
+    """Columns that are a rate PER UNIT of the one count-like column (the value does not grow when more units are on the line). Adding them up over time or over a group is
+    meaningless whatever the name says, so they are averaged. Value-based: needs one verified line-grain table with one count-like column."""
+    nums = _number_columns(df, cols, kinds, (brief or {}).get("roles"))
+    from .grain import detect
+    lines = detect(df, {n: c["role"] for n, c in cols.items()}, df.attrs.get("order_key"))
+    if lines and lines["verdict"] == "verified":
+        nums = {n: x for n, x in nums.items() if n in lines["line_columns"]}
+    qs = [n for n, x in nums.items() if is_count_like(x)]
+    if len(qs) != 1 or nums[qs[0]].mean() < MIN_RULE_MEAN_COUNT:
+        return set()
+    q = qs[0]
+    return {n for n, x in nums.items() if n != q and is_rate_like(x, MIN_LINE_RATE_DISTINCT if lines else MIN_RATE_DISTINCT) and _rate_basis(nums[q], x)[0] == "unit"}
 
 
 def product_question(sig: dict, taken: set[str]) -> dict:

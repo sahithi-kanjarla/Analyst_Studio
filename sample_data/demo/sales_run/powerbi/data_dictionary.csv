@@ -1,8 +1,25 @@
 column,detected_role,recommended_power_bi_type,missing_pct,unique_values,used_in_analysis
-order_id,id,Text (hide from report view),0.0,600,False
-Segment,categorical,Text,0.0,3,True
-region,categorical,Text,0.0,4,True
-order_date,date,Date,0.0,285,True
-revenue,numeric,Decimal number,0.0,598,True
-discount_pct,numeric,Decimal number,3.95,257,True
-notes,categorical,Text,65.62,1,False
+line_id,id,Text (hide from report view),0.0,5886,False
+order_id,id,Text (hide from report view),0.0,3300,False
+item_code,categorical,Text,0.0,70,False
+quantity,categorical,Text,0.68,3,True
+unit_price,numeric,Decimal number,0.0,208,True
+customer_ref,text,Text,0.37,1248,False
+order_date,date,Date,0.0,716,True
+sales_channel,categorical,Text,0.0,3,True
+payment_method,categorical,Text,0.85,4,True
+shipping_fee,numeric,Decimal number,34.66,3,True
+signup_date,date,Date,0.37,642,True
+region,categorical,Text,1.82,6,True
+acquisition_channel,categorical,Text,5.35,5,True
+product_name,categorical,Text,0.0,62,True
+category,categorical,Text,0.0,6,True
+unit_cost,numeric,Decimal number,4.23,66,True
+list_price,numeric,Decimal number,0.0,70,True
+returns_count,binary,Text / True-False,0.0,2,True
+returns_refund_amount_total,numeric,Decimal number,0.0,248,True
+returns_refund_amount_avg,numeric,Decimal number,91.64,247,True
+returns_days_since_return_date,numeric,Decimal number,91.64,360,True
+returns_reason_distinct,binary,Text / True-False,0.0,2,True
+product_revenue,numeric,Decimal number,0.68,606,True
+unit_price_to_unit_cost_ratio,numeric,Decimal number,4.23,201,True

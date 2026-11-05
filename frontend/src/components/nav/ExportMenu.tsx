@@ -1,21 +1,24 @@
 import { useEffect, useState } from "react";
+import State from "../State";
 import { api, Brief, RunResult } from "../../api";
 import Dialog from "../Dialog";
 import { BriefView } from "../lens/LensAnswer";
 import { useLens } from "../lens/LensContext";
 import Menu from "./Menu";
 
-export type ExportItem = "briefs" | "powerbi" | "print";
+export type ExportItem = "briefs" | "print";
 
-/** Everything that leaves the app, in one menu next to the report name: the PDF, the briefs, the Power BI files and printing. */
+/** Everything that leaves the app, in one menu next to the report name: the PDF, the report text, the cleaned data, the Power BI pack, the briefs and printing. Each of the first four is one click and a download. */
 export default function ExportMenu({ run, onPick }: { run: RunResult; onPick: (item: ExportItem) => void }) {
   return (
     <Menu label="Export" className="export-menu">
       {(close) => (
         <>
           <a role="menuitem" className="menu-item" href={`/api/runs/${run.run_id}/export/report`} download onClick={close}>Download PDF</a>
+          <a role="menuitem" className="menu-item" href={api.reportMdUrl(run.run_id)} download="report.md" onClick={close}>Download report.md</a>
+          <a role="menuitem" className="menu-item" href={api.cleanedCsvUrl(run.run_id)} download="cleaned.csv" onClick={close}>Download cleaned data</a>
+          <a role="menuitem" className="menu-item" href={api.powerbiUrl(run.run_id)} download onClick={close}>Download Power BI pack</a>
           <button role="menuitem" type="button" className="menu-item" onClick={() => { close(); onPick("briefs"); }}>Briefs</button>
-          <button role="menuitem" type="button" className="menu-item" onClick={() => { close(); onPick("powerbi"); }}>Power BI files</button>
           <button role="menuitem" type="button" className="menu-item" onClick={() => { close(); onPick("print"); }}>Print</button>
         </>
       )}
@@ -31,8 +34,8 @@ export function BriefsDialog({ runId, onClose }: { runId: string; onClose: () =>
   useEffect(() => { api.briefsList(runId).then((r) => setBriefs(r.briefs)).catch(() => setError("The briefs could not be loaded.")); }, [runId]);
   return (
     <Dialog title="Briefs" intro="Short documents for one reader, written from this report. Download any of them as a PDF." onClose={onClose} wide>
-      {error && <div className="error">{error}</div>}
-      {!briefs && !error && <p className="muted"><span className="spinner" /> Loading briefs…</p>}
+      {error && <State kind="error" title="Could not load the briefs" compact>Close this and open it again.</State>}
+      {!briefs && !error && <State kind="loading" title="Loading briefs" compact />}
       {briefs && briefs.length === 0 && (
         <p className="muted">
           There are no saved briefs yet. Ask Lens for one, for example “write a brief for the board”.{" "}

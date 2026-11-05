@@ -5,7 +5,6 @@
 .runbar-slot { position: sticky; top: 0; z-index: 40; margin: 0 calc(-1 * var(--gutter, 20px)) 12px; padding: 0 var(--gutter, 20px); background: var(--bg); border-bottom: 1px solid var(--line); }
 .runbar { display: flex; align-items: center; gap: 12px; height: 48px; min-width: 0; }
 .runbar-brand { display: inline-flex; align-items: center; gap: 8px; flex: none; text-decoration: none; color: var(--ink); font-weight: 650; font-size: 15px; }
-.runbar-brand .logo-mark { width: 28px; height: 28px; border-radius: 8px; }
 .runbar-name { flex: 0 1 190px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); font-size: 14px; padding-left: 12px; border-left: 1px solid var(--line); }
 .runbar-tabs { display: flex; align-items: stretch; gap: 2px; height: 100%; flex: 1 1 auto; min-width: 0; margin: 0; padding: 0; border: 0; justify-content: center; }
 .runbar-tabs { overflow-x: auto; scrollbar-width: none; }

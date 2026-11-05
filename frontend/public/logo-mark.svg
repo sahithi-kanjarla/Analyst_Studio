@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="Analyst Studio">
+  <title>Analyst Studio</title>
+  <rect width="32" height="32" rx="7.5" fill="#15567f"/>
+  <g fill="#ffffff">
+    <rect x="7.2" y="8" width="4.4" height="7.3" rx="1.3" opacity=".42"/>
+    <rect x="7.2" y="16.7" width="4.4" height="7.3" rx="1.3" opacity=".42"/>
+    <rect x="13.8" y="8" width="4.4" height="16" rx="1.6"/>
+    <rect x="20.4" y="8" width="4.4" height="7.3" rx="1.3" opacity=".42"/>
+    <rect x="20.4" y="16.7" width="4.4" height="7.3" rx="1.3" opacity=".42"/>
+  </g>
+</svg>

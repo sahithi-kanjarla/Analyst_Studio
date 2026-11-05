@@ -1,5 +1,5 @@
 /** The app's real tabs, with plain names (two or three words that say what the tab does). Shared by the results page and the start page tour. */
-export type Tab = "dashboard" | "report" | "insights" | "strategy" | "data" | "model" | "cleaning" | "plan" | "powerbi" | "chat";
+export type Tab = "dashboard" | "report" | "insights" | "strategy" | "data" | "model" | "cleaning" | "plan" | "chat";
 export const TAB_LABEL: Record<Tab, string> = {
   report: "Report",
   dashboard: "Dashboard",
@@ -9,7 +9,6 @@ export const TAB_LABEL: Record<Tab, string> = {
   model: "How files connect",
   cleaning: "What we cleaned",
   plan: "How we analysed",
-  powerbi: "Power BI files",
   chat: "Lens",
 };
 export const TAB_LINE: Record<Tab, string> = {
@@ -21,7 +20,6 @@ export const TAB_LINE: Record<Tab, string> = {
   model: "How your files were linked together, and how well they matched. A view in the Data tab.",
   cleaning: "Every change made to your data, with the rows it touched. A view in the Data tab.",
   plan: "The questions we set out to answer, and the checks we ran. A view in the Data tab.",
-  powerbi: "Everything you need to rebuild the charts in Power BI. Open it from the Export menu.",
   chat: "Ask Lens anything about your data. Expand opens the conversation full width.",
 };
 
@@ -33,8 +31,8 @@ export type DataView = "data" | "model" | "cleaning" | "plan";
 export const DATA_VIEWS: DataView[] = ["data", "model", "cleaning", "plan"];
 export const DATA_LABEL: Record<DataView, string> = { data: "Your data", model: "How files connect", cleaning: "What we cleaned", plan: "How we analysed" };
 
-/** Where an old tab name now lives: a tab, a Data sub-view, the Export menu (Power BI, Print) or the expanded Lens (Chat). Old links and old saved names use the names the app had before. */
-export type Target = { nav: NavTab; data?: DataView; exportItem?: "powerbi" | "print" | "briefs" | "pdf"; lens?: boolean };
+/** Where an old tab name now lives: a tab, a Data sub-view, the Export menu (Print) or the report (the old Power BI tab) or the expanded Lens (Chat). Old links and old saved names use the names the app had before. */
+export type Target = { nav: NavTab; data?: DataView; exportItem?: "print" | "briefs" | "pdf"; lens?: boolean };
 export function resolveTarget(name: string | null | undefined): Target | null {
   const k = String(name ?? "").toLowerCase().replace(/[^a-z]/g, "");
   const map: Record<string, Target> = {
@@ -43,7 +41,7 @@ export function resolveTarget(name: string | null | undefined): Target | null {
     model: { nav: "data", data: "model" }, howfilesconnect: { nav: "data", data: "model" }, files: { nav: "data", data: "model" },
     cleaning: { nav: "data", data: "cleaning" }, whatwecleaned: { nav: "data", data: "cleaning" }, cleaned: { nav: "data", data: "cleaning" },
     plan: { nav: "data", data: "plan" }, howweanalysed: { nav: "data", data: "plan" }, analysis: { nav: "data", data: "plan" },
-    powerbi: { nav: "report", exportItem: "powerbi" }, powerbiexport: { nav: "report", exportItem: "powerbi" },
+    powerbi: { nav: "report" }, powerbiexport: { nav: "report" },
     print: { nav: "report", exportItem: "print" }, pdf: { nav: "report", exportItem: "pdf" }, briefs: { nav: "report", exportItem: "briefs" },
     chat: { nav: "report", lens: true },
   };

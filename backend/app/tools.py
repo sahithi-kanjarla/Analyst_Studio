@@ -12,6 +12,7 @@ import threading
 from pathlib import Path
 
 import matplotlib
+import matplotlib.colors  # noqa: F401
 import matplotlib.ticker  # noqa: F401
 
 matplotlib.use("Agg")
@@ -20,10 +21,11 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
-from . import derived, wording
+from . import derived, palette, wording
 from . import derived_cols as dcols
 from . import partial as partmod
 from .measures import measure_kind
+from . import chartfinish
 from .config import CHART_DPI
 from .profiler import safe_skew
 
@@ -49,17 +51,14 @@ def rendering(fn):
                     plt.close("all")
     return wrapper
 
-# The first colour is the app accent (the highlight); other bars are a neutral warm grey, so the highlight is the one colour that stands out.
-PALETTE = ["#A4461F", "#6B675E", "#9A9486", "#8D887C", "#B8B1A3", "#7A4C0C", "#2D6A3E", "#D4CEC2"]
-NEUTRAL = "#CFC7B9"      # every bar that is not the highlight
-plt.rcParams.update({
-    "axes.spines.top": False, "axes.spines.right": False, "axes.grid": True, "axes.grid.axis": "y", "grid.alpha": 0.25,
-    "font.size": 10, "axes.titlesize": 12, "axes.titleweight": "bold", "axes.titlelocation": "left", "figure.dpi": 100,
-    "axes.prop_cycle": matplotlib.cycler(color=PALETTE),
-    # fallbacks so non-English column names (Hindi, Tamil, Chinese, Arabic...) render wherever the system has such a font
-    "font.family": "sans-serif",
-    "font.sans-serif": ["Inter", "DejaVu Sans", "Noto Sans", "Noto Sans Devanagari", "Nirmala UI", "Segoe UI", "Arial Unicode MS", "Noto Sans CJK SC", "Arial"],
-})
+# Every colour comes from app.palette, which is generated from the chart-tokens block of
+# frontend/src/tokens.css, so a picture and the page around it can never disagree.
+# The first colour is the app accent (the highlight); every other mark is a quiet neutral.
+PALETTE = palette.PALETTE
+NEUTRAL = palette.NEUTRAL      # every bar that is not the highlight
+plt.rcParams.update({**palette.rc(), **chartfinish.RC, "axes.prop_cycle": matplotlib.cycler(color=PALETTE)})
+# a sequential ramp from the panel to the accent, for the one chart that shades cells by size
+HEAT = matplotlib.colors.LinearSegmentedColormap.from_list("studio", [palette.PANEL, palette.ACCENT])
 
 
 def additive(name: str, ctx: dict | None = None) -> bool:
@@ -151,7 +150,7 @@ def _slug(*parts) -> str:
     return re.sub(r"[^a-zA-Z0-9]+", "_", "_".join(str(p) for p in parts)).strip("_").lower()[:70]
 
 
-def _save(fig, ctx, name: str) -> str:
+def _save(fig, ctx, name: str, compact: bool = False) -> str:
     charts = Path(ctx["charts_dir"])
     charts.mkdir(parents=True, exist_ok=True)
     names = ctx.get("display_names")
@@ -160,6 +159,7 @@ def _save(fig, ctx, name: str) -> str:
         for t in fig.findobj(matplotlib.text.Text):          # titles, axis labels, legends and notes show the display names, never the internal ones
             if t.get_text():
                 t.set_text(apply_names(t.get_text(), names))
+    chartfinish.finish(fig, chartfinish.COMPACT_HEIGHT if compact else chartfinish.MAX_HEIGHT)
     fig.savefig(charts / f"{name}.png", dpi=CHART_DPI, bbox_inches="tight", facecolor="white")
     plt.close(fig)
     return f"charts/{name}.png"
@@ -223,7 +223,7 @@ TABLE_ROWS = 10     # table rows shown before "Show all"
 MONTH_CYCLE_MIN_DAYS = 700   # under two years of dates a month-of-year pattern cannot be told apart from a trend
 TABLE_CAP = 500     # most rows a table finding carries
 LONG_LABEL = 12     # labels longer than this switch ranking bars to horizontal
-OTHER_COLOR = "#D4CEC2"
+OTHER_COLOR = palette.NEUTRAL_SOFT      # the pooled 'Other' bar: quieter still than a plain neutral
 
 
 def pick_shown(order: list, must: list, n: int) -> list:
@@ -280,13 +280,15 @@ def _hbars(labels, values, texts, colors, xlabel="", note="", err=None, percent=
     y = np.arange(k)
     ev = [0.0 if e is None or not np.isfinite(e) else float(e) for e in (err if err is not None else [0.0] * k)]
     ax.barh(y, values, color=colors, height=0.68, xerr=ev if any(ev) else None, error_kw=dict(alpha=0.5, capsize=2))
-    ax.set_yticks(y, [_shorten(l) for l in labels])
+    import textwrap
+    ax.set_yticks(y, [textwrap.fill(_shorten(l, 32), 16) for l in labels] if k <= 6 else [_shorten(l, 18) for l in labels])      # a row has room for two lines only when there are few rows
     ax.invert_yaxis()
     hi, lo = max(max(v + e for v, e in zip(values, ev)), 0.0), min(min(values), 0.0)
     span = (hi - lo) or 1.0
     for yi, v, e, t in zip(y, values, ev, texts):
-        ax.text(max(v + e, 0.0) + 0.012 * span, yi, t, va="center", ha="left", fontsize=8)
-    ax.set_xlim(lo - (0.03 * span if lo < 0 else 0), hi + 0.5 * span)
+        if t:
+            ax.text(max(v + e, 0.0) + 0.012 * span, yi, t, va="center", ha="left", fontsize=8)
+    ax.set_xlim(lo - (0.03 * span if lo < 0 else 0), hi + (0.5 if any(texts) else 0.05) * span)
     ax.grid(axis="y", visible=False)
     ax.grid(axis="x", alpha=0.25)
     if percent:
@@ -303,12 +305,18 @@ def _vbars(labels, values, texts, colors, xlabel="", ylabel="", note="", err=Non
     fig, ax = plt.subplots(figsize=(max(5.2, 1.15 * k + 2.4), 3.9))
     ev = [0.0 if e is None or not np.isfinite(e) else float(e) for e in (err if err is not None else [0.0] * k)]
     ax.bar(range(k), values, color=colors, width=0.62, yerr=ev if any(ev) else None, capsize=3, error_kw=dict(alpha=0.5))
-    ax.set_xticks(range(k), [textwrap.fill(str(l), 12) for l in labels])
+    per_line = max(6, int(46 / (k + 1)))                      # characters that fit one line under a bar at the card width
+    crowded = any(len(w) > per_line for l in labels for w in str(l).split())
+    if crowded:
+        ax.set_xticks(range(k), [_shorten(l, 18) for l in labels], rotation=30, ha="right")
+    else:
+        ax.set_xticks(range(k), [textwrap.fill(str(l), per_line) for l in labels])
     hi = max(max(v + e for v, e in zip(values, ev)), 0.0)
     lo = min(min(values), 0.0)
     span = (hi - lo) or 1.0
     for i, (v, e, t) in enumerate(zip(values, ev, texts)):
-        ax.text(i, max(v + e, 0.0) + 0.02 * span, t, ha="center", va="bottom", fontsize=8)
+        if t:
+            ax.text(i, max(v + e, 0.0) + 0.02 * span, t, ha="center", va="bottom", fontsize=8)
     ax.set_ylim(lo - (0.03 * span if lo < 0 else 0), hi + 0.3 * span)
     ax.grid(axis="x", visible=False)
     if percent:
@@ -318,10 +326,13 @@ def _vbars(labels, values, texts, colors, xlabel="", ylabel="", note="", err=Non
     return fig, ax
 
 
+MAX_LABELLED_BARS = 8
+
+
 def ranked_bars(labels, values, ns, fmt, other_at=None, xlabel="", ylabel="", note="", err=None, percent=False):
     """Pick the layout from the data: horizontal when there are more than 6 bars or long labels. The best bar is dark, others light, 'Other' grey."""
-    texts = [f"{fmt(v)}  (n={int(n):,})" for v, n in zip(values, ns)]
-    colors = [PALETTE[0] if i == 0 else "#CFC7B9" for i in range(len(labels))]
+    texts = [fmt(v) for v in values] if len(labels) <= MAX_LABELLED_BARS else [""] * len(labels)          # the number of rows (n) is for the popup and the table, not the picture; many bars: the axis only
+    colors = list(palette.category_colours(range(len(labels))).values())          # each bar its own colour from the shared palette, in rank order; past six, the quiet neutral
     if other_at is not None:
         colors[other_at] = OTHER_COLOR
     if len(labels) > 6 or max((len(str(l)) for l in labels), default=0) > LONG_LABEL:
@@ -355,7 +366,7 @@ def distribution(df, ctx, col):
     ax.axvline(x.mean(), color=PALETTE[1], ls=":", lw=1.8, label=f"mean {_cur(col, ctx)}{_fmt(x.mean())}")
     if clipped:
         ax.set_xlim(float(shown.min()), q99)
-    _title(ax, f"{col}: half of all rows fall between {_cur(col, ctx)}{_fmt(q1)} and {_cur(col, ctx)}{_fmt(q3)}")
+    _title(ax, f"Distribution of {col}")
     note = ("log scale: a few very large values would otherwise hide the rest" if log_axis
             else f"{beyond:,} value{'s' if beyond != 1 else ''} above {_cur(col, ctx)}{_fmt(q99)} (the 99th percentile) not shown; all values are in the statistics" if clipped else "")
     ax.set(xlabel=col + (f"\n{note}" if note else ""), ylabel="Count")
@@ -388,11 +399,11 @@ def outliers(df, ctx, col):
     except TypeError:
         ax.boxplot(x, vert=False, **kw)
     ax.set(xlabel=col, yticks=[])
-    _title(ax, f"{col}: {n_out} of {len(x)} values sit outside the usual range")
+    _title(ax, f"Outliers in {col}")
     pct = n_out / len(x)
     text = f"**{col}**: {n_out} of {len(x)} values ({pct:.1%}) fall outside the usual range ({_fmt(lo)} to {_fmt(hi)})."
     action = f"Check whether the extreme values of {col} are errors or genuinely important cases before drawing conclusions." if pct > 0.05 else None
-    return finding("outliers", f"Outliers in {col}", text, {"n": int(len(x)), "outliers": n_out, "outlier_pct": _f(pct)},
+    return finding("outliers", f"Outliers in {col}", text, {"n": int(len(x)), "outliers": n_out, "outlier_pct": _f(pct), "lower_fence": _f(lo), "upper_fence": _f(hi)},       # the two limits the caption quotes
                    _save(fig, ctx, _slug("out", col)), action=action)
 
 
@@ -411,7 +422,7 @@ def category_share(df, ctx, col):
         values.append(int(rest.sum()))
     fig, ax = _hbars(labels, values, [f"{v:,} ({v / rows:.0%})" for v in values], [PALETTE[1]] * len(top) + ([OTHER_COLOR] if len(rest) else []),
                      "Rows", trim_note(len(top), total_groups, "values"))
-    _title(ax, f"{col}: which values appear most often" + (f" (top {len(top)} of {total_groups})" if len(rest) else ""))
+    _title(ax, f"Composition of {col}" + (f" (top {len(top)} of {total_groups})" if len(rest) else ""))
     share = top.iloc[0] / rows
     text = (f"**{col}** has {total_groups} distinct values; the most common is '{top.index[0]}' ({share:.0%} of records)."
             + (f" The chart shows the top {len(top)} and pools the other {len(rest)} as Other." if len(rest) else ""))
@@ -523,7 +534,7 @@ def group_compare(df, ctx, target, group, within=None, within_value=None):
         headline = f"{top} averages {ratio:.1f}× the {target} of {bot}"
     else:
         headline = f"Average {target} by {group}"
-    _title(ax, headline + ("" if p < 0.05 else " (difference not significant)"))
+    _title(ax, f"{target} by {group}{scope}")
     if note:
         text += f" The chart shows the top {len(shown)} of {n_groups} groups" + (f" and pools the other {len(rest)} as Other" if rest else "") + "; the statistics use all groups."
     # Statistical significance is not practical significance: only recommend action on a medium-or-larger effect.
@@ -555,7 +566,7 @@ def outcome_compare(df, ctx, target, col):
     ax.boxplot([a, b], showfliers=False, patch_artist=True, boxprops=dict(facecolor=PALETTE[0], alpha=0.35),
                medianprops=dict(color=PALETTE[3]), **names)
     ax.set(ylabel=col)
-    _title(ax, f"{col} when {target} = {pos} vs all other rows")
+    _title(ax, f"{col} vs {target}")
     direction = "higher" if r > 0 else "lower"
     text = (f"Rows with **{target} = {pos}** have a {direction} median **{col}** ({_fmt(a.median())} vs {_fmt(b.median())}). "
             f"The difference is {'statistically significant' if p < 0.05 else 'not statistically significant'} (Mann-Whitney p{_pf(p)}, rank-biserial effect={abs(r):.2f}, "
@@ -598,7 +609,7 @@ def robust_compare(df, ctx, target, group):
     ax.grid(axis="y", visible=False)
     note = trim_note(len(shown), len(order), "groups")
     ax.set_xlabel(target + (f"\n{note}" if note else ""), fontsize=9)
-    _title(ax, f"Median {target} across {group} (outlier-resistant check)")
+    _title(ax, f"Median {target} by {group}")
     text = (f"Robustness check for **{target}** by **{group}** using medians: highest median in **{med.index[0]}** ({_fmt(med['median'].iloc[0])}), "
             f"lowest in **{med.index[-1]}** ({_fmt(med['median'].iloc[-1])}). Kruskal-Wallis p{_pf(p)} - "
             f"{'the group difference holds up without relying on means' if p < 0.05 else 'the difference does NOT hold up with a rank-based test'}.")
@@ -624,14 +635,14 @@ def pareto(df, ctx, target, group):
     rest = g.iloc[n_shown:]
     labels, values = [str(i) for i in g.index[:n_shown]], [float(v) for v in g.values[:n_shown]]
     texts = [f"{share.iloc[i]:.0%}  (cum. {cum.iloc[i]:.0%})" for i in range(n_shown)]
-    colors = [PALETTE[1] if i < k else "#BFE3DE" for i in range(n_shown)]
+    colors = list(palette.category_colours(range(n_shown)).values())       # the shared palette in rank order; the value labels carry the point
     if len(rest):
         labels.append(other_label(len(rest)))
         values.append(float(rest.sum()))
         texts.append(f"{rest.sum() / g.sum():.0%}  (cum. 100%)")
         colors.append(OTHER_COLOR)
     fig, ax = _hbars(labels, values, texts, colors, f"Total {_cur(target, ctx)}{target}".strip(), trim_note(n_shown, len(g), "groups"))
-    _title(ax, f"The top {k} {group} values drive {top_share:.0%} of total {target}")
+    _title(ax, f"Where {target} comes from ({group})")
     text = f"The top {k} values of **{group}** account for **{top_share:.0%}** of total {target} (leader: {g.index[0]}, {share.iloc[0]:.0%})."
     action = (f"{target} is concentrated in a few {group} values ({top_share:.0%} from the top {k}); protect them and look for growth in the long tail."
               if top_share > 0.5 and len(g) >= 5 else None)
@@ -701,7 +712,7 @@ def trend(df, ctx, target, date):
     steep_fall = lr.slope < 0 and wording.steep({"relative_change": change, "end": fit_end})       # a fall of 100% or more of the level, or to below zero: no percentage
     size = f"falling steeply, from {_fmt(series.iloc[0])} to {_fmt(series.iloc[-1])}" if steep_fall else f"{change:+.0%}"
     over = f"over the complete {unit}s" if pinfo else "over the period"
-    _title(ax, f"{target} is trending {'up' if lr.slope > 0 else 'down'} ({size} {over})" if sig else f"No clear trend in {target} {over if pinfo else 'over time'} (p={lr.pvalue:.2f})")
+    _title(ax, f"{target} over time")
     gaps = full.index[full.isna()]
     no_data = f" No data in {len(gaps)} {unit}{'s' if len(gaps) != 1 else ''} (for example {gaps[0].date()}); these are left out of the best and weakest {unit}." if len(gaps) else ""
     text = (f"**{target}** ({agg} per {unit}) shows a {'statistically significant ' if sig else 'weak, non-significant '}{direction} trend "
@@ -721,7 +732,8 @@ def trend(df, ctx, target, date):
     action = (f"{target} is trending {direction} over time; find out what changed around the weakest {unit} ({series.idxmin().date()})." if sig else None)
     return finding("trend", f"{target} over time", text,
                    {"p": _f(lr.pvalue), "slope": _f(lr.slope), "relative_change": _f(change), "periods": int(len(series)), "empty_periods": int(len(gaps)), "freq": rule, "agg": agg, "n": int(len(d)),
-                    "first": _f(series.iloc[0]), "last": _f(series.iloc[-1]), "fit_end": _f(fit_end), **extra},
+                    "first": _f(series.iloc[0]), "last": _f(series.iloc[-1]), "fit_end": _f(fit_end),
+                    **({} if steep_fall else {"change_shown_pct": int(size.rstrip("%"))}), **extra},       # the whole-number percentage the caption says ("about -3%")
                    _save(fig, ctx, _slug("trend", target, date)), significant=bool(sig), action=action) | {
         "series": [[str(i.date()), _f(v)] for i, v in series.items()],           # the period totals (or averages), for the report card; kept out of `stats`, which the AI number check reads. The incomplete last period is not in it.
         "date_coverage": _f(float(pd.to_datetime(df[date], errors="coerce").notna().mean()))}
@@ -745,7 +757,7 @@ def correlation(df, ctx, cols=None):
             ax.text(j, i, f"{corr.values[i, j]:.2f}", ha="center", va="center", fontsize=8,
                     color="white" if abs(corr.values[i, j]) > 0.6 else "black")
     fig.colorbar(im, ax=ax, fraction=0.046)
-    _title(ax, "Which numeric columns move together (closer to +1 or -1 = stronger link)")
+    _title(ax, "Relationships between numeric columns")
     pairs = corr.where(np.triu(np.ones(corr.shape), 1).astype(bool)).stack()
     linked = dcols.related_pairs(df)
     left_out = [k for k in pairs.index if frozenset(k) in linked]          # a column calculated from others "moves together" with them by construction: not a finding
@@ -802,7 +814,7 @@ def heatmap(df, ctx, target, group_a, group_b):
     note = (f"showing the {len(rs)} biggest of {len(rows_by_size)} {group_a} values and {len(cs)} of {len(cols_by_size)} {group_b} values; best and weakest cells use all data"
             if trimmed else "")
     fig, ax = plt.subplots(figsize=(max(5.6, 1.05 * shown.shape[1] + 3.2), max(3.4, 0.6 * shown.shape[0] + 2.2)))
-    cmap = matplotlib.colormaps["Blues"].with_extremes(bad="#EEF0F4")
+    cmap = HEAT.with_extremes(bad=palette.NEUTRAL_SOFT)
     ax.imshow(np.ma.masked_invalid(shown.values.astype(float)), cmap=cmap, aspect="auto")
     ax.set_xticks(range(shown.shape[1]), [_shorten(c, 16) for c in shown.columns], rotation=30 if shown.shape[1] > 4 else 0, ha="right" if shown.shape[1] > 4 else "center")
     ax.set_yticks(range(shown.shape[0]), [_shorten(r, 20) for r in shown.index])
@@ -813,11 +825,11 @@ def heatmap(df, ctx, target, group_a, group_b):
         for j in range(shown.shape[1]):
             v = shown.values[i, j]
             if pd.isna(v):
-                ax.text(j, i, "n<10", ha="center", va="center", fontsize=7, color="#9AA3B2")
+                ax.text(j, i, "n<10", ha="center", va="center", fontsize=7, color=palette.MUTED)
             else:
                 ax.text(j, i, f"{fmt(v)}\nn={int(cnt.values[i, j])}", ha="center", va="center", fontsize=8,
-                        color="white" if (v - lo) / span > 0.6 else "#1F2937")
-    _title(ax, f"Best: {a_hi} × {b_hi} ({fmt(hi)}). Weakest: {a_lo} × {b_lo} ({fmt(lo)})")
+                        color="white" if (v - lo) / span > 0.55 else palette.INK)
+    _title(ax, f"{target} by {group_a} and {group_b}")
     gap = f", a {hi / lo:.1f}× gap" if kind != "binary" and lo > 0 else ""
     text = (f"Across **{group_a}** and **{group_b}**, {'the rate of ' + str(pos) + ' for ' if kind == 'binary' else ''}**{target}** is highest for **{a_hi} × {b_hi}** ({fmt(hi)}{_loss_note(hi, target, pct)}) "
             f"and lowest for **{a_lo} × {b_lo}** ({fmt(lo)}{_loss_note(lo, target, pct)}){gap}. Only combinations with at least 10 rows are shown; these cell-level gaps are not individually "
@@ -893,7 +905,7 @@ def segment_trend(df, ctx, target, date, group):
         ax.set_xlabel(note, fontsize=9)
     st_view = {"groups": res, "fastest": str(fast), "slowest": str(slow), "survives_correction": survives}
     headline = wording.trend_headline(st_view, group, target, _fmt)
-    _title(ax, headline)
+    _title(ax, f"{target} over time by {group}")
     ranked = sorted(res, key=lambda g: -res[g]["relative_change"])
     listed = ranked if k <= 8 else [g for g in ranked if g in (fast, slow)] + [g for g in sig_groups if g not in (fast, slow)][:4]
     desc = "; ".join(f"**{g}** {wording.change_phrase(res[g], _fmt)} ({'significant' if res[g]['p_adjusted'] < 0.05 else 'not significant'})" for g in listed)
@@ -943,8 +955,7 @@ def scatter(df, ctx, x, y):
     sig = bool(p < 0.05)
     word = "positive" if rho > 0 else "negative"
     strength = "strong" if abs(rho) >= 0.6 else "moderate" if abs(rho) >= 0.3 else "weak"
-    _title(ax, f"{y} rises with {x} (rho={rho:+.2f})" if sig and rho > 0 and abs(rho) >= 0.3 else f"{y} falls as {x} rises (rho={rho:+.2f})" if sig and rho < 0 and abs(rho) >= 0.3
-           else f"{x} and {y} are only weakly related (rho={rho:+.2f})")
+    _title(ax, f"{y} vs {x}")
     text = (f"**{x}** and **{y}** have a {strength} {word} relationship (Spearman rho={rho:+.2f}, p{_pf(p)}, n={len(d):,}). "
             f"{'It is statistically significant' if sig else 'It is not statistically significant'}; a straight-line fit suggests {y} changes by about {_fmt(lr.slope)} for each unit of {x}. "
             f"This shows association, not cause and effect.")
@@ -986,22 +997,25 @@ def composition(df, ctx, group, by):
     ys = [_shorten(i, 24) for i in shown_share.index]
     for i, col in enumerate(shown_share.columns):
         other = str(col).startswith("Other (")
-        ax.barh(ys, shown_share[col].values, left=left, color=OTHER_COLOR if other else PALETTE[i % len(PALETTE)], label=_shorten(col, 22), edgecolor="white", linewidth=0.6)
+        seg = OTHER_COLOR if other else PALETTE[i % len(PALETTE)]
+        ax.barh(ys, shown_share[col].values, left=left, color=seg, label=_shorten(col, 22), edgecolor="white", linewidth=0.6)
+        r, g, b = matplotlib.colors.to_rgb(seg)
+        label_color = palette.INK if (0.299 * r + 0.587 * g + 0.114 * b) > 0.6 else "white"          # dark text on a light segment, white on a dark one
         for j, val in enumerate(shown_share[col].values):
-            if val >= 0.08:
-                ax.text(left[j] + val / 2, j, f"{val:.0%}", ha="center", va="center", fontsize=7.5, color="#1F2937" if other else "white")
+            if val >= 0.12:          # a segment narrower than this cannot hold a readable label
+                ax.text(left[j] + val / 2, j, f"{val:.0%}", ha="center", va="center", fontsize=11, color=label_color)
         left += shown_share[col].values
     ax.set_xlim(0, 1)
     ax.xaxis.set_major_formatter(matplotlib.ticker.PercentFormatter(1.0))
     ax.invert_yaxis()
     ax.grid(False)
-    ax.legend(title=by, frameon=False, bbox_to_anchor=(1.01, 1), loc="upper left", fontsize=8, title_fontsize=8)
+    ax.legend(title=by, frameon=False, bbox_to_anchor=(0.5, -0.12), loc="upper center", ncol=min(len(shown_share.columns), 3))
     notes = [n for n in (f"{group}: top {len(rs)} of {len(rows_by_size)}" if rest_r else "", f"{by}: top {len(cs)} of {len(cols_by_size)}" if rest_c else "") if n]
     note = "showing " + "; ".join(notes) + "; the test uses all rows" if notes else ""
     if note:
         ax.set_xlabel(note, fontsize=9)
     sig = bool(p < 0.05)
-    _title(ax, f"The mix of {by} differs across {group}" if sig else f"The mix of {by} is similar across {group}")
+    _title(ax, f"{by} mix across {group}")
     text = (f"The mix of **{by}** {'differs' if sig else 'does not differ reliably'} across **{group}** (chi-square p{_pf(p)}, Cramér's V={v:.2f}, n={len(d):,}). "
             f"Biggest departure from the overall mix: **{big_g}** has {abs(big_diff):.0%} {'more' if big_diff > 0 else 'less'} {big_b} than average."
             + (f" The chart shows {'; '.join(notes)}, with the rest pooled as Other; the test uses every row." if notes else ""))
@@ -1009,7 +1023,7 @@ def composition(df, ctx, group, by):
                    {"p": _f(p), "effect": _f(v), "effect_name": "cramers_v", "n": int(len(d)), "min_group_n": int(ct.sum(axis=1).min()),
                     "group": group, "by": by, "biggest": [str(big_g), str(big_b), _f(big_diff)],
                     "shown_rows": [str(r) for r in rs], "shown_cols": [str(c) for c in cs], "total_rows": len(rows_by_size), "total_cols": len(cols_by_size)},
-                   _save(fig, ctx, _slug("comp", group, by)), significant=sig,
+                   _save(fig, ctx, _slug("comp", group, by), compact=True), significant=sig,
                    action=(f"The {by} mix depends on {group}; tailor offers or channels by {group} rather than using one approach for all." if sig and v >= 0.2 else None))
 
 
@@ -1106,7 +1120,7 @@ def seasonality(df, ctx, target, date):
     sig = bool(r["p"] < 0.05)
     m = r["means"]
     hi, lo = r["labels"][int(m.idxmax()) - (1 if name == "month" else 0)], r["labels"][int(m.idxmin()) - (1 if name == "month" else 0)]
-    fig.suptitle((f"{target} peaks on {hi} and is lowest on {lo}" if name == "weekday" else f"{target} peaks in {hi} and is lowest in {lo}") if sig else f"No reliable {name} pattern in {target}",
+    fig.suptitle(f"{target} by {'day of the week' if name == 'weekday' else 'month of the year'}",
                  fontsize=12, fontweight="bold", x=0.02, ha="left", y=1.04)
     pct = _pct_ratio(df, spec)
     fmt = (lambda v: f"{v:.0%}") if kind == "binary" else (lambda v: f"{v:.1%}") if pct else _fmt
@@ -1127,7 +1141,7 @@ def seasonality(df, ctx, target, date):
     action = (f"{target} follows a {name} pattern; plan staffing, stock or promotions around {hi} (high) and {lo} (low)." if sig and r["eta"] >= 0.01 else None)
     vals = {r["labels"][int(i) - (1 if name == "month" else 0)]: _f(v) for i, v in m.items()}
     return finding("seasonality", f"{target} by {unit}", text,
-                   {"p": _f(r["p"]), "effect": _f(r["eta"]), "effect_name": "eta_squared", "n": r["n"], "cycle": name, "cycles": {k: {"p": _f(v["p"]), "best": v["labels"][int(v["means"].idxmax()) - (1 if k == "month" else 0)], "worst": v["labels"][int(v["means"].idxmin()) - (1 if k == "month" else 0)]} for k, v in results.items()}, "best": hi, "worst": lo,
+                   {"p": _f(r["p"]), "effect": _f(r["eta"]), "effect_name": "eta_squared", "n": r["n"], "cycle": name, "cycles": {k: {"p": _f(v["p"]), "effect": _f(v["eta"]), "best": v["labels"][int(v["means"].idxmax()) - (1 if k == "month" else 0)], "worst": v["labels"][int(v["means"].idxmin()) - (1 if k == "month" else 0)]} for k, v in results.items()}, "best": hi, "worst": lo,
                     "values": vals, "min_group_n": r["min_n"], "kind": kind, "basis": "period totals" if total else "ratio of sums" if spec is not None else "row averages"},
                    _save(fig, ctx, _slug("seas", target, date)), significant=sig, action=action)
 
@@ -1195,29 +1209,38 @@ def spec_signature(spec: dict) -> str:
     return json.dumps([spec.get("tool"), sorted((spec.get("params") or {}).items())], default=str)
 
 
+# the column roles each analysis parameter accepts, and the distinct-value range of a group column; the planner prompt and its candidate lists use the same table
+PARAM_ROLES = {
+    "distribution": {"col": {"numeric"}}, "outliers": {"col": {"numeric"}},
+    "category_share": {"col": {"categorical", "binary"}},
+    "group_compare": {"target": {"numeric", "binary"}, "group": {"categorical", "binary"}},
+    "outcome_compare": {"target": {"binary"}, "col": {"numeric"}},
+    "robust_compare": {"target": {"numeric"}, "group": {"categorical", "binary"}},
+    "pareto": {"target": {"numeric"}, "group": {"categorical", "binary"}},
+    "trend": {"target": {"numeric", "binary"}, "date": {"date"}},
+    "correlation": {},
+    "heatmap": {"target": {"numeric", "binary"}, "group_a": {"categorical", "binary"}, "group_b": {"categorical", "binary"}},
+    "segment_trend": {"target": {"numeric", "binary"}, "date": {"date"}, "group": {"categorical", "binary"}},
+    "scatter": {"x": {"numeric"}, "y": {"numeric"}},
+    "composition": {"group": {"categorical", "binary"}, "by": {"categorical", "binary"}},
+    "seasonality": {"target": {"numeric", "binary"}, "date": {"date"}},
+    "summary_table": {},
+    "group_table": {"target": {"numeric", "binary"}, "group": {"categorical", "binary"}},
+}
+GROUP_MIN, GROUP_MAX = 2, 30
+
+
+def is_group_param(k: str) -> bool:
+    return k.startswith("group") or k == "by"
+
+
 def validate_spec(spec: dict, roles: dict[str, str], uniques: dict[str, int]) -> tuple[dict | None, str]:
     """Reject anything an LLM may have hallucinated: unknown tools, unknown columns, wrong column types."""
     tool = spec.get("tool")
     params = spec.get("params") or {}
     if tool not in REGISTRY:
         return None, f"unknown tool '{tool}'"
-    need = {
-        "distribution": {"col": {"numeric"}}, "outliers": {"col": {"numeric"}},
-        "category_share": {"col": {"categorical", "binary"}},
-        "group_compare": {"target": {"numeric", "binary"}, "group": {"categorical", "binary"}},
-        "outcome_compare": {"target": {"binary"}, "col": {"numeric"}},
-        "robust_compare": {"target": {"numeric"}, "group": {"categorical", "binary"}},
-        "pareto": {"target": {"numeric"}, "group": {"categorical", "binary"}},
-        "trend": {"target": {"numeric", "binary"}, "date": {"date"}},
-        "correlation": {},
-        "heatmap": {"target": {"numeric", "binary"}, "group_a": {"categorical", "binary"}, "group_b": {"categorical", "binary"}},
-        "segment_trend": {"target": {"numeric", "binary"}, "date": {"date"}, "group": {"categorical", "binary"}},
-        "scatter": {"x": {"numeric"}, "y": {"numeric"}},
-        "composition": {"group": {"categorical", "binary"}, "by": {"categorical", "binary"}},
-        "seasonality": {"target": {"numeric", "binary"}, "date": {"date"}},
-        "summary_table": {},
-        "group_table": {"target": {"numeric", "binary"}, "group": {"categorical", "binary"}},
-    }[tool]
+    need = PARAM_ROLES[tool]
     clean = {}
     for k, allowed in need.items():
         col = params.get(k)
@@ -1225,8 +1248,8 @@ def validate_spec(spec: dict, roles: dict[str, str], uniques: dict[str, int]) ->
             return None, f"{tool}: column '{col}' does not exist"
         if roles[col] not in allowed:
             return None, f"{tool}: column '{col}' has role '{roles[col]}', expected {sorted(allowed)}"
-        if (k.startswith("group") or k == "by") and not (2 <= uniques.get(col, 0) <= 30):
-            return None, f"{tool}: group column '{col}' has {uniques.get(col)} distinct values (need 2-30)"
+        if is_group_param(k) and not (GROUP_MIN <= uniques.get(col, 0) <= GROUP_MAX):
+            return None, f"{tool}: group column '{col}' has {uniques.get(col)} distinct values (need {GROUP_MIN}-{GROUP_MAX})"
         clean[k] = col
     if tool == "heatmap" and clean["group_a"] == clean["group_b"]:
         return None, "heatmap: group_a and group_b must be different columns"
