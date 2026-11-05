@@ -19,6 +19,17 @@ from tests.test_lens import FakeAI
 
 client = TestClient(app)
 
+# The ids come from the recorded sample, never typed in, so re-recording it cannot break these tests.
+_SAMPLE = json.loads((DEMO_DIR / "result.json").read_text(encoding="utf-8"))
+_ITEMS = ve.catalogue(_SAMPLE)["items"]
+F = next(c["id"] for c in _SAMPLE["report_view"]["evidence"] if c.get("chart") and f"insights:chart:{c['id']}" in _ITEMS)   # a finding with a card and a comparison chart
+_HEAD = next(c["headline"] for c in _SAMPLE["report_view"]["evidence"] if c["id"] == F)
+CARD, CHART = f"insights:card:{F}", f"insights:chart:{F}"
+_DASH = {k.split(":")[-1]: v for k, v in _ITEMS.items() if k.startswith("dashboard:chart:")}
+TREND = next(i for i, v in _DASH.items() if "/trend_" in str(v.get("chart")))       # a chart over time
+DIST = next(i for i, v in _DASH.items() if "/dist_" in str(v.get("chart")))         # a distribution
+STRAT = next(k for k in _ITEMS if k.startswith("strategy:s"))
+
 
 @pytest.fixture
 def run(monkeypatch):
@@ -65,7 +76,7 @@ def ask(run, text, ai=None, **kw):
 # ------------------------------------------------------------------ hide and restore: by hand and by chat give the same state
 def test_hide_and_restore_by_hand_and_by_chat_give_the_same_state(run):
     rid, wd, res = run
-    item = "insights:card:f4"
+    item = CARD
     hand = post(rid, command={"cmd": "hide", "id": item}).json()
     assert item in hand["resolved"]["hidden"] and item in hand["resolved"]["tabs"]["insights"]["hidden"]
     hand_state = core(hand["state"])
@@ -82,11 +93,11 @@ def test_hide_and_restore_by_hand_and_by_chat_give_the_same_state(run):
 
 def test_ai_returns_commands_from_the_closed_list_and_code_applies_them(run):
     rid, wd, res = run
-    ai = FakeAI({"action": "view", "commands": [{"cmd": "hide", "id": "insights:chart:f4"}, {"cmd": "pin", "id": "insights:card:f4"}]})
+    ai = FakeAI({"action": "view", "commands": [{"cmd": "hide", "id": CHART}, {"cmd": "pin", "id": CARD}]})
     t = ask(run, "please get the picture off the main finding and keep that finding at the top", ai)
     assert ai.calls == 1 and t["answer"]["kind"] == "view" and t["answer"]["view"]["changed"]
     st = ve.normalise(store.get_view_state(wd))
-    assert st["hidden"] == ["insights:chart:f4"] and st["pinned"] == ["insights:card:f4"]
+    assert st["hidden"] == [CHART] and st["pinned"] == [CARD]
 
 
 def test_invalid_ids_and_commands_are_refused_with_a_friendly_message(run):
@@ -96,7 +107,7 @@ def test_invalid_ids_and_commands_are_refused_with_a_friendly_message(run):
     r = post(rid, command={"cmd": "explode", "id": "x"})
     assert r.status_code == 422 and "not a change to the view" in r.json()["detail"]
     assert post(rid, command={"cmd": "top_n", "tab": "insights", "n": 0.5}).status_code == 422
-    assert post(rid, command={"cmd": "move", "id": "insights:card:f4", "dir": "up"}).status_code == 422       # only sections move
+    assert post(rid, command={"cmd": "move", "id": CARD, "dir": "up"}).status_code == 422       # only sections move
     ai = FakeAI({"action": "view", "commands": [{"cmd": "hide", "id": "made:up:id"}]})
     t = ask(run, "tidy things so that only the stuff i need stays, thanks", ai)
     assert t["answer"]["label"] == "Not changed" and "can't find" in t["answer"]["text"] and not t["answer"]["view"]["changed"]
@@ -109,26 +120,26 @@ def test_invalid_ids_and_commands_are_refused_with_a_friendly_message(run):
 # ------------------------------------------------------------------ undo, reset, idempotence
 def test_undo_and_reset_restore_the_original(run):
     rid, wd, res = run
-    post(rid, command={"cmd": "hide", "id": "insights:card:f4"})
-    post(rid, commands=[{"cmd": "set_mode", "tab": "insights", "mode": "short"}, {"cmd": "rename", "id": "insights:card:f4", "title": "My own title"}])
+    post(rid, command={"cmd": "hide", "id": CARD})
+    post(rid, commands=[{"cmd": "set_mode", "tab": "insights", "mode": "short"}, {"cmd": "rename", "id": CARD, "title": "My own title"}])
     assert not view(rid)["resolved"]["original"] and view(rid)["resolved"]["tabs"]["insights"]["short"] is True
     u = post(rid, command={"cmd": "undo"}).json()                       # the two commands were ONE step
-    assert u["resolved"]["tabs"]["insights"]["short"] is False           # Insights opens in the full view; the hide is still there: u["state"]["hidden"] == ["insights:card:f4"] and "My own title" not in json.dumps(u["state"]["titles"])
+    assert u["resolved"]["tabs"]["insights"]["short"] is False           # Insights opens in the full view; the hide is still there: u["state"]["hidden"] == [CARD] and "My own title" not in json.dumps(u["state"]["titles"])
     post(rid, command={"cmd": "undo"})
     assert view(rid)["resolved"]["original"] and core(view(rid)["state"]) == core(ve.empty())
     assert post(rid, command={"cmd": "undo"}).status_code == 422          # nothing left to undo
-    post(rid, commands=[{"cmd": "hide", "id": "insights:card:f4"}, {"cmd": "pin", "id": "strategy:s1"}, {"cmd": "move", "id": "report:actions", "dir": "up"}])
+    post(rid, commands=[{"cmd": "hide", "id": CARD}, {"cmd": "pin", "id": STRAT}, {"cmd": "move", "id": "report:actions", "dir": "up"}])
     r = post(rid, command={"cmd": "reset"}).json()
     assert r["resolved"]["original"] and r["resolved"]["hidden"] == []
-    assert post(rid, command={"cmd": "undo"}).json()["state"]["hidden"] == ["insights:card:f4"]       # even Reset can be undone
+    assert post(rid, command={"cmd": "undo"}).json()["state"]["hidden"] == [CARD]       # even Reset can be undone
 
 
 def test_every_command_is_idempotent(run):
     rid, wd, res = run
     cat = ve.catalogue(res)
-    for cmd in ({"cmd": "hide", "id": "insights:card:f4"}, {"cmd": "set_mode", "tab": "insights", "mode": "short"}, {"cmd": "top_n", "tab": "dashboard", "n": 3},
-                {"cmd": "only_supporting", "tab": "report", "on": True}, {"cmd": "pin", "id": "strategy:s1"}, {"cmd": "rename", "id": "strategy:s1", "title": "Mine"},
-                {"cmd": "chart", "id": "insights:chart:f4", "chart": "table"}, {"cmd": "move", "id": "report:actions", "dir": "up"}):
+    for cmd in ({"cmd": "hide", "id": CARD}, {"cmd": "set_mode", "tab": "insights", "mode": "short"}, {"cmd": "top_n", "tab": "dashboard", "n": 3},
+                {"cmd": "only_supporting", "tab": "report", "on": True}, {"cmd": "pin", "id": STRAT}, {"cmd": "rename", "id": STRAT, "title": "Mine"},
+                {"cmd": "chart", "id": CHART, "chart": "table"}, {"cmd": "move", "id": "report:actions", "dir": "up"}):
         once, _ = ve.apply(res, ve.empty(), cmd, cat)
         twice, msg = ve.apply(res, once, cmd, cat)
         if cmd["cmd"] == "move":                  # a second move goes one further: not a repeat of the same state, but never an error
@@ -142,16 +153,16 @@ def test_hidden_items_stay_in_the_saved_run_and_no_figure_changes(run):
     rid, wd, res = run
     before = digest(wd)
     cat_before = ve.catalogue(res)
-    post(rid, commands=[{"cmd": "hide", "id": "insights:card:f4"}, {"cmd": "hide", "id": "report:evidence"}, {"cmd": "set_mode", "tab": "dashboard", "mode": "short"},
-                        {"cmd": "rename", "id": "insights:card:f4", "title": "A renamed card"}, {"cmd": "chart", "id": "insights:chart:f4", "chart": "table", "n": 3}])
+    post(rid, commands=[{"cmd": "hide", "id": CARD}, {"cmd": "hide", "id": "report:evidence"}, {"cmd": "set_mode", "tab": "dashboard", "mode": "short"},
+                        {"cmd": "rename", "id": CARD, "title": "A renamed card"}, {"cmd": "chart", "id": CHART, "chart": "table", "n": 3}])
     ask(run, "show only the top 2", None)
     assert digest(wd) == before                                            # result.json and report.md are byte-for-byte the same
     res2 = json.loads((wd / "result.json").read_text(encoding="utf-8"))
-    assert ve.catalogue(res2) == cat_before and "insights:card:f4" in ve.catalogue(res2)["items"]       # hidden items are still in the saved run
-    card = next(c for c in res2["report_view"]["evidence"] if c["id"] == "f4")
-    assert card["headline"].startswith("Segment = Enterprise averages 3.2")        # the original sentence and figure
-    assert ve.resolve(res2, store.get_view_state(wd))["titles"]["insights:card:f4"] == "A renamed card"      # the user's own text, shown separately
-    assert "insights:card:f4" in view(rid)["resolved"]["hidden"]
+    assert ve.catalogue(res2) == cat_before and CARD in ve.catalogue(res2)["items"]       # hidden items are still in the saved run
+    card = next(c for c in res2["report_view"]["evidence"] if c["id"] == F)
+    assert card["headline"] == _HEAD        # the original sentence and figure
+    assert ve.resolve(res2, store.get_view_state(wd))["titles"][CARD] == "A renamed card"      # the user's own text, shown separately
+    assert CARD in view(rid)["resolved"]["hidden"]
     assert (wd / "lens.json").exists() and "view_edits" in json.loads((wd / "lens.json").read_text())          # saved with the run: a reload brings it back
     assert core(view(rid)["state"]) == core(store.get_view_state(wd))
 
@@ -208,7 +219,7 @@ def test_top_n_pin_and_section_order(run):
     rid, wd, res = run
     post(rid, command={"cmd": "top_n", "tab": "insights", "n": 2})
     r = view(rid)["resolved"]["tabs"]["insights"]
-    assert [i for i in r["folded"] if i.startswith("insights:card:")][:1] and "insights:card:f4" not in r["folded"] or True
+    assert [i for i in r["folded"] if i.startswith("insights:card:")][:1] and CARD not in r["folded"] or True
     ev = [f"insights:card:{c['id']}" for c in res["report_view"]["evidence"]]
     assert set(ev[2:]) <= set(r["folded"]) and not set(ev[:2]) & set(r["folded"])
     post(rid, command={"cmd": "pin", "id": ev[6]})
@@ -217,18 +228,18 @@ def test_top_n_pin_and_section_order(run):
     order = view(rid)["resolved"]["tabs"]["report"]["order"]
     assert order.index("report:actions") < order.index("report:numbers")
     assert "already" in post(rid, command={"cmd": "move", "id": "report:short", "dir": "up"}).json()["message"]
-    t = post(rid, command={"cmd": "rename", "id": "strategy:s1", "title": "My best idea"}).json()
-    assert t["resolved"]["titles"]["strategy:s1"] == "My best idea" and "Edited by you" in t["message"]
-    assert post(rid, command={"cmd": "rename", "id": "strategy:s1", "title": "<b>x</b>"}).status_code == 422
+    t = post(rid, command={"cmd": "rename", "id": STRAT, "title": "My best idea"}).json()
+    assert t["resolved"]["titles"][STRAT] == "My best idea" and "Edited by you" in t["message"]
+    assert post(rid, command={"cmd": "rename", "id": STRAT, "title": "<b>x</b>"}).status_code == 422
 
 
 def test_a_chart_can_be_redrawn_by_type_grain_and_top_n(run):
     rid, wd, res = run
-    r = post(rid, command={"cmd": "chart", "id": "insights:chart:f4", "chart": "table", "n": 2})
-    assert r.status_code == 200 and "insights:chart:f4" in r.json()["redrawn"] or r.json()["resolved"]["chart"]
-    assert post(rid, command={"cmd": "chart", "id": "insights:chart:f4", "grain": "month"}).status_code == 422       # not a chart over time
-    assert post(rid, command={"cmd": "chart", "id": "dashboard:chart:f1", "grain": "quarter"}).status_code == 200
-    assert post(rid, command={"cmd": "chart", "id": "dashboard:chart:f3", "chart": "line"}).status_code == 422        # a distribution has one sensible picture
+    r = post(rid, command={"cmd": "chart", "id": CHART, "chart": "table", "n": 2})
+    assert r.status_code == 200 and CHART in r.json()["redrawn"] or r.json()["resolved"]["chart"]
+    assert post(rid, command={"cmd": "chart", "id": CHART, "grain": "month"}).status_code == 422       # not a chart over time
+    assert post(rid, command={"cmd": "chart", "id": f"dashboard:chart:{TREND}", "grain": "quarter"}).status_code == 200
+    assert post(rid, command={"cmd": "chart", "id": f"dashboard:chart:{DIST}", "chart": "line"}).status_code == 422        # a distribution has one sensible picture
 
 
 # ------------------------------------------------------------------ the chips, the sample run, "Ask Lens about this"
@@ -244,26 +255,26 @@ def test_chips_work_without_any_ai(run):
 
 def test_the_sample_run_keeps_its_edits_in_the_browser_not_on_the_server():
     demo = client.post("/api/demo").json()["run_id"]       # the sample run is copied into the runs folder when it is first opened
-    r = client.post(f"/api/runs/{demo}/view", json={"command": {"cmd": "hide", "id": "insights:card:f4"}, "state": {}}).json()
-    assert r["state"]["hidden"] == ["insights:card:f4"] and r["local"] is True
+    r = client.post(f"/api/runs/{demo}/view", json={"command": {"cmd": "hide", "id": CARD}, "state": {}}).json()
+    assert r["state"]["hidden"] == [CARD] and r["local"] is True
     assert client.get(f"/api/runs/{demo}/view").json()["state"]["hidden"] == []              # nothing was saved for the next visitor
     t = chat.ask(DEMO_DIR if False else runner.run_dir(demo), json.loads((runner.run_dir(demo) / "result.json").read_text()), question="show the short view of the insights", llm=None, allow_ai=False, view_state=r["state"])
-    assert t["answer"]["view"]["state"]["short"] == {"insights": True} and t["answer"]["view"]["state"]["hidden"] == ["insights:card:f4"]
+    assert t["answer"]["view"]["state"]["short"] == {"insights": True} and t["answer"]["view"]["state"]["hidden"] == [CARD]
 
 
 def test_focus_passes_the_items_context_and_can_be_removed(run):
     rid, wd, res = run
     ai = FakeAI({"action": "general", "answer": "A short general answer."})
-    t = ask(run, "why does this matter so much", ai, focus={"id": "insights:card:f4"})
-    assert "FOCUS ITEM" in ai.prompts[0] and "averages 3.2" in ai.prompts[0] and "Why it matters" in ai.prompts[0]      # the item's own words reach the AI
-    assert t["answer"]["focus"] == {"id": "insights:card:f4", "title": ve.catalogue(res)["items"]["insights:card:f4"]["title"]}
+    t = ask(run, "why does this matter so much", ai, focus={"id": CARD})
+    assert "FOCUS ITEM" in ai.prompts[0] and ve.item_context(res, CARD)["title"] in ai.prompts[0] and "Why it matters" in ai.prompts[0]      # the item's own words reach the AI
+    assert t["answer"]["focus"] == {"id": CARD, "title": ve.catalogue(res)["items"][CARD]["title"]}
     ai2 = FakeAI({"action": "general", "answer": "A short general answer."})
     t2 = ask(run, "why does this matter so much", ai2)                                                 # the chip was removed: no focus is sent
     assert "FOCUS ITEM" not in ai2.prompts[0] and "focus" not in t2["answer"]
     assert viewed_none(ve.item_context(res, "insights:card:missing"))
     # without AI the item's own saved words are quoted
-    t3 = ask(run, "what is going on here?", None, focus={"id": "strategy:s1"})["answer"]
-    assert t3["kind"] == "app" and "Put more behind what works" in t3["text"] and t3["ai_calls"] == 0
+    t3 = ask(run, "what is going on here?", None, focus={"id": STRAT})["answer"]
+    assert t3["kind"] == "app" and _ITEMS[STRAT]["title"] in t3["text"] and t3["ai_calls"] == 0
     bad = ask(run, "what is going on here?", None, focus={"id": "strategy:zzz"})["answer"]
     assert "focus" not in bad                                                                           # an unknown item id is ignored, never invented
 

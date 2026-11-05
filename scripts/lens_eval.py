@@ -132,12 +132,16 @@ class Scripted:
         return Msg()
 
 
+# The requests were written against one recorded run and name its columns, so they replay on a frozen copy of it
+# (tests/lens_eval/run), not on the shipped sample, which can be re-recorded without touching them.
+SOURCE_RUN = Path(__file__).resolve().parents[1] / "backend" / "tests" / "lens_eval" / "run"
+
+
 def fresh_run():
     from app import runner
-    from app.config import DEMO_DIR
     rid = uuid.uuid4().hex[:12]
     wd = runner.run_dir(rid)
-    shutil.copytree(DEMO_DIR, wd)
+    shutil.copytree(SOURCE_RUN, wd)
     res = json.loads((wd / "result.json").read_text(encoding="utf-8"))
     res["run_id"] = rid
     (wd / "result.json").write_text(json.dumps(res), encoding="utf-8")

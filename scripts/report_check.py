@@ -16,7 +16,7 @@ RUNS = ROOT / "backend" / "data" / "runs"
 ACTION_VERBS = {
     "add", "build", "check", "compare", "confirm", "cut", "decide", "diagnose", "discuss", "explain", "explore", "fix", "focus", "grow", "increase",
     "invest", "keep", "investigate", "lower", "match", "measure", "move", "plan", "prioritise", "prioritize", "promote", "protect", "put", "raise",
-    "reduce", "remove", "review", "reverse", "set", "shift", "stop", "start", "test", "try", "use", "verify", "ask", "find", "make", "run",
+    "launch", "target", "offer", "introduce", "reduce", "remove", "review", "reverse", "set", "shift", "stop", "start", "test", "try", "use", "verify", "ask", "find", "make", "run",
 }
 CLAIM_WORDS = r"(?:highest|biggest|largest|top)"
 INVEST_WORDS = re.compile(r"\b(invest\w*|spend\w*|budget|allocate|put more|more behind|scale up)\b", re.I)
