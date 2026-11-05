@@ -12,6 +12,13 @@ def test_dockerfile_uses_an_entrypoint_that_drops_privileges():
     assert any(l.startswith("COPY docker-entrypoint.sh") for l in lines)
 
 
+def test_dockerfile_has_no_volume_line_and_defaults_data_dir():
+    d = (ROOT / "Dockerfile").read_text(encoding="utf-8")
+    lines = [l.strip() for l in d.splitlines() if not l.strip().startswith("#")]
+    assert not any(l.startswith("VOLUME") for l in lines), "Railway rejects VOLUME"
+    assert "DATA_DIR=/data" in d
+
+
 def test_entrypoint_fixes_the_volume_then_runs_as_app():
     e = (ROOT / "docker-entrypoint.sh").read_text(encoding="utf-8")
     assert "\r" not in e, "must use LF line endings to run in Linux"

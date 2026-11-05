@@ -67,7 +67,7 @@ Secrets are the access code and the provider key: set them in the host's secret 
 
 ## 4. The volume
 
-Mount a persistent disk at **`/data`**. Runs, uploaded files, the glossary, the AI cache and the daily counts are all under it. Without a volume they are lost whenever the container is replaced. Back it up by copying the folder while the app is idle; to wipe a site, stop the container and empty the volume.
+Mount a persistent disk at **`/data`**. Runs, uploaded files, the glossary, the AI cache and the daily counts are all under it. Without a volume they are lost whenever the container is replaced. The Dockerfile has **no `VOLUME` line** (Railway rejects it); `DATA_DIR=/data` is the default and the entrypoint makes `/data` writable at start. With `docker-compose.yml` the volume is declared for you. **On Railway, add the volume in the dashboard (service → Volumes) with the mount path `/data`.** Back it up by copying the folder while the app is idle; to wipe a site, stop the container and empty the volume.
 
 ## 5. Health check
 

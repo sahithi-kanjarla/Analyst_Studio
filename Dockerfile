@@ -24,10 +24,10 @@ COPY backend/app backend/app
 COPY sample_data sample_data
 COPY --from=frontend /app/frontend/dist frontend/dist
 ARG APP_VERSION=1.0.0
-# One folder holds everything the app writes (runs and uploads, the glossary, the AI cache, the daily counts): mount a volume on /data so it survives a restart or a new image
+# One folder holds everything the app writes (runs and uploads, the glossary, the AI cache, the daily counts): attach a volume at /data so it survives a restart or a new image
 ENV APP_VERSION=$APP_VERSION APP_ENV=production DATA_DIR=/data PORT=8000
 RUN useradd --create-home --uid 10001 app && mkdir -p /data && chown -R app:app /data
-VOLUME ["/data"]
+# no VOLUME line on purpose: Railway rejects it (volumes are added in its dashboard); docker-compose.yml declares the volume
 # no USER line on purpose: the entrypoint fixes the volume's owner as root, then drops to the "app" user (uid 10001) before the app starts
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 WORKDIR /app/backend
