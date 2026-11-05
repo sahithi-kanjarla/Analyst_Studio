@@ -26,3 +26,13 @@ scripts/*_out.txt
 scripts/final_full_suite.txt
 backend/full_suite*.txt
 sample_data/demo/_new_run/
+
+# generated output and local test results
+full_suite*.txt
+new_tools_rerun.txt
+scorecard_output.txt
+scripts/*_result.txt
+scripts/*_out*.txt
+*.bak
+*.tmp
+.pytest_cache/

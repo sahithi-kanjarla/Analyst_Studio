@@ -1,0 +1,29 @@
+name: backend tests
+on:
+  push:
+    branches: [studio-v3, backup-cleaned]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        chunk: [0, 1, 2, 3]   # the suite is split by file, so no job runs all of it
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: backend/requirements*.txt
+      - name: Install
+        working-directory: backend
+        run: pip install -r requirements.txt -r requirements-dev.txt -c constraints.txt
+      - name: Run this chunk (fake AI only, no network, no key)
+        working-directory: backend
+        run: |
+          files=$(ls tests/test_*.py | sort | awk -v c=${{ matrix.chunk }} 'NR % 4 == c')
+          python -m pytest $files -q -p no:cacheprovider

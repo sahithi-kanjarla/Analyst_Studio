@@ -1,7 +1,0 @@
-request                                       before   after   system_te  data_card  fact_shee  item_list    history      other
-total revenue by segment                        5336    2591   3818>1867   241>242    721>179    232>98      10>11     314>193 
-what is the median revenue in each region       5341    2724   3819>2012   241>242    721>125    232>136     10>12     319>198 
-and now only for 2025                           5433    2574   3818>2060   241>26     721>179    232>32     107>109    313>167 
-make the insights tab shorter with only need    5761    3336   3818>2138   241>26     722>309    649>650     10>12     322>201 
-what does this tab show                         5753    2240   3818>1491   241>26     722>398    649>145     10>11     314>168 
-average per request                             5524    2693   (cut 51%)
